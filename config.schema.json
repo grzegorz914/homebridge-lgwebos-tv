@@ -1,0 +1,64 @@
+{
+  "pluginAlias": "LgWebOsTv",
+  "pluginType": "platform",
+  "footerDisplay": "This plugin works with LG WebOS TV which is available [here](https://github.com/grzegorz914/homebridge-lgwebos-tv).",
+  "schema": {
+    "type": "object",
+    "properties": {
+      "devices": {
+        "title": "Devices",
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "title": "Name",
+              "type": "string",
+              "default": "LG TV",
+              "required": true
+            },
+            "host": {
+              "title": "IP Address",
+              "type": "string",
+              "required": true,
+              "format": "hostname"
+            },
+            "mac": {
+              "title": "Adress Mac",
+              "type": "string",
+              "default": "ab:cd:ef:fe:dc:ba",
+              "required": true
+            },
+            "switchInfoMenu": {
+              "title": "Switch Info/Menu",
+              "type": "boolean",
+              "default": true,
+              "required": true
+            },
+            "inputs": {
+              "title": "Inputs",
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "title": "Input name",
+                    "type": "string",
+                    "default": "HDMI 1",
+                    "required": true
+                  },
+                  "reference": {
+                    "title": "Input reference",
+                    "type": "string",
+                    "default": "com.webos.app.hdmi1",
+                    "required": true
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

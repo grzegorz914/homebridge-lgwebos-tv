@@ -1,0 +1,41 @@
+{
+  "name": "homebridge-lgwebos-tv",
+  "version": "0.0.1",
+  "description": "Plugin for Homebridge (https://github.com/nfarina/homebridge) to controll LG Web OS TV.",
+  "license": "MIT",
+  "author": "grzegorz914",
+  "homepage": "https://github.com/grzegorz914/homebridge-lgwebos-tv#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/grzegorz914/homebridge-lgwebos-tv.git"
+  },
+  "bugs": {
+    "url": "https://github.com/grzegorz914/homebridge-lgwebos-tv/issues"
+  },
+  "main": "index.js",
+  "engines": {
+    "node": ">=10.0.0",
+    "homebridge": ">=0.4.50",
+    "hap-nodejs": ">=0.4.13"
+  },
+  "dependencies": {
+    "request": ">=2.88",
+    "mkdirp": ">=0.5.1",
+    "persist-path": ">=1.0.2",
+    "lgtv2": "^1.4.1",
+    "wake_on_lan": "^0.0.4",
+    "tcp-ping": "^0.1.1"
+  },
+  "keywords": [
+    "homebridge",
+    "homebridge-plugin",
+    "HomeKit",
+    "homebridge-lgwebos-tv",
+    "LgWebOsTv"
+  ],
+  "contributors": [],
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}
