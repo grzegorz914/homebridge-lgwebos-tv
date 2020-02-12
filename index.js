@@ -99,14 +99,21 @@ class lgwebosTvDevice {
 		//Check net state
 		setInterval(function () {
 			var me = this;
-			tcpp.probe(me.host, me.port, (error, isAlive) => {
-				if (!isAlive && me.connectionStatus) {
+			tcpp.probe(me.host, 80, (error, state) => {
+				if (!state) {
 					me.log('Device: %s, state: Offline.', me.host);
 					me.connectionStatus = false;
-					callback(null, false);
-				} else if (isAlive && !me.connectionStatus) {
-					me.log('Device: %s, state: Online.', me.host);
-					me.lgtv.connect(me.url);
+				} else {
+					if (me.connectionStatus) {
+						me.log('Device: %s, state: Offline.', me.host);
+						me.connectionStatus = false;
+						me.lgtv.connect(me.url);
+					} else {
+						(!me.connectionStatus) {
+							me.log('Device: %s, state: Online.', me.host);
+							me.connectionStatus = true;
+						}
+					}
 				}
 			});
 		}.bind(this), 5000);
