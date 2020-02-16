@@ -1,6 +1,6 @@
 {
   "name": "homebridge-lgwebos-tv",
-  "version": "0.0.9",
+  "version": "0.2.1-Beta11",
   "description": "Plugin for Homebridge (https://github.com/nfarina/homebridge) to controll LG Web OS TV.",
   "license": "MIT",
   "author": "grzegorz914",
@@ -23,7 +23,7 @@
     "mkdirp": ">=0.5.1",
     "persist-path": ">=1.0.2",
     "lgtv2": "^1.4.1",
-    "wake_on_lan": "^0.0.4",
+    "wol": "^1.0.7",
     "tcp-ping": "^0.1.1"
   },
   "keywords": [
