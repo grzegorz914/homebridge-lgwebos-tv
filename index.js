@@ -439,7 +439,7 @@ class lgwebosTvDevice {
 	getPowerState(callback) {
 		var me = this;
 		if (me.connectionStatus) {
-			callback(null, this.connectionStatus);
+			callback(null, me.connectionStatus);
 		} else {
 			me.log('Device: %s, get current Power state failed, not connected to network.', me.host);
 			callback(null, false);
@@ -474,7 +474,7 @@ class lgwebosTvDevice {
 	getMute(callback) {
 		var me = this;
 		if (me.connectionStatus) {
-			callback(null, this.currentMuteState);
+			callback(null, me.currentMuteState);
 		} else {
 			me.log('Device: %s, get current Mute state failed, not connected to network.', me.host);
 			callback(null, false);
@@ -496,7 +496,7 @@ class lgwebosTvDevice {
 	getVolume(callback) {
 		var me = this;
 		if (me.connectionStatus) {
-			callback(null, this.currentVolume);
+			callback(null, me.currentVolume);
 		} else {
 			me.log('Device: %s, get current Volume level failed, not connected to network.', me.host);
 			callback(null, false);
@@ -518,7 +518,15 @@ class lgwebosTvDevice {
 	getInput(callback) {
 		var me = this;
 		if (me.connectionStatus) {
-			callback(null, this.currentAppReference);
+			let inputReference = me.currentAppReference;
+			for (let i = 0; i < me.inputReferences.length; i++) {
+				if (inputReference === me.inputReferences[i]) {
+					me.tvService
+						.getCharacteristic(Characteristic.ActiveIdentifier)
+						.updateValue(i);
+				}
+				callback(null, inputReference);
+			}
 		} else {
 			me.log('Device: %s, get current Input failed, not connected to network.', me.host);
 			callback(null, false);
@@ -540,7 +548,15 @@ class lgwebosTvDevice {
 	getChannel(callback) {
 		var me = this;
 		if (me.connectionStatus) {
-			callback(null, this.currentChannelReference);
+			let channelReference = me.currentChannelReference;
+			for (let i = 0; i < me.channelReferences.length; i++) {
+				if (channelReference === me.channelReferences[i]) {
+					me.tvService
+						.getCharacteristic(Characteristic.ActiveIdentifier)
+						.updateValue(i);
+				}
+				callback(null, channelReference);
+			}
 		} else {
 			me.log('Device: %s, get current Channel failed, not connected to network.', me.host);
 			callback(null, false);
