@@ -524,8 +524,8 @@ class lgwebosTvDevice {
 					me.tvService
 						.getCharacteristic(Characteristic.ActiveIdentifier)
 						.updateValue(i);
+					callback(null, inputReference);
 				}
-				callback(null, inputReference);
 			}
 		} else {
 			me.log('Device: %s, get current Input failed, not connected to network.', me.host);
@@ -554,8 +554,8 @@ class lgwebosTvDevice {
 					me.tvService
 						.getCharacteristic(Characteristic.ActiveIdentifier)
 						.updateValue(i);
+					callback(null, channelReference);
 				}
-				callback(null, channelReference);
 			}
 		} else {
 			me.log('Device: %s, get current Channel failed, not connected to network.', me.host);
