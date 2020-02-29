@@ -4,7 +4,7 @@ const mkdirp = require('mkdirp');
 const lgtv = require('lgtv2');
 const wol = require('wol');
 const tcpp = require('tcp-ping');
-const responseDelay = 2000;
+const responseDelay = 1500;
 
 var Accessory, Service, Characteristic, hap, UUIDGen;
 
@@ -18,7 +18,7 @@ module.exports = homebridge => {
 	UUIDGen = homebridge.hap.uuid;
 	hap = homebridge.hap;
 
-	homebridge.registerPlatform('homebridge-lgwebos-tv', 'lgWebOsTv', lgwebosTvPlatform, true);
+	homebridge.registerPlatform('homebridge-lgwebos-tv', 'LgWebOsTv', lgwebosTvPlatform, true);
 };
 
 
@@ -65,28 +65,30 @@ class lgwebosTvDevice {
 		this.mac = device.mac;
 		this.switchInfoMenu = device.switchInfoMenu;
 		this.inputs = device.inputs;
-		this.broadcastAdr = '255.255.255.255';
 
 		//setup variables
-		this.connectionStatus = false;
 		this.inputReferences = new Array();
 		this.channelReferences = new Array();
+		this.connectionStatus = false;
 		this.currentPowerState = false;
 		this.currentMuteState = false;
 		this.currentVolume = 0;
-		this.currentAppReference = '';
+		this.currentInputReference = '';
 		this.currentChannelReference = '';
 		this.currentChannelName = '';
+		this.currentInfoMenuState = false;
+		this.isPaused = false;
 		this.prefDir = ppath('lgwebosTv/');
 		this.keyFile = this.prefDir + 'key_' + this.host.split('.').join('');
 		this.devSysInfoFile = this.prefDir + 'sysinfo_' + this.host.split('.').join('');
 		this.devSwInfoFile = this.prefDir + 'swinfo_' + this.host.split('.').join('');
 		this.inputsFile = this.prefDir + 'inputs_' + this.host.split('.').join('');
 		this.channelsFile = this.prefDir + 'channels_' + this.host.split('.').join('');
+		this.url = 'ws://' + this.host + ':' + this.port;
 
 		//get Device info
 		this.manufacturer = device.manufacturer || 'LG Electronics';
-		this.modelName = device.model || 'homebridge-lgwebos-tv';
+		this.modelName = device.modelName || 'homebridge-lgwebos-tv';
 		this.serialNumber = device.serialNumber || 'SN0000004';
 		this.firmwareRevision = device.firmwareRevision || 'FW0000004';
 
@@ -102,10 +104,18 @@ class lgwebosTvDevice {
 
 		//Check net state
 		setInterval(function () {
-			this.checkDeviceState();
+			var me = this;
+			tcpp.probe(me.host, me.port, (error, isAlive) => {
+				if (!isAlive && me.connectionStatus) {
+					me.log('Device: %s, name: %s, state: Offline', me.host, me.name);
+					me.connectionStatus = false;
+					me.disconnect();
+				} else if (isAlive && !me.connectionStatus) {
+					me.log('Device: %s, name: %s, state: Online.', me.host, me.name);
+					me.lgtv.connect(me.url);
+				}
+			});
 		}.bind(this), 5000);
-
-		this.url = 'ws://' + this.host + ':' + this.port;
 
 		this.lgtv = new lgtv({
 			url: this.url,
@@ -116,7 +126,6 @@ class lgwebosTvDevice {
 
 		this.lgtv.on('connect', () => {
 			this.log.debug('Device: %s, connected.', this.host);
-			this.connectionStatus = true;
 			this.connect();
 		});
 
@@ -142,12 +151,6 @@ class lgwebosTvDevice {
 
 		//Delay to wait for device info
 		setTimeout(this.prepereTvService.bind(this), responseDelay);
-
-		var deviceName = this.name + this.host;
-		var uuid = UUIDGen.generate(deviceName);
-		this.tvAccesory = new Accessory(deviceName, uuid, hap.Accessory.Categories.TV);
-		this.log.debug('Device: %s, publishExternalAccessories: %s', this.host, this.name);
-		this.api.publishExternalAccessories('homebridge-lgwebos-tv', [this.tvAccesory]);
 	}
 
 	connect() {
@@ -174,7 +177,6 @@ class lgwebosTvDevice {
 			me.log.info('Device: %s, get RC socket succesfull', me.host);
 		});
 	}
-
 	getDeviceInfo() {
 		var me = this;
 		setTimeout(() => {
@@ -232,7 +234,6 @@ class lgwebosTvDevice {
 					me.log.debug('Device: %s, get Service list successful: %s', me.host, JSON.stringify(data, null, 2));
 				}
 			});
-
 			setTimeout(() => {
 				me.log('-------- %s --------', me.name);
 				me.log('Manufacturer: %s', me.manufacturer);
@@ -241,9 +242,8 @@ class lgwebosTvDevice {
 				me.log('Serialnumber: %s', me.serialNumber);
 				me.log('Firmware: %s', me.firmwareRevision);
 				me.log('----------------------------------');
-			}, 300);
-
-		}, 350);
+			}, 250);
+		}, 250);
 	}
 
 	getDeviceState() {
@@ -252,12 +252,9 @@ class lgwebosTvDevice {
 			if (!data || error || data.length <= 0) {
 				me.log.error('Device: %s, get current Power state error: %s.', me.host, error);
 			} else {
-				me.currentPowerState = (((data.state == 'Active') || (data.processing == 'Active') || (data.powerOnReason == 'Active')) && (data.state != 'Active Standby'));
-				me.log.info('Device: %s, get current Power state successful: %s', me.host, me.currentPowerState ? 'ON' : 'STANDBY');
-				if (!me.currentPowerState) {
-					me.connectionStatus = false;
-					me.lgtv.disconnect();
-				}
+				var state = (((data.state == 'Active') || (data.processing == 'Active') || (data.powerOnReason == 'Active')) && (data.state != 'Active Standby'));
+				me.log.info('Device: %s, get current Power state successful: %s', me.host, state ? 'ON' : 'STANDBY');
+				me.currentPowerState = state;
 			}
 		});
 
@@ -265,8 +262,8 @@ class lgwebosTvDevice {
 			if (!data || error) {
 				me.log.error('Device: %s, get current App error: %s.', me.host, error);
 			} else {
-				me.currentAppReference = data.appId;
-				me.log('Device: %s, get current App reference successfull: %s', me.host, me.currentAppReference);
+				me.currentInputReference = data.appId;
+				me.log('Device: %s, get current App reference successfull: %s', me.host, me.currentInputReference);
 			}
 		});
 
@@ -289,7 +286,7 @@ class lgwebosTvDevice {
 			} else {
 				me.currentChannelReference = data.channelNumber;
 				me.currentChannelName = data.channelName;
-				me.log('Device: %s, get current Channel and Name successfull: %s, %s', me.host, me.currentChannelReference, me.currentChannelName);
+				me.log('Device: %s, get current Channel successfull: %s, %s', me.host, me.currentChannelReference, me.currentChannelName);
 
 			}
 		});
@@ -298,6 +295,8 @@ class lgwebosTvDevice {
 	//Prepare TV service 
 	prepereTvService() {
 		this.log.debug('prepereTvService');
+		this.tvAccesory = new Accessory(this.name, UUIDGen.generate(this.host + this.name));
+
 		this.tvService = new Service.Television(this.name, 'tvService');
 		this.tvService.setCharacteristic(Characteristic.ConfiguredName, this.name);
 		this.tvService.setCharacteristic(Characteristic.SleepDiscoveryMode, Characteristic.SleepDiscoveryMode.ALWAYS_DISCOVERABLE);
@@ -316,7 +315,7 @@ class lgwebosTvDevice {
 			.on('set', this.remoteKeyPress.bind(this));
 
 		this.tvService.getCharacteristic(Characteristic.PowerModeSelection)
-			.on('set', this.setPowerMode.bind(this));
+			.on('set', this.setPowerModeSelection.bind(this));
 
 
 		this.tvAccesory
@@ -329,6 +328,9 @@ class lgwebosTvDevice {
 		this.tvAccesory.addService(this.tvService);
 		this.prepereTvSpeakerService();
 		this.prepareInputServices();
+
+		this.log.debug('Device: %s, publishExternalAccessories: %s', this.host, this.name);
+		this.api.publishExternalAccessories('homebridge-lgwebos-tv', [this.tvAccesory]);
 	}
 
 	//Prepare speaker service
@@ -422,255 +424,208 @@ class lgwebosTvDevice {
 		});
 	}
 
-	checkDeviceState() {
-		var me = this;
-		tcpp.probe(me.host, me.port, (error, isAlive) => {
-			if (!isAlive && me.connectionStatus) {
-				me.log.info('Device: %s, name: %s, state: Offline.', me.host, me.name);
-				me.disconnect();
-				callback(null, false);
-			} else if (isAlive && !me.connectionStatus) {
-				me.log.info('Device: %s, name: %s, state: Online, start connecting...', me.host, me.name);
-				me.lgtv.connect(me.url);
-			}
-		});
-	}
-
 	getPowerState(callback) {
 		var me = this;
-		if (me.connectionStatus) {
-			callback(null, me.connectionStatus);
-		} else {
-			me.log('Device: %s, get current Power state failed, not connected to network.', me.host);
-			callback(null, false);
-		}
+		callback(null, me.currentPowerState);
 	}
 
 	setPowerState(state, callback) {
 		var me = this;
-		if (me.connectionStatus) {
-			if (state) {
+		if (me.currentPowerState == state) {
+                    callback(null, state);
+			return;
+		} else {
+			if (!me.currentPowerState) {
 				wol.wake(me.mac, (error) => {
 					if (error) {
 						me.log.debug('Device: %s, can not set new Power state. Might be due to a wrong settings in config, error: %s', me.host, error);
 					} else {
-						me.log('Device: %s, set new Power state successfull: %s', me.host, state ? 'ON' : 'STANDBY');
-						callback();
+						me.log('Device: %s, set new Power state successfull: ON', me.host);
+						me.currentPowerState = true;
 					}
 				});
 			} else {
-				me.lgtv.request('ssap://system/turnOff', (error, data) => {
-					me.log('Device: %s, set new Power state successfull: %s', me.host, state ? 'ON' : 'STANDBY');
+				this.lgtv.request('ssap://system/turnOff', (error, data) => {
+					me.log('Device: %s, set new Power state successfull: STANDBY', me.host);
+					me.currentPowerState = false;
 					me.disconnect();
-				})
+				});
 			}
 			callback();
-		} else {
-			me.log('Device: %s, get current Power state failed, not connected to network.', me.host);
-			callback(null, false);
 		}
 	}
 
 	getMute(callback) {
 		var me = this;
-		if (me.connectionStatus) {
-			callback(null, me.currentMuteState);
-		} else {
-			me.log('Device: %s, get current Mute state failed, not connected to network.', me.host);
-			callback(null, false);
-		}
+		callback(null, me.currentMuteState);
 	}
 
 	setMute(state, callback) {
 		var me = this;
-		if (me.connectionStatus) {
-			me.lgtv.request('ssap://audio/setMute', { mute: state });
-			me.log('Device: %s, set new Mute state successfull: %s', me.host, state ? 'ON' : 'OFF');
-			callback();
+		if (me.currentMuteState == state) {
+                    callback(null, state);
+			return;
 		} else {
-			me.log('Device: %s, set Mute failed, not connected to network.', me.host);
-			callback(null, false);
-		}
+               var newState = state;
+		this.lgtv.request('ssap://audio/setMute', { mute: newState });
+		me.log('Device: %s, set new Mute state successfull: %s', me.host, state ? 'ON' : 'OFF');
+		me.currentMuteState = state;
+		callback(null, state);
+           }
 	}
 
 	getVolume(callback) {
 		var me = this;
-		if (me.connectionStatus) {
-			callback(null, me.currentVolume);
-		} else {
-			me.log('Device: %s, get current Volume level failed, not connected to network.', me.host);
-			callback(null, false);
-		}
+		callback(null, me.currentVolume);
 	}
 
 	setVolume(volume, callback) {
 		var me = this;
-		if (me.connectionStatus) {
-			me.lgtv.request('ssap://audio/setVolume', { volume: volume });
-			me.log('Device: %s, set new Volume level successfull: %s', me.host, volume);
-			callback();
-		} else {
-			me.log('Device: %s, set new Volume level failed, not connected to network.', me.host);
-			callback(null, false);
-		}
+		this.lgtv.request('ssap://audio/setVolume', { volume: volume });
+		me.log('Device: %s, set new Volume level successfull: %s', me.host, volume);
+		callback(null, volume);
 	}
 
 	getInput(callback) {
 		var me = this;
-		if (me.connectionStatus) {
-			let inputReference = me.currentAppReference;
+		var inputReference = me.currentInputReference;
+		if (!me.currentPowerState) {
+			me.tvService
+				.getCharacteristic(Characteristic.ActiveIdentifier)
+				.updateValue(0);
+			callback(null, inputReference);
+		} else {
 			for (let i = 0; i < me.inputReferences.length; i++) {
 				if (inputReference === me.inputReferences[i]) {
 					me.tvService
 						.getCharacteristic(Characteristic.ActiveIdentifier)
 						.updateValue(i);
-					callback(null, inputReference);
 				}
 			}
-		} else {
-			me.log('Device: %s, get current Input failed, not connected to network.', me.host);
-			callback(null, false);
+			callback(null, inputReference);
 		}
 	}
 
-	setInput(inputReference, callback) {
+	setInput(callback, inputReference) {
 		var me = this;
-		if (me.connectionStatus) {
-			me.lgtv.request('ssap://system.launcher/launch', { id: inputReference });
+		if (inputReference !== me.currentInputReference) {
+			this.lgtv.request('ssap://system.launcher/launch', { id: inputReference });
 			me.log('Device: %s, set new Input successfull: %s', me.host, inputReference);
-			callback();
-		} else {
-			me.log('Device: %s, set new Input failed, not connected to network.', me.host);
-			callback(null, false);
+			callback(null, inputReference);
 		}
 	}
 
 	getChannel(callback) {
 		var me = this;
-		if (me.connectionStatus) {
-			let channelReference = me.currentChannelReference;
+		var channelReference = me.currentChannelReference;
+		if (me.currentPowerState == false) {
+			me.tvService
+				.getCharacteristic(Characteristic.ActiveIdentifier)
+				.updateValue(0);
+			callback(null, channelReference);
+		} else {
 			for (let i = 0; i < me.channelReferences.length; i++) {
 				if (channelReference === me.channelReferences[i]) {
 					me.tvService
 						.getCharacteristic(Characteristic.ActiveIdentifier)
 						.updateValue(i);
-					callback(null, channelReference);
 				}
 			}
-		} else {
-			me.log('Device: %s, get current Channel failed, not connected to network.', me.host);
-			callback(null, false);
+			callback(null, channelReference);
 		}
 	}
 
 	setChannel(channelReference, callback) {
 		var me = this;
-		if (me.connectionStatus) {
-			me.lgtv.request('ssap://tv/openChannel', { channelNumber: channelReference });
+		if (channelReference !== me.currentChannelReference) {
+			this.lgtv.request('ssap://tv/openChannel', { channelNumber: channelReference });
 			me.log('Device: %s, set new Channel successfull: %s', me.host, channelReference);
-			callback();
-		} else {
-			me.log('Device: %s, set new Channel failed, not connected to network.', me.host);
-			callback(null, false);
+			callback(null, channelReference);
 		}
 	}
 
-	setPowerMode(state, callback) {
+	setPowerModeSelection(state, callback) {
 		var me = this;
-		if (me.connectionStatus) {
-			var command = this.menuButton ? 'INFO' : 'MENU';
-			me.log('Device: %s, set command: %s', me.host, command);
-			me.sendRemoteControlCommand(command, callback);
+		var command;
+		if (me.currentInfoMenuState) {
+			command = 'BACK';
 		} else {
-			me.log('Device: %s, set new PowerModeState failed, not connected to network.', me.host);
+			command = me.switchInfoMenu ? 'MENU' : 'INFO';
 		}
+		me.log('Device: %s, setPowerModeSelection successfull, state: %s, command: %s', me.host, me.currentInfoMenuState ? 'HIDDEN' : 'SHOW', command);
+		this.pointerInputSocket.send('button', { name: command });
+		me.currentInfoMenuState = !me.currentInfoMenuState;
+		callback(null, state);
 	}
 
 	volumeSelectorPress(remoteKey, callback) {
 		var me = this;
-		if (me.connectionStatus) {
-			var command;
-			switch (remoteKey) {
-				case Characteristic.VolumeSelector.INCREMENT:
-					command = 'volumeUp';
-					break;
-				case Characteristic.VolumeSelector.DECREMENT:
-					command = 'volumeDown';
-					break;
-			}
-			me.log('Device: %s, key prssed: %s, command: %s', me.host, remoteKey, command);
-			me.lgtv.request('ssap://audio/' + command);
-		} else {
-			me.log('Device: %s, set new Volume level failed, not connected to network.', me.host);
+		var command;
+		switch (remoteKey) {
+			case Characteristic.VolumeSelector.INCREMENT:
+				command = 'VOLUMEUP';
+				break;
+			case Characteristic.VolumeSelector.DECREMENT:
+				command = 'VOLUMEDOWN';
+				break;
 		}
+		me.log('Device: %s, volume key prssed: %s, command: %s', me.host, remoteKey, command);
+		this.pointerInputSocket.send('button', { name: command });
+		callback(null, remoteKey);
 	}
 
 	remoteKeyPress(remoteKey, callback) {
 		var me = this;
-		if (me.connectionStatus) {
-			var command;
-			switch (remoteKey) {
-				case Characteristic.RemoteKey.REWIND:
-					command = 'REWIND';
-					break;
-				case Characteristic.RemoteKey.FAST_FORWARD:
-					command = 'FASTFORWARD';
-					break;
-				case Characteristic.RemoteKey.NEXT_TRACK:
-					command = '';
-					break;
-				case Characteristic.RemoteKey.PREVIOUS_TRACK:
-					command = '';
-					break;
-				case Characteristic.RemoteKey.ARROW_UP:
-					command = 'UP';
-					break;
-				case Characteristic.RemoteKey.ARROW_DOWN:
-					command = 'DOWN';
-					break;
-				case Characteristic.RemoteKey.ARROW_LEFT:
-					command = 'LEFT';
-					break;
-				case Characteristic.RemoteKey.ARROW_RIGHT:
-					command = 'RIGHT';
-					break;
-				case Characteristic.RemoteKey.SELECT:
-					command = 'ENTER';
-					break;
-				case Characteristic.RemoteKey.BACK:
-					command = 'BACK';
-					break;
-				case Characteristic.RemoteKey.EXIT:
-					command = 'EXIT';
-					break;
-				case Characteristic.RemoteKey.PLAY_PAUSE:
-					if (me.isPaused) {
-						command = 'PLAY';
-					} else {
-						command = 'PAUSE';
-					}
-					me.isPaused = !me.isPaused;
-					break;
-				case Characteristic.RemoteKey.INFORMATION:
-					command = 'INFO';
-					break;
-			}
-			me.log('Device: %s, key prssed: %s, command: %s', me.host, remoteKey, command);
-			me.sendRemoteControlCommand(command, callback);
-		} else {
-			me.log('Device: %s, set RemoteKey failed, not connected to network.', me.host);
+		var command;
+		switch (remoteKey) {
+			case Characteristic.RemoteKey.REWIND:
+				command = 'REWIND';
+				break;
+			case Characteristic.RemoteKey.FAST_FORWARD:
+				command = 'FASTFORWARD';
+				break;
+			case Characteristic.RemoteKey.NEXT_TRACK:
+				command = '';
+				break;
+			case Characteristic.RemoteKey.PREVIOUS_TRACK:
+				command = '';
+				break;
+			case Characteristic.RemoteKey.ARROW_UP:
+				command = 'UP';
+				break;
+			case Characteristic.RemoteKey.ARROW_DOWN:
+				command = 'DOWN';
+				break;
+			case Characteristic.RemoteKey.ARROW_LEFT:
+				command = 'LEFT';
+				break;
+			case Characteristic.RemoteKey.ARROW_RIGHT:
+				command = 'RIGHT';
+				break;
+			case Characteristic.RemoteKey.SELECT:
+				command = 'ENTER';
+				break;
+			case Characteristic.RemoteKey.BACK:
+				command = 'BACK';
+				break;
+			case Characteristic.RemoteKey.EXIT:
+				command = 'EXIT';
+				break;
+			case Characteristic.RemoteKey.PLAY_PAUSE:
+				if (me.isPaused) {
+					command = 'PLAY';
+				} else {
+					command = 'PAUSE';
+				}
+				me.isPaused = !me.isPaused;
+				break;
+			case Characteristic.RemoteKey.INFORMATION:
+				command = me.switchInfoMenu ? 'MENU' : 'INFO';
+				break;
 		}
+		me.log('Device: %s, remote key prssed: %s, command: %s', me.host, remoteKey, command);
+		this.pointerInputSocket.send('button', { name: command });
+		callback(null, remoteKey);
 	}
 
-	sendRemoteControlCommand(command, callback) {
-		var me = this;
-		var command = command;
-		var type = 'button';
-		if (me.connectionStatus && me.pointerInputSocket) {
-			me.log('Device: %s, send RC command successfull: %s', me.host, command);
-			me.pointerInputSocket.send(type, { name: command });
-		} else {
-			me.log('Device: %s, send RC command failed, not connected to network.', me.host);
-		}
-	}
 };
