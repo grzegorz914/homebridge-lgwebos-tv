@@ -184,6 +184,7 @@ class lgwebosTvDevice {
 			me.lgtv.request('ssap://system/getSystemInfo', (error, data) => {
 				if (!data || error || data.errorCode) {
 					me.log.debug('Device: %s, get device Info error: %s', me.host, error);
+                                     return;
 				} else {
 					delete data['returnValue'];
 					me.log.debug('Device: %s, get device Info successfull: %s', me.host, JSON.stringify(data, null, 2));
