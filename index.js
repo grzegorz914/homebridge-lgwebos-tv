@@ -4,7 +4,7 @@ const mkdirp = require('mkdirp');
 const lgtv = require('lgtv2');
 const wol = require('wol');
 const tcpp = require('tcp-ping');
-const responseDelay = 1500;
+const responseDelay = 1000;
 
 var Accessory, Service, Characteristic, hap, UUIDGen;
 
@@ -177,6 +177,7 @@ class lgwebosTvDevice {
 			me.log.info('Device: %s, get RC socket succesfull', me.host);
 		});
 	}
+
 	getDeviceInfo() {
 		var me = this;
 		setTimeout(() => {
@@ -184,7 +185,7 @@ class lgwebosTvDevice {
 			me.lgtv.request('ssap://system/getSystemInfo', (error, data) => {
 				if (!data || error || data.errorCode) {
 					me.log.debug('Device: %s, get device Info error: %s', me.host, error);
-                                     return;
+					return;
 				} else {
 					delete data['returnValue'];
 					me.log.debug('Device: %s, get device Info successfull: %s', me.host, JSON.stringify(data, null, 2));
@@ -427,57 +428,71 @@ class lgwebosTvDevice {
 
 	getPowerState(callback) {
 		var me = this;
-		callback(null, me.currentPowerState);
+		var state = me.currentPowerState;
+		me.log('Device: %s, get current Power state successfull, state: %s', me.host, state ? 'ON' : 'OFF');
+		callback(null, state);
 	}
 
 	setPowerState(state, callback) {
 		var me = this;
-		if (me.currentPowerState == state) {
-                    callback(null, state);
-			return;
-		} else {
-			if (!me.currentPowerState) {
-				wol.wake(me.mac, (error) => {
-					if (error) {
-						me.log.debug('Device: %s, can not set new Power state. Might be due to a wrong settings in config, error: %s', me.host, error);
-					} else {
-						me.log('Device: %s, set new Power state successfull: ON', me.host);
-						me.currentPowerState = true;
-					}
-				});
+		me.getPowerState(function (error, currentPowerState) {
+			if (error) {
+				me.log.debug('Device: %s, can not get current Power state. Might be due to a wrong settings in config, error: %s', me.host, error);
+				callback(error);
 			} else {
-				this.lgtv.request('ssap://system/turnOff', (error, data) => {
-					me.log('Device: %s, set new Power state successfull: STANDBY', me.host);
-					me.currentPowerState = false;
-					me.disconnect();
-				});
+				if (state !== currentPowerState) {
+					if (state) {
+						wol.wake(me.mac, (error) => {
+							if (error) {
+								me.log.debug('Device: %s, can not set new Power state. Might be due to a wrong settings in config, error: %s', me.host, error);
+							} else {
+								me.log('Device: %s, set new Power state successfull: ON', me.host);
+								me.currentPowerState = true;
+							}
+						});
+					} else {
+						this.lgtv.request('ssap://system/turnOff', (error, data) => {
+							me.log('Device: %s, set new Power state successfull: STANDBY', me.host);
+							me.currentPowerState = false;
+							me.disconnect();
+						});
+					}
+					callback();
+				}
 			}
-			callback();
-		}
+		});
 	}
 
 	getMute(callback) {
 		var me = this;
-		callback(null, me.currentMuteState);
+		var state = me.currentMuteState;
+		me.log('Device: %s, get current Mute state successfull: %s', me.host, state ? 'ON' : 'OFF');
+		callback(null, state);
 	}
 
 	setMute(state, callback) {
 		var me = this;
-		if (me.currentMuteState == state) {
-                    callback(null, state);
-			return;
-		} else {
-               var newState = state;
-		this.lgtv.request('ssap://audio/setMute', { mute: newState });
-		me.log('Device: %s, set new Mute state successfull: %s', me.host, state ? 'ON' : 'OFF');
-		me.currentMuteState = state;
-		callback(null, state);
-           }
+		me.getMute(function (error, currentMuteState) {
+			if (error) {
+				me.log.debug('Device: %s, can not get current Mute for new state. Might be due to a wrong settings in config, error: %s', me.host, error);
+				callback(error);
+			} else {
+				if (state !== currentMuteState) {
+					var newState = state;
+					this.lgtv.request('ssap://audio/setMute', { mute: newState });
+					me.log('Device: %s, set new Mute state successfull: %s', me.host, state ? 'ON' : 'OFF');
+					me.currentMuteState = state;
+					callback(null, state);
+				}
+			}
+		});
 	}
 
 	getVolume(callback) {
 		var me = this;
-		callback(null, me.currentVolume);
+		var volume = me.currentVolume;
+		me.log('Device: %s, get current Volume level successfull: %s', me.host, volume);
+		callback(null, volume);
 	}
 
 	setVolume(volume, callback) {
@@ -489,18 +504,20 @@ class lgwebosTvDevice {
 
 	getInput(callback) {
 		var me = this;
-		var inputReference = me.currentInputReference;
 		if (!me.currentPowerState) {
 			me.tvService
 				.getCharacteristic(Characteristic.ActiveIdentifier)
 				.updateValue(0);
 			callback(null, inputReference);
 		} else {
+			var inputReference = me.currentInputReference;
 			for (let i = 0; i < me.inputReferences.length; i++) {
 				if (inputReference === me.inputReferences[i]) {
 					me.tvService
 						.getCharacteristic(Characteristic.ActiveIdentifier)
 						.updateValue(i);
+					me.log('Device: %s, get current Input successfull: %s', me.host, inputReference);
+					me.currentInputReference = inputReference;
 				}
 			}
 			callback(null, inputReference);
@@ -509,27 +526,37 @@ class lgwebosTvDevice {
 
 	setInput(callback, inputReference) {
 		var me = this;
-		if (inputReference !== me.currentInputReference) {
-			this.lgtv.request('ssap://system.launcher/launch', { id: inputReference });
-			me.log('Device: %s, set new Input successfull: %s', me.host, inputReference);
-			callback(null, inputReference);
-		}
+		me.getInput(function (error, currentInputReference) {
+			if (error) {
+				me.log.debug('Device: %s, can not get current Input. Might be due to a wrong settings in config, error: %s', me.host, error);
+				callback(error);
+			} else {
+				if (inputReference !== currentInputReference) {
+					this.lgtv.request('ssap://system.launcher/launch', { id: inputReference });
+					me.log('Device: %s, set new Input successfull: %s', me.host, inputReference);
+					me.currentInputReference = inputReference;
+					callback(null, inputReference);
+				}
+			}
+		});
 	}
 
 	getChannel(callback) {
 		var me = this;
-		var channelReference = me.currentChannelReference;
 		if (me.currentPowerState == false) {
 			me.tvService
 				.getCharacteristic(Characteristic.ActiveIdentifier)
 				.updateValue(0);
 			callback(null, channelReference);
 		} else {
+			var channelReference = me.currentChannelReference;
 			for (let i = 0; i < me.channelReferences.length; i++) {
 				if (channelReference === me.channelReferences[i]) {
 					me.tvService
 						.getCharacteristic(Characteristic.ActiveIdentifier)
 						.updateValue(i);
+					me.log('Device: %s, get current Channel successfull: %s', me.host, channelReference);
+					me.currentChannelReference = channelReference;
 				}
 			}
 			callback(null, channelReference);
@@ -538,11 +565,19 @@ class lgwebosTvDevice {
 
 	setChannel(channelReference, callback) {
 		var me = this;
-		if (channelReference !== me.currentChannelReference) {
-			this.lgtv.request('ssap://tv/openChannel', { channelNumber: channelReference });
-			me.log('Device: %s, set new Channel successfull: %s', me.host, channelReference);
-			callback(null, channelReference);
-		}
+		me.getChannel(function (error, currentChannelReference) {
+			if (error) {
+				me.log.debug('Device: %s, can not get current Input. Might be due to a wrong settings in config, error: %s', me.host, error);
+				callback(error);
+			} else {
+				if (channelReference !== currentChannelReference) {
+					this.lgtv.request('ssap://tv/openChannel', { channelNumber: channelReference });
+					me.log('Device: %s, set new Channel successfull: %s', me.host, channelReference);
+					me.currentChannelReference = channelReference;
+					callback(null, channelReference);
+				}
+			}
+		});
 	}
 
 	setPowerModeSelection(state, callback) {
