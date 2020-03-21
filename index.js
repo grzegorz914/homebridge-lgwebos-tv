@@ -4,7 +4,6 @@ const mkdirp = require('mkdirp');
 const lgtv = require('lgtv2');
 const wol = require('wol');
 const tcpp = require('tcp-ping');
-const responseDelay = 1000;
 
 var Accessory, Service, Characteristic, hap, UUIDGen;
 
@@ -45,11 +44,8 @@ class lgwebosTvPlatform {
 	removeAccessory() { }
 	didFinishLaunching() {
 		var me = this;
-		setTimeout(function () {
-			me.log.debug('didFinishLaunching');
-		},
-			(this.devices.length + 1) * responseDelay);
-	}
+		me.log.debug('didFinishLaunching');
+	};
 }
 
 class lgwebosTvDevice {
@@ -110,9 +106,11 @@ class lgwebosTvDevice {
 					me.log('Device: %s, name: %s, state: Offline', me.host, me.name);
 					me.connectionStatus = false;
 					me.disconnect();
-				} else if (isAlive && !me.connectionStatus) {
-					me.log('Device: %s, name: %s, state: Online.', me.host, me.name);
-					me.lgtv.connect(me.url);
+				} else {
+					if (isAlive && !me.connectionStatus) {
+						me.log('Device: %s, name: %s, state: Online.', me.host, me.name);
+						me.lgtv.connect(me.url);
+					}
 				}
 			});
 		}.bind(this), 5000);
@@ -149,8 +147,7 @@ class lgwebosTvDevice {
 			this.connectionStatus = false;
 		});
 
-		//Delay to wait for device info
-		setTimeout(this.prepereTvService.bind(this), responseDelay);
+		this.prepereTvService();
 	}
 
 	connect() {
@@ -451,7 +448,7 @@ class lgwebosTvDevice {
 							}
 						});
 					} else {
-						this.lgtv.request('ssap://system/turnOff', (error, data) => {
+						me.lgtv.request('ssap://system/turnOff', (error, data) => {
 							me.log('Device: %s, set new Power state successfull: STANDBY', me.host);
 							me.currentPowerState = false;
 							me.disconnect();
@@ -479,7 +476,7 @@ class lgwebosTvDevice {
 			} else {
 				if (state !== currentMuteState) {
 					var newState = state;
-					this.lgtv.request('ssap://audio/setMute', { mute: newState });
+					me.lgtv.request('ssap://audio/setMute', { mute: newState });
 					me.log('Device: %s, set new Mute state successfull: %s', me.host, state ? 'ON' : 'OFF');
 					me.currentMuteState = state;
 					callback(null, state);
@@ -532,7 +529,7 @@ class lgwebosTvDevice {
 				callback(error);
 			} else {
 				if (inputReference !== currentInputReference) {
-					this.lgtv.request('ssap://system.launcher/launch', { id: inputReference });
+					me.lgtv.request('ssap://system.launcher/launch', { id: inputReference });
 					me.log('Device: %s, set new Input successfull: %s', me.host, inputReference);
 					me.currentInputReference = inputReference;
 					callback(null, inputReference);
