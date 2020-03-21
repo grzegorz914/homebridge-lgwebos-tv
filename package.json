@@ -1,7 +1,7 @@
 {
   "name": "homebridge-lgwebos-tv",
-  "version": "0.2.74",
-  "description": "Plugin for Homebridge (https://github.com/nfarina/homebridge) to controll LG Web OS TV.",
+  "version": "0.2.77",
+  "description": "Plugin for Homebridge (https://github.com/homebridge/homebridge) to controll LG Web OS TV.",
   "license": "MIT",
   "author": "grzegorz914",
   "homepage": "https://github.com/grzegorz914/homebridge-lgwebos-tv#readme",
@@ -16,7 +16,7 @@
   "engines": {
     "node": ">=10.0.0",
     "homebridge": ">=0.4.50",
-    "hap-nodejs": ">=0.4.13"
+    "hap-nodejs": ">=0.4.51"
   },
   "dependencies": {
     "request": ">=2.88",
