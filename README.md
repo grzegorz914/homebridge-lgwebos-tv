@@ -2,9 +2,7 @@
 [![npm](https://badgen.net/npm/dt/homebridge-lgwebos-tv?color=purple)](https://www.npmjs.com/package/homebridge-lgwebos-tv) [![npm](https://badgen.net/npm/v/homebridge-lgwebos-tv?color=purple)](https://www.npmjs.com/package/homebridge-lgwebos-tv) [![GitHub pull requests](https://img.shields.io/github/issues-pr/grzegorz914/homebridge-lgwebos-tv.svg)](https://github.com/grzegorz914/homebridge-lgwebos-tv/pulls)
 [![GitHub issues](https://img.shields.io/github/issues/grzegorz914/homebridge-lgwebos-tv.svg)](https://github.com/grzegorz914/homebridge-lgwebos-tv/issues)
 
-Plugin to control LG WebOs TV in HomeKit as a TV service.
-Tested with LGOLED65G6V.
-Present as TV service, schange inputs, volume/mute control, power control.
+Plugin to control lgwebos TV in HomeKit as TV service. Tested with LGOLED65G6V. Present as TV service, change inputs, volume/mute control, power control.
 
 Homebridge: https://github.com/homebridge/homebridge
 
@@ -64,7 +62,7 @@ Homebridge: https://github.com/homebridge/homebridge
 }
 ```
 
-# Limitations:
+## Limitations:
 
-# Whats new:
+## Whats new:
 https://github.com/grzegorz914/homebridge-lgwebos-tv/blob/master/CHANGELOG.md
