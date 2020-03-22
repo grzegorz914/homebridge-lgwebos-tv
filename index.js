@@ -5,17 +5,15 @@ const lgtv = require('lgtv2');
 const wol = require('wol');
 const tcpp = require('tcp-ping');
 
-var Accessory, Service, Characteristic, hap, UUIDGen;
-
-
 let pointerInputSocket;
 
-module.exports = homebridge => {
+var Accessory, Service, Characteristic, UUIDGen;
+
+module.exports = function(homebridge) {
 	Service = homebridge.hap.Service;
 	Characteristic = homebridge.hap.Characteristic;
 	Accessory = homebridge.platformAccessory;
 	UUIDGen = homebridge.hap.uuid;
-	hap = homebridge.hap;
 
 	homebridge.registerPlatform('homebridge-lgwebos-tv', 'LgWebOsTv', lgwebosTvPlatform, true);
 };
