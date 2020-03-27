@@ -9,7 +9,7 @@ let pointerInputSocket;
 
 var Accessory, Service, Characteristic, UUIDGen;
 
-module.exports = function(homebridge) {
+module.exports = function (homebridge) {
 	Service = homebridge.hap.Service;
 	Characteristic = homebridge.hap.Characteristic;
 	Accessory = homebridge.platformAccessory;
@@ -414,8 +414,7 @@ class lgwebosTvDevice {
 						callback();
 					});
 				this.tvAccesory.addService(tempInput);
-				if (!tempInput.linked)
-					this.tvService.addLinkedService(tempInput);
+				this.tvService.addLinkedService(tempInput);
 				this.inputReferences.push(inputReference);
 			}
 		});
@@ -499,164 +498,158 @@ class lgwebosTvDevice {
 
 	getInput(callback) {
 		var me = this;
-		if (!me.currentPowerState) {
-			me.tvService
-				.getCharacteristic(Characteristic.ActiveIdentifier)
-				.updateValue(0);
-			callback(null, inputReference);
-		} else {
-			var inputReference = me.currentInputReference;
-			for (let i = 0; i < me.inputReferences.length; i++) {
-				if (inputReference === me.inputReferences[i]) {
-					me.tvService
-						.getCharacteristic(Characteristic.ActiveIdentifier)
-						.updateValue(i);
-					me.log('Device: %s, get current Input successfull: %s', me.host, inputReference);
-					me.currentInputReference = inputReference;
-				}
+		var inputReference = me.currentInputReference;
+		for (let i = 0; i < me.inputReferences.length; i++) {
+			if (inputReference == me.inputReferences[i]) {
+				me.tvService
+					.getCharacteristic(Characteristic.ActiveIdentifier)
+					.updateValue(i);
+				me.log('Device: %s, get current Input successfull: %s', me.host, inputReference);
+				me.currentInputReference = inputReference;
 			}
-			callback(null, inputReference);
 		}
+		callback(null, inputReference);
 	}
+}
 
-	setInput(callback, inputReference) {
-		var me = this;
-		me.getInput(function (error, currentInputReference) {
-			if (error) {
-				me.log.debug('Device: %s, can not get current Input. Might be due to a wrong settings in config, error: %s', me.host, error);
-				callback(error);
-			} else {
-				if (inputReference !== currentInputReference) {
-					me.lgtv.request('ssap://system.launcher/launch', { id: inputReference });
-					me.log('Device: %s, set new Input successfull: %s', me.host, inputReference);
-					me.currentInputReference = inputReference;
-					callback(null, inputReference);
-				}
-			}
-		});
-	}
-
-	getChannel(callback) {
-		var me = this;
-		if (me.currentPowerState == false) {
-			me.tvService
-				.getCharacteristic(Characteristic.ActiveIdentifier)
-				.updateValue(0);
-			callback(null, channelReference);
+setInput(callback, inputReference) {
+	var me = this;
+	me.getInput(function (error, currentInputReference) {
+		if (error) {
+			me.log.debug('Device: %s, can not get current Input. Might be due to a wrong settings in config, error: %s', me.host, error);
+			callback(error);
 		} else {
-			var channelReference = me.currentChannelReference;
-			for (let i = 0; i < me.channelReferences.length; i++) {
-				if (channelReference === me.channelReferences[i]) {
-					me.tvService
-						.getCharacteristic(Characteristic.ActiveIdentifier)
-						.updateValue(i);
-					me.log('Device: %s, get current Channel successfull: %s', me.host, channelReference);
-					me.currentChannelReference = channelReference;
-				}
+			if (inputReference !== currentInputReference) {
+				me.lgtv.request('ssap://system.launcher/launch', { id: inputReference });
+				me.log('Device: %s, set new Input successfull: %s', me.host, inputReference);
+				me.currentInputReference = inputReference;
+				callback(null, inputReference);
 			}
-			callback(null, channelReference);
 		}
-	}
+	});
+}
 
-	setChannel(channelReference, callback) {
-		var me = this;
-		me.getChannel(function (error, currentChannelReference) {
-			if (error) {
-				me.log.debug('Device: %s, can not get current Input. Might be due to a wrong settings in config, error: %s', me.host, error);
-				callback(error);
-			} else {
-				if (channelReference !== currentChannelReference) {
-					this.lgtv.request('ssap://tv/openChannel', { channelNumber: channelReference });
-					me.log('Device: %s, set new Channel successfull: %s', me.host, channelReference);
-					me.currentChannelReference = channelReference;
-					callback(null, channelReference);
-				}
+getChannel(callback) {
+	var me = this;
+	if (me.currentPowerState == false) {
+		me.tvService
+			.getCharacteristic(Characteristic.ActiveIdentifier)
+			.updateValue(0);
+		callback(null, channelReference);
+	} else {
+		var channelReference = me.currentChannelReference;
+		for (let i = 0; i < me.channelReferences.length; i++) {
+			if (channelReference === me.channelReferences[i]) {
+				me.tvService
+					.getCharacteristic(Characteristic.ActiveIdentifier)
+					.updateValue(i);
+				me.log('Device: %s, get current Channel successfull: %s', me.host, channelReference);
+				me.currentChannelReference = channelReference;
 			}
-		});
+		}
+		callback(null, channelReference);
 	}
+}
 
-	setPowerModeSelection(state, callback) {
-		var me = this;
-		var command;
-		if (me.currentInfoMenuState) {
+setChannel(channelReference, callback) {
+	var me = this;
+	me.getChannel(function (error, currentChannelReference) {
+		if (error) {
+			me.log.debug('Device: %s, can not get current Input. Might be due to a wrong settings in config, error: %s', me.host, error);
+			callback(error);
+		} else {
+			if (channelReference !== currentChannelReference) {
+				this.lgtv.request('ssap://tv/openChannel', { channelNumber: channelReference });
+				me.log('Device: %s, set new Channel successfull: %s', me.host, channelReference);
+				me.currentChannelReference = channelReference;
+				callback(null, channelReference);
+			}
+		}
+	});
+}
+
+setPowerModeSelection(state, callback) {
+	var me = this;
+	var command;
+	if (me.currentInfoMenuState) {
+		command = 'BACK';
+	} else {
+		command = me.switchInfoMenu ? 'MENU' : 'INFO';
+	}
+	me.log('Device: %s, setPowerModeSelection successfull, state: %s, command: %s', me.host, me.currentInfoMenuState ? 'HIDDEN' : 'SHOW', command);
+	this.pointerInputSocket.send('button', { name: command });
+	me.currentInfoMenuState = !me.currentInfoMenuState;
+	callback(null, state);
+}
+
+volumeSelectorPress(remoteKey, callback) {
+	var me = this;
+	var command;
+	switch (remoteKey) {
+		case Characteristic.VolumeSelector.INCREMENT:
+			command = 'VOLUMEUP';
+			break;
+		case Characteristic.VolumeSelector.DECREMENT:
+			command = 'VOLUMEDOWN';
+			break;
+	}
+	me.log('Device: %s, volume key prssed: %s, command: %s', me.host, remoteKey, command);
+	this.pointerInputSocket.send('button', { name: command });
+	callback(null, remoteKey);
+}
+
+remoteKeyPress(remoteKey, callback) {
+	var me = this;
+	var command;
+	switch (remoteKey) {
+		case Characteristic.RemoteKey.REWIND:
+			command = 'REWIND';
+			break;
+		case Characteristic.RemoteKey.FAST_FORWARD:
+			command = 'FASTFORWARD';
+			break;
+		case Characteristic.RemoteKey.NEXT_TRACK:
+			command = '';
+			break;
+		case Characteristic.RemoteKey.PREVIOUS_TRACK:
+			command = '';
+			break;
+		case Characteristic.RemoteKey.ARROW_UP:
+			command = 'UP';
+			break;
+		case Characteristic.RemoteKey.ARROW_DOWN:
+			command = 'DOWN';
+			break;
+		case Characteristic.RemoteKey.ARROW_LEFT:
+			command = 'LEFT';
+			break;
+		case Characteristic.RemoteKey.ARROW_RIGHT:
+			command = 'RIGHT';
+			break;
+		case Characteristic.RemoteKey.SELECT:
+			command = 'ENTER';
+			break;
+		case Characteristic.RemoteKey.BACK:
 			command = 'BACK';
-		} else {
+			break;
+		case Characteristic.RemoteKey.EXIT:
+			command = 'EXIT';
+			break;
+		case Characteristic.RemoteKey.PLAY_PAUSE:
+			if (me.isPaused) {
+				command = 'PLAY';
+			} else {
+				command = 'PAUSE';
+			}
+			me.isPaused = !me.isPaused;
+			break;
+		case Characteristic.RemoteKey.INFORMATION:
 			command = me.switchInfoMenu ? 'MENU' : 'INFO';
-		}
-		me.log('Device: %s, setPowerModeSelection successfull, state: %s, command: %s', me.host, me.currentInfoMenuState ? 'HIDDEN' : 'SHOW', command);
-		this.pointerInputSocket.send('button', { name: command });
-		me.currentInfoMenuState = !me.currentInfoMenuState;
-		callback(null, state);
+			break;
 	}
-
-	volumeSelectorPress(remoteKey, callback) {
-		var me = this;
-		var command;
-		switch (remoteKey) {
-			case Characteristic.VolumeSelector.INCREMENT:
-				command = 'VOLUMEUP';
-				break;
-			case Characteristic.VolumeSelector.DECREMENT:
-				command = 'VOLUMEDOWN';
-				break;
-		}
-		me.log('Device: %s, volume key prssed: %s, command: %s', me.host, remoteKey, command);
-		this.pointerInputSocket.send('button', { name: command });
-		callback(null, remoteKey);
-	}
-
-	remoteKeyPress(remoteKey, callback) {
-		var me = this;
-		var command;
-		switch (remoteKey) {
-			case Characteristic.RemoteKey.REWIND:
-				command = 'REWIND';
-				break;
-			case Characteristic.RemoteKey.FAST_FORWARD:
-				command = 'FASTFORWARD';
-				break;
-			case Characteristic.RemoteKey.NEXT_TRACK:
-				command = '';
-				break;
-			case Characteristic.RemoteKey.PREVIOUS_TRACK:
-				command = '';
-				break;
-			case Characteristic.RemoteKey.ARROW_UP:
-				command = 'UP';
-				break;
-			case Characteristic.RemoteKey.ARROW_DOWN:
-				command = 'DOWN';
-				break;
-			case Characteristic.RemoteKey.ARROW_LEFT:
-				command = 'LEFT';
-				break;
-			case Characteristic.RemoteKey.ARROW_RIGHT:
-				command = 'RIGHT';
-				break;
-			case Characteristic.RemoteKey.SELECT:
-				command = 'ENTER';
-				break;
-			case Characteristic.RemoteKey.BACK:
-				command = 'BACK';
-				break;
-			case Characteristic.RemoteKey.EXIT:
-				command = 'EXIT';
-				break;
-			case Characteristic.RemoteKey.PLAY_PAUSE:
-				if (me.isPaused) {
-					command = 'PLAY';
-				} else {
-					command = 'PAUSE';
-				}
-				me.isPaused = !me.isPaused;
-				break;
-			case Characteristic.RemoteKey.INFORMATION:
-				command = me.switchInfoMenu ? 'MENU' : 'INFO';
-				break;
-		}
-		me.log('Device: %s, remote key prssed: %s, command: %s', me.host, remoteKey, command);
-		this.pointerInputSocket.send('button', { name: command });
-		callback(null, remoteKey);
-	}
+	me.log('Device: %s, remote key prssed: %s, command: %s', me.host, remoteKey, command);
+	this.pointerInputSocket.send('button', { name: command });
+	callback(null, remoteKey);
+}
 
 };
