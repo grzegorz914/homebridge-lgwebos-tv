@@ -303,7 +303,7 @@ class lgwebosTvDevice {
 	}
 
 	//Prepare TV service 
-	prepereTvService() {
+	prepareTvService() {
 		this.log.debug('prepereTvService');
 		this.tvService = new Service.Television(this.name, 'tvService');
 		this.tvService.setCharacteristic(Characteristic.ConfiguredName, this.name);
