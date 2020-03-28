@@ -1,4 +1,6 @@
-const ppath = require('persist-path');
+'use strict';
+
+let Accessory, Service, Characteristic, hap, UUIDGen;const ppath = require('persist-path');
 const fs = require('fs');
 const mkdirp = require('mkdirp');
 const lgtv = require('lgtv2');
@@ -7,9 +9,8 @@ const tcpp = require('tcp-ping');
 
 let pointerInputSocket;
 
-var Accessory, Service, Characteristic, UUIDGen;
 
-module.exports = function (homebridge) {
+module.exports = homebridge => {
 	Service = homebridge.hap.Service;
 	Characteristic = homebridge.hap.Characteristic;
 	Accessory = homebridge.platformAccessory;
@@ -21,29 +22,36 @@ module.exports = function (homebridge) {
 
 class lgwebosTvPlatform {
 	constructor(log, config, api) {
+		// only load if configured
+		if (!config) {
+			this.log('No configuration found for homebridge-lgwebos-tv');
+			return;
+		}
 		this.log = log;
 		this.config = config;
-		this.api = api;
-
-		this.devices = config.devices || [];
 		this.tvAccessories = [];
 
-		if (this.version < 2.1) {
-			throw new Error('Unexpected API version.');
-		}
+		if (api) {
+			this.api = api;
 
-		for (var i in this.devices) {
-			this.tvAccessories.push(new lgwebosTvDevice(log, this.devices[i], api));
-		}
+			if (this.version < 2.1) {
+				throw new Error('Unexpected API version.');
+			}
 
-		this.api.on('didFinishLaunching', this.didFinishLaunching.bind(this));
+			for (let i = 0, len = this.config.devices.length; i < len; i++) {
+				let deviceName = this.config.devices[i];
+				this.tvAccessories.push(new lgwebosTvDevice(log, deviceName, api));
+			}
+			this.api.on('didFinishLaunching', this.didFinishLaunching.bind(this));
+		}
 	}
-	configureAccessory() { }
-	removeAccessory() { }
+
+	configureAccessory() {
+		this.log.debug('configureAccessory');
+	 }
 	didFinishLaunching() {
-		var me = this;
-		me.log.debug('didFinishLaunching');
-	};
+		this.log.debug('didFinishLaunching');
+	}
 }
 
 class lgwebosTvDevice {
@@ -145,7 +153,12 @@ class lgwebosTvDevice {
 			this.connectionStatus = false;
 		});
 
-		this.prepereTvService();
+		//Delay to wait for device info before publish
+		setTimeout(this.prepareTvService.bind(this), 1000);
+
+		this.tvAccesory = new Accessory(this.name, UUIDGen.generate(this.host + this.name));
+		this.log.debug('Device: %s, publishExternalAccessories: %s', this.host, this.name);
+		this.api.publishExternalAccessories('homebridge-lgwebos-tv', [this.tvAccesory]);
 	}
 
 	connect() {
@@ -292,8 +305,6 @@ class lgwebosTvDevice {
 	//Prepare TV service 
 	prepereTvService() {
 		this.log.debug('prepereTvService');
-		this.tvAccesory = new Accessory(this.name, UUIDGen.generate(this.host + this.name));
-
 		this.tvService = new Service.Television(this.name, 'tvService');
 		this.tvService.setCharacteristic(Characteristic.ConfiguredName, this.name);
 		this.tvService.setCharacteristic(Characteristic.SleepDiscoveryMode, Characteristic.SleepDiscoveryMode.ALWAYS_DISCOVERABLE);
@@ -325,9 +336,6 @@ class lgwebosTvDevice {
 		this.tvAccesory.addService(this.tvService);
 		this.prepereTvSpeakerService();
 		this.prepareInputServices();
-
-		this.log.debug('Device: %s, publishExternalAccessories: %s', this.host, this.name);
-		this.api.publishExternalAccessories('homebridge-lgwebos-tv', [this.tvAccesory]);
 	}
 
 	//Prepare speaker service
