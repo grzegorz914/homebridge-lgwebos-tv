@@ -506,14 +506,21 @@ class lgwebosTvDevice {
 
 	getInput(callback) {
 		var me = this;
-		var inputReference = me.currentInputReference;
-		for (let i = 0; i < me.inputReferences.length; i++) {
-			if (inputReference == me.inputReferences[i]) {
-				me.tvService
-					.getCharacteristic(Characteristic.ActiveIdentifier)
-					.updateValue(i);
-				me.log('Device: %s, get current Input successfull: %s', me.host, inputReference);
-				me.currentInputReference = inputReference;
+		if (me.currentPowerState == false) {
+			me.tvService
+				.getCharacteristic(Characteristic.ActiveIdentifier)
+				.updateValue(0);
+			callback(null);
+		} else {
+			var inputReference = me.currentInputReference;
+			for (let i = 0; i < me.inputReferences.length; i++) {
+				if (inputReference == me.inputReferences[i]) {
+					me.tvService
+						.getCharacteristic(Characteristic.ActiveIdentifier)
+						.updateValue(i);
+					me.log('Device: %s, get current Input successfull: %s', me.host, inputReference);
+					me.currentInputReference = inputReference;
+				}
 			}
 			callback(null, inputReference);
 		}
@@ -543,7 +550,7 @@ class lgwebosTvDevice {
 			me.tvService
 				.getCharacteristic(Characteristic.ActiveIdentifier)
 				.updateValue(0);
-			callback(null, channelReference);
+			callback(null);
 		} else {
 			var channelReference = me.currentChannelReference;
 			for (let i = 0; i < me.channelReferences.length; i++) {
