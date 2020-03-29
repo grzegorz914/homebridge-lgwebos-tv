@@ -1,5 +1,10 @@
 # Change Log
 All notable changes to this project will be documented in this file.
+## 0.2.91 (29.03.2020)
+- fixes crash if no device name defined
+- fixed config.schema.json
+- fixed store file inside the Homebridge directory
+
 ## 0.2.90 (29.03.2020)
 - some small fixes
 

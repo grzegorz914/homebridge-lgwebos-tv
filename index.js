@@ -1,14 +1,14 @@
 'use strict';
 
-let Accessory, Service, Characteristic, hap, UUIDGen; const ppath = require('persist-path');
+let Accessory, Service, Characteristic, hap, UUIDGen;
 const fs = require('fs');
 const mkdirp = require('mkdirp');
 const lgtv = require('lgtv2');
 const wol = require('wol');
 const tcpp = require('tcp-ping');
+const path = require('path');
 
 let pointerInputSocket;
-
 
 module.exports = homebridge => {
 	Service = homebridge.hap.Service;
@@ -23,7 +23,7 @@ module.exports = homebridge => {
 class lgwebosTvPlatform {
 	constructor(log, config, api) {
 		// only load if configured
-		if (!config) {
+		if (!config || !Array.isArray(config.devices)) {
 			log('No configuration found for homebridge-lgwebos-tv');
 			return;
 		}
@@ -80,12 +80,12 @@ class lgwebosTvDevice {
 		this.currentChannelName = '';
 		this.currentInfoMenuState = false;
 		this.isPaused = false;
-		this.prefDir = ppath('lgwebosTv/');
-		this.keyFile = this.prefDir + 'key_' + this.host.split('.').join('');
-		this.devSysInfoFile = this.prefDir + 'sysinfo_' + this.host.split('.').join('');
-		this.devSwInfoFile = this.prefDir + 'swinfo_' + this.host.split('.').join('');
-		this.inputsFile = this.prefDir + 'inputs_' + this.host.split('.').join('');
-		this.channelsFile = this.prefDir + 'channels_' + this.host.split('.').join('');
+		this.prefDir = path.join(api.user.storagePath(), 'lgwebosTv');
+		this.keyFile = this.prefDir + '/' + 'key_' + this.host.split('.').join('');
+		this.devSysInfoFile = this.prefDir + '/' + 'sysinfo_' + this.host.split('.').join('');
+		this.devSwInfoFile = this.prefDir + '/' + 'swinfo_' + this.host.split('.').join('');
+		this.inputsFile = this.prefDir + '/' + 'inputs_' + this.host.split('.').join('');
+		this.channelsFile = this.prefDir + '/' + 'channels_' + this.host.split('.').join('');
 		this.url = 'ws://' + this.host + ':' + this.port;
 
 		//get Device info
