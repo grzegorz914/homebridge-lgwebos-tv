@@ -40,7 +40,11 @@ class lgwebosTvPlatform {
 
 			for (let i = 0, len = this.config.devices.length; i < len; i++) {
 				let deviceName = this.config.devices[i];
-				this.tvAccessories.push(new lgwebosTvDevice(log, deviceName, api));
+				if (!deviceName.name) {
+					this.log.warn('Device Name Missing')
+				} else {
+					this.tvAccessories.push(new lgwebosTvDevice(log, deviceName, api));
+				}
 			}
 			this.api.on('didFinishLaunching', this.didFinishLaunching.bind(this));
 		}
