@@ -24,7 +24,7 @@ class lgwebosTvPlatform {
 	constructor(log, config, api) {
 		// only load if configured
 		if (!config) {
-			this.log('No configuration found for homebridge-lgwebos-tv');
+			log('No configuration found for homebridge-lgwebos-tv');
 			return;
 		}
 		this.log = log;
