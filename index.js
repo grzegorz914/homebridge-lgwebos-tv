@@ -1,6 +1,6 @@
 'use strict';
 
-let Accessory, Service, Characteristic, hap, UUIDGen;
+let Accessory, Service, Characteristic, UUIDGen;
 const fs = require('fs');
 const mkdirp = require('mkdirp');
 const lgtv = require('lgtv2');
@@ -66,9 +66,9 @@ class lgwebosTvDevice {
 
 		//device configuration
 		this.device = device;
-		this.name = device.name;
-		this.host = device.host;
-		this.mac = device.mac;
+		this.name = device.name || 'TV';
+		this.host = device.host || '192.168.1.8';
+		this.mac = device.mac || 'aa:bb:cc:dd:ee:ff';
 		this.switchInfoMenu = device.switchInfoMenu;
 		this.inputs = device.inputs;
 
@@ -414,13 +414,13 @@ class lgwebosTvDevice {
 
 				tempInput
 					.getCharacteristic(Characteristic.ConfiguredName)
-					.on('set', (name, callback) => {
-						this.inputs[inputReference] = name;
+					.on('set', (newInputName, callback) => {
+						this.inputs[inputReference] = newInputName;
 						fs.writeFile(this.inputsFile, JSON.stringify(this.inputs), (error) => {
 							if (error) {
 								this.log.debug('Device: %s, new Input name saved failed, error: %s', this.host, error);
 							} else {
-								this.log('Device: %s, new Input name saved successfull, name: %s reference: %s', this.host, name, inputReference);
+								this.log('Device: %s, new Input name saved successfull, name: %s reference: %s', this.host, newInputName, inputReference);
 							}
 						});
 						callback();
