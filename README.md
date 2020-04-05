@@ -5,17 +5,21 @@
 
 Plugin to control lgwebos TV in HomeKit as TV service. Tested with LGOLED65G6V, 32LM6300PLA, LG49SK8500. Present as TV service, change inputs, volume/mute control, power control.
 
-Homebridge: https://github.com/homebridge/homebridge
-Homebridge Config UI X: https://github.com/oznu/homebridge-config-ui-x
+## Package
+
+1. Homebridge: https://github.com/homebridge/homebridge
+2. Homebridge Config UI X: https://github.com/oznu/homebridge-config-ui-x
+3. Plugin homebridge-lgwebos-tv: `npm install -g homebridge-lgwebos-tv`
 
 ## Installation
 
 1. Follow the step-by-step instructions on the [Homebridge Wiki](https://github.com/homebridge/homebridge/wiki) for how to install Homebridge.
 2. Follow the step-by-step instructions on the [Homebridge Config UI X](https://github.com/oznu/homebridge-config-ui-x/wiki) for how to install Homebridge Config UI X.
-3. Install homebridge-lgwebos-tv using: `npm install -g homebridge-lgwebos-tv`
-4. Use Homebridge Config UI X to configure the plugin(strongly recomended) or update your configuration file manually. See `sample-config.json` in this repository for a sample. 
+3. Install homebridge-lgwebos-tv using: `npm install -g homebridge-lgwebos-tv` 
 
 ## Configuration
+
+1. Use Homebridge Config UI X to configure the plugin (strongly recomended), or update your configuration file manually. See `sample-config.json` in this repository for a sample on add the bottom example to Your config.json file.
 
 ```json
 {
