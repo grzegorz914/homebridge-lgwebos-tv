@@ -13,7 +13,7 @@ Homebridge Config UI X: https://github.com/oznu/homebridge-config-ui-x
 1. Follow the step-by-step instructions on the [Homebridge Wiki](https://github.com/homebridge/homebridge/wiki) for how to install Homebridge.
 2. Follow the step-by-step instructions on the [Homebridge Config UI X](https://github.com/oznu/homebridge-config-ui-x/wiki) for how to install Homebridge Config UI X.
 3. Install homebridge-lgwebos-tv using: `npm install -g homebridge-lgwebos-tv`
-4. Use Homebridge Homebridge Config UI X to configure the plugin(strongly recomended) or update your configuration file manually. See `sample-config.json` in this repository for a sample. 
+4. Use Homebridge Config UI X to configure the plugin(strongly recomended) or update your configuration file manually. See `sample-config.json` in this repository for a sample. 
 
 ## Configuration
 
