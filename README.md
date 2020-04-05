@@ -7,9 +7,8 @@ Plugin to control lgwebos TV in HomeKit as TV service. Tested with LGOLED65G6V, 
 
 ## Package
 
-1. Homebridge: https://github.com/homebridge/homebridge
-2. Homebridge Config UI X: https://github.com/oznu/homebridge-config-ui-x
-3. Plugin homebridge-lgwebos-tv: `npm install -g homebridge-lgwebos-tv`
+1. [Homebridge](https://github.com/homebridge/homebridge)
+2. [Homebridge Config UI X](https://github.com/oznu/homebridge-config-ui-x)
 
 ## Installation
 
