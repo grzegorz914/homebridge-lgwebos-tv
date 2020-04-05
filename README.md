@@ -27,7 +27,7 @@ Control lgwebos TV in HomeKit as TV service. Tested with LGOLED65G6V, 32LM6300PL
 ## Configuration
 
 <p align="left">
-  <a href="https://github.com/grzegorz914/homebridge-lgwebos-tv"><img src="https://github.com/grzegorz914/homebridge-lgwebos-tv/blob/master//graphics/ustawienia.png" height="100"></a>
+  <a href="https://github.com/grzegorz914/homebridge-lgwebos-tv"><img src="https://github.com/grzegorz914/homebridge-lgwebos-tv/blob/master/graphics/ustawienia.png" height="100"></a>
 </p>
 
 1. Use [Homebridge Config UI X](https://github.com/oznu/homebridge-config-ui-x) to configure the plugin (strongly recomended), or update your configuration file manually. See `sample-config.json` in this repository for a sample or add the bottom example to Your config.json file.
