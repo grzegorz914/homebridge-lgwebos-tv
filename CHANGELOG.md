@@ -1,5 +1,10 @@
 # Change Log
 All notable changes to this project will be documented in this file.
+## 0.2.93 (05.04.2020)
+- read and store serListFile from TV
+- update README.md
+- update sample-config.json
+
 ## 0.2.91 (29.03.2020)
 - fixes crash if no device name defined
 - fixed config.schema.json

@@ -86,8 +86,9 @@ class lgwebosTvDevice {
 		this.isPaused = false;
 		this.prefDir = path.join(api.user.storagePath(), 'lgwebosTv');
 		this.keyFile = this.prefDir + '/' + 'key_' + this.host.split('.').join('');
-		this.devSysInfoFile = this.prefDir + '/' + 'sysinfo_' + this.host.split('.').join('');
-		this.devSwInfoFile = this.prefDir + '/' + 'swinfo_' + this.host.split('.').join('');
+		this.sysInfoFile = this.prefDir + '/' + 'sysinfo_' + this.host.split('.').join('');
+		this.swInfoFile = this.prefDir + '/' + 'swinfo_' + this.host.split('.').join('');
+		this.serListFile = this.prefDir + '/' + 'serinfo_' + this.host.split('.').join('');
 		this.inputsFile = this.prefDir + '/' + 'inputs_' + this.host.split('.').join('');
 		this.channelsFile = this.prefDir + '/' + 'channels_' + this.host.split('.').join('');
 		this.url = 'ws://' + this.host + ':' + this.port;
@@ -203,16 +204,16 @@ class lgwebosTvDevice {
 					me.log.debug('Device: %s, get device Info successfull: %s', me.host, JSON.stringify(data, null, 2));
 					me.manufacturer = 'LG Electronics';
 					me.modelName = data.modelName;
-					if (fs.existsSync(me.devSysInfoFile) === false) {
-						fs.writeFile(me.devSysInfoFile, JSON.stringify(data), (error) => {
+					if (fs.existsSync(me.sysInfoFile) === false) {
+						fs.writeFile(me.sysInfoFile, JSON.stringify(data), (error) => {
 							if (error) {
-								me.log.debug('Device: %s, could not write devSysInfoFile, error: %s', me.host, error);
+								me.log.debug('Device: %s, could not write sysInfoFile, error: %s', me.host, error);
 							} else {
-								me.log.debug('Device: %s, devSysInfoFile saved successful', me.host);
+								me.log.debug('Device: %s, sysInfoFile saved successful', me.host);
 							}
 						});
 					} else {
-						me.log.debug('Device: %s, devSysInfoFile already exists, not saving', me.host);
+						me.log.debug('Device: %s, sysInfoFile already exists, not saving', me.host);
 					}
 				}
 			});
@@ -226,16 +227,16 @@ class lgwebosTvDevice {
 					me.productName = data.product_name;
 					me.serialNumber = data.device_id;
 					me.firmwareRevision = data.minor_ver;
-					if (fs.existsSync(me.devSwInfoFile) === false) {
-						fs.writeFile(me.devSwInfoFile, JSON.stringify(data), (error) => {
+					if (fs.existsSync(me.swInfoFile) === false) {
+						fs.writeFile(me.swInfoFile, JSON.stringify(data), (error) => {
 							if (error) {
-								me.log.debug('Device: %s, could not write devSwInfoFile, error: %s', me.host, error);
+								me.log.debug('Device: %s, could not write swInfoFile, error: %s', me.host, error);
 							} else {
-								me.log.debug('Device: %s, devSwInfoFile saved successful', me.host);
+								me.log.debug('Device: %s, swInfoFile saved successful', me.host);
 							}
 						});
 					} else {
-						me.log.debug('Device: %s, devSwInfoFile already exists, not saving', me.host);
+						me.log.debug('Device: %s, swInfoFile already exists, not saving', me.host);
 					}
 				}
 			});
@@ -246,8 +247,20 @@ class lgwebosTvDevice {
 				} else {
 					delete data['returnValue'];
 					me.log.debug('Device: %s, get Service list successful: %s', me.host, JSON.stringify(data, null, 2));
+					if (fs.existsSync(me.serListFile) === false) {
+						fs.writeFile(me.serListFile, JSON.stringify(data), (error) => {
+							if (error) {
+								me.log.debug('Device: %s, could not write serListFile, error: %s', me.host, error);
+							} else {
+								me.log.debug('Device: %s, serListFile saved successful', me.host);
+							}
+						});
+					} else {
+						me.log.debug('Device: %s, serListFile already exists, not saving', me.host);
+					}
 				}
 			});
+
 			setTimeout(() => {
 				me.log('-------- %s --------', me.name);
 				me.log('Manufacturer: %s', me.manufacturer);

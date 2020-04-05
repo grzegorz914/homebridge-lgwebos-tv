@@ -1,43 +1,62 @@
 {
-    "platform": "LgWebOsTv",
-    "devices": [
+    "bridge": {
+        "name": "Homebridge",
+        "username": "AA:BB:CC:DD:EE:FF",
+        "manufacturer": "homebridge.io",
+        "model": "homebridge",
+        "port": 9100,
+        "pin": "123-45-678"
+    },
+    "description": "HomeKit Bridge",
+    "ports": {
+        "start": 9101,
+        "end": 9150,
+        "comment": "In this section set the port for Homebridge accessories."
+    },
+    "accessories": [],
+    "platforms": [
         {
-            "name": "LG TV",
-            "host": "192.168.1.8",
-            "mac": "ab:cd:ef:fe:dc:ba",
-            "switchInfoMenu": true,
-            "inputs": [
+            "platform": "LgWebOsTv",
+            "devices": [
                 {
-                    "name": "Live TV",
-                    "reference": "com.webos.app.livetv"
-                },
-                {
-                    "name": "HDMI 1",
-                    "reference": "com.webos.app.hdmi1"
-                },
-                {
-                    "name": "HDMI 2",
-                    "reference": "com.webos.app.hdmi2"
-                },
-                {
-                    "name": "HDMI 3",
-                    "reference": "com.webos.app.hdmi3"
-                },
-                {
-                    "name": "HDMI 4",
-                    "reference": "com.webos.app.hdmi4"
-                },
-                {
-                    "name": "Netflix",
-                    "reference": "netflix",
-                },
-                {
-                    "name": "YouTube",
-                    "reference": "youtube.leanback.v4"
-                },
-                {
-                    "name": "LG Store",
-                    "reference": "com.webos.app.discovery"
+                    "name": "LG TV",
+                    "host": "192.168.1.8",
+                    "mac": "ab:cd:ef:fe:dc:ba",
+                    "switchInfoMenu": true,
+                    "inputs": [
+                        {
+                            "name": "Live TV",
+                            "reference": "com.webos.app.livetv"
+                        },
+                        {
+                            "name": "HDMI 1",
+                            "reference": "com.webos.app.hdmi1"
+                        },
+                        {
+                            "name": "HDMI 2",
+                            "reference": "com.webos.app.hdmi2"
+                        },
+                        {
+                            "name": "HDMI 3",
+                            "reference": "com.webos.app.hdmi3"
+                        },
+                        {
+                            "name": "HDMI 4",
+                            "reference": "com.webos.app.hdmi4"
+                        },
+                        {
+                            "name": "Netflix",
+                            "reference": "netflix",
+                        },
+                        {
+                            "name": "YouTube",
+                            "reference": "youtube.leanback.v4"
+                        },
+                        {
+                            "name": "LG Store",
+                            "reference": "com.webos.app.discovery"
+                        }
+                    ]
                 }
             ]
         }
