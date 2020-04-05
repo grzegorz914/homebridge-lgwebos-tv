@@ -168,8 +168,8 @@ class lgwebosTvDevice {
 
 	connect() {
 		this.log.info('Device: %s, connected.', this.host);
-		this.getDeviceInfo();
 		this.connectionStatus = true;
+		this.getDeviceInfo();
 		this.getDeviceState();
 		this.connectToPointerInputSocket();
 	}
