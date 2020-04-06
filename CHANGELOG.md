@@ -1,5 +1,8 @@
 # Change Log
 All notable changes to this project will be documented in this file.
+## 0.2.95 (05.04.2020)
+- read and store appListFile from TV
+
 ## 0.2.93 (05.04.2020)
 - read and store serListFile from TV
 - update README.md

@@ -1,6 +1,6 @@
 {
   "name": "homebridge-lgwebos-tv",
-  "version": "0.2.93",
+  "version": "0.2.95",
   "description": "Plugin for Homebridge (https://github.com/homebridge/homebridge) to controll LG Web OS TV.",
   "license": "MIT",
   "author": "grzegorz914",

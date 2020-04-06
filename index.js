@@ -88,7 +88,8 @@ class lgwebosTvDevice {
 		this.keyFile = this.prefDir + '/' + 'key_' + this.host.split('.').join('');
 		this.sysInfoFile = this.prefDir + '/' + 'sysinfo_' + this.host.split('.').join('');
 		this.swInfoFile = this.prefDir + '/' + 'swinfo_' + this.host.split('.').join('');
-		this.serListFile = this.prefDir + '/' + 'serinfo_' + this.host.split('.').join('');
+		this.serListFile = this.prefDir + '/' + 'services_' + this.host.split('.').join('');
+		this.appListFile = this.prefDir + '/' + 'apps_' + this.host.split('.').join('');
 		this.inputsFile = this.prefDir + '/' + 'inputs_' + this.host.split('.').join('');
 		this.channelsFile = this.prefDir + '/' + 'channels_' + this.host.split('.').join('');
 		this.url = 'ws://' + this.host + ':' + this.port;
@@ -257,6 +258,26 @@ class lgwebosTvDevice {
 						});
 					} else {
 						me.log.debug('Device: %s, serListFile already exists, not saving', me.host);
+					}
+				}
+			});
+
+			me.lgtv.request('ssap://com.webos.applicationManager/listApps', (error, data) => {
+				if (!data || error || data.errorCode) {
+					me.log.debug('Device: %s, get Apps list error: %s', me.host, error);
+				} else {
+					delete data['returnValue'];
+					me.log.debug('Device: %s, get Apps list successful: %s', me.host, JSON.stringify(data, null, 2));
+					if (fs.existsSync(me.appListFile) === false) {
+						fs.writeFile(me.appListFile, JSON.stringify(data), (error) => {
+							if (error) {
+								me.log.debug('Device: %s, could not write appListFile, error: %s', me.host, error);
+							} else {
+								me.log.debug('Device: %s, appListFile saved successful', me.host);
+							}
+						});
+					} else {
+						me.log.debug('Device: %s, appListFile already exists, not saving', me.host);
 					}
 				}
 			});
