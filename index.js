@@ -86,10 +86,10 @@ class lgwebosTvDevice {
 		this.isPaused = false;
 		this.prefDir = path.join(api.user.storagePath(), 'lgwebosTv');
 		this.keyFile = this.prefDir + '/' + 'key_' + this.host.split('.').join('');
-		this.sysInfoFile = this.prefDir + '/' + 'sysinfo_' + this.host.split('.').join('');
-		this.swInfoFile = this.prefDir + '/' + 'swinfo_' + this.host.split('.').join('');
-		this.serListFile = this.prefDir + '/' + 'services_' + this.host.split('.').join('');
-		this.appListFile = this.prefDir + '/' + 'apps_' + this.host.split('.').join('');
+		this.systemFile = this.prefDir + '/' + 'system_' + this.host.split('.').join('');
+		this.softwareFile = this.prefDir + '/' + 'software_' + this.host.split('.').join('');
+		this.servicesFile = this.prefDir + '/' + 'services_' + this.host.split('.').join('');
+		this.appsFile = this.prefDir + '/' + 'apps_' + this.host.split('.').join('');
 		this.inputsFile = this.prefDir + '/' + 'inputs_' + this.host.split('.').join('');
 		this.channelsFile = this.prefDir + '/' + 'channels_' + this.host.split('.').join('');
 		this.url = 'ws://' + this.host + ':' + this.port;
@@ -198,66 +198,66 @@ class lgwebosTvDevice {
 			me.log.debug('Device: %s, requesting TV information', me.host);
 			me.lgtv.request('ssap://system/getSystemInfo', (error, data) => {
 				if (!data || error || data.errorCode) {
-					me.log.debug('Device: %s, get device Info error: %s', me.host, error);
+					me.log.debug('Device: %s, get System info error: %s', me.host, error);
 					return;
 				} else {
 					delete data['returnValue'];
-					me.log.debug('Device: %s, get device Info successfull: %s', me.host, JSON.stringify(data, null, 2));
+					me.log.debug('Device: %s, get System info successfull: %s', me.host, JSON.stringify(data, null, 2));
 					me.manufacturer = 'LG Electronics';
 					me.modelName = data.modelName;
-					if (fs.existsSync(me.sysInfoFile) === false) {
-						fs.writeFile(me.sysInfoFile, JSON.stringify(data), (error) => {
+					if (fs.existsSync(me.systemFile) === false) {
+						fs.writeFile(me.systemFile, JSON.stringify(data), (error) => {
 							if (error) {
-								me.log.debug('Device: %s, could not write sysInfoFile, error: %s', me.host, error);
+								me.log.debug('Device: %s, could not write systemFile, error: %s', me.host, error);
 							} else {
-								me.log.debug('Device: %s, sysInfoFile saved successful', me.host);
+								me.log.debug('Device: %s, systemFile saved successful', me.host);
 							}
 						});
 					} else {
-						me.log.debug('Device: %s, sysInfoFile already exists, not saving', me.host);
+						me.log.debug('Device: %s, systemFile already exists, not saving', me.host);
 					}
 				}
 			});
 
 			me.lgtv.request('ssap://com.webos.service.update/getCurrentSWInformation', (error, data) => {
 				if (!data || error || data.errorCode) {
-					me.log.debug('Device: %s, get software Info error: %s', me.host, error);
+					me.log.debug('Device: %s, get Software info error: %s', me.host, error);
 				} else {
 					delete data['returnValue'];
-					me.log.debug('Device: %s, get software Info successful: %s', me.host, JSON.stringify(data, null, 2));
+					me.log.debug('Device: %s, get Software info successful: %s', me.host, JSON.stringify(data, null, 2));
 					me.productName = data.product_name;
 					me.serialNumber = data.device_id;
 					me.firmwareRevision = data.minor_ver;
-					if (fs.existsSync(me.swInfoFile) === false) {
-						fs.writeFile(me.swInfoFile, JSON.stringify(data), (error) => {
+					if (fs.existsSync(me.softwareFile) === false) {
+						fs.writeFile(me.softwareFile, JSON.stringify(data), (error) => {
 							if (error) {
-								me.log.debug('Device: %s, could not write swInfoFile, error: %s', me.host, error);
+								me.log.debug('Device: %s, could not write softwareFile, error: %s', me.host, error);
 							} else {
-								me.log.debug('Device: %s, swInfoFile saved successful', me.host);
+								me.log.debug('Device: %s, softwareFile saved successful', me.host);
 							}
 						});
 					} else {
-						me.log.debug('Device: %s, swInfoFile already exists, not saving', me.host);
+						me.log.debug('Device: %s, softwareFile already exists, not saving', me.host);
 					}
 				}
 			});
 
 			me.lgtv.request('ssap://api/getServiceList', (error, data) => {
 				if (!data || error || data.errorCode) {
-					me.log.debug('Device: %s, get Service list error: %s', me.host, error);
+					me.log.debug('Device: %s, get Services list error: %s', me.host, error);
 				} else {
 					delete data['returnValue'];
-					me.log.debug('Device: %s, get Service list successful: %s', me.host, JSON.stringify(data, null, 2));
-					if (fs.existsSync(me.serListFile) === false) {
-						fs.writeFile(me.serListFile, JSON.stringify(data), (error) => {
+					me.log.debug('Device: %s, get Services list successful: %s', me.host, JSON.stringify(data, null, 2));
+					if (fs.existsSync(me.servicesFile) === false) {
+						fs.writeFile(me.servicesFile, JSON.stringify(data), (error) => {
 							if (error) {
-								me.log.debug('Device: %s, could not write serListFile, error: %s', me.host, error);
+								me.log.debug('Device: %s, could not write servicesFile, error: %s', me.host, error);
 							} else {
-								me.log.debug('Device: %s, serListFile saved successful', me.host);
+								me.log.debug('Device: %s, servicesFile saved successful', me.host);
 							}
 						});
 					} else {
-						me.log.debug('Device: %s, serListFile already exists, not saving', me.host);
+						me.log.debug('Device: %s, servicesFile already exists, not saving', me.host);
 					}
 				}
 			});
@@ -268,16 +268,16 @@ class lgwebosTvDevice {
 				} else {
 					delete data['returnValue'];
 					me.log.debug('Device: %s, get Apps list successful: %s', me.host, JSON.stringify(data, null, 2));
-					if (fs.existsSync(me.appListFile) === false) {
-						fs.writeFile(me.appListFile, JSON.stringify(data), (error) => {
+					if (fs.existsSync(me.appsFile) === false) {
+						fs.writeFile(me.appsFile, JSON.stringify(data), (error) => {
 							if (error) {
-								me.log.debug('Device: %s, could not write appListFile, error: %s', me.host, error);
+								me.log.debug('Device: %s, could not write appsFile, error: %s', me.host, error);
 							} else {
-								me.log.debug('Device: %s, appListFile saved successful', me.host);
+								me.log.debug('Device: %s, appsFile saved successful', me.host);
 							}
 						});
 					} else {
-						me.log.debug('Device: %s, appListFile already exists, not saving', me.host);
+						me.log.debug('Device: %s, appsFile already exists, not saving', me.host);
 					}
 				}
 			});
@@ -430,8 +430,10 @@ class lgwebosTvDevice {
 
 			if (savedNames && savedNames[inputReference]) {
 				inputName = savedNames[inputReference];
-			} else if (input.name) {
-				inputName = input.name;
+			} else {
+				if (input.name) {
+					inputName = input.name;
+				}
 			}
 
 			//if reference not null or empty add the input

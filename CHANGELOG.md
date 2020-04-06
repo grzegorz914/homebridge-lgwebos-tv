@@ -1,5 +1,8 @@
 # Change Log
 All notable changes to this project will be documented in this file.
+## 0.2.96 (06.04.2020)
+- name corrections in TV information files
+
 ## 0.2.95 (05.04.2020)
 - read and store appListFile from TV
 
