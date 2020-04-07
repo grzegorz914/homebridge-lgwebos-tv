@@ -168,10 +168,6 @@ class lgwebosTvDevice {
 
 		//Delay to wait for device info before publish
 		setTimeout(this.prepareTvService.bind(this), 1000);
-
-		this.tvAccesory = new Accessory(this.name, UUIDGen.generate(this.host + this.name));
-		this.log.debug('Device: %s, publishExternalAccessories: %s', this.host, this.name);
-		this.api.publishExternalAccessories('homebridge-lgwebos-tv', [this.tvAccesory]);
 	}
 
 	connect() {
@@ -350,6 +346,8 @@ class lgwebosTvDevice {
 	//Prepare TV service 
 	prepareTvService() {
 		this.log.debug('prepereTvService');
+		this.tvAccesory = new Accessory(this.name, UUIDGen.generate(this.host + this.name));
+		
 		this.tvService = new Service.Television(this.name, 'tvService');
 		this.tvService.setCharacteristic(Characteristic.ConfiguredName, this.name);
 		this.tvService.setCharacteristic(Characteristic.SleepDiscoveryMode, Characteristic.SleepDiscoveryMode.ALWAYS_DISCOVERABLE);
@@ -381,6 +379,9 @@ class lgwebosTvDevice {
 		this.tvAccesory.addService(this.tvService);
 		this.prepereTvSpeakerService();
 		this.prepareInputServices();
+
+		this.log.debug('Device: %s, publishExternalAccessories: %s', this.host, this.name);
+		this.api.publishExternalAccessories('homebridge-lgwebos-tv', [this.tvAccesory]);
 	}
 
 	//Prepare speaker service
