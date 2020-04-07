@@ -79,6 +79,12 @@ class lgwebosTvDevice {
 		this.switchInfoMenu = device.switchInfoMenu;
 		this.inputs = device.inputs;
 
+		//get Device info
+		this.manufacturer = device.manufacturer || 'LG Electronics';
+		this.modelName = device.modelName || 'homebridge-lgwebos-tv';
+		this.serialNumber = device.serialNumber || 'SN0000004';
+		this.firmwareRevision = device.firmwareRevision || 'FW0000004';
+
 		//setup variables
 		this.inputReferences = new Array();
 		this.channelReferences = new Array();
@@ -100,12 +106,6 @@ class lgwebosTvDevice {
 		this.inputsFile = this.prefDir + '/' + 'inputs_' + this.host.split('.').join('');
 		this.channelsFile = this.prefDir + '/' + 'channels_' + this.host.split('.').join('');
 		this.url = 'ws://' + this.host + ':' + this.port;
-
-		//get Device info
-		this.manufacturer = device.manufacturer || 'LG Electronics';
-		this.modelName = device.modelName || 'homebridge-lgwebos-tv';
-		this.serialNumber = device.serialNumber || 'SN0000004';
-		this.firmwareRevision = device.firmwareRevision || 'FW0000004';
 
 		//check if prefs directory ends with a /, if not then add it
 		if (this.prefDir.endsWith('/') === false) {
