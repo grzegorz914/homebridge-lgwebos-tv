@@ -31,6 +31,7 @@ Control lgwebos TV in HomeKit as TV service. Tested with LGOLED65G6V, 32LM6300PL
 </p>
 
 1. Use [Homebridge Config UI X](https://github.com/oznu/homebridge-config-ui-x) to configure the plugin (strongly recomended), or update your configuration file manually. See `sample-config.json` in this repository for a sample or add the bottom example to Your config.json file.
+2. All inputs reference and name can be foumd in: `homebridge_directory/lgwebosTv/apps_19216818` where `name == title` nad `reference == id`
 
 ```json
 {
