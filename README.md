@@ -9,9 +9,15 @@
 [![npm](https://badgen.net/npm/dt/homebridge-lgwebos-tv?color=purple)](https://www.npmjs.com/package/homebridge-lgwebos-tv) [![npm](https://badgen.net/npm/v/homebridge-lgwebos-tv?color=purple)](https://www.npmjs.com/package/homebridge-lgwebos-tv) [![GitHub pull requests](https://img.shields.io/github/issues-pr/grzegorz914/homebridge-lgwebos-tv.svg)](https://github.com/grzegorz914/homebridge-lgwebos-tv/pulls)
 [![GitHub issues](https://img.shields.io/github/issues/grzegorz914/homebridge-lgwebos-tv.svg)](https://github.com/grzegorz914/homebridge-lgwebos-tv/issues)
 
-Control lgwebos TV in HomeKit as TV service. Tested with LGOLED65G6V, 32LM6300PLA, LG49SK8500. Present as TV service, change inputs/apps, volume/mute control, power control, RC control.
+Homebridge plugin to control LG webOS TV in HomeKit as TV service. Tested with LGOLED65G6V, 32LM6300PLA, LG49SK8500.
 
 </span>
+
+## Info
+1. The Volume/Mute and RC/Media is possible after You go to RC Control app on iPhone/iPad.
+2. Volume and Mute can be changed using hardware buttons on iPhone/iPad.
+3. RC/Media control function available from RC Control app on iPhone/iPad.
+4. Siri control using siri command.
 
 ## Package
 
@@ -22,7 +28,7 @@ Control lgwebos TV in HomeKit as TV service. Tested with LGOLED65G6V, 32LM6300PL
 
 1. Follow the step-by-step instructions on the [Homebridge Wiki](https://github.com/homebridge/homebridge/wiki) for how to install Homebridge.
 2. Follow the step-by-step instructions on the [Homebridge Config UI X](https://github.com/oznu/homebridge-config-ui-x/wiki) for how to install Homebridge Config UI X.
-3. Install homebridge-lgwebos-tv using: `npm install -g homebridge-lgwebos-tv` 
+3. Install homebridge-lgwebos-tv using: `npm install -g homebridge-lgwebos-tv`.
 
 ## Configuration
 
