@@ -19,6 +19,10 @@ Homebridge plugin to control LG webOS TV in HomeKit as TV service. Tested with L
 3. RC/Media control function available from RC Control app on iPhone/iPad.
 4. Siri control using siri command.
 
+<p align="left">
+  <a href="https://github.com/grzegorz914/homebridge-lgwebos-tv"><img src="https://github.com/grzegorz914/homebridge-lgwebos-tv/blob/master/graphics/RC.png" height="140"></a>
+</p>
+
 ## Package
 
 1. [Homebridge](https://github.com/homebridge/homebridge)
