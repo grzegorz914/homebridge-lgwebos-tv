@@ -13,6 +13,16 @@ Homebridge plugin to control LG webOS TV in HomeKit as TV service. Tested with L
 
 </span>
 
+## Info
+1. Volume/Mute and RC/Media is possible after You go to RC Control app on iPhone/iPad.
+2. Volume and Mute can be changed using hardware buttons on iPhone/iPad.
+3. RC/Media control function available from RC Control app on iPhone/iPad.
+4. Siri control using siri command.
+
+<p align="left">
+  <a href="https://github.com/grzegorz914/homebridge-lgwebos-tv"><img src="https://github.com/grzegorz914/homebridge-lgwebos-tv/blob/master/graphics/RC.png" height="250"></a>
+</p>
+
 ## Package
 
 1. [Homebridge](https://github.com/homebridge/homebridge)
@@ -26,12 +36,12 @@ Homebridge plugin to control LG webOS TV in HomeKit as TV service. Tested with L
 
 ## Configuration
 
+1. Use [Homebridge Config UI X](https://github.com/oznu/homebridge-config-ui-x) to configure the plugin (strongly recomended), or update your configuration file manually. See `sample-config.json` in this repository for a sample or add the bottom example to Your config.json file.
+2. All inputs reference and name can be found in: `homebridge_directory/lgwebosTv/apps_19216818` where `name == title` nad `reference == id`
+
 <p align="left">
   <a href="https://github.com/grzegorz914/homebridge-lgwebos-tv"><img src="https://github.com/grzegorz914/homebridge-lgwebos-tv/blob/master/graphics/ustawienia.png" height="100"></a>
 </p>
-
-1. Use [Homebridge Config UI X](https://github.com/oznu/homebridge-config-ui-x) to configure the plugin (strongly recomended), or update your configuration file manually. See `sample-config.json` in this repository for a sample or add the bottom example to Your config.json file.
-2. All inputs reference and name can be found in: `homebridge_directory/lgwebosTv/apps_19216818` where `name == title` nad `reference == id`
 
 ```json
 {
@@ -80,15 +90,5 @@ Homebridge plugin to control LG webOS TV in HomeKit as TV service. Tested with L
     ]
 }
 ```
-## Info
-1. The Volume/Mute and RC/Media is possible after You go to RC Control app on iPhone/iPad.
-2. Volume and Mute can be changed using hardware buttons on iPhone/iPad.
-3. RC/Media control function available from RC Control app on iPhone/iPad.
-4. Siri control using siri command.
-
-<p align="left">
-  <a href="https://github.com/grzegorz914/homebridge-lgwebos-tv"><img src="https://github.com/grzegorz914/homebridge-lgwebos-tv/blob/master/graphics/RC.png" height="250"></a>
-</p>
-
 ## Whats new:
 https://github.com/grzegorz914/homebridge-lgwebos-tv/blob/master/CHANGELOG.md
