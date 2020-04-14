@@ -107,6 +107,13 @@ class lgwebosTvDevice {
 		this.channelsFile = this.prefDir + '/' + 'channels_' + this.host.split('.').join('');
 		this.url = 'ws://' + this.host + ':' + this.port;
 
+		this.lgtv = new lgtv({
+			url: this.url,
+			timeout: 5000,
+			reconnect: 3000,
+			keyFile: this.keyFile
+		});
+
 		//check if prefs directory ends with a /, if not then add it
 		if (this.prefDir.endsWith('/') === false) {
 			this.prefDir = this.prefDir + '/';
@@ -133,13 +140,6 @@ class lgwebosTvDevice {
 				}
 			});
 		}.bind(this), 5000);
-
-		this.lgtv = new lgtv({
-			url: this.url,
-			timeout: 5000,
-			reconnect: 3000,
-			keyFile: this.keyFile
-		});
 
 		this.lgtv.on('connect', () => {
 			this.log.debug('Device: %s, connected.', this.host);
