@@ -15,11 +15,12 @@ Homebridge plugin to control LG webOS TV in HomeKit as TV service. Tested with L
 
 ## Info
 1. Volume/Mute and RC/Media is possible after You go to RC Control app on iPhone/iPad. 
-2. Volume and Mute can be changed using hardware buttons on iPhone/iPad.
-3. RC/Media control function available from RC Control app on iPhone/iPad.
-4. Siri control using siri command.
-5. Power ON/OFF short press tile in HomeKit app.
-6. Change Inputs/Apps after loong press tile in HomeKit app.
+2. Power ON/OFF short press tile in HomeKit app.
+3. Inputs/Apps can be changed after loong press tile in HomeKit app.
+4. Volume/Mute can be changed using hardware buttons on iPhone/iPad.
+5. RC/Media control function available from RC Control app on iPhone/iPad.
+6. Siri control using siri command.
+
 
 <p align="left">
   <a href="https://github.com/grzegorz914/homebridge-lgwebos-tv"><img src="https://github.com/grzegorz914/homebridge-lgwebos-tv/blob/master/graphics/homekit.png" height="300"></a>  <a href="https://github.com/grzegorz914/homebridge-lgwebos-tv"><img src="https://github.com/grzegorz914/homebridge-lgwebos-tv/blob/master/graphics/inputs.png" height="300"></a>  <a href="https://github.com/grzegorz914/homebridge-lgwebos-tv"><img src="https://github.com/grzegorz914/homebridge-lgwebos-tv/blob/master/graphics/RC.png" height="300"></a>

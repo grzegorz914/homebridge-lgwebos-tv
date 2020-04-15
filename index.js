@@ -34,7 +34,6 @@ class lgwebosTvPlatform {
 
 		if (api) {
 			this.api = api;
-
 			if (this.version < 2.1) {
 				throw new Error('Unexpected API version.');
 			}
@@ -53,15 +52,17 @@ class lgwebosTvPlatform {
 			}
 		}
 	}
+
 	configureAccessory(platformAccessory) {
 		this.log.debug('configureAccessory');
 		if (this.tvAccessories) {
 			this.tvAccessories.push(platformAccessory);
 		}
 	}
+
 	removeAccessory(platformAccessory) {
 		this.log.debug('removeAccessory');
-		this.api.unregisterPlatformAccessories('homebridge-openwebif-tv', 'OpenWebIfTv', [platformAccessory]);
+		this.api.unregisterPlatformAccessories('homebridge-lgwebos-tv', 'LgWebOsTv', [platformAccessory]);
 	}
 }
 
@@ -73,9 +74,9 @@ class lgwebosTvDevice {
 
 		//device configuration
 		this.device = device;
-		this.name = device.name || 'TV';
-		this.host = device.host || '192.168.1.8';
-		this.mac = device.mac || 'aa:bb:cc:dd:ee:ff';
+		this.name = device.name;
+		this.host = device.host;
+		this.mac = device.mac;
 		this.switchInfoMenu = device.switchInfoMenu;
 		this.inputs = device.inputs;
 
