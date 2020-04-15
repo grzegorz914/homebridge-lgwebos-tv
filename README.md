@@ -43,7 +43,7 @@ Homebridge plugin to control LG webOS TV in HomeKit as TV service. Tested with L
 2. All inputs reference and name can be found in: `homebridge_directory/lgwebosTv/apps_19216818` where `name == title` nad `reference == id`
 
 <p align="left">
-  <a href="https://github.com/grzegorz914/homebridge-lgwebos-tv"><img src="https://github.com/grzegorz914/homebridge-lgwebos-tv/blob/master/graphics/ustawienia.png" height="200"></a>
+  <a href="https://github.com/grzegorz914/homebridge-lgwebos-tv"><img src="https://github.com/grzegorz914/homebridge-lgwebos-tv/blob/master/graphics/ustawienia.png" height="150"></a>
 </p>
 
 ```json
