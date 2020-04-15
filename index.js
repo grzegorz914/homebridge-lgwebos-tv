@@ -76,7 +76,6 @@ class lgwebosTvDevice {
 		this.device = device;
 		this.name = device.name;
 		this.host = device.host;
-		this.port = 3000;
 		this.mac = device.mac;
 		this.switchInfoMenu = device.switchInfoMenu;
 		this.inputs = device.inputs;
@@ -94,9 +93,9 @@ class lgwebosTvDevice {
 		this.currentPowerState = false;
 		this.currentMuteState = false;
 		this.currentVolume = 0;
-		this.currentInputReference = '';
-		this.currentChannelReference = '';
-		this.currentChannelName = '';
+		this.currentInputReference = null;
+		this.currentChannelReference = null;
+		this.currentChannelName = null;
 		this.currentInfoMenuState = false;
 		this.isPaused = false;
 		this.prefDir = path.join(api.user.storagePath(), 'lgwebosTv');
@@ -107,7 +106,7 @@ class lgwebosTvDevice {
 		this.appsFile = this.prefDir + '/' + 'apps_' + this.host.split('.').join('');
 		this.inputsFile = this.prefDir + '/' + 'inputs_' + this.host.split('.').join('');
 		this.channelsFile = this.prefDir + '/' + 'channels_' + this.host.split('.').join('');
-		this.url = 'ws://' + this.host + ':' + this.port;
+		this.url = 'ws://' + this.host + ':3000';
 
 		this.lgtv = new lgtv({
 			url: this.url,
@@ -349,7 +348,7 @@ class lgwebosTvDevice {
 	prepareTvService() {
 		this.log.debug('prepereTvService');
 		this.tvAccesory = new Accessory(this.name, UUIDGen.generate(this.host + this.name));
-		
+
 		this.tvService = new Service.Television(this.name, 'tvService');
 		this.tvService.setCharacteristic(Characteristic.ConfiguredName, this.name);
 		this.tvService.setCharacteristic(Characteristic.SleepDiscoveryMode, Characteristic.SleepDiscoveryMode.ALWAYS_DISCOVERABLE);
@@ -447,7 +446,7 @@ class lgwebosTvDevice {
 			}
 
 			//if reference not null or empty add the input
-			if (inputReference !== undefined && inputReference !== null && inputReference !== '') {
+			if (inputReference !== undefined && inputReference !== null) {
 				inputReference = inputReference.replace(/\s/g, ''); // remove all white spaces from the string
 
 				let tempInput = new Service.InputSource(inputReference, 'input' + i);
@@ -556,7 +555,7 @@ class lgwebosTvDevice {
 
 	getInput(callback) {
 		var me = this;
-		if (me.currentPowerState == false) {
+		if (!me.currentPowerState) {
 			me.tvService
 				.getCharacteristic(Characteristic.ActiveIdentifier)
 				.updateValue(0);
@@ -564,7 +563,7 @@ class lgwebosTvDevice {
 		} else {
 			var inputReference = me.currentInputReference;
 			for (let i = 0; i < me.inputReferences.length; i++) {
-				if (inputReference == me.inputReferences[i]) {
+				if (inputReference === me.inputReferences[i]) {
 					me.tvService
 						.getCharacteristic(Characteristic.ActiveIdentifier)
 						.updateValue(i);
@@ -596,7 +595,7 @@ class lgwebosTvDevice {
 
 	getChannel(callback) {
 		var me = this;
-		if (me.currentPowerState == false) {
+		if (!me.currentPowerState) {
 			me.tvService
 				.getCharacteristic(Characteristic.ActiveIdentifier)
 				.updateValue(0);
