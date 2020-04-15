@@ -287,6 +287,7 @@ class lgwebosTvDevice {
 				}
 			});
 
+			setTimeout(() => {
 				me.log('-------- %s --------', me.name);
 				me.log('Manufacturer: %s', me.manufacturer);
 				me.log('Model: %s', me.modelName);
@@ -294,7 +295,8 @@ class lgwebosTvDevice {
 				me.log('Serialnumber: %s', me.serialNumber);
 				me.log('Firmware: %s', me.firmwareRevision);
 				me.log('----------------------------------');
-		}, 350);
+			}, 250);
+		}, 250);
 	}
 
 	getDeviceState() {
