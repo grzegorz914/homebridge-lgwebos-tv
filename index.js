@@ -70,12 +70,13 @@ class lgwebosTvDevice {
 	constructor(log, device, api) {
 		this.log = log;
 		this.api = api;
-		this.port = 3000;
+		this.device = device;
 
 		//device configuration
 		this.device = device;
 		this.name = device.name;
 		this.host = device.host;
+		this.port = 3000;
 		this.mac = device.mac;
 		this.switchInfoMenu = device.switchInfoMenu;
 		this.inputs = device.inputs;
@@ -199,7 +200,7 @@ class lgwebosTvDevice {
 	getDeviceInfo() {
 		var me = this;
 		setTimeout(() => {
-			me.log.debug('Device: %s, requesting TV information', me.host);
+			me.log.debug('Device: %s, requesting information from: %s', me.host, me.name);
 			me.lgtv.request('ssap://system/getSystemInfo', (error, data) => {
 				if (!data || error || data.errorCode) {
 					me.log.debug('Device: %s, get System info error: %s', me.host, error);
@@ -286,7 +287,6 @@ class lgwebosTvDevice {
 				}
 			});
 
-			setTimeout(() => {
 				me.log('-------- %s --------', me.name);
 				me.log('Manufacturer: %s', me.manufacturer);
 				me.log('Model: %s', me.modelName);
@@ -294,8 +294,7 @@ class lgwebosTvDevice {
 				me.log('Serialnumber: %s', me.serialNumber);
 				me.log('Firmware: %s', me.firmwareRevision);
 				me.log('----------------------------------');
-			}, 250);
-		}, 250);
+		}, 350);
 	}
 
 	getDeviceState() {
