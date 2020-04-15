@@ -1,6 +1,5 @@
 'use strict';
 
-let Accessory, Service, Characteristic, UUIDGen;
 const fs = require('fs');
 const mkdirp = require('mkdirp');
 const lgtv = require('lgtv2');
@@ -8,6 +7,7 @@ const wol = require('wol');
 const tcpp = require('tcp-ping');
 const path = require('path');
 
+let Accessory, Service, Characteristic, UUIDGen;
 let pointerInputSocket;
 
 module.exports = homebridge => {
@@ -76,6 +76,7 @@ class lgwebosTvDevice {
 		this.device = device;
 		this.name = device.name;
 		this.host = device.host;
+		this.port = 3000;
 		this.mac = device.mac;
 		this.switchInfoMenu = device.switchInfoMenu;
 		this.inputs = device.inputs;
@@ -106,7 +107,7 @@ class lgwebosTvDevice {
 		this.appsFile = this.prefDir + '/' + 'apps_' + this.host.split('.').join('');
 		this.inputsFile = this.prefDir + '/' + 'inputs_' + this.host.split('.').join('');
 		this.channelsFile = this.prefDir + '/' + 'channels_' + this.host.split('.').join('');
-		this.url = 'ws://' + this.host + ':3000';
+		this.url = 'ws://' + this.host + ':' + this.port;
 
 		this.lgtv = new lgtv({
 			url: this.url,
