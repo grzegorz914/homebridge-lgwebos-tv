@@ -572,7 +572,7 @@ class lgwebosTvDevice {
 					me.currentInputReference = inputReference;
 				}
 			}
-			callback(null, inputReference);
+			callback();
 		}
 	}
 
@@ -588,7 +588,7 @@ class lgwebosTvDevice {
 					me.lgtv.request('ssap://system.launcher/launch', { id: inputReference });
 					me.log('Device: %s, set new Input successfull: %s', me.host, inputReference);
 					me.currentInputReference = inputReference;
-					callback(null, inputReference);
+					callback();
 				}
 			}
 		});
@@ -612,7 +612,7 @@ class lgwebosTvDevice {
 					me.currentChannelReference = channelReference;
 				}
 			}
-			callback(null, channelReference);
+			callback();
 		}
 	}
 
@@ -627,7 +627,7 @@ class lgwebosTvDevice {
 					this.lgtv.request('ssap://tv/openChannel', { channelNumber: channelReference });
 					me.log('Device: %s, set new Channel successfull: %s', me.host, channelReference);
 					me.currentChannelReference = channelReference;
-					callback(null, channelReference);
+					callback();
 				}
 			}
 		});
