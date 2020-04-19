@@ -643,7 +643,7 @@ class lgwebosTvDevice {
 			command = me.switchInfoMenu ? 'MENU' : 'INFO';
 		}
 		this.pointerInputSocket.send('button', { name: command });
-		me.log('Device: %s, setPowerModeSelection successfull, state: %s, command: %s', me.host, me.currentInfoMenuState ? 'HIDDEN' : 'SHOW', command);
+		me.log('Device: %s, setPowerModeSelection successfull, state: %s, command: %s', me.host, me.currentInfoMenuState ? 'HIDE' : 'SHOW', command);
 		me.currentInfoMenuState = !me.currentInfoMenuState;
 		callback(null, state);
 	}
