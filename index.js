@@ -497,6 +497,7 @@ class lgwebosTvDevice {
 						wol.wake(me.mac, (error) => {
 							if (error) {
 								me.log.debug('Device: %s, can not set new Power state. Might be due to a wrong settings in config, error: %s', me.host, error);
+								callback(error);
 							} else {
 								me.log('Device: %s, set new Power state successfull: ON', me.host);
 								me.currentPowerState = true;
@@ -572,7 +573,7 @@ class lgwebosTvDevice {
 					me.currentInputReference = inputReference;
 				}
 			}
-			callback();
+			callback(null);
 		}
 	}
 
@@ -588,7 +589,7 @@ class lgwebosTvDevice {
 					me.lgtv.request('ssap://system.launcher/launch', { id: inputReference });
 					me.log('Device: %s, set new Input successfull: %s', me.host, inputReference);
 					me.currentInputReference = inputReference;
-					callback();
+					callback(null);
 				}
 			}
 		});
@@ -612,7 +613,7 @@ class lgwebosTvDevice {
 					me.currentChannelReference = channelReference;
 				}
 			}
-			callback();
+			callback(null);
 		}
 	}
 
@@ -627,7 +628,7 @@ class lgwebosTvDevice {
 					this.lgtv.request('ssap://tv/openChannel', { channelNumber: channelReference });
 					me.log('Device: %s, set new Channel successfull: %s', me.host, channelReference);
 					me.currentChannelReference = channelReference;
-					callback();
+					callback(null);
 				}
 			}
 		});
@@ -660,7 +661,7 @@ class lgwebosTvDevice {
 		}
 		this.pointerInputSocket.send('button', { name: command });
 		me.log('Device: %s, send RC Command (Volume button) successfull, remoteKey: %s, command: %s', me.host, remoteKey, command);
-		callback(null, remoteKey);
+		callback(null);
 	}
 
 	remoteKeyPress(remoteKey, callback) {
@@ -714,7 +715,7 @@ class lgwebosTvDevice {
 		}
 		this.pointerInputSocket.send('button', { name: command });
 		me.log('Device: %s, send RC Command successfull, remoteKey: %s, command: %s', me.host, command, remoteKey);
-		callback(null, remoteKey);
+		callback(null);
 	}
 
 };
