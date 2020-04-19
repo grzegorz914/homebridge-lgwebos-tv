@@ -641,8 +641,8 @@ class lgwebosTvDevice {
 		} else {
 			command = me.switchInfoMenu ? 'MENU' : 'INFO';
 		}
-		me.log('Device: %s, setPowerModeSelection successfull, state: %s, command: %s', me.host, me.currentInfoMenuState ? 'HIDDEN' : 'SHOW', command);
 		this.pointerInputSocket.send('button', { name: command });
+		me.log('Device: %s, setPowerModeSelection successfull, state: %s, command: %s', me.host, me.currentInfoMenuState ? 'HIDDEN' : 'SHOW', command);
 		me.currentInfoMenuState = !me.currentInfoMenuState;
 		callback(null, state);
 	}
@@ -658,8 +658,8 @@ class lgwebosTvDevice {
 				command = 'VOLUMEDOWN';
 				break;
 		}
-		me.log('Device: %s, volume key prssed: %s, command: %s', me.host, remoteKey, command);
 		this.pointerInputSocket.send('button', { name: command });
+		me.log('Device: %s, send RC Command (Volume button) successfull, remoteKey: %s, command: %s', me.host, remoteKey, command);
 		callback(null, remoteKey);
 	}
 
@@ -712,8 +712,8 @@ class lgwebosTvDevice {
 				command = me.switchInfoMenu ? 'MENU' : 'INFO';
 				break;
 		}
-		me.log('Device: %s, remote key prssed: %s, command: %s', me.host, remoteKey, command);
 		this.pointerInputSocket.send('button', { name: command });
+		me.log('Device: %s, send RC Command successfull, remoteKey: %s, command: %s', me.host, command, remoteKey);
 		callback(null, remoteKey);
 	}
 
