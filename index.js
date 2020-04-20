@@ -481,7 +481,7 @@ class lgwebosTvDevice {
 	getPowerState(callback) {
 		var me = this;
 		var state = me.currentPowerState;
-		me.log('Device: %s, get current Power state successfull, state: %s', me.host, state ? 'ON' : 'OFF');
+		me.log('Device: %s, get current Power state successfull, state: %s', me.host, state ? 'ON' : 'STANDBY');
 		callback(null, state);
 	}
 
@@ -510,7 +510,7 @@ class lgwebosTvDevice {
 							me.disconnect();
 						});
 					}
-					callback();
+					callback(null);
 				}
 			}
 		});
