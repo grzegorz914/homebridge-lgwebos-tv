@@ -348,7 +348,7 @@ class lgwebosTvDevice {
 	//Prepare TV service 
 	prepareTvService() {
 		this.log.debug('prepereTvService');
-		this.tvAccesory = new Accessory(this.name, UUIDGen.generate(this.host + this.name));
+		this.tvAccesory = new Accessory(this.name, UUIDGen.generate(this.name));
 
 		this.tvService = new Service.Television(this.name, 'tvService');
 		this.tvService.setCharacteristic(Characteristic.ConfiguredName, this.name);
@@ -369,6 +369,9 @@ class lgwebosTvDevice {
 
 		this.tvService.getCharacteristic(Characteristic.PowerModeSelection)
 			.on('set', this.setPowerModeSelection.bind(this));
+
+               this.tvService.getCharacteristic(Characteristic.PictureMode)
+                     .on('set', this.setPictureMode.bind(this));
 
 
 		this.tvAccesory
@@ -498,7 +501,7 @@ class lgwebosTvDevice {
 							if (error) {
 								me.log.debug('Device: %s, can not set new Power state. Might be due to a wrong settings in config, error: %s', me.host, error);
 								callback(error);
-							} else {
+								} else {
 								me.log('Device: %s, set new Power state successfull: ON', me.host);
 								me.currentPowerState = true;
 							}
@@ -632,6 +635,20 @@ class lgwebosTvDevice {
 				}
 			}
 		});
+	}
+
+        setPictureMode(state, callback) {
+		var me = this;
+		var command;
+		if (me.currentInfoMenuState) {
+			command = 'BACK';
+		} else {
+			command = me.switchInfoMenu ? 'MENU' : 'INFO';
+		}
+		this.pointerInputSocket.send('button', { name: command });
+		me.log('Device: %s, setPowerModeSelection successfull, state: %s, command: %s', me.host, me.currentInfoMenuState ? 'HIDE' : 'SHOW', command);
+		me.currentInfoMenuState = !me.currentInfoMenuState;
+		callback(null, state);
 	}
 
 	setPowerModeSelection(state, callback) {
