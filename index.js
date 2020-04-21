@@ -192,7 +192,7 @@ class lgwebosTvDevice {
 			if (!error) {
 				me.pointerInputSocket = sock;
 			}
-			me.log.info('Device: %s, get RC socket succesfull', me.host);
+			me.log.info('Device: %s, get RC socket succesful', me.host);
 		});
 	}
 
@@ -206,7 +206,7 @@ class lgwebosTvDevice {
 					return;
 				} else {
 					delete data['returnValue'];
-					me.log.debug('Device: %s, get System info successfull: %s', me.host, JSON.stringify(data, null, 2));
+					me.log.debug('Device: %s, get System info successful: %s', me.host, JSON.stringify(data, null, 2));
 					me.manufacturer = 'LG Electronics';
 					me.modelName = data.modelName;
 					if (fs.existsSync(me.systemFile) === false) {
@@ -468,7 +468,7 @@ class lgwebosTvDevice {
 							if (error) {
 								this.log.debug('Device: %s, new Input name saved failed, error: %s', this.host, error);
 							} else {
-								this.log('Device: %s, new Input name saved successfull, name: %s reference: %s', this.host, newInputName, inputReference);
+								this.log('Device: %s, new Input name saved successful, name: %s reference: %s', this.host, newInputName, inputReference);
 							}
 						});
 						callback();
@@ -501,13 +501,13 @@ class lgwebosTvDevice {
 								me.log.debug('Device: %s, can not set new Power state. Might be due to a wrong settings in config, error: %s', me.host, error);
 								callback(error);
 								} else {
-								me.log('Device: %s, set new Power state successfull: ON', me.host);
+								me.log('Device: %s, set new Power state successful: ON', me.host);
 								me.currentPowerState = true;
 							}
 						});
 					} else {
 						me.lgtv.request('ssap://system/turnOff', (error, data) => {
-							me.log('Device: %s, set new Power state successfull: STANDBY', me.host);
+							me.log('Device: %s, set new Power state successful: STANDBY', me.host);
 							me.currentPowerState = false;
 							me.disconnect();
 						});
