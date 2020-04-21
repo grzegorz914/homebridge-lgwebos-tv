@@ -754,7 +754,7 @@ class lgwebosTvDevice {
 		}
 		this.pointerInputSocket.send('button', { name: command });
 		me.log('Device: %s, send RC Command successfull, remoteKey: %s, command: %s', me.host, command, remoteKey);
-		callback(null);
+		callback(null, remoteKey);
 	}
 
 };
