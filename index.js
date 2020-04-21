@@ -369,8 +369,8 @@ class lgwebosTvDevice {
 		this.tvService.getCharacteristic(Characteristic.PowerModeSelection)
 			.on('set', this.setPowerModeSelection.bind(this));
 
-               this.tvService.getCharacteristic(Characteristic.PictureMode)
-                     .on('set', this.setPictureMode.bind(this));
+		this.tvService.getCharacteristic(Characteristic.PictureMode)
+			.on('set', this.setPictureMode.bind(this));
 
 
 		this.tvAccesory
@@ -500,7 +500,7 @@ class lgwebosTvDevice {
 							if (error) {
 								me.log.debug('Device: %s, can not set new Power state. Might be due to a wrong settings in config, error: %s', me.host, error);
 								callback(error);
-								} else {
+							} else {
 								me.log('Device: %s, set new Power state successful: ON', me.host);
 								me.currentPowerState = true;
 							}
@@ -636,10 +636,10 @@ class lgwebosTvDevice {
 		});
 	}
 
-        setPictureMode(remoteKey, callback) {
+	setPictureMode(remoteKey, callback) {
 		var me = this;
 		var command;
-	        switch (remoteKey) {
+		switch (remoteKey) {
 			case Characteristic.PictureMode.OTHER:
 				command = 'INFO';
 				break;
@@ -673,7 +673,7 @@ class lgwebosTvDevice {
 	setPowerModeSelection(remoteKey, callback) {
 		var me = this;
 		var command;
-	        switch (remoteKey) {
+		switch (remoteKey) {
 			case Characteristic.PowerModeSelection.SHOW:
 				command = me.switchInfoMenu ? 'MENU' : 'INFO';
 				break;
