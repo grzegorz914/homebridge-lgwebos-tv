@@ -365,7 +365,7 @@ class lgwebosTvDevice {
 			});
 
 		this.tvService.getCharacteristic(Characteristic.RemoteKey)
-			.on('set', this.remoteKeyPress.bind(this));
+			.on('set', this.setRemoteKey.bind(this));
 
 		this.tvService.getCharacteristic(Characteristic.PowerModeSelection)
 			.on('set', this.setPowerModeSelection.bind(this));
@@ -397,7 +397,7 @@ class lgwebosTvDevice {
 			.setCharacteristic(Characteristic.Active, Characteristic.Active.ACTIVE)
 			.setCharacteristic(Characteristic.VolumeControlType, Characteristic.VolumeControlType.ABSOLUTE);
 		this.tvSpeakerService.getCharacteristic(Characteristic.VolumeSelector)
-			.on('set', this.volumeSelectorPress.bind(this));
+			.on('set', this.setVolumeSelector.bind(this));
 		this.tvSpeakerService.getCharacteristic(Characteristic.Volume)
 			.on('get', this.getVolume.bind(this))
 			.on('set', this.setVolume.bind(this));
@@ -687,7 +687,7 @@ class lgwebosTvDevice {
 		callback(null, remoteKey);
 	}
 
-	volumeSelectorPress(remoteKey, callback) {
+	setVolumeSelector(remoteKey, callback) {
 		var me = this;
 		var command;
 		switch (remoteKey) {
@@ -699,11 +699,11 @@ class lgwebosTvDevice {
 				break;
 		}
 		this.pointerInputSocket.send('button', { name: command });
-		me.log('Device: %s, send RC Command (Volume button) successfull, remoteKey: %s, command: %s', me.host, remoteKey, command);
+		me.log('Device: %s, setVolumeSelector successfull, remoteKey: %s, command: %s', me.host, remoteKey, command);
 		callback(null, remoteKey);
 	}
 
-	remoteKeyPress(remoteKey, callback) {
+	setRemoteKey(remoteKey, callback) {
 		var me = this;
 		var command;
 		switch (remoteKey) {
@@ -753,7 +753,7 @@ class lgwebosTvDevice {
 				break;
 		}
 		this.pointerInputSocket.send('button', { name: command });
-		me.log('Device: %s, send RC Command successfull, remoteKey: %s, command: %s', me.host, command, remoteKey);
+		me.log('Device: %s, setRemoteKey successfull, remoteKey: %s, command: %s', me.host, remoteKey, command);
 		callback(null, remoteKey);
 	}
 
