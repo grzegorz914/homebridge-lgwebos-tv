@@ -346,7 +346,7 @@ class lgwebosTvDevice {
 
 	//Prepare TV service 
 	prepareTvService() {
-		this.log.debug('prepereTvService');
+		this.log.debug('prepareTvService');
 		this.tvAccesory = new Accessory(this.name, UUIDGen.generate(this.name));
 
 		this.tvService = new Service.Television(this.name, 'tvService');
@@ -381,7 +381,7 @@ class lgwebosTvDevice {
 			.setCharacteristic(Characteristic.FirmwareRevision, this.firmwareRevision);
 
 		this.tvAccesory.addService(this.tvService);
-		this.prepereTvSpeakerService();
+		this.prepareTvSpeakerService();
 		this.prepareInputServices();
 
 		this.log.debug('Device: %s, publishExternalAccessories: %s', this.host, this.name);
@@ -389,8 +389,8 @@ class lgwebosTvDevice {
 	}
 
 	//Prepare speaker service
-	prepereTvSpeakerService() {
-		this.log.debug('prepereTvSpeakerService');
+	prepareTvSpeakerService() {
+		this.log.debug('prepareTvSpeakerService');
 		this.tvSpeakerService = new Service.TelevisionSpeaker(this.name, 'tvSpeakerService');
 		this.tvSpeakerService
 			.setCharacteristic(Characteristic.Active, Characteristic.Active.ACTIVE)
