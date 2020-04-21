@@ -97,7 +97,6 @@ class lgwebosTvDevice {
 		this.currentInputReference = null;
 		this.currentChannelReference = null;
 		this.currentChannelName = null;
-		this.currentInfoMenuState = false;
 		this.isPaused = false;
 		this.prefDir = path.join(api.user.storagePath(), 'lgwebosTv');
 		this.keyFile = this.prefDir + '/' + 'key_' + this.host.split('.').join('');
