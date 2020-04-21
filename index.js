@@ -643,25 +643,25 @@ class lgwebosTvDevice {
 			case Characteristic.PictureMode.OTHER:
 				command = 'INFO';
 				break;
-			case Characteristic.PictureModee.STANDARD:
+			case Characteristic.PictureMode.STANDARD:
 				command = 'BACK';
 				break;
 			case Characteristic.PictureMode.CALIBRATED:
 				command = 'INFO';
 				break;
-			case Characteristic.PictureModee.CALIBRATED_DARK:
+			case Characteristic.PictureMode.CALIBRATED_DARK:
 				command = 'BACK';
 				break;
 			case Characteristic.PictureMode.VIVID:
 				command = 'INFO';
 				break;
-			case Characteristic.PictureModee.GAME:
+			case Characteristic.PictureMode.GAME:
 				command = 'BACK';
 				break;
 			case Characteristic.PictureMode.COMPUTER:
 				command = 'INFO';
 				break;
-			case Characteristic.PictureModee.CUSTOM:
+			case Characteristic.PictureMode.CUSTOM:
 				command = 'BACK';
 				break;
 		}
