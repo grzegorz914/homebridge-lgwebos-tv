@@ -315,7 +315,7 @@ class lgwebosTvDevice {
 				me.log.error('Device: %s, get current App error: %s.', me.host, error);
 			} else {
 				me.currentInputReference = data.appId;
-				me.log('Device: %s, get current App reference successfull: %s', me.host, me.currentInputReference);
+				me.log('Device: %s, get current App reference successful: %s', me.host, me.currentInputReference);
 			}
 		});
 
@@ -338,7 +338,7 @@ class lgwebosTvDevice {
 			} else {
 				me.currentChannelReference = data.channelNumber;
 				me.currentChannelName = data.channelName;
-				me.log('Device: %s, get current Channel successfull: %s, %s', me.host, me.currentChannelReference, me.currentChannelName);
+				me.log('Device: %s, get current Channel successful: %s, %s', me.host, me.currentChannelReference, me.currentChannelName);
 
 			}
 		});
@@ -521,7 +521,7 @@ class lgwebosTvDevice {
 	getMute(callback) {
 		var me = this;
 		var state = me.currentMuteState;
-		me.log('Device: %s, get current Mute state successfull: %s', me.host, state ? 'ON' : 'OFF');
+		me.log('Device: %s, get current Mute state successful: %s', me.host, state ? 'ON' : 'OFF');
 		callback(null, state);
 	}
 
@@ -535,7 +535,7 @@ class lgwebosTvDevice {
 				if (state !== currentMuteState) {
 					var newState = state;
 					me.lgtv.request('ssap://audio/setMute', { mute: newState });
-					me.log('Device: %s, set new Mute state successfull: %s', me.host, state ? 'ON' : 'OFF');
+					me.log('Device: %s, set new Mute state successful: %s', me.host, state ? 'ON' : 'OFF');
 					me.currentMuteState = state;
 					callback(null, state);
 				}
@@ -546,14 +546,14 @@ class lgwebosTvDevice {
 	getVolume(callback) {
 		var me = this;
 		var volume = me.currentVolume;
-		me.log('Device: %s, get current Volume level successfull: %s', me.host, volume);
+		me.log('Device: %s, get current Volume level successful: %s', me.host, volume);
 		callback(null, volume);
 	}
 
 	setVolume(volume, callback) {
 		var me = this;
 		this.lgtv.request('ssap://audio/setVolume', { volume: volume });
-		me.log('Device: %s, set new Volume level successfull: %s', me.host, volume);
+		me.log('Device: %s, set new Volume level successful: %s', me.host, volume);
 		callback(null, volume);
 	}
 
@@ -571,7 +571,7 @@ class lgwebosTvDevice {
 					me.tvService
 						.getCharacteristic(Characteristic.ActiveIdentifier)
 						.updateValue(i);
-					me.log('Device: %s, get current Input successfull: %s', me.host, inputReference);
+					me.log('Device: %s, get current Input successful: %s', me.host, inputReference);
 					me.currentInputReference = inputReference;
 				}
 			}
@@ -589,7 +589,7 @@ class lgwebosTvDevice {
 			} else {
 				if (inputReference !== currentInputReference) {
 					me.lgtv.request('ssap://system.launcher/launch', { id: inputReference });
-					me.log('Device: %s, set new Input successfull: %s', me.host, inputReference);
+					me.log('Device: %s, set new Input successful: %s', me.host, inputReference);
 					me.currentInputReference = inputReference;
 					callback(null);
 				}
@@ -611,7 +611,7 @@ class lgwebosTvDevice {
 					me.tvService
 						.getCharacteristic(Characteristic.ActiveIdentifier)
 						.updateValue(i);
-					me.log('Device: %s, get current Channel successfull: %s', me.host, channelReference);
+					me.log('Device: %s, get current Channel successful: %s', me.host, channelReference);
 					me.currentChannelReference = channelReference;
 				}
 			}
@@ -628,7 +628,7 @@ class lgwebosTvDevice {
 			} else {
 				if (channelReference !== currentChannelReference) {
 					this.lgtv.request('ssap://tv/openChannel', { channelNumber: channelReference });
-					me.log('Device: %s, set new Channel successfull: %s', me.host, channelReference);
+					me.log('Device: %s, set new Channel successful: %s', me.host, channelReference);
 					me.currentChannelReference = channelReference;
 					callback(null);
 				}
@@ -666,7 +666,7 @@ class lgwebosTvDevice {
 				break;
 		}
 		this.pointerInputSocket.send('button', { name: command });
-		me.log('Device: %s, setPictureMode successfull, remoteKey: %s, command: %s', me.host, remoteKey, command);
+		me.log('Device: %s, setPictureMode successful, remoteKey: %s, command: %s', me.host, remoteKey, command);
 		callback(null, remoteKey);
 	}
 
@@ -682,7 +682,7 @@ class lgwebosTvDevice {
 				break;
 		}
 		this.pointerInputSocket.send('button', { name: command });
-		me.log('Device: %s, setPowerModeSelection successfull, remoteKey: %s, command: %s', me.host, remoteKey, command);
+		me.log('Device: %s, setPowerModeSelection successful, remoteKey: %s, command: %s', me.host, remoteKey, command);
 		callback(null, remoteKey);
 	}
 
@@ -698,7 +698,7 @@ class lgwebosTvDevice {
 				break;
 		}
 		this.pointerInputSocket.send('button', { name: command });
-		me.log('Device: %s, setVolumeSelector successfull, remoteKey: %s, command: %s', me.host, remoteKey, command);
+		me.log('Device: %s, setVolumeSelector successful, remoteKey: %s, command: %s', me.host, remoteKey, command);
 		callback(null, remoteKey);
 	}
 
@@ -752,7 +752,7 @@ class lgwebosTvDevice {
 				break;
 		}
 		this.pointerInputSocket.send('button', { name: command });
-		me.log('Device: %s, setRemoteKey successfull, remoteKey: %s, command: %s', me.host, remoteKey, command);
+		me.log('Device: %s, setRemoteKey successful, remoteKey: %s, command: %s', me.host, remoteKey, command);
 		callback(null, remoteKey);
 	}
 
