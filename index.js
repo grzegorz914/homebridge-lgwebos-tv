@@ -637,32 +637,54 @@ class lgwebosTvDevice {
 		});
 	}
 
-        setPictureMode(state, callback) {
+        setPictureMode(remoteKey, callback) {
 		var me = this;
 		var command;
-		if (me.currentInfoMenuState) {
-			command = 'BACK';
-		} else {
-			command = me.switchInfoMenu ? 'MENU' : 'INFO';
+	        switch (remoteKey) {
+			case Characteristic.PictureMode.OTHER:
+				command = 'INFO';
+				break;
+			case Characteristic.PictureModee.STANDARD:
+				command = 'BACK';
+				break;
+			case Characteristic.PictureMode.CALIBRATED:
+				command = 'INFO';
+				break;
+			case Characteristic.PictureModee.CALIBRATED_DARK:
+				command = 'BACK';
+				break;
+			case Characteristic.PictureMode.VIVID:
+				command = 'INFO';
+				break;
+			case Characteristic.PictureModee.GAME:
+				command = 'BACK';
+				break;
+			case Characteristic.PictureMode.COMPUTER:
+				command = 'INFO';
+				break;
+			case Characteristic.PictureModee.CUSTOM:
+				command = 'BACK';
+				break;
 		}
 		this.pointerInputSocket.send('button', { name: command });
-		me.log('Device: %s, setPowerModeSelection successfull, state: %s, command: %s', me.host, me.currentInfoMenuState ? 'HIDE' : 'SHOW', command);
-		me.currentInfoMenuState = !me.currentInfoMenuState;
-		callback(null, state);
+		me.log('Device: %s, setPictureMode successfull, remoteKey: %s, command: %s', me.host, remoteKey, command);
+		callback(null, remoteKey);
 	}
 
-	setPowerModeSelection(state, callback) {
+	setPowerModeSelection(remoteKey, callback) {
 		var me = this;
 		var command;
-		if (me.currentInfoMenuState) {
-			command = 'BACK';
-		} else {
-			command = me.switchInfoMenu ? 'MENU' : 'INFO';
+	        switch (remoteKey) {
+			case Characteristic.PowerModeSelection.SHOW:
+				command = me.switchInfoMenu ? 'MENU' : 'INFO';
+				break;
+			case Characteristic.PowerModeSelection.HIDE:
+				command = 'BACK';
+				break;
 		}
 		this.pointerInputSocket.send('button', { name: command });
-		me.log('Device: %s, setPowerModeSelection successfull, state: %s, command: %s', me.host, me.currentInfoMenuState ? 'HIDE' : 'SHOW', command);
-		me.currentInfoMenuState = !me.currentInfoMenuState;
-		callback(null, state);
+		me.log('Device: %s, setPowerModeSelection successfull, remoteKey: %s, command: %s', me.host, remoteKey, command);
+		callback(null, remoteKey);
 	}
 
 	volumeSelectorPress(remoteKey, callback) {
@@ -678,7 +700,7 @@ class lgwebosTvDevice {
 		}
 		this.pointerInputSocket.send('button', { name: command });
 		me.log('Device: %s, send RC Command (Volume button) successfull, remoteKey: %s, command: %s', me.host, remoteKey, command);
-		callback(null);
+		callback(null, remoteKey);
 	}
 
 	remoteKeyPress(remoteKey, callback) {
