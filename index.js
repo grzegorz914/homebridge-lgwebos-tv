@@ -471,7 +471,7 @@ class lgwebosTvDevice {
 								this.log('Device: %s, new Input name saved successful, name: %s reference: %s', this.host, newInputName, inputReference);
 							}
 						});
-						callback();
+						callback(null, newInputName);
 					});
 				this.tvAccesory.addService(tempInput);
 				this.tvService.addLinkedService(tempInput);
