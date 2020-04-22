@@ -186,13 +186,12 @@ class lgwebosTvDevice {
 	}
 
 	connectToPointerInputSocket() {
-		var me = this;
-		me.log.debug('Device: %s, connecting to RCsocket', me.host);
-		me.lgtv.getSocket('ssap://com.webos.service.networkinput/getPointerInputSocket', (error, sock) => {
+		this.log.debug('Device: %s, connecting to RCsocket', this.host);
+		this.lgtv.getSocket('ssap://com.webos.service.networkinput/getPointerInputSocket', (error, sock) => {
 			if (!error) {
-				me.pointerInputSocket = sock;
+				this.pointerInputSocket = sock;
 			}
-			me.log.info('Device: %s, get RC socket succesful', me.host);
+			this.log.info('Device: %s, get RC socket successful', this.host);
 		});
 	}
 
