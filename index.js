@@ -358,9 +358,7 @@ class lgwebosTvDevice {
 
 		this.tvService.getCharacteristic(Characteristic.ActiveIdentifier)
 			.on('get', this.getInput.bind(this))
-			.on('set', (inputIdentifier, callback) => {
-				this.setInput(this.inputReferences[inputIdentifier], callback);
-			});
+			.on('set', this.setInput.bind(this));
 
 		this.tvService.getCharacteristic(Characteristic.RemoteKey)
 			.on('set', this.setRemoteKey.bind(this));
@@ -578,19 +576,19 @@ class lgwebosTvDevice {
 		}
 	}
 
-
-	setInput(inputReference, callback) {
+	setInput(inputIdentifier, callback) {
 		var me = this;
 		me.getInput(function (error, currentInputReference) {
 			if (error) {
 				me.log.debug('Device: %s, can not get current Input. Might be due to a wrong settings in config, error: %s', me.host, error);
 				callback(error);
 			} else {
-				if (inputReference !== currentInputReference) {
+				if (me.inputReferences[inputIdentifier] !== currentInputReference) {
+                                     let inputReference = me.inputReferences[inputIdentifier];
 					me.lgtv.request('ssap://system.launcher/launch', { id: inputReference });
 					me.log('Device: %s, set new Input successful: %s', me.host, inputReference);
 					me.currentInputReference = inputReference;
-					callback(null);
+					callback(null, inputIdentifier);
 				}
 			}
 		});
@@ -612,18 +610,19 @@ class lgwebosTvDevice {
 		}
 	}
 
-	setChannel(channelReference, callback) {
+	setChannel(inputIdentifier, callback) {
 		var me = this;
 		me.getChannel(function (error, currentChannelReference) {
 			if (error) {
 				me.log.debug('Device: %s, can not get current Input. Might be due to a wrong settings in config, error: %s', me.host, error);
 				callback(error);
 			} else {
-				if (channelReference !== currentChannelReference) {
+				if (me.channelReferences[inputIdentifier] !== currentChannelReference) {
+                                     let channelReference = me.channelReferences[inputIdentifier];
 					this.lgtv.request('ssap://tv/openChannel', { channelNumber: channelReference });
 					me.log('Device: %s, set new Channel successful: %s', me.host, channelReference);
 					me.currentChannelReference = channelReference;
-					callback(null);
+					callback(null, inputIdentifier);
 				}
 			}
 		});
