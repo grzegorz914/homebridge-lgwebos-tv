@@ -501,18 +501,24 @@ class lgwebosTvDevice {
 								me.log.debug('Device: %s, can not set new Power state. Might be due to a wrong settings in config, error: %s', me.host, error);
 								callback(error);
 							} else {
-								me.log('Device: %s, set new Power state successful: ON', me.host);
+								me.log('Device: %s, set new Power state successful: %s', me.host, state ? 'ON' : 'STANDBY');
 								me.currentPowerState = true;
+								callback(null, state);
 							}
 						});
 					} else {
 						me.lgtv.request('ssap://system/turnOff', (error, data) => {
-							me.log('Device: %s, set new Power state successful: STANDBY', me.host);
-							me.currentPowerState = false;
-							me.disconnect();
+							if (error) {
+								me.log.debug('Device: %s, can not set new Power state. Might be due to a wrong settings in config, error: %s', me.host, error);
+								callback(error);
+							} else {
+								me.log('Device: %s, set new Power state successful: %s', me.host, state ? 'ON' : 'STANDBY');
+								me.currentPowerState = false;
+								me.disconnect();
+								callback(null, state);
+							}
 						});
 					}
-					callback(null);
 				}
 			}
 		});
