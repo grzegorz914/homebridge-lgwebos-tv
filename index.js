@@ -583,8 +583,8 @@ class lgwebosTvDevice {
 				me.log.debug('Device: %s, can not get current Input. Might be due to a wrong settings in config, error: %s', me.host, error);
 				callback(error);
 			} else {
+				let inputReference = me.inputReferences[inputIdentifier];
 				if (me.inputReferences[inputIdentifier] !== currentInputReference) {
-                                     let inputReference = me.inputReferences[inputIdentifier];
 					me.lgtv.request('ssap://system.launcher/launch', { id: inputReference });
 					me.log('Device: %s, set new Input successful: %s', me.host, inputReference);
 					me.currentInputReference = inputReference;
@@ -617,8 +617,8 @@ class lgwebosTvDevice {
 				me.log.debug('Device: %s, can not get current Input. Might be due to a wrong settings in config, error: %s', me.host, error);
 				callback(error);
 			} else {
+				let channelReference = me.channelReferences[inputIdentifier];
 				if (me.channelReferences[inputIdentifier] !== currentChannelReference) {
-                                     let channelReference = me.channelReferences[inputIdentifier];
 					this.lgtv.request('ssap://tv/openChannel', { channelNumber: channelReference });
 					me.log('Device: %s, set new Channel successful: %s', me.host, channelReference);
 					me.currentChannelReference = channelReference;
