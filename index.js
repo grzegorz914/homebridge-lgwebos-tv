@@ -303,7 +303,7 @@ class lgwebosTvDevice {
 			if (!data || error || data.length <= 0) {
 				me.log.error('Device: %s, get current Power state error: %s.', me.host, error);
 			} else {
-				var state = (((data.state == 'Active') || (data.processing == 'Active') || (data.powerOnReason == 'Active')) && (data.state != 'Active Standby'));
+				let state = (((data.state == 'Active') || (data.processing == 'Active') || (data.powerOnReason == 'Active')) && (data.state != 'Active Standby'));
 				me.log.info('Device: %s, get current Power state successful: %s', me.host, state ? 'ON' : 'STANDBY');
 				me.currentPowerState = state;
 			}
@@ -481,7 +481,7 @@ class lgwebosTvDevice {
 
 	getPowerState(callback) {
 		var me = this;
-		var state = me.currentPowerState;
+		let state = me.currentPowerState;
 		me.log('Device: %s, get current Power state successfull, state: %s', me.host, state ? 'ON' : 'STANDBY');
 		callback(null, state);
 	}
@@ -525,7 +525,7 @@ class lgwebosTvDevice {
 
 	getMute(callback) {
 		var me = this;
-		var state = me.currentMuteState;
+		let state = me.currentMuteState;
 		me.log('Device: %s, get current Mute state successful: %s', me.host, state ? 'ON' : 'OFF');
 		callback(null, state);
 	}
@@ -538,7 +538,7 @@ class lgwebosTvDevice {
 				callback(error);
 			} else {
 				if (state !== currentMuteState) {
-					var newState = state;
+					let newState = state;
 					me.lgtv.request('ssap://audio/setMute', { mute: newState });
 					me.log('Device: %s, set new Mute state successful: %s', me.host, state ? 'ON' : 'OFF');
 					me.currentMuteState = state;
@@ -550,7 +550,7 @@ class lgwebosTvDevice {
 
 	getVolume(callback) {
 		var me = this;
-		var volume = me.currentVolume;
+		let volume = me.currentVolume;
 		me.log('Device: %s, get current Volume level successful: %s', me.host, volume);
 		callback(null, volume);
 	}
@@ -627,7 +627,7 @@ class lgwebosTvDevice {
 
 	setPictureMode(remoteKey, callback) {
 		var me = this;
-		var command;
+		let command;
 		switch (remoteKey) {
 			case Characteristic.PictureMode.OTHER:
 				command = 'INFO';
@@ -661,7 +661,7 @@ class lgwebosTvDevice {
 
 	setPowerModeSelection(remoteKey, callback) {
 		var me = this;
-		var command;
+		let command;
 		switch (remoteKey) {
 			case Characteristic.PowerModeSelection.SHOW:
 				command = me.switchInfoMenu ? 'MENU' : 'INFO';
@@ -677,7 +677,7 @@ class lgwebosTvDevice {
 
 	setVolumeSelector(remoteKey, callback) {
 		var me = this;
-		var command;
+		let command;
 		switch (remoteKey) {
 			case Characteristic.VolumeSelector.INCREMENT:
 				command = 'VOLUMEUP';
@@ -693,7 +693,7 @@ class lgwebosTvDevice {
 
 	setRemoteKey(remoteKey, callback) {
 		var me = this;
-		var command;
+		let command;
 		switch (remoteKey) {
 			case Characteristic.RemoteKey.REWIND:
 				command = 'REWIND';
