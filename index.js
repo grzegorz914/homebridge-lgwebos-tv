@@ -570,8 +570,6 @@ class lgwebosTvDevice {
 				me.log('Device: %s, get current Input successful: %s', me.host, inputReference);
 				me.currentInputReference = inputReference;
 				callback(null, i);
-			} else {
-				callback(null, 0);
 			}
 		}
 	}
