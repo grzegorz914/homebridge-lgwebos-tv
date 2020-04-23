@@ -564,12 +564,16 @@ class lgwebosTvDevice {
 
 	getInput(callback) {
 		var me = this;
-		let inputReference = me.currentInputReference;
-		for (let i = 0; i < me.inputReferences.length; i++) {
-			if (inputReference === me.inputReferences[i]) {
-				me.log('Device: %s, get current Input successful: %s', me.host, inputReference);
-				me.currentInputReference = inputReference;
-				callback(null, i);
+		if (!me.currentPowerState) {
+			callback(null, 0);
+		} else {
+			let inputReference = me.currentInputReference;
+			for (let i = 0; i < me.inputReferences.length; i++) {
+				if (inputReference === me.inputReferences[i]) {
+					me.log('Device: %s, get current Input successful: %s', me.host, inputReference);
+					me.currentInputReference = inputReference;
+					callback(null, i);
+				}
 			}
 		}
 	}
