@@ -7,6 +7,8 @@ const wol = require('wol');
 const tcpp = require('tcp-ping');
 const path = require('path');
 
+const WEBSOCKET_PORT = 3000;
+
 let Accessory, Service, Characteristic, UUIDGen;
 let pointerInputSocket;
 
@@ -76,7 +78,6 @@ class lgwebosTvDevice {
 		this.device = device;
 		this.name = device.name;
 		this.host = device.host;
-		this.port = 3000;
 		this.mac = device.mac;
 		this.switchInfoMenu = device.switchInfoMenu;
 		this.inputs = device.inputs;
@@ -106,7 +107,7 @@ class lgwebosTvDevice {
 		this.appsFile = this.prefDir + '/' + 'apps_' + this.host.split('.').join('');
 		this.inputsFile = this.prefDir + '/' + 'inputs_' + this.host.split('.').join('');
 		this.channelsFile = this.prefDir + '/' + 'channels_' + this.host.split('.').join('');
-		this.url = 'ws://' + this.host + ':' + this.port;
+		this.url = 'ws://' + this.host + ':' + WEBSOCKET_PORT;
 
 		this.lgtv = new lgtv({
 			url: this.url,
@@ -128,7 +129,7 @@ class lgwebosTvDevice {
 		//Check net state
 		setInterval(function () {
 			var me = this;
-			tcpp.probe(me.host, me.port, (error, isAlive) => {
+			tcpp.probe(me.host, WEBSOCKET_PORT, (error, isAlive) => {
 				if (!isAlive && me.connectionStatus) {
 					me.log('Device: %s, name: %s, state: Offline', me.host, me.name);
 					me.connectionStatus = false;
