@@ -10,7 +10,7 @@ const path = require('path');
 const WEBSOCKET_PORT = 3000;
 
 let Accessory, Service, Characteristic, UUIDGen;
-let pointerInputSocket;
+let lgtv, pointerInputSocket;
 
 module.exports = homebridge => {
 	Service = homebridge.hap.Service;
