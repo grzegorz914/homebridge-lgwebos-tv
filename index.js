@@ -564,16 +564,14 @@ class lgwebosTvDevice {
 
 	getInput(callback) {
 		var me = this;
-		if (!me.currentPowerState) {
-			callback(null, 0);
-		} else {
-			var inputReference = me.currentInputReference;
-			for (let i = 0; i < me.inputReferences.length; i++) {
-				if (inputReference === me.inputReferences[i]) {
-					me.log('Device: %s, get current Input successful: %s', me.host, inputReference);
-					me.currentInputReference = inputReference;
-					callback(null, i);
-				}
+		let inputReference = me.currentInputReference;
+		for (let i = 0; i < me.inputReferences.length; i++) {
+			if (inputReference === me.inputReferences[i]) {
+				me.log('Device: %s, get current Input successful: %s', me.host, inputReference);
+				me.currentInputReference = inputReference;
+				callback(null, i);
+			} else {
+				callback(null, 0);
 			}
 		}
 	}
@@ -598,23 +596,15 @@ class lgwebosTvDevice {
 
 	getChannel(callback) {
 		var me = this;
-		if (!me.currentPowerState) {
-			me.tvService
-				.getCharacteristic(Characteristic.ActiveIdentifier)
-				.updateValue(0);
-			callback(null);
-		} else {
-			var channelReference = me.currentChannelReference;
-			for (let i = 0; i < me.channelReferences.length; i++) {
-				if (channelReference === me.channelReferences[i]) {
-					me.tvService
-						.getCharacteristic(Characteristic.ActiveIdentifier)
-						.updateValue(i);
-					me.log('Device: %s, get current Channel successful: %s', me.host, channelReference);
-					me.currentChannelReference = channelReference;
-				}
+		let channelReference = me.currentChannelReference;
+		for (let i = 0; i < me.channelReferences.length; i++) {
+			if (channelReference === me.channelReferences[i]) {
+				me.log('Device: %s, get current Channel successful: %s', me.host, channelReference);
+				me.currentChannelReference = channelReference;
+				callback(null, i);
+			} else {
+				callback(null, 0);
 			}
-			callback(null);
 		}
 	}
 
