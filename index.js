@@ -564,7 +564,7 @@ class lgwebosTvDevice {
 
 	getInput(callback) {
 		var me = this;
-		if (!me.currentPowerState) {
+		if (!me.connectionStatus || !me.currentPowerState) {
 			callback(null, 0);
 		} else {
 			let inputReference = me.currentInputReference;
@@ -598,14 +598,18 @@ class lgwebosTvDevice {
 
 	getChannel(callback) {
 		var me = this;
-		let channelReference = me.currentChannelReference;
-		for (let i = 0; i < me.channelReferences.length; i++) {
-			if (channelReference === me.channelReferences[i]) {
-				me.log('Device: %s, get current Channel successful: %s', me.host, channelReference);
-				me.currentChannelReference = channelReference;
-				callback(null, i);
-			} else {
-				callback(null, 0);
+		if (!me.currentPowerState) {
+			callback(null, 0);
+		} else {
+			let channelReference = me.currentChannelReference;
+			for (let i = 0; i < me.channelReferences.length; i++) {
+				if (channelReference === me.channelReferences[i]) {
+					me.log('Device: %s, get current Channel successful: %s', me.host, channelReference);
+					me.currentChannelReference = channelReference;
+					callback(null, i);
+				} else {
+					callback(null, 0);
+				}
 			}
 		}
 	}
