@@ -584,7 +584,7 @@ class lgwebosTvDevice {
 				callback(error);
 			} else {
 				let inputReference = me.inputReferences[inputIdentifier];
-				if (me.inputReferences[inputIdentifier] !== currentInputReference) {
+				if (inputReference !== currentInputReference) {
 					me.lgtv.request('ssap://system.launcher/launch', { id: inputReference });
 					me.log('Device: %s, set new Input successful: %s', me.host, inputReference);
 					me.currentInputReference = inputReference;
@@ -618,7 +618,7 @@ class lgwebosTvDevice {
 				callback(error);
 			} else {
 				let channelReference = me.channelReferences[inputIdentifier];
-				if (me.channelReferences[inputIdentifier] !== currentChannelReference) {
+				if (channelReference !== currentChannelReference) {
 					this.lgtv.request('ssap://tv/openChannel', { channelNumber: channelReference });
 					me.log('Device: %s, set new Channel successful: %s', me.host, channelReference);
 					me.currentChannelReference = channelReference;
