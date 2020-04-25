@@ -322,11 +322,11 @@ class lgwebosTvDevice {
 			if (!data || error) {
 				me.log.error('Device: %s, get current Audio state error: %s.', me.host, error);
 			} else {
-                                  if (data.changed && data.changed.indexOf('muted') !== -1) 
-				     me.log.info('Device: %s, get current Mute state: %s', me.host, data.muted ? 'ON' : 'OFF');
-				     me.currentMuteState = data.muted;
+				if (data.changed && data.changed.indexOf('muted') !== -1)
+					me.log.info('Device: %s, get current Mute state: %s', me.host, data.muted ? 'ON' : 'OFF');
+				me.currentMuteState = data.muted;
 				if (data.changed && data.changed.indexOf('volume') !== -1)
-				me.log.info('Device: %s, get current Volume level: %s', me.host, data.volume);
+					me.log.info('Device: %s, get current Volume level: %s', me.host, data.volume);
 				me.currentVolume = data.volume;
 			}
 		});
@@ -562,16 +562,12 @@ class lgwebosTvDevice {
 
 	getInput(callback) {
 		var me = this;
-		if (!me.connectionStatus || !me.currentPowerState) {
-			callback(null, 0);
-		} else {
-			let inputReference = me.currentInputReference;
-			for (let i = 0; i < me.inputReferences.length; i++) {
-				if (inputReference === me.inputReferences[i]) {
-					me.log('Device: %s, get current Input successful: %s', me.host, inputReference);
-					me.currentInputReference = inputReference;
-					callback(null, i);
-                             }
+		let inputReference = me.currentInputReference;
+		for (let i = 0; i < me.inputReferences.length; i++) {
+			if (inputReference === me.inputReferences[i]) {
+				me.log('Device: %s, get current Input successful: %s', me.host, inputReference);
+				me.currentInputReference = inputReference;
+				callback(null, i);
 			}
 		}
 	}
@@ -596,12 +592,12 @@ class lgwebosTvDevice {
 
 	getChannel(callback) {
 		var me = this;
-			let channelReference = me.currentChannelReference;
-			for (let i = 0; i < me.channelReferences.length; i++) {
-				if (channelReference === me.channelReferences[i]) {
-					me.log('Device: %s, get current Channel successful: %s', me.host, channelReference);
-					me.currentChannelReference = channelReference;
-					callback(null, i);
+		let channelReference = me.currentChannelReference;
+		for (let i = 0; i < me.channelReferences.length; i++) {
+			if (channelReference === me.channelReferences[i]) {
+				me.log('Device: %s, get current Channel successful: %s', me.host, channelReference);
+				me.currentChannelReference = channelReference;
+				callback(null, i);
 			}
 		}
 	}
