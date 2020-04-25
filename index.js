@@ -313,8 +313,9 @@ class lgwebosTvDevice {
 			if (!data || error) {
 				me.log.error('Device: %s, get current App error: %s.', me.host, error);
 			} else {
-				me.currentInputReference = data.appId;
-				me.log('Device: %s, get current App reference successful: %s', me.host, me.currentInputReference);
+				let appId = data.appId;
+				me.log('Device: %s, get current App reference successful: %s', me.host, appId);
+				me.currentInputReference = appId;
 			}
 		});
 
@@ -322,12 +323,14 @@ class lgwebosTvDevice {
 			if (!data || error) {
 				me.log.error('Device: %s, get current Audio state error: %s.', me.host, error);
 			} else {
-				me.currentMuteState = data.muted;
+				let muted = data.muted;
 				if (data.changed && data.changed.indexOf('muted') !== -1)
-					me.log.info('Device: %s, get current Mute state: %s', me.host, me.currentMuteState ? 'ON' : 'OFF');
-				me.currentVolume = data.volume;
+				me.log.info('Device: %s, get current Mute state: %s', me.host, muted ? 'ON' : 'OFF');
+				me.currentMuteState = muted;
+				let volume = = data.volume;
 				if (data.changed && data.changed.indexOf('volume') !== -1)
-					me.log.info('Device: %s, get current Volume level: %s', me.host, me.currentVolume);
+				me.log.info('Device: %s, get current Volume level: %s', me.host, volume);
+				me.currentVolume = volume;
 			}
 		});
 
@@ -335,9 +338,11 @@ class lgwebosTvDevice {
 			if (!data || error) {
 				me.log.error('Device: %s, get current Channel and Name error: %s.', me.host, error);
 			} else {
-				me.currentChannelReference = data.channelNumber;
-				me.currentChannelName = data.channelName;
-				me.log('Device: %s, get current Channel successful: %s, %s', me.host, me.currentChannelReference, me.currentChannelName);
+				let channelNumber = data.channelNumber;
+				let channelName = data.channelName;
+				me.log('Device: %s, get current Channel successful: %s, %s', me.host, channelNumber, channelName);
+				me.currentChannelReference = channelNumber;
+				me.currentChannelName = channelName;
 
 			}
 		});
