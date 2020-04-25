@@ -327,7 +327,7 @@ class lgwebosTvDevice {
 				if (data.changed && data.changed.indexOf('muted') !== -1)
 				me.log.info('Device: %s, get current Mute state: %s', me.host, muted ? 'ON' : 'OFF');
 				me.currentMuteState = muted;
-				let volume = = data.volume;
+				let volume = data.volume;
 				if (data.changed && data.changed.indexOf('volume') !== -1)
 				me.log.info('Device: %s, get current Volume level: %s', me.host, volume);
 				me.currentVolume = volume;
