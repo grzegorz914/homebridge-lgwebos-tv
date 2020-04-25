@@ -446,7 +446,7 @@ class lgwebosTvDevice {
 			}
 
 			//if reference not null or empty add the input
-			if (inputReference !== undefined && inputReference !== null || inputReference !== ' ') {
+			if (inputReference !== undefined && inputReference !== null || inputReference !== '') {
 				inputReference = inputReference.replace(/\s/g, ''); // remove all white spaces from the string
 
 				let tempInput = new Service.InputSource(inputReference, 'input' + i);
@@ -596,16 +596,12 @@ class lgwebosTvDevice {
 
 	getChannel(callback) {
 		var me = this;
-		if (!me.connectionStatus) {
-			callback(null, 0);
-		} else {
-			let channelReference = me.currentChannelReference;
-			for (let i = 0; i < me.channelReferences.length; i++) {
-				if (channelReference === me.channelReferences[i]) {
-					me.log('Device: %s, get current Channel successful: %s', me.host, channelReference);
-					me.currentChannelReference = channelReference;
-					callback(null, i);
-				}
+		let channelReference = me.currentChannelReference;
+		for (let i = 0; i < me.channelReferences.length; i++) {
+			if (channelReference === me.channelReferences[i]) {
+				me.log('Device: %s, get current Channel successful: %s', me.host, channelReference);
+				me.currentChannelReference = channelReference;
+				callback(null, i);
 			}
 		}
 	}
