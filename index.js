@@ -313,8 +313,8 @@ class lgwebosTvDevice {
 			if (!data || error) {
 				me.log.error('Device: %s, get current App error: %s.', me.host, error);
 			} else {
+				me.log('Device: %s, get current App reference successful: %s', me.host, data.appId);
 				me.currentInputReference = data.appId;
-				me.log('Device: %s, get current App reference successful: %s', me.host, me.currentInputReference);
 			}
 		});
 
@@ -322,12 +322,12 @@ class lgwebosTvDevice {
 			if (!data || error) {
 				me.log.error('Device: %s, get current Audio state error: %s.', me.host, error);
 			} else {
-				me.currentMuteState = data.muted;
-				if (data.changed && data.changed.indexOf('muted') !== -1)
-					me.log.info('Device: %s, get current Mute state: %s', me.host, me.currentMuteState ? 'ON' : 'OFF');
-				me.currentVolume = data.volume;
+                                  if (data.changed && data.changed.indexOf('muted') !== -1) 
+				     me.log.info('Device: %s, get current Mute state: %s', me.host, data.muted ? 'ON' : 'OFF');
+				     me.currentMuteState = data.muted;
 				if (data.changed && data.changed.indexOf('volume') !== -1)
-					me.log.info('Device: %s, get current Volume level: %s', me.host, me.currentVolume);
+				me.log.info('Device: %s, get current Volume level: %s', me.host, data.volume);
+				me.currentVolume = data.volume;
 			}
 		});
 
@@ -335,9 +335,9 @@ class lgwebosTvDevice {
 			if (!data || error) {
 				me.log.error('Device: %s, get current Channel and Name error: %s.', me.host, error);
 			} else {
+				me.log('Device: %s, get current Channel successful: %s, %s', me.host, data.channelNumber, data.channelName);
 				me.currentChannelReference = data.channelNumber;
 				me.currentChannelName = data.channelName;
-				me.log('Device: %s, get current Channel successful: %s, %s', me.host, me.currentChannelReference, me.currentChannelName);
 
 			}
 		});
@@ -446,7 +446,7 @@ class lgwebosTvDevice {
 			}
 
 			//if reference not null or empty add the input
-			if (inputReference !== undefined && inputReference !== null) {
+			if (inputReference !== undefined && inputReference !== null || inputReference !== ' ') {
 				inputReference = inputReference.replace(/\s/g, ''); // remove all white spaces from the string
 
 				let tempInput = new Service.InputSource(inputReference, 'input' + i);
@@ -571,7 +571,7 @@ class lgwebosTvDevice {
 					me.log('Device: %s, get current Input successful: %s', me.host, inputReference);
 					me.currentInputReference = inputReference;
 					callback(null, i);
-				}
+                             }
 			}
 		}
 	}
@@ -584,7 +584,7 @@ class lgwebosTvDevice {
 				callback(error);
 			} else {
 				let inputReference = me.inputReferences[inputIdentifier];
-				if (me.inputReferences[inputIdentifier] !== currentInputReference) {
+				if (inputReference !== currentInputReference) {
 					me.lgtv.request('ssap://system.launcher/launch', { id: inputReference });
 					me.log('Device: %s, set new Input successful: %s', me.host, inputReference);
 					me.currentInputReference = inputReference;
@@ -596,16 +596,12 @@ class lgwebosTvDevice {
 
 	getChannel(callback) {
 		var me = this;
-		if (!me.connectionStatus || !me.currentPowerState) {
-			callback(null, 0);
-		} else {
 			let channelReference = me.currentChannelReference;
 			for (let i = 0; i < me.channelReferences.length; i++) {
 				if (channelReference === me.channelReferences[i]) {
 					me.log('Device: %s, get current Channel successful: %s', me.host, channelReference);
 					me.currentChannelReference = channelReference;
 					callback(null, i);
-				}
 			}
 		}
 	}
@@ -618,7 +614,7 @@ class lgwebosTvDevice {
 				callback(error);
 			} else {
 				let channelReference = me.channelReferences[inputIdentifier];
-				if (me.channelReferences[inputIdentifier] !== currentChannelReference) {
+				if (channelReference !== currentChannelReference) {
 					this.lgtv.request('ssap://tv/openChannel', { channelNumber: channelReference });
 					me.log('Device: %s, set new Channel successful: %s', me.host, channelReference);
 					me.currentChannelReference = channelReference;
