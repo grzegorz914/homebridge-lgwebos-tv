@@ -385,7 +385,7 @@ class lgwebosTvDevice {
 		this.prepareInputsService();
 
 		this.log.debug('Device: %s, publishExternalAccessories: %s', this.host, this.name);
-		this.api.publishExternalAccessories('homebridge-lgwebos-tv', [this.accesory]);
+		this.api.publishExternalAccessories('homebridge-lgwebos-tv', [this.accessory]);
 	}
 
 	//Prepare speaker service
@@ -490,8 +490,8 @@ class lgwebosTvDevice {
 						});
 						callback(null, newInputName);
 					});
-				this.tvAccesory.addService(tempInput);
-				this.tvService.addLinkedService(tempInput);
+				this.accessory.addService(tempInput);
+				this.televisionService.addLinkedService(tempInput);
 				this.inputReferences.push(inputReference);
 			}
 		});
