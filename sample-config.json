@@ -22,7 +22,8 @@
                     "name": "LG TV",
                     "host": "192.168.1.8",
                     "mac": "ab:cd:ef:fe:dc:ba",
-                    "switchInfoMenu": true,
+                    "volumeControl": false,
+                    "switchInfoMenu": false,
                     "inputs": [
                         {
                             "name": "Live TV",

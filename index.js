@@ -79,6 +79,7 @@ class lgwebosTvDevice {
 		this.name = device.name;
 		this.host = device.host;
 		this.mac = device.mac;
+		this.volumeControl = device.volumeControl;
 		this.switchInfoMenu = device.switchInfoMenu;
 		this.inputs = device.inputs;
 
@@ -379,10 +380,12 @@ class lgwebosTvDevice {
 			.setCharacteristic(Characteristic.SerialNumber, this.serialNumber)
 			.setCharacteristic(Characteristic.FirmwareRevision, this.firmwareRevision);
 
-		this.accessory.addService(this.televisionService);
-		this.prepareSpeakerService();
-		this.prepareVolumeService();
-		this.prepareInputsService();
+			this.accessory.addService(this.televisionService);
+			this.prepareSpeakerService();
+			this.prepareInputsService();
+			if (this.volumeControl) {
+				this.prepareVolumeService();
+			}
 
 		this.log.debug('Device: %s, publishExternalAccessories: %s', this.host, this.name);
 		this.api.publishExternalAccessories('homebridge-lgwebos-tv', [this.accessory]);

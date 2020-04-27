@@ -30,6 +30,12 @@
               "default": "ab:cd:ef:fe:dc:ba",
               "required": true
             },
+            "volumeControl": {
+              "title": "Volume control",
+              "type": "boolean",
+              "default": false,
+              "required": false
+            },
             "switchInfoMenu": {
               "title": "Switch Info/Menu",
               "type": "boolean",

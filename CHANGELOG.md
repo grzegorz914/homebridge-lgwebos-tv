@@ -1,5 +1,8 @@
 # Change Log
 All notable changes to this project will be documented in this file.
+## 0.3.4 (27.04.2020)
+- added switch ON/OFF volume control (please update config.json)
+
 ## 0.3.0 (26.04.2020)
 - add Siri volume control
 - add Slider (Brightness) volume control
