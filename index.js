@@ -10,6 +10,7 @@ const path = require('path');
 const WEBSOCKET_PORT = 3000;
 
 let Accessory, Service, Characteristic, UUIDGen, Categories;
+let pointerInputSocket;
 
 module.exports = homebridge => {
 	Service = homebridge.hap.Service;
@@ -528,17 +529,12 @@ class lgwebosTvDevice {
 						});
 					} else {
 						me.lgtv.request('ssap://system/turnOff', (error, data) => {
-							if (error) {
-								me.log.debug('Device: %s, can not set new Power state. Might be due to a wrong settings in config, error: %s', me.host, error);
-								callback(error);
-							} else {
-								me.log('Device: %s, set new Power state successful: %s', me.host, state ? 'ON' : 'STANDBY');
-								me.currentPowerState = false;
-								me.disconnect();
-								callback(null, state);
-							}
+							me.log('Device: %s, set new Power state successful: STANDBY', me.host);
+							me.currentPowerState = false;
+							me.disconnect();
 						});
 					}
+					callback(null);
 				}
 			}
 		});
