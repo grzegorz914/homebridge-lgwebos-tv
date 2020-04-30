@@ -140,8 +140,8 @@ class lgwebosTvDevice {
 					if (isAlive && !me.connectionStatus) {
 						me.log('Device: %s, name: %s, state: Online.', me.host, me.name);
 						me.lgtv.connect(me.url);
-                          }
-                        }
+					}
+				}
 			});
 		}.bind(this), 5000);
 
@@ -381,12 +381,12 @@ class lgwebosTvDevice {
 			.setCharacteristic(Characteristic.SerialNumber, this.serialNumber)
 			.setCharacteristic(Characteristic.FirmwareRevision, this.firmwareRevision);
 
-			this.accessory.addService(this.televisionService);
-			this.prepareSpeakerService();
-			this.prepareInputsService();
-			if (this.volumeControl) {
-				this.prepareVolumeService();
-			}
+		this.accessory.addService(this.televisionService);
+		this.prepareSpeakerService();
+		this.prepareInputsService();
+		if (this.volumeControl) {
+			this.prepareVolumeService();
+		}
 
 		this.log.debug('Device: %s, publishExternalAccessories: %s', this.host, this.name);
 		this.api.publishExternalAccessories('homebridge-lgwebos-tv', [this.accessory]);
@@ -525,12 +525,12 @@ class lgwebosTvDevice {
 						});
 					} else {
 						me.lgtv.request('ssap://system/turnOff', (error, data) => {
-								me.log('Device: %s, set new Power state successful: %s', me.host, state ? 'ON' : 'STANDBY');
-								me.currentPowerState = false;
-								me.disconnect();
+							me.log('Device: %s, set new Power state successful: %s', me.host, state ? 'ON' : 'STANDBY');
+							me.currentPowerState = false;
+							me.disconnect();
 						});
 					}
-                                  callback(null)
+					callback(null)
 				}
 			}
 		});
@@ -540,11 +540,11 @@ class lgwebosTvDevice {
 		var me = this;
 		let state = me.currentMuteState;
 		me.log('Device: %s, get current Mute state successful: %s', me.host, state ? 'ON' : 'OFF');
-               me.currentMuteState = state;
+		me.currentMuteState = state;
 		callback(null, state);
 	}
 
-       	getMuteSlider(callback) {
+	getMuteSlider(callback) {
 		var me = this;
 		let state = !me.currentMuteState;
 		callback(null, state);
@@ -566,13 +566,13 @@ class lgwebosTvDevice {
 				}
 			}
 		});
-}
+	}
 
 	getVolume(callback) {
 		var me = this;
 		let volume = me.currentVolume;
 		me.log('Device: %s, get current Volume level successful: %s', me.host, volume);
-               me.currentVolume = volume;
+		me.currentVolume = volume;
 		callback(null, volume);
 	}
 
@@ -580,30 +580,30 @@ class lgwebosTvDevice {
 		var me = this;
 		this.lgtv.request('ssap://audio/setVolume', { volume: volume });
 		me.log('Device: %s, set new Volume level successful: %s', me.host, volume);
-               me.currentVolume = volume;
+		me.currentVolume = volume;
 		callback(null, volume);
 	}
 
 
 	getInput(callback) {
 		var me = this;
-			let inputReference = me.currentInputReference;
-                        if (!me.connectionStatus || inputReference === undefined || inputReference === null) {
-					me.televisionService
-						.getCharacteristic(Characteristic.ActiveIdentifier)
-						.updateValue(0);
-					callback(null);
-                              } else {
+		let inputReference = me.currentInputReference;
+		if (!me.connectionStatus || inputReference === undefined || inputReference === null) {
+			me.televisionService
+				.getCharacteristic(Characteristic.ActiveIdentifier)
+				.updateValue(0);
+			callback(null);
+		} else {
 			for (let i = 0; i < me.inputReferences.length; i++) {
 				if (inputReference === me.inputReferences[i]) {
-                                    me.televisionService
-								.getCharacteristic(Characteristic.ActiveIdentifier)
-								.updateValue(i);
+					me.televisionService
+						.getCharacteristic(Characteristic.ActiveIdentifier)
+						.updateValue(i);
 					me.log('Device: %s, get current Input successful: %s', me.host, inputReference);
 					me.currentInputReference = inputReference;
-                                 }
 				}
-					callback(null);
+			}
+			callback(null);
 		}
 	}
 
@@ -628,23 +628,23 @@ class lgwebosTvDevice {
 	getChannel(callback) {
 		var me = this;
 		let channelReference = me.currentChannelReference;
-                if (!me.connectionStatus || channelReference === undefined || channelReference === null) {
+		if (!me.connectionStatus || channelReference === undefined || channelReference === null) {
+			me.televisionService
+				.getCharacteristic(Characteristic.ActiveIdentifier)
+				.updateValue(0);
+			callback(null);
+		} else {
+			for (let i = 0; i < me.channelReferences.length; i++) {
+				if (channelReference === me.channelReferences[i]) {
 					me.televisionService
 						.getCharacteristic(Characteristic.ActiveIdentifier)
-						.updateValue(0);
-					callback(null);
-                              } else {
-		for (let i = 0; i < me.channelReferences.length; i++) {
-			if (channelReference === me.channelReferences[i]) {
-                               me.televisionService
-								.getCharacteristic(Characteristic.ActiveIdentifier)
-								.updateValue(i);
-				me.log('Device: %s, get current Channel successful: %s', me.host, channelReference);
-				me.currentChannelReference = channelReference;
-                            }
+						.updateValue(i);
+					me.log('Device: %s, get current Channel successful: %s', me.host, channelReference);
+					me.currentChannelReference = channelReference;
+				}
 			}
-				callback(null);
-		}	
+			callback(null);
+		}
 	}
 
 	setChannel(inputIdentifier, callback) {
