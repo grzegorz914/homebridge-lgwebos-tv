@@ -334,20 +334,23 @@ class lgwebosTvDevice {
 				me.log.error('Device: %s, get current Audio state error: %s.', me.host, error);
 			} else {
 				if (this.speakerService && data.changed && data.changed.indexOf('muted') !== -1) {
-					me.log.info('Device: %s, get current Mute state: %s', me.host, data.muted ? 'ON' : 'OFF');
-					me.currentMuteState = data.muted;
-					this.speakerService.getCharacteristic(Characteristic.Mute).updateValue(data.muted);
+					let muteState = data.muted;
+					this.speakerService.getCharacteristic(Characteristic.Mute).updateValue(muteState);
+					me.log.info('Device: %s, get current Mute state: %s', me.host, muteState ? 'ON' : 'OFF');
+					me.currentMuteState = muteState;
 				}
 				if (this.volumeService && data.changed && data.changed.indexOf('muted') !== -1) {
-					let mute = data.muted;
-					this.volumeService.getCharacteristic(Characteristic.On).updateValue(!mute);
+					let muteState = data.muted;
+					this.volumeService.getCharacteristic(Characteristic.On).updateValue(!muteState);
 				}
 				if (this.speakerService && data.changed && data.changed.indexOf('volume') !== -1) {
-					me.log.info('Device: %s, get current Volume level: %s', me.host, data.volume);
-					me.currentVolume = data.volume;
-					this.speakerService.getCharacteristic(Characteristic.Volume).updateValue(data.volume);
+					let volume = data.volume;
+					this.speakerService.getCharacteristic(Characteristic.Volume).updateValue(volume);
+					me.log.info('Device: %s, get current Volume level: %s', me.host, volume);
+					me.currentVolume = volume;
 				}
 				if (this.volumeService && data.changed && data.changed.indexOf('volume') !== -1) {
+					let volume = data.volume;
 					this.volumeService.getCharacteristic(Characteristic.Brightness).updateValue(volume);
 				}
 			}
