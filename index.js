@@ -140,8 +140,8 @@ class lgwebosTvDevice {
 					if (isAlive && !me.connectionStatus) {
 						me.log('Device: %s, name: %s, state: Online.', me.host, me.name);
 						me.lgtv.connect(me.url);
-					}
-				}
+                          }
+                        }
 			});
 		}.bind(this), 5000);
 
@@ -417,10 +417,7 @@ class lgwebosTvDevice {
 		this.log.debug('prepareVolumeService');
 		this.volumeService = new Service.Lightbulb(this.name + ' Volume', 'volumeService');
 		this.volumeService.getCharacteristic(Characteristic.On)
-			.on('get', function (callback) {
-				let mute = this.currentMuteState ? 0 : 1;
-				callback(null, mute);
-			});
+			.on('get', this.getMuteSlider.bind(this));
 		this.volumeService.getCharacteristic(Characteristic.Brightness)
 			.on('get', this.getVolume.bind(this))
 			.on('set', this.setVolume.bind(this));
@@ -524,17 +521,16 @@ class lgwebosTvDevice {
 							} else {
 								me.log('Device: %s, set new Power state successful: %s', me.host, state ? 'ON' : 'STANDBY');
 								me.currentPowerState = true;
-								callback(null, state);
 							}
 						});
 					} else {
 						me.lgtv.request('ssap://system/turnOff', (error, data) => {
-							me.log('Device: %s, set new Power state successful: STANDBY', me.host);
-							me.currentPowerState = false;
-							me.disconnect();
+								me.log('Device: %s, set new Power state successful: %s', me.host, state ? 'ON' : 'STANDBY');
+								me.currentPowerState = false;
+								me.disconnect();
 						});
 					}
-					callback(null);
+                                  callback(null)
 				}
 			}
 		});
@@ -544,6 +540,13 @@ class lgwebosTvDevice {
 		var me = this;
 		let state = me.currentMuteState;
 		me.log('Device: %s, get current Mute state successful: %s', me.host, state ? 'ON' : 'OFF');
+               me.currentMuteState = state;
+		callback(null, state);
+	}
+
+       	getMuteSlider(callback) {
+		var me = this;
+		let state = !me.currentMuteState;
 		callback(null, state);
 	}
 
@@ -563,12 +566,13 @@ class lgwebosTvDevice {
 				}
 			}
 		});
-	}
+}
 
 	getVolume(callback) {
 		var me = this;
 		let volume = me.currentVolume;
 		me.log('Device: %s, get current Volume level successful: %s', me.host, volume);
+               me.currentVolume = volume;
 		callback(null, volume);
 	}
 
@@ -576,22 +580,30 @@ class lgwebosTvDevice {
 		var me = this;
 		this.lgtv.request('ssap://audio/setVolume', { volume: volume });
 		me.log('Device: %s, set new Volume level successful: %s', me.host, volume);
+               me.currentVolume = volume;
 		callback(null, volume);
 	}
 
+
 	getInput(callback) {
 		var me = this;
-		if (!me.connectionStatus) {
-			callback(null, 0);
-		} else {
 			let inputReference = me.currentInputReference;
+                        if (!me.connectionStatus || inputReference === undefined || inputReference === null) {
+					me.televisionService
+						.getCharacteristic(Characteristic.ActiveIdentifier)
+						.updateValue(0);
+					callback(null);
+                              } else {
 			for (let i = 0; i < me.inputReferences.length; i++) {
 				if (inputReference === me.inputReferences[i]) {
+                                    me.televisionService
+								.getCharacteristic(Characteristic.ActiveIdentifier)
+								.updateValue(i);
 					me.log('Device: %s, get current Input successful: %s', me.host, inputReference);
 					me.currentInputReference = inputReference;
-					callback(null, i);
+                                 }
 				}
-			}
+					callback(null);
 		}
 	}
 
@@ -607,7 +619,7 @@ class lgwebosTvDevice {
 					me.lgtv.request('ssap://system.launcher/launch', { id: inputReference });
 					me.log('Device: %s, set new Input successful: %s', me.host, inputReference);
 					me.currentInputReference = inputReference;
-					callback(null, inputIdentifier);
+					callback(null);
 				}
 			}
 		});
@@ -616,13 +628,23 @@ class lgwebosTvDevice {
 	getChannel(callback) {
 		var me = this;
 		let channelReference = me.currentChannelReference;
+                if (!me.connectionStatus || channelReference === undefined || channelReference === null) {
+					me.televisionService
+						.getCharacteristic(Characteristic.ActiveIdentifier)
+						.updateValue(0);
+					callback(null);
+                              } else {
 		for (let i = 0; i < me.channelReferences.length; i++) {
 			if (channelReference === me.channelReferences[i]) {
+                               me.televisionService
+								.getCharacteristic(Characteristic.ActiveIdentifier)
+								.updateValue(i);
 				me.log('Device: %s, get current Channel successful: %s', me.host, channelReference);
 				me.currentChannelReference = channelReference;
-				callback(null, i);
+                            }
 			}
-		}
+				callback(null);
+		}	
 	}
 
 	setChannel(inputIdentifier, callback) {
@@ -637,7 +659,7 @@ class lgwebosTvDevice {
 					this.lgtv.request('ssap://tv/openChannel', { channelNumber: channelReference });
 					me.log('Device: %s, set new Channel successful: %s', me.host, channelReference);
 					me.currentChannelReference = channelReference;
-					callback(null, inputIdentifier);
+					callback(null);
 				}
 			}
 		});
