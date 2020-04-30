@@ -128,7 +128,7 @@ class lgwebosTvDevice {
 			mkdirp(this.prefDir);
 		}
 
-		//Check net state
+		//Check net statek
 		setInterval(function () {
 			var me = this;
 			tcpp.probe(me.host, WEBSOCKET_PORT, (error, isAlive) => {
@@ -318,6 +318,14 @@ class lgwebosTvDevice {
 			} else {
 				me.log('Device: %s, get current App reference successful: %s', me.host, data.appId);
 				me.currentInputReference = data.appId;
+				if (this.televisionService && this.inputReferences && this.inputReferences.length > 0) {
+					let inputIdentifier = this.inputReferences.indexOf(data.appId);
+					if (inputIdentifier === -1) {
+						inputIdentifier = 9999999;
+						this.log.debug('Device: %s, input not found in the input list, nothing changed', me.host);
+					}
+					this.televisionService.getCharacteristic(Characteristic.ActiveIdentifier).updateValue(inputIdentifier);
+				}
 			}
 		});
 
@@ -325,12 +333,23 @@ class lgwebosTvDevice {
 			if (!data || error) {
 				me.log.error('Device: %s, get current Audio state error: %s.', me.host, error);
 			} else {
-				if (data.changed && data.changed.indexOf('muted') !== -1)
+				if (this.speakerService && data.changed && data.changed.indexOf('muted') !== -1) {
 					me.log.info('Device: %s, get current Mute state: %s', me.host, data.muted ? 'ON' : 'OFF');
-				me.currentMuteState = data.muted;
-				if (data.changed && data.changed.indexOf('volume') !== -1)
+					me.currentMuteState = data.muted;
+					this.speakerService.getCharacteristic(Characteristic.Mute).updateValue(data.muted);
+				}
+				if (this.volumeService && data.changed && data.changed.indexOf('muted') !== -1) {
+					let mute = data.muted;
+					this.volumeService.getCharacteristic(Characteristic.On).updateValue(!mute);
+				}
+				if (this.speakerService && data.changed && data.changed.indexOf('volume') !== -1) {
 					me.log.info('Device: %s, get current Volume level: %s', me.host, data.volume);
-				me.currentVolume = data.volume;
+					me.currentVolume = data.volume;
+					this.speakerService.getCharacteristic(Characteristic.Volume).updateValue(data.volume);
+				}
+				if (this.volumeService && data.changed && data.changed.indexOf('volume') !== -1) {
+					this.volumeService.getCharacteristic(Characteristic.Brightness).updateValue(volume);
+				}
 			}
 		});
 
