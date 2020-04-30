@@ -322,7 +322,7 @@ class lgwebosTvDevice {
 					let inputIdentifier = this.inputReferences.indexOf(data.appId);
 					if (inputIdentifier === -1) {
 						inputIdentifier = 9999999;
-						this.log.debug('Device: %s, input not found in the input list, nothing changed', me.host);
+						this.log.debug('Device: %s, input not found in the input list, nothing will be changed', me.host);
 					}
 					this.televisionService.getCharacteristic(Characteristic.ActiveIdentifier).updateValue(inputIdentifier);
 				}
