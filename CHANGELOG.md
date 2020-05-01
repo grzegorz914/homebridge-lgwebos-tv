@@ -1,5 +1,8 @@
 # Change Log
 All notable changes to this project will be documented in this file.
+## 0.4.4 (01.05.2020)
+- fixes in real time data read and write
+
 ## 0.4.0 (30.04.2020)
 - added realtime data read and write
 

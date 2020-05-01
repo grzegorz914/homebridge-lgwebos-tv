@@ -306,9 +306,12 @@ class lgwebosTvDevice {
 			if (!data || error || data.length <= 0) {
 				me.log.error('Device: %s, get current Power state error: %s.', me.host, error);
 			} else {
-				let state = (((data.state == 'Active') || (data.processing == 'Active') || (data.powerOnReason == 'Active')) && (data.state != 'Active Standby'));
-				me.log.info('Device: %s, get current Power state successful: %s', me.host, state ? 'ON' : 'STANDBY');
-				me.currentPowerState = state;
+				let powerState = (((data.state === 'Active') || (data.processing === 'Active') || (data.powerOnReason === 'Active')) && (data.state !== 'Active Standby'));
+				me.currentPowerState = powerState;
+				if (me.televisionService && data.changed) {
+					me.televisionService.getCharacteristic(Characteristic.Active).updateValue(powerState);
+					me.log('Device: %s, get current Power state successful: %s', me.host, powerState ? 'ON' : 'STANDBY');
+				}
 			}
 		});
 
@@ -316,15 +319,14 @@ class lgwebosTvDevice {
 			if (!data || error) {
 				me.log.error('Device: %s, get current App error: %s.', me.host, error);
 			} else {
-				me.log('Device: %s, get current App reference successful: %s', me.host, data.appId);
-				me.currentInputReference = data.appId;
-				if (me.televisionService && me.inputReferences && me.inputReferences.length > 0) {
-					let inputIdentifier = me.inputReferences.indexOf(data.appId);
-					if (inputIdentifier === -1) {
-						inputIdentifier = 9999999;
-						me.log.debug('Device: %s, input not found in the input list, nothing will be changed', me.host);
+				let inputReference = data.appId;
+				me.currentInputReference = inputReference;
+				if (me.televisionService && data.changed) {
+					if (me.inputReferences && me.inputReferences.length > 0) {
+						let inputIdentifier = me.inputReferences.indexOf(inputReference);
+						me.televisionService.getCharacteristic(Characteristic.ActiveIdentifier).updateValue(inputIdentifier);
+						me.log('Device: %s, get current Input successful: %s', me.host, inputReference);
 					}
-					me.televisionService.getCharacteristic(Characteristic.ActiveIdentifier).updateValue(inputIdentifier);
 				}
 			}
 		});
@@ -333,25 +335,20 @@ class lgwebosTvDevice {
 			if (!data || error) {
 				me.log.error('Device: %s, get current Audio state error: %s.', me.host, error);
 			} else {
-				if (me.speakerService && data.changed && data.changed.indexOf('muted') !== -1) {
-					let muteState = data.muted;
-					me.speakerService.getCharacteristic(Characteristic.Mute).updateValue(muteState);
-					me.log.info('Device: %s, get current Mute state: %s', me.host, muteState ? 'ON' : 'OFF');
-					me.currentMuteState = muteState;
-				}
-				if (me.volumeService && data.changed && data.changed.indexOf('muted') !== -1) {
-					let muteState = data.muted;
-					me.volumeService.getCharacteristic(Characteristic.On).updateValue(!muteState);
-				}
-				if (me.speakerService && data.changed && data.changed.indexOf('volume') !== -1) {
-					let volume = data.volume;
-					me.speakerService.getCharacteristic(Characteristic.Volume).updateValue(volume);
-					me.log.info('Device: %s, get current Volume level: %s', me.host, volume);
-					me.currentVolume = volume;
-				}
-				if (me.volumeService && data.changed && data.changed.indexOf('volume') !== -1) {
-					let volume = data.volume;
-					me.volumeService.getCharacteristic(Characteristic.Brightness).updateValue(volume);
+				let muteState = data.muted;
+				let volume = data.volume;
+				me.currentMuteState = muteState;
+				me.currentVolume = volume;
+				if (me.speakerService && data.changed) {
+					if (data.changed.indexOf('muted') !== -1) {
+						me.speakerService.getCharacteristic(Characteristic.Mute).updateValue(muteState);
+						me.log('Device: %s, get current Mute state: %s', me.host, muteState ? 'ON' : 'OFF');
+					} else {
+						if (data.changed.indexOf('volume') !== -1) {
+							me.speakerService.getCharacteristic(Characteristic.Volume).updateValue(volume);
+							me.log('Device: %s, get current Volume level: %s', me.host, volume);
+						}
+					}
 				}
 			}
 		});
@@ -360,9 +357,17 @@ class lgwebosTvDevice {
 			if (!data || error) {
 				me.log.error('Device: %s, get current Channel and Name error: %s.', me.host, error);
 			} else {
-				me.log('Device: %s, get current Channel successful: %s, %s', me.host, data.channelNumber, data.channelName);
-				me.currentChannelReference = data.channelNumber;
-				me.currentChannelName = data.channelName;
+				let channelReference = data.channelNumber;
+				let channelName = data.channelName;
+				me.currentChannelReference = channelReference
+				me.currentChannelName = channelName;
+				if (me.televisionService && data.changed) {
+					if (me.channelReferences && me.channelReferences.length > 0) {
+						let inputIdentifier = me.channelReferences.indexOf(channelReference);
+						//me.televisionService.getCharacteristic(Characteristic.ActiveIdentifier).updateValue(inputIdentifier);
+						me.log('Device: %s, get current Channel successful: %s, %s', me.host, channelReference, channelName);
+					}
+				}
 
 			}
 		});
