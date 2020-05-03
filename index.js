@@ -578,7 +578,6 @@ class lgwebosTvDevice {
 	}
 
 	setMute(state, callback) {
-		I
 		var me = this;
 		if (state !== me.currentMuteState) {
 			let newState = state;
