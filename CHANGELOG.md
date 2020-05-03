@@ -1,5 +1,8 @@
 # Change Log
 All notable changes to this project will be documented in this file.
+## 0.5.0 (01.05.2020)
+- added support for webOS < 2.5.0 (please update Your config.json)
+
 ## 0.4.4 (01.05.2020)
 - fixes in real time data read and write
 

@@ -42,6 +42,12 @@
               "default": false,
               "required": false
             },
+            "supportOldWebOs": {
+              "title": "Support for webOS < 2.5.0",
+              "type": "boolean",
+              "default": false,
+              "required": false
+            },
             "inputs": {
               "title": "Inputs",
               "type": "array",
