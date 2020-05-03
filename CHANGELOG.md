@@ -1,5 +1,8 @@
 # Change Log
 All notable changes to this project will be documented in this file.
+## 0.5.16 (05.05.2020)
+- added real time read and write data for (lightbulb slider volume cont
+
 ## 0.5.0 (01.05.2020)
 - added support for webOS < 2.5.0 (please update Your config.json)
 
