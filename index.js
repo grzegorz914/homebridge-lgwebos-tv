@@ -133,12 +133,12 @@ class lgwebosTvDevice {
 			var me = this;
 			tcpp.probe(me.host, WEBSOCKET_PORT, (error, isAlive) => {
 				if (!isAlive && me.connectionStatus) {
-					me.log('Device: %s, name: %s, state: Offline', me.host, me.name);
+					me.log.debug('Device: %s %s, state: Offline', me.host, me.name);
 					me.connectionStatus = false;
 					me.disconnect();
 				} else {
 					if (isAlive && !me.connectionStatus) {
-						me.log('Device: %s, name: %s, state: Online.', me.host, me.name);
+						me.log('Device: %s %s, state: Online.', me.host, me.name);
 						me.lgtv.connect(me.url);
 					}
 				}
@@ -146,29 +146,29 @@ class lgwebosTvDevice {
 		}.bind(this), 5000);
 
 		this.lgtv.on('connect', () => {
-			this.log.debug('Device: %s, connected.', this.host);
+			this.log.debug('Device: %s %s, connected.', this.host, this.name);
 			this.connectionStatus = true;
 			this.connect();
 		});
 
 		this.lgtv.on('close', () => {
-			this.log.debug('Device: %s, disconnected.', this.host);
+			this.log.debug('Device: %s %s, disconnected.', this.host, this.name);
 			this.pointerInputSocket = null;
 			this.connectionStatus = false;
 			this.currentPowerState = false;
 		});
 
 		this.lgtv.on('error', (error) => {
-			this.log.error('Device: %s, error: %s', this.host, error);
+			this.log.debug('Device: %s %s, error: %s', this.host, this.name, error);
 		});
 
 		this.lgtv.on('prompt', () => {
-			this.log.info('Device: %s, waiting on confirmation...', this.host);
+			this.log('Device: %s %s, waiting on confirmation...', this.host, this.name);
 			this.connectionStatus = false;
 		});
 
 		this.lgtv.on('connecting', () => {
-			this.log.debug('Device: %s, connecting...', this.host);
+			this.log.debug('Device: %s %s, connecting...', this.host, this.name);
 			this.connectionStatus = false;
 		});
 
@@ -177,113 +177,113 @@ class lgwebosTvDevice {
 	}
 
 	connect() {
-		this.log.info('Device: %s, connected.', this.host);
+		this.log('Device: %s %s, connected.', this.host, this.name);
 		this.getDeviceInfo();
 		this.getDeviceState();
 		this.connectToPointerInputSocket();
 	}
 
 	disconnect() {
-		this.log.info('Device: %s, disconnected.', this.host);
+		this.log('Device: %s %s, disconnected.', this.host, this.name);
 		this.lgtv.disconnect();
 	}
 
 	connectToPointerInputSocket() {
-		this.log.debug('Device: %s, connecting to RCsocket', this.host);
+		this.log.debug('Device: %s %s, connecting to RCsocket', this.host, this.name);
 		this.lgtv.getSocket('ssap://com.webos.service.networkinput/getPointerInputSocket', (error, sock) => {
 			if (!error) {
 				this.pointerInputSocket = sock;
 			}
-			this.log.info('Device: %s, get RC socket successful', this.host);
+			this.log('Device: %s %s, get RC socket successful', this.host, this.name);
 		});
 	}
 
 	getDeviceInfo() {
 		var me = this;
 		setTimeout(() => {
-			me.log.debug('Device: %s, requesting information from: %s', me.host, me.name);
+			me.log.debug('Device: %s %s, requesting Device information.', me.host, me.name);
 			me.lgtv.request('ssap://system/getSystemInfo', (error, data) => {
 				if (!data || error || data.errorCode) {
-					me.log.debug('Device: %s, get System info error: %s', me.host, error);
+					me.log.debug('Device: %s %s, get System info error: %s', me.host, me.name, error);
 					return;
 				} else {
 					delete data['returnValue'];
-					me.log.debug('Device: %s, get System info successful: %s', me.host, JSON.stringify(data, null, 2));
+					me.log.debug('Device: %s %s, get System info successful: %s', me.host, me.name, JSON.stringify(data, null, 2));
 					me.manufacturer = 'LG Electronics';
 					me.modelName = data.modelName;
 					if (fs.existsSync(me.systemFile) === false) {
 						fs.writeFile(me.systemFile, JSON.stringify(data), (error) => {
 							if (error) {
-								me.log.debug('Device: %s, could not write systemFile, error: %s', me.host, error);
+								me.log.debug('Device: %s %s, could not write systemFile, error: %s', me.host, me.name, error);
 							} else {
-								me.log.debug('Device: %s, systemFile saved successful', me.host);
+								me.log.debug('Device: %s %s, systemFile saved successful', me.host, me.name);
 							}
 						});
 					} else {
-						me.log.debug('Device: %s, systemFile already exists, not saving', me.host);
+						me.log.debug('Device: %s %s, systemFile already exists, not saving', me.host, me.name);
 					}
 				}
 			});
 
 			me.lgtv.request('ssap://com.webos.service.update/getCurrentSWInformation', (error, data) => {
 				if (!data || error || data.errorCode) {
-					me.log.debug('Device: %s, get Software info error: %s', me.host, error);
+					me.log.debug('Device: %s %s, get Software info error: %s', me.host, me.name, error);
 				} else {
 					delete data['returnValue'];
-					me.log.debug('Device: %s, get Software info successful: %s', me.host, JSON.stringify(data, null, 2));
+					me.log.debug('Device: %s %s, get Software info successful: %s', me.host, me.name, JSON.stringify(data, null, 2));
 					me.productName = data.product_name;
 					me.serialNumber = data.device_id;
 					me.firmwareRevision = data.minor_ver;
 					if (fs.existsSync(me.softwareFile) === false) {
 						fs.writeFile(me.softwareFile, JSON.stringify(data), (error) => {
 							if (error) {
-								me.log.debug('Device: %s, could not write softwareFile, error: %s', me.host, error);
+								me.log.debug('Device: %s %s, could not write softwareFile, error: %s', me.host, me.name, error);
 							} else {
-								me.log.debug('Device: %s, softwareFile saved successful', me.host);
+								me.log.debug('Device: %s %s, softwareFile saved successful', me.host, me.name);
 							}
 						});
 					} else {
-						me.log.debug('Device: %s, softwareFile already exists, not saving', me.host);
+						me.log.debug('Device: %s %s, softwareFile already exists, not saving', me.host, me.name);
 					}
 				}
 			});
 
 			me.lgtv.request('ssap://api/getServiceList', (error, data) => {
 				if (!data || error || data.errorCode) {
-					me.log.debug('Device: %s, get Services list error: %s', me.host, error);
+					me.log.debug('Device: %s %s, get Services list error: %s', me.host, error);
 				} else {
 					delete data['returnValue'];
-					me.log.debug('Device: %s, get Services list successful: %s', me.host, JSON.stringify(data, null, 2));
+					me.log.debug('Device: %s %s, get Services list successful: %s', me.host, me.name, JSON.stringify(data, null, 2));
 					if (fs.existsSync(me.servicesFile) === false) {
 						fs.writeFile(me.servicesFile, JSON.stringify(data), (error) => {
 							if (error) {
-								me.log.debug('Device: %s, could not write servicesFile, error: %s', me.host, error);
+								me.log.debug('Device: %s %s, could not write servicesFile, error: %s', me.host, error);
 							} else {
-								me.log.debug('Device: %s, servicesFile saved successful', me.host);
+								me.log.debug('Device: %s %s, servicesFile saved successful', me.host, me.name);
 							}
 						});
 					} else {
-						me.log.debug('Device: %s, servicesFile already exists, not saving', me.host);
+						me.log.debug('Device: %s %s, servicesFile already exists, not saving', me.host, me.name);
 					}
 				}
 			});
 
 			me.lgtv.request('ssap://com.webos.applicationManager/listApps', (error, data) => {
 				if (!data || error || data.errorCode) {
-					me.log.debug('Device: %s, get Apps list error: %s', me.host, error);
+					me.log.debug('Device: %s %s, get Apps list error: %s', me.host, me.name, error);
 				} else {
 					delete data['returnValue'];
-					me.log.debug('Device: %s, get Apps list successful: %s', me.host, JSON.stringify(data, null, 2));
+					me.log.debug('Device: %s %s, get Apps list successful: %s', me.host, me.name, JSON.stringify(data, null, 2));
 					if (fs.existsSync(me.appsFile) === false) {
 						fs.writeFile(me.appsFile, JSON.stringify(data), (error) => {
 							if (error) {
-								me.log.debug('Device: %s, could not write appsFile, error: %s', me.host, error);
+								me.log.debug('Device: %s %s, could not write appsFile, error: %s', me.host, me.name, error);
 							} else {
-								me.log.debug('Device: %s, appsFile saved successful', me.host);
+								me.log.debug('Device: %s %s, appsFile saved successful', me.host, me.name);
 							}
 						});
 					} else {
-						me.log.debug('Device: %s, appsFile already exists, not saving', me.host);
+						me.log.debug('Device: %s %s, appsFile already exists, not saving', me.host, me.name);
 					}
 				}
 			});
@@ -304,29 +304,26 @@ class lgwebosTvDevice {
 		var me = this;
 		me.lgtv.subscribe('ssap://com.webos.service.tvpower/power/getPowerState', (error, data) => {
 			if (!data || error || data.length <= 0) {
-				me.log.error('Device: %s, get current Power state error: %s.', me.host, error);
+				me.log.error('Device: %s %s, get current Power state error: %s.', me.host, me.name, error);
 			} else {
-
-				let state = ((data.state === 'Active') || (data.processing === 'Active') || (data.powerOnReason === 'Active'));
 				let statePixelRefresh = (data.state === 'Active Standby');
-				let powerState = false;
 				if (statePixelRefresh) {
-					powerState = false;
 					me.disconnect();
 				} else {
-					powerState = me.supportOldWebOs ? !state : state;
+					let state = (((data.state === 'Active') || (data.processing === 'Active') || (data.powerOnReason === 'Active')) && (data.state !== 'Active Standby'))
+					let powerState = me.supportOldWebOs ? !state : state;
+					if (me.televisionService) {
+						me.televisionService.getCharacteristic(Characteristic.Active).updateValue(powerState);
+						me.log('Device: %s %s, get current Power state successful: %s', me.host, me.name, powerState ? 'ON' : 'STANDBY');
+					}
+					me.currentPowerState = powerState;
 				}
-				if (me.televisionService) {
-					me.televisionService.getCharacteristic(Characteristic.Active).updateValue(powerState);
-					me.log('Device: %s, get current Power state successful: %s', me.host, powerState ? 'ON' : 'STANDBY');
-				}
-				me.currentPowerState = powerState;
 			}
 		});
 
 		me.lgtv.subscribe('ssap://tv/getCurrentChannel', (error, data) => {
 			if (!data || error) {
-				me.log.error('Device: %s, get current Channel and Name error: %s.', me.host, error);
+				me.log.error('Device: %s %s, get current Channel and Name error: %s.', me.host, me.name, error);
 			} else {
 				let channelReference = data.channelNumber;
 				let channelName = data.channelName;
@@ -334,7 +331,7 @@ class lgwebosTvDevice {
 					if (me.channelReferences && me.channelReferences.length > 0) {
 						let inputIdentifier = me.channelReferences.indexOf(channelReference);
 						//me.televisionService.getCharacteristic(Characteristic.ActiveIdentifier).updateValue(inputIdentifier);
-						me.log('Device: %s, get current Channel successful: %s, %s', me.host, channelReference, channelName);
+						me.log('Device: %s %s, get current Channel successful: %s, %s', me.host, me.name, channelReference, channelName);
 					}
 				}
 				me.currentChannelReference = channelReference
@@ -344,14 +341,14 @@ class lgwebosTvDevice {
 
 		me.lgtv.subscribe('ssap://com.webos.applicationManager/getForegroundAppInfo', (error, data) => {
 			if (!data || error) {
-				me.log.error('Device: %s, get current App error: %s.', me.host, error);
+				me.log.error('Device: %s %s, get current App error: %s.', me.host, me.name, error);
 			} else {
 				let inputReference = data.appId;
 				if (me.televisionService) {
 					if (me.inputReferences && me.inputReferences.length > 0) {
 						let inputIdentifier = me.inputReferences.indexOf(inputReference);
 						me.televisionService.getCharacteristic(Characteristic.ActiveIdentifier).updateValue(inputIdentifier);
-						me.log('Device: %s, get current Input successful: %s', me.host, inputReference);
+						me.log('Device: %s %s, get current Input successful: %s', me.host, me.name, inputReference);
 					}
 				}
 				me.currentInputReference = inputReference;
@@ -360,7 +357,7 @@ class lgwebosTvDevice {
 
 		me.lgtv.subscribe('ssap://audio/getVolume', (error, data) => {
 			if (!data || error) {
-				me.log.error('Device: %s, get current Audio state error: %s.', me.host, error);
+				me.log.error('Device: %s %s, get current Audio state error: %s.', me.host, me.name, error);
 			} else {
 				let muteState = me.currentPowerState ? data.muted : true;
 				let volume = data.volume;
@@ -371,8 +368,8 @@ class lgwebosTvDevice {
 						me.volumeService.getCharacteristic(Characteristic.On).updateValue(!muteState);
 						me.volumeService.getCharacteristic(Characteristic.Brightness).updateValue(volume);
 					}
-					me.log('Device: %s, get current Mute state: %s', me.host, muteState ? 'ON' : 'OFF');
-					me.log('Device: %s, get current Volume level: %s', me.host, volume);
+					me.log('Device: %s %s, get current Mute state: %s', me.host, me.name, muteState ? 'ON' : 'OFF');
+					me.log('Device: %s %s, get current Volume level: %s', me.host, me.name, volume);
 				}
 				me.currentMuteState = muteState;
 				me.currentVolume = volume;
@@ -423,7 +420,7 @@ class lgwebosTvDevice {
 			this.prepareVolumeService();
 		}
 
-		this.log.debug('Device: %s, publishExternalAccessories: %s', this.host, this.name);
+		this.log.debug('Device: %s %s, publishExternalAccessories.', this.host, this.name);
 		this.api.publishExternalAccessories('homebridge-lgwebos-tv', [this.accessory]);
 	}
 
@@ -476,7 +473,7 @@ class lgwebosTvDevice {
 		try {
 			savedNames = JSON.parse(fs.readFileSync(this.inputsFile));
 		} catch (error) {
-			this.log.debug('Device: %s, read inputsFile failed, error: %s', this.host, error)
+			this.log.debug('Device: %s %s, read inputsFile failed, error: %s', this.host, this.name, error)
 		}
 
 		this.inputs.forEach((input, i) => {
@@ -519,9 +516,9 @@ class lgwebosTvDevice {
 						this.inputs[inputReference] = newInputName;
 						fs.writeFile(this.inputsFile, JSON.stringify(this.inputs), (error) => {
 							if (error) {
-								this.log.debug('Device: %s, new Input name saved failed, error: %s', this.host, error);
+								this.log.debug('Device: %s %s, new Input name saved failed, error: %s', this.host, this.name, error);
 							} else {
-								this.log('Device: %s, new Input name saved successful, name: %s reference: %s', this.host, newInputName, inputReference);
+								this.log('Device: %s %s, new Input name saved successful, name: %s reference: %s', this.host, this.name, newInputName, inputReference);
 							}
 						});
 						callback(null, newInputName);
@@ -536,8 +533,7 @@ class lgwebosTvDevice {
 	getPowerState(callback) {
 		var me = this;
 		let state = me.currentPowerState;
-		me.log('Device: %s, get current Power state successfull, state: %s', me.host, state ? 'ON' : 'STANDBY');
-		me.currentPowerState = state;
+		me.log.debug('Device: %s %s, get current Power state successfull, state: %s', me.host, me.name, state ? 'ON' : 'STANDBY');
 		callback(null, state);
 	}
 
@@ -547,15 +543,15 @@ class lgwebosTvDevice {
 			if (state) {
 				wol.wake(me.mac, (error) => {
 					if (error) {
-						me.log.debug('Device: %s, can not set new Power state. Might be due to a wrong settings in config, error: %s', me.host, error);
+						me.log.debug('Device: %s %s, can not set new Power state. Might be due to a wrong settings in config, error: %s', me.host, error);
 						callback(error);
 					} else {
-						me.log('Device: %s, set new Power state successful: %s', me.host, state ? 'ON' : 'STANDBY');
+						me.log('Device: %s %s, set new Power state successful: %s', me.host, me.name, state ? 'ON' : 'STANDBY');
 					}
 				});
 			} else {
 				me.lgtv.request('ssap://system/turnOff', (error, data) => {
-					me.log('Device: %s, set new Power state successful: %s', me.host, state ? 'ON' : 'STANDBY');
+					me.log('Device: %s %s, set new Power state successful: %s', me.host, me.name, state ? 'ON' : 'STANDBY');
 					me.disconnect();
 				});
 			}
@@ -566,24 +562,23 @@ class lgwebosTvDevice {
 	getMute(callback) {
 		var me = this;
 		let state = me.currentPowerState ? me.currentMuteState : true;
-		me.log('Device: %s, get current Mute state successful: %s', me.host, state ? 'ON' : 'OFF');
+		me.log.debug('Device: %s %s, get current Mute state successful: %s', me.host, me.name, state ? 'ON' : 'OFF');
 		callback(null, state);
 	}
 
 	getMuteSlider(callback) {
 		var me = this;
 		let state = me.currentPowerState ? !me.currentMuteState : false;
-		me.log('Device: %s, get current Mute state successful: %s', me.host, !state ? 'ON' : 'OFF');
+		me.log.debug('Device: %s %s, get current Mute state successful: %s', me.host, me.name, !state ? 'ON' : 'OFF');
 		callback(null, state);
 	}
 
 	setMute(state, callback) {
-		I
 		var me = this;
 		if (state !== me.currentMuteState) {
 			let newState = state;
 			me.lgtv.request('ssap://audio/setMute', { mute: newState });
-			me.log('Device: %s, set new Mute state successful: %s', me.host, state ? 'ON' : 'OFF');
+			me.log('Device: %s %s, set new Mute state successful: %s', me.host, me.name, state ? 'ON' : 'OFF');
 			callback(null, state);
 		}
 	}
@@ -591,14 +586,14 @@ class lgwebosTvDevice {
 	getVolume(callback) {
 		var me = this;
 		let volume = me.currentVolume;
-		me.log('Device: %s, get current Volume level successful: %s', me.host, volume);
+		me.log.debug('Device: %s %s, get current Volume level successful: %s', me.host, volume);
 		callback(null, volume);
 	}
 
 	setVolume(volume, callback) {
 		var me = this;
 		this.lgtv.request('ssap://audio/setVolume', { volume: volume });
-		me.log('Device: %s, set new Volume level successful: %s', me.host, volume);
+		me.log('Device: %s %s, set new Volume level successful: %s', me.host, me.name, volume);
 		callback(null, volume);
 	}
 
@@ -617,7 +612,7 @@ class lgwebosTvDevice {
 				me.televisionService
 					.getCharacteristic(Characteristic.ActiveIdentifier)
 					.updateValue(inputIdentifier);
-				me.log('Device: %s, get current Input successful: %s', me.host, inputReference);
+				me.log.debug('Device: %s %s, get current Input successful: %s', me.host, me.name, inputReference);
 			}
 			callback(null);
 		}
@@ -628,7 +623,7 @@ class lgwebosTvDevice {
 		let inputReference = me.inputReferences[inputIdentifier];
 		if (inputReference !== me.currentInputReference) {
 			me.lgtv.request('ssap://system.launcher/launch', { id: inputReference });
-			me.log('Device: %s, set new Input successful: %s', me.host, inputReference);
+			me.log('Device: %s %s, set new Input successful: %s', me.host, me.name, inputReference);
 			callback(null);
 		}
 	}
@@ -647,7 +642,7 @@ class lgwebosTvDevice {
 				me.televisionService
 					.getCharacteristic(Characteristic.ActiveIdentifier)
 					.updateValue(inputIdentifier);
-				me.log('Device: %s, get current Channel successful: %s', me.host, channelReference);
+				me.log.debug('Device: %s %s, get current Channel successful: %s', me.host, me.name, channelReference);
 			}
 			callback(null);
 		}
@@ -658,7 +653,7 @@ class lgwebosTvDevice {
 		let channelReference = me.channelReferences[inputIdentifier];
 		if (channelReference !== me.currentChannelReference) {
 			this.lgtv.request('ssap://tv/openChannel', { channelNumber: channelReference });
-			me.log('Device: %s, set new Channel successful: %s', me.host, channelReference);
+			me.log('Device: %s %s, set new Channel successful: %s', me.host, me.name, channelReference);
 			callback(null);
 		}
 	}
@@ -693,7 +688,7 @@ class lgwebosTvDevice {
 				break;
 		}
 		this.pointerInputSocket.send('button', { name: command });
-		me.log('Device: %s, setPictureMode successful, remoteKey: %s, command: %s', me.host, remoteKey, command);
+		me.log('Device: %s %s, setPictureMode successful, remoteKey: %s, command: %s', me.host, me.name, remoteKey, command);
 		callback(null, remoteKey);
 	}
 
@@ -709,7 +704,7 @@ class lgwebosTvDevice {
 				break;
 		}
 		this.pointerInputSocket.send('button', { name: command });
-		me.log('Device: %s, setPowerModeSelection successful, remoteKey: %s, command: %s', me.host, remoteKey, command);
+		me.log('Device: %s %s, setPowerModeSelection successful, remoteKey: %s, command: %s', me.host, me.name, remoteKey, command);
 		callback(null, remoteKey);
 	}
 
@@ -725,7 +720,7 @@ class lgwebosTvDevice {
 				break;
 		}
 		this.pointerInputSocket.send('button', { name: command });
-		me.log('Device: %s, setVolumeSelector successful, remoteKey: %s, command: %s', me.host, remoteKey, command);
+		me.log('Device: %s %s, setVolumeSelector successful, remoteKey: %s, command: %s', me.host, me.name, remoteKey, command);
 		callback(null, remoteKey);
 	}
 
@@ -779,7 +774,7 @@ class lgwebosTvDevice {
 				break;
 		}
 		this.pointerInputSocket.send('button', { name: command });
-		me.log('Device: %s, setRemoteKey successful, remoteKey: %s, command: %s', me.host, remoteKey, command);
+		me.log('Device: %s %s, setRemoteKey successful, remoteKey: %s, command: %s', me.host, me.name, remoteKey, command);
 		callback(null, remoteKey);
 	}
 

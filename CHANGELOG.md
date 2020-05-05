@@ -1,5 +1,9 @@
 # Change Log
 All notable changes to this project will be documented in this file.
+## 0.5.50 (05.05.2020)
+- fixes and performance inprovements
+- correted logging state
+
 ## 0.5.16 (05.05.2020)
 - added real time read and write data for (lightbulb slider volume cont
 
