@@ -302,7 +302,7 @@ class lgwebosTvDevice {
 
 	getDeviceState() {
 		var me = this;
-		me.lgtv.subscribe('ssap://com.webos.service.tvpower/power/getPowerState', (error, data) => {
+		me.lgtv.subscribe('ssap://com.webos.service.tvpower/power/getPower', (error, data) => {
 			if (!data || error || data.length <= 0) {
 				me.log.error('Device: %s %s, get current Power state error: %s.', me.host, me.name, error);
 			} else {
@@ -389,8 +389,8 @@ class lgwebosTvDevice {
 		this.televisionService.setCharacteristic(Characteristic.SleepDiscoveryMode, Characteristic.SleepDiscoveryMode.ALWAYS_DISCOVERABLE);
 
 		this.televisionService.getCharacteristic(Characteristic.Active)
-			.on('get', this.getPowerState.bind(this))
-			.on('set', this.setPowerState.bind(this));
+			.on('get', this.getPower.bind(this))
+			.on('set', this.setPower.bind(this));
 
 		this.televisionService.getCharacteristic(Characteristic.ActiveIdentifier)
 			.on('get', this.getInput.bind(this))
@@ -530,14 +530,14 @@ class lgwebosTvDevice {
 		});
 	}
 
-	getPowerState(callback) {
+	getPower(callback) {
 		var me = this;
 		let state = me.currentPowerState;
 		me.log.debug('Device: %s %s, get current Power state successfull, state: %s', me.host, me.name, state ? 'ON' : 'STANDBY');
 		callback(null, state);
 	}
 
-	setPowerState(state, callback) {
+	setPower(state, callback) {
 		var me = this;
 		if (state !== me.currentPowerState) {
 			if (state) {
@@ -614,7 +614,7 @@ class lgwebosTvDevice {
 					.updateValue(inputIdentifier);
 				me.log.debug('Device: %s %s, get current Input successful: %s', me.host, me.name, inputReference);
 			}
-			callback(null);
+			callback(null, inputIdentifier);
 		}
 	}
 
@@ -624,7 +624,7 @@ class lgwebosTvDevice {
 		if (inputReference !== me.currentInputReference) {
 			me.lgtv.request('ssap://system.launcher/launch', { id: inputReference });
 			me.log('Device: %s %s, set new Input successful: %s', me.host, me.name, inputReference);
-			callback(null);
+			callback(null, inputIdentifier);
 		}
 	}
 
@@ -644,7 +644,7 @@ class lgwebosTvDevice {
 					.updateValue(inputIdentifier);
 				me.log.debug('Device: %s %s, get current Channel successful: %s', me.host, me.name, channelReference);
 			}
-			callback(null);
+			callback(null, inputIdentifier);
 		}
 	}
 
@@ -654,7 +654,7 @@ class lgwebosTvDevice {
 		if (channelReference !== me.currentChannelReference) {
 			this.lgtv.request('ssap://tv/openChannel', { channelNumber: channelReference });
 			me.log('Device: %s %s, set new Channel successful: %s', me.host, me.name, channelReference);
-			callback(null);
+			callback(null, inputIdentifier);
 		}
 	}
 
