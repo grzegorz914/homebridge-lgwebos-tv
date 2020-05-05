@@ -302,7 +302,7 @@ class lgwebosTvDevice {
 
 	getDeviceState() {
 		var me = this;
-		me.lgtv.subscribe('ssap://com.webos.service.tvpower/power/getPower', (error, data) => {
+		me.lgtv.subscribe('ssap://com.webos.service.tvpower/power/getPowerState', (error, data) => {
 			if (!data || error || data.length <= 0) {
 				me.log.error('Device: %s %s, get current Power state error: %s.', me.host, me.name, error);
 			} else {
@@ -660,122 +660,130 @@ class lgwebosTvDevice {
 
 	setPictureMode(remoteKey, callback) {
 		var me = this;
-		let command;
-		switch (remoteKey) {
-			case Characteristic.PictureMode.OTHER:
-				command = 'INFO';
-				break;
-			case Characteristic.PictureMode.STANDARD:
-				command = 'BACK';
-				break;
-			case Characteristic.PictureMode.CALIBRATED:
-				command = 'INFO';
-				break;
-			case Characteristic.PictureMode.CALIBRATED_DARK:
-				command = 'BACK';
-				break;
-			case Characteristic.PictureMode.VIVID:
-				command = 'INFO';
-				break;
-			case Characteristic.PictureMode.GAME:
-				command = 'BACK';
-				break;
-			case Characteristic.PictureMode.COMPUTER:
-				command = 'INFO';
-				break;
-			case Characteristic.PictureMode.CUSTOM:
-				command = 'BACK';
-				break;
+		if (me.currentPowerState) {
+			let command;
+			switch (remoteKey) {
+				case Characteristic.PictureMode.OTHER:
+					command = 'INFO';
+					break;
+				case Characteristic.PictureMode.STANDARD:
+					command = 'BACK';
+					break;
+				case Characteristic.PictureMode.CALIBRATED:
+					command = 'INFO';
+					break;
+				case Characteristic.PictureMode.CALIBRATED_DARK:
+					command = 'BACK';
+					break;
+				case Characteristic.PictureMode.VIVID:
+					command = 'INFO';
+					break;
+				case Characteristic.PictureMode.GAME:
+					command = 'BACK';
+					break;
+				case Characteristic.PictureMode.COMPUTER:
+					command = 'INFO';
+					break;
+				case Characteristic.PictureMode.CUSTOM:
+					command = 'BACK';
+					break;
+			}
+			this.pointerInputSocket.send('button', { name: command });
+			me.log('Device: %s %s, setPictureMode successful, remoteKey: %s, command: %s', me.host, me.name, remoteKey, command);
+			callback(null, remoteKey);
 		}
-		this.pointerInputSocket.send('button', { name: command });
-		me.log('Device: %s %s, setPictureMode successful, remoteKey: %s, command: %s', me.host, me.name, remoteKey, command);
-		callback(null, remoteKey);
 	}
 
 	setPowerModeSelection(remoteKey, callback) {
 		var me = this;
-		let command;
-		switch (remoteKey) {
-			case Characteristic.PowerModeSelection.SHOW:
-				command = me.switchInfoMenu ? 'MENU' : 'INFO';
-				break;
-			case Characteristic.PowerModeSelection.HIDE:
-				command = 'BACK';
-				break;
+		if (me.currentPowerState) {
+			let command;
+			switch (remoteKey) {
+				case Characteristic.PowerModeSelection.SHOW:
+					command = me.switchInfoMenu ? 'MENU' : 'INFO';
+					break;
+				case Characteristic.PowerModeSelection.HIDE:
+					command = 'BACK';
+					break;
+			}
+			this.pointerInputSocket.send('button', { name: command });
+			me.log('Device: %s %s, setPowerModeSelection successful, remoteKey: %s, command: %s', me.host, me.name, remoteKey, command);
+			callback(null, remoteKey);
 		}
-		this.pointerInputSocket.send('button', { name: command });
-		me.log('Device: %s %s, setPowerModeSelection successful, remoteKey: %s, command: %s', me.host, me.name, remoteKey, command);
-		callback(null, remoteKey);
 	}
 
 	setVolumeSelector(remoteKey, callback) {
 		var me = this;
-		let command;
-		switch (remoteKey) {
-			case Characteristic.VolumeSelector.INCREMENT:
-				command = 'VOLUMEUP';
-				break;
-			case Characteristic.VolumeSelector.DECREMENT:
-				command = 'VOLUMEDOWN';
-				break;
+		if (me.currentPowerState) {
+			let command;
+			switch (remoteKey) {
+				case Characteristic.VolumeSelector.INCREMENT:
+					command = 'VOLUMEUP';
+					break;
+				case Characteristic.VolumeSelector.DECREMENT:
+					command = 'VOLUMEDOWN';
+					break;
+			}
+			this.pointerInputSocket.send('button', { name: command });
+			me.log('Device: %s %s, setVolumeSelector successful, remoteKey: %s, command: %s', me.host, me.name, remoteKey, command);
+			callback(null, remoteKey);
 		}
-		this.pointerInputSocket.send('button', { name: command });
-		me.log('Device: %s %s, setVolumeSelector successful, remoteKey: %s, command: %s', me.host, me.name, remoteKey, command);
-		callback(null, remoteKey);
 	}
 
 	setRemoteKey(remoteKey, callback) {
 		var me = this;
-		let command;
-		switch (remoteKey) {
-			case Characteristic.RemoteKey.REWIND:
-				command = 'REWIND';
-				break;
-			case Characteristic.RemoteKey.FAST_FORWARD:
-				command = 'FASTFORWARD';
-				break;
-			case Characteristic.RemoteKey.NEXT_TRACK:
-				command = '';
-				break;
-			case Characteristic.RemoteKey.PREVIOUS_TRACK:
-				command = '';
-				break;
-			case Characteristic.RemoteKey.ARROW_UP:
-				command = 'UP';
-				break;
-			case Characteristic.RemoteKey.ARROW_DOWN:
-				command = 'DOWN';
-				break;
-			case Characteristic.RemoteKey.ARROW_LEFT:
-				command = 'LEFT';
-				break;
-			case Characteristic.RemoteKey.ARROW_RIGHT:
-				command = 'RIGHT';
-				break;
-			case Characteristic.RemoteKey.SELECT:
-				command = 'ENTER';
-				break;
-			case Characteristic.RemoteKey.BACK:
-				command = 'BACK';
-				break;
-			case Characteristic.RemoteKey.EXIT:
-				command = 'EXIT';
-				break;
-			case Characteristic.RemoteKey.PLAY_PAUSE:
-				if (me.isPaused) {
-					command = 'PLAY';
-				} else {
-					command = 'PAUSE';
-				}
-				me.isPaused = !me.isPaused;
-				break;
-			case Characteristic.RemoteKey.INFORMATION:
-				command = me.switchInfoMenu ? 'MENU' : 'INFO';
-				break;
+		if (me.currentPowerState) {
+			let command;
+			switch (remoteKey) {
+				case Characteristic.RemoteKey.REWIND:
+					command = 'REWIND';
+					break;
+				case Characteristic.RemoteKey.FAST_FORWARD:
+					command = 'FASTFORWARD';
+					break;
+				case Characteristic.RemoteKey.NEXT_TRACK:
+					command = '';
+					break;
+				case Characteristic.RemoteKey.PREVIOUS_TRACK:
+					command = '';
+					break;
+				case Characteristic.RemoteKey.ARROW_UP:
+					command = 'UP';
+					break;
+				case Characteristic.RemoteKey.ARROW_DOWN:
+					command = 'DOWN';
+					break;
+				case Characteristic.RemoteKey.ARROW_LEFT:
+					command = 'LEFT';
+					break;
+				case Characteristic.RemoteKey.ARROW_RIGHT:
+					command = 'RIGHT';
+					break;
+				case Characteristic.RemoteKey.SELECT:
+					command = 'ENTER';
+					break;
+				case Characteristic.RemoteKey.BACK:
+					command = 'BACK';
+					break;
+				case Characteristic.RemoteKey.EXIT:
+					command = 'EXIT';
+					break;
+				case Characteristic.RemoteKey.PLAY_PAUSE:
+					if (me.isPaused) {
+						command = 'PLAY';
+					} else {
+						command = 'PAUSE';
+					}
+					me.isPaused = !me.isPaused;
+					break;
+				case Characteristic.RemoteKey.INFORMATION:
+					command = me.switchInfoMenu ? 'MENU' : 'INFO';
+					break;
+			}
+			this.pointerInputSocket.send('button', { name: command });
+			me.log('Device: %s %s, setRemoteKey successful, remoteKey: %s, command: %s', me.host, me.name, remoteKey, command);
+			callback(null, remoteKey);
 		}
-		this.pointerInputSocket.send('button', { name: command });
-		me.log('Device: %s %s, setRemoteKey successful, remoteKey: %s, command: %s', me.host, me.name, remoteKey, command);
-		callback(null, remoteKey);
 	}
 
 };
