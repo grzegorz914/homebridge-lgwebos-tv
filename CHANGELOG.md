@@ -1,6 +1,6 @@
 # Change Log
 All notable changes to this project will be documented in this file.
-## 0.5.57 (05.05.2020)
+## 0.5.57 (06.05.2020)
 - code cleanup
 
 ## 0.5.50 (05.05.2020)
