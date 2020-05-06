@@ -151,8 +151,15 @@ class lgwebosTvDevice {
 
 		this.lgtv.on('connect', () => {
 			this.log.debug('Device: %s %s, connected.', this.host, this.name);
-			this.connectionStatus = true;
-			this.connect();
+			this.lgtv.subscribe('ssap://com.webos.service.tvpower/power/getPowerState', (error, data) => {
+				if (!data || error || data.length <= 0 || (data.state === 'Active Standby')) {
+					this.connectionStatus = false;
+					this.lgtv.disconnect();
+				} else {
+					this.connectionStatus = true;
+					this.connect();
+				}
+			});
 		});
 
 		this.lgtv.on('close', () => {
@@ -183,14 +190,16 @@ class lgwebosTvDevice {
 	connect() {
 		this.log('Device: %s %s, connected.', this.host, this.name);
 		this.getDeviceInfo();
+		this.connectionStatus = true;
 		this.getDeviceState();
 		this.connectToPointerInputSocket();
 	}
 
 	disconnect() {
 		this.log('Device: %s %s, disconnected.', this.host, this.name);
-		this.currentPowerState = false;
 		this.lgtv.disconnect();
+		this.connectionStatus = false;
+		this.currentPowerState = false;
 	}
 
 	connectToPointerInputSocket() {
@@ -307,80 +316,82 @@ class lgwebosTvDevice {
 
 	getDeviceState() {
 		var me = this;
-		me.lgtv.subscribe('ssap://com.webos.service.tvpower/power/getPowerState', (error, data) => {
-			if (!data || error || data.length <= 0) {
-				me.log.error('Device: %s %s, get current Power state error: %s.', me.host, me.name, error);
-			} else {
-				let statePixelRefresh = (data.state === 'Active Standby');
-				if (statePixelRefresh) {
-					me.currentPowerState = false;
-					me.disconnect();
+		if (me.connectionStatus) {
+			me.lgtv.subscribe('ssap://com.webos.service.tvpower/power/getPowerState', (error, data) => {
+				if (!data || error || data.length <= 0) {
+					me.log.error('Device: %s %s, get current Power state error: %s.', me.host, me.name, error);
 				} else {
-					let state = (((data.state === 'Active') || (data.processing === 'Active') || (data.powerOnReason === 'Active')) && (data.state !== 'Active Standby'))
-					let powerState = me.supportOldWebOs ? !state : state;
+					let statePixelRefresh = (data.state === 'Active Standby');
+					if (statePixelRefresh) {
+						me.currentPowerState = false;
+						me.disconnect();
+					} else {
+						let state = (((data.state === 'Active') || (data.processing === 'Active') || (data.powerOnReason === 'Active')) && (data.state !== 'Active Standby'))
+						let powerState = me.supportOldWebOs ? !state : state;
+						if (me.televisionService) {
+							me.televisionService.getCharacteristic(Characteristic.Active).updateValue(powerState);
+							me.log('Device: %s %s, get current Power state successful: %s', me.host, me.name, powerState ? 'ON' : 'STANDBY');
+						}
+						me.currentPowerState = powerState;
+					}
+				}
+			});
+
+			me.lgtv.subscribe('ssap://tv/getCurrentChannel', (error, data) => {
+				if (!data || error) {
+					me.log.error('Device: %s %s, get current Channel and Name error: %s.', me.host, me.name, error);
+				} else {
+					let channelReference = data.channelNumber;
+					let channelName = data.channelName;
+					if (me.televisionService && data.changed) {
+						if (me.channelReferences && me.channelReferences.length > 0) {
+							let inputIdentifier = me.channelReferences.indexOf(channelReference);
+							//me.televisionService.getCharacteristic(Characteristic.ActiveIdentifier).updateValue(inputIdentifier);
+							me.log('Device: %s %s, get current Channel successful: %s, %s', me.host, me.name, channelReference, channelName);
+						}
+					}
+					me.currentChannelReference = channelReference
+					me.currentChannelName = channelName;
+				}
+			});
+
+			me.lgtv.subscribe('ssap://com.webos.applicationManager/getForegroundAppInfo', (error, data) => {
+				if (!data || error) {
+					me.log.error('Device: %s %s, get current App error: %s.', me.host, me.name, error);
+				} else {
+					let inputReference = data.appId;
 					if (me.televisionService) {
-						me.televisionService.getCharacteristic(Characteristic.Active).updateValue(powerState);
-						me.log('Device: %s %s, get current Power state successful: %s', me.host, me.name, powerState ? 'ON' : 'STANDBY');
+						if (me.inputReferences && me.inputReferences.length > 0) {
+							let inputIdentifier = me.inputReferences.indexOf(inputReference);
+							me.televisionService.getCharacteristic(Characteristic.ActiveIdentifier).updateValue(inputIdentifier);
+							me.log('Device: %s %s, get current Input successful: %s', me.host, me.name, inputReference);
+						}
 					}
-					me.currentPowerState = powerState;
+					me.currentInputReference = inputReference;
 				}
-			}
-		});
+			});
 
-		me.lgtv.subscribe('ssap://tv/getCurrentChannel', (error, data) => {
-			if (!data || error) {
-				me.log.error('Device: %s %s, get current Channel and Name error: %s.', me.host, me.name, error);
-			} else {
-				let channelReference = data.channelNumber;
-				let channelName = data.channelName;
-				if (me.televisionService && data.changed) {
-					if (me.channelReferences && me.channelReferences.length > 0) {
-						let inputIdentifier = me.channelReferences.indexOf(channelReference);
-						//me.televisionService.getCharacteristic(Characteristic.ActiveIdentifier).updateValue(inputIdentifier);
-						me.log('Device: %s %s, get current Channel successful: %s, %s', me.host, me.name, channelReference, channelName);
+			me.lgtv.subscribe('ssap://audio/getVolume', (error, data) => {
+				if (!data || error) {
+					me.log.error('Device: %s %s, get current Audio state error: %s.', me.host, me.name, error);
+				} else {
+					let muteState = me.currentPowerState ? data.muted : true;
+					let volume = data.volume;
+					if (me.speakerService) {
+						me.speakerService.getCharacteristic(Characteristic.Mute).updateValue(muteState);
+						me.speakerService.getCharacteristic(Characteristic.Volume).updateValue(volume);
+						if (me.volumeControl && me.volumeService) {
+							me.volumeService.getCharacteristic(Characteristic.On).updateValue(!muteState);
+							me.volumeService.getCharacteristic(Characteristic.Brightness).updateValue(volume);
+						}
+						me.log('Device: %s %s, get current Mute state: %s', me.host, me.name, muteState ? 'ON' : 'OFF');
+						me.log('Device: %s %s, get current Volume level: %s', me.host, me.name, volume);
 					}
+					me.currentMuteState = muteState;
+					me.currentVolume = volume;
 				}
-				me.currentChannelReference = channelReference
-				me.currentChannelName = channelName;
-			}
-		});
-
-		me.lgtv.subscribe('ssap://com.webos.applicationManager/getForegroundAppInfo', (error, data) => {
-			if (!data || error) {
-				me.log.error('Device: %s %s, get current App error: %s.', me.host, me.name, error);
-			} else {
-				let inputReference = data.appId;
-				if (me.televisionService) {
-					if (me.inputReferences && me.inputReferences.length > 0) {
-						let inputIdentifier = me.inputReferences.indexOf(inputReference);
-						me.televisionService.getCharacteristic(Characteristic.ActiveIdentifier).updateValue(inputIdentifier);
-						me.log('Device: %s %s, get current Input successful: %s', me.host, me.name, inputReference);
-					}
-				}
-				me.currentInputReference = inputReference;
-			}
-		});
-
-		me.lgtv.subscribe('ssap://audio/getVolume', (error, data) => {
-			if (!data || error) {
-				me.log.error('Device: %s %s, get current Audio state error: %s.', me.host, me.name, error);
-			} else {
-				let muteState = me.currentPowerState ? data.muted : true;
-				let volume = data.volume;
-				if (me.speakerService) {
-					me.speakerService.getCharacteristic(Characteristic.Mute).updateValue(muteState);
-					me.speakerService.getCharacteristic(Characteristic.Volume).updateValue(volume);
-					if (me.volumeControl && me.volumeService) {
-						me.volumeService.getCharacteristic(Characteristic.On).updateValue(!muteState);
-						me.volumeService.getCharacteristic(Characteristic.Brightness).updateValue(volume);
-					}
-					me.log('Device: %s %s, get current Mute state: %s', me.host, me.name, muteState ? 'ON' : 'OFF');
-					me.log('Device: %s %s, get current Volume level: %s', me.host, me.name, volume);
-				}
-				me.currentMuteState = muteState;
-				me.currentVolume = volume;
-			}
-		});
+			});
+		}
 	}
 
 
