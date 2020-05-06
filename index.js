@@ -1,4 +1,10 @@
-'use strict';
+const hap = require("hap-nodejs");
+
+const Characteristic = hap.Characteristic;
+const CharacteristicEventTypes = hap.CharacteristicEventTypes;
+const Service = hap.Service;
+const Categories = hap.Accessory.Categories;
+const accessoryUuid = hap.uuid;
 
 const fs = require('fs');
 const mkdirp = require('mkdirp');
@@ -9,16 +15,14 @@ const path = require('path');
 
 const WEBSOCKET_PORT = 3000;
 
-let Accessory, Service, Characteristic, UUIDGen, Categories;
+const PLUGIN_NAME = 'homebridge-lgwebos-tv';
+const PLATFORM_NAME = 'LgWebOsTv';
+
+let Accessory;
 
 module.exports = homebridge => {
-	Service = homebridge.hap.Service;
-	Characteristic = homebridge.hap.Characteristic;
 	Accessory = homebridge.platformAccessory;
-	UUIDGen = homebridge.hap.uuid;
-	Categories = homebridge.hap.Accessory.Categories;
-
-	homebridge.registerPlatform('homebridge-lgwebos-tv', 'LgWebOsTv', lgwebosTvPlatform, true);
+	homebridge.registerPlatform(PLUGIN_NAME, PLATFORM_NAME, lgwebosTvPlatform, true);
 };
 
 
@@ -64,7 +68,7 @@ class lgwebosTvPlatform {
 
 	removeAccessory(platformAccessory) {
 		this.log.debug('removeAccessory');
-		this.api.unregisterPlatformAccessories('homebridge-lgwebos-tv', 'LgWebOsTv', [platformAccessory]);
+		this.api.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME[platformAccessory]);
 	}
 }
 
@@ -86,7 +90,7 @@ class lgwebosTvDevice {
 
 		//get Device info
 		this.manufacturer = device.manufacturer || 'LG Electronics';
-		this.modelName = device.modelName || 'homebridge-lgwebos-tv';
+		this.modelName = device.modelName || PLUGIN_NAME;
 		this.serialNumber = device.serialNumber || 'SN0000004';
 		this.firmwareRevision = device.firmwareRevision || 'FW0000004';
 
@@ -383,7 +387,7 @@ class lgwebosTvDevice {
 	//Prepare TV service 
 	prepareTelevisionService() {
 		this.log.debug('prepareTelevisionService');
-		this.UUID = UUIDGen.generate(this.name)
+		this.UUID = accessoryUuid.generate(this.name)
 		this.accessory = new Accessory(this.name, this.UUID, Categories.TELEVISION);
 
 		this.televisionService = new Service.Television(this.name, 'televisionService');
@@ -423,7 +427,7 @@ class lgwebosTvDevice {
 		}
 
 		this.log.debug('Device: %s %s, publishExternalAccessories.', this.host, this.name);
-		this.api.publishExternalAccessories('homebridge-lgwebos-tv', [this.accessory]);
+		this.api.publishExternalAccessories(PLUGIN_NAME, [this.accessory]);
 	}
 
 	//Prepare speaker service
