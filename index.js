@@ -185,6 +185,7 @@ class lgwebosTvDevice {
 
 	disconnect() {
 		this.log('Device: %s %s, disconnected.', this.host, this.name);
+		this.currentPowerState = false;
 		this.lgtv.disconnect();
 	}
 
@@ -308,6 +309,7 @@ class lgwebosTvDevice {
 			} else {
 				let statePixelRefresh = (data.state === 'Active Standby');
 				if (statePixelRefresh) {
+					me.currentPowerState = false;
 					me.disconnect();
 				} else {
 					let state = (((data.state === 'Active') || (data.processing === 'Active') || (data.powerOnReason === 'Active')) && (data.state !== 'Active Standby'))
@@ -500,17 +502,16 @@ class lgwebosTvDevice {
 
 			//if reference not null or empty add the input
 			if (inputReference !== undefined && inputReference !== null || inputReference !== '') {
-				inputReference = inputReference.replace(/\s/g, ''); // remove all white spaces from the string
 
-				let tempInput = new Service.InputSource(inputReference, 'input' + i);
-				tempInput
+				this.inputsService = new Service.InputSource(inputReference, 'input' + i);
+				this.inputsService
 					.setCharacteristic(Characteristic.Identifier, i)
 					.setCharacteristic(Characteristic.ConfiguredName, inputName)
 					.setCharacteristic(Characteristic.IsConfigured, Characteristic.IsConfigured.CONFIGURED)
 					.setCharacteristic(Characteristic.InputSourceType, Characteristic.InputSourceType.TV)
 					.setCharacteristic(Characteristic.CurrentVisibilityState, Characteristic.CurrentVisibilityState.SHOWN);
 
-				tempInput
+				this.inputsService
 					.getCharacteristic(Characteristic.ConfiguredName)
 					.on('set', (newInputName, callback) => {
 						this.inputs[inputReference] = newInputName;
@@ -523,8 +524,8 @@ class lgwebosTvDevice {
 						});
 						callback(null, newInputName);
 					});
-				this.accessory.addService(tempInput);
-				this.televisionService.addLinkedService(tempInput);
+				this.accessory.addService(this.inputsService);
+				this.televisionService.addLinkedService(this.inputsService);
 				this.inputReferences.push(inputReference);
 			}
 		});
