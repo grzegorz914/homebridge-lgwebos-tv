@@ -169,10 +169,12 @@ class lgwebosTvDevice {
 
 		this.lgtv.on('prompt', () => {
 			this.log('Device: %s %s, waiting on confirmation...', this.host, this.name);
+			this.currentPowerState = false;
 		});
 
 		this.lgtv.on('connecting', () => {
 			this.log.debug('Device: %s %s, connecting...', this.host, this.name);
+			this.currentPowerState = false;
 		});
 
 		//Delay to wait for device info before publish
