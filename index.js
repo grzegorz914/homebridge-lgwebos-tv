@@ -549,7 +549,7 @@ class lgwebosTvDevice {
 
 	setPower(state, callback) {
 		var me = this;
-		if (state) {
+		if (state && ! me.currentPowerState) {
 			wol.wake(me.mac, (error) => {
 				if (error) {
 					me.log.debug('Device: %s %s, can not set new Power state. Might be due to a wrong settings in config, error: %s', me.host, error);
@@ -559,7 +559,7 @@ class lgwebosTvDevice {
 				}
 			});
 		} else {
-			if (this.currentPowerState) {
+			if (!state && me.currentPowerState) {
 				me.lgtv.request('ssap://system/turnOff', (error, data) => {
 					if (error) {
 						me.log.debug('Device: %s %s, can not set new Power state. Might be due to a wrong settings in config, error: %s', me.host, error);
