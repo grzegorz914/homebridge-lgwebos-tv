@@ -645,7 +645,7 @@ class lgwebosTvDevice {
 	getChannel(callback) {
 		var me = this;
 		let channelReference = me.currentChannelReference;
-		if (!me.connectionStatus || channelReference === undefined || channelReference === null) {
+		if (!me.currentPowerState || channelReference === undefined || channelReference === null) {
 			me.televisionService
 				.getCharacteristic(Characteristic.ActiveIdentifier)
 				.updateValue(0);
