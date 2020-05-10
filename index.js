@@ -2,7 +2,6 @@
 
 const hap = require("hap-nodejs");
 const fs = require('fs');
-const mkdirp = require('mkdirp');
 const lgtv = require('lgtv2');
 const wol = require('wol');
 const tcpp = require('tcp-ping');
@@ -11,7 +10,7 @@ const path = require('path');
 const Characteristic = hap.Characteristic;
 const CharacteristicEventTypes = hap.CharacteristicEventTypes;
 const Service = hap.Service;
-const accessoryUuid = hap.uuid;
+const UUID = hap.uuid;
 
 const WEBSOCKET_PORT = 3000;
 const PLUGIN_NAME = 'homebridge-lgwebos-tv';
@@ -128,7 +127,11 @@ class lgwebosTvDevice {
 
 		//check if the directory exists, if not then create it
 		if (fs.existsSync(this.prefDir) === false) {
-			mkdirp(this.prefDir);
+			fs.mkdir(this.prefDir, { recursive: false }, (error) => {
+				if (error) {
+					this.log.debug('Device: %s %s, create directory: %s, error: %s', this.host, this.name, this.prefDir, error);
+				}
+			});
 		}
 
 		//Check net statek
@@ -138,18 +141,12 @@ class lgwebosTvDevice {
 				if (!isAlive && me.connectionStatus) {
 					me.log.debug('Device: %s %s, state: Offline', me.host, me.name);
 					me.connectionStatus = false;
-					me.currentPowerState = false;
 					me.lgtv.disconnect();
 				} else {
 					if (isAlive && !me.connectionStatus) {
 						me.log('Device: %s %s, state: Online.', me.host, me.name);
+						me.connectionStatus = true;
 						me.lgtv.connect(me.url);
-					} else {
-						let powerState = me.currentPowerState;
-						if (me.televisionService) {
-							me.televisionService.getCharacteristic(Characteristic.Active).updateValue(powerState);
-							me.log.debug('Device: %s %s, get current Power state successful: %s', me.host, me.name, powerState ? 'ON' : 'STANDBY');
-						}
 					}
 				}
 			});
@@ -157,14 +154,12 @@ class lgwebosTvDevice {
 
 		this.lgtv.on('connect', () => {
 			this.log.debug('Device: %s %s, connected.', this.host, this.name);
-			this.connectionStatus = true;
 			this.connect();
 		});
 
 		this.lgtv.on('close', () => {
 			this.log.debug('Device: %s %s, disconnected.', this.host, this.name);
 			this.pointerInputSocket = null;
-			this.connectionStatus = false;
 			this.currentPowerState = false;
 		});
 
@@ -174,12 +169,10 @@ class lgwebosTvDevice {
 
 		this.lgtv.on('prompt', () => {
 			this.log('Device: %s %s, waiting on confirmation...', this.host, this.name);
-			this.connectionStatus = false;
 		});
 
 		this.lgtv.on('connecting', () => {
 			this.log.debug('Device: %s %s, connecting...', this.host, this.name);
-			this.connectionStatus = false;
 		});
 
 		//Delay to wait for device info before publish
@@ -322,7 +315,7 @@ class lgwebosTvDevice {
 				if (pixelRefreshState) {
 					if (me.televisionService) {
 						me.televisionService.getCharacteristic(Characteristic.Active).updateValue(false);
-						me.log('Device: %s %s, get current Power state successful: %s', me.host, me.name, 'Pixel Refresh');
+						me.log('Device: %s %s, get current Power state successful: %s', me.host, me.name, 'PIXEL REFRESH / STANDBY');
 					}
 					me.currentPowerState = false;
 					me.disconnect();
@@ -343,7 +336,7 @@ class lgwebosTvDevice {
 			} else {
 				let channelReference = data.channelNumber;
 				let channelName = data.channelName;
-				if (me.televisionService && data.changed) {
+				if (me.televisionService) {
 					if (me.channelReferences && me.channelReferences.length > 0) {
 						let inputIdentifier = me.channelReferences.indexOf(channelReference);
 						//me.televisionService.getCharacteristic(Characteristic.ActiveIdentifier).updateValue(inputIdentifier);
@@ -393,12 +386,11 @@ class lgwebosTvDevice {
 		});
 	}
 
-
 	//Prepare TV service 
 	prepareTelevisionService() {
 		this.log.debug('prepareTelevisionService');
-		this.UUID = accessoryUuid.generate(this.name)
-		this.accessory = new Accessory(this.name, this.UUID);
+		this.accessoryUUID = UUID.generate(this.name);
+		this.accessory = new Accessory(this.name, this.accessoryUUID);
 		this.accessory.category = 31;
 
 		this.televisionService = new Service.Television(this.name, 'televisionService');
@@ -555,23 +547,27 @@ class lgwebosTvDevice {
 
 	setPower(state, callback) {
 		var me = this;
-		if (state !== me.currentPowerState) {
-			if (state) {
-				wol.wake(me.mac, (error) => {
+		if (state) {
+			wol.wake(me.mac, (error) => {
+				if (error) {
+					me.log.debug('Device: %s %s, can not set new Power state. Might be due to a wrong settings in config, error: %s', me.host, error);
+				} else {
+					me.log.debug('Device: %s %s, set new Power state successful: %s', me.host, me.name, 'ON');
+					callback(null, state);
+				}
+			});
+		} else {
+			if (this.currentPowerState) {
+				me.lgtv.request('ssap://system/turnOff', (error, data) => {
 					if (error) {
 						me.log.debug('Device: %s %s, can not set new Power state. Might be due to a wrong settings in config, error: %s', me.host, error);
-						callback(error);
 					} else {
-						me.log('Device: %s %s, set new Power state successful: %s', me.host, me.name, state ? 'ON' : 'STANDBY');
+						me.log('Device: %s %s, set new Power state successful: %s', me.host, me.name, 'STANDBY');
+						callback(null, state);
+						me.disconnect();
 					}
 				});
-			} else {
-				me.lgtv.request('ssap://system/turnOff', (error, data) => {
-					me.log('Device: %s %s, set new Power state successful: %s', me.host, me.name, state ? 'ON' : 'STANDBY');
-					me.disconnect();
-				});
 			}
-			callback(null, state)
 		}
 	}
 
