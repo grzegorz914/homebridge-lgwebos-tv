@@ -56,6 +56,7 @@ Homebridge plugin to control LG webOS TV in HomeKit as TV service. Tested with L
             "mac": "ab:cd:ef:fe:dc:ba",
             "volumeControl": false,
             "switchInfoMenu": false,
+            "supportOldWebOs": false,
             "inputs": [
                 {
                     "name": "Live TV",
