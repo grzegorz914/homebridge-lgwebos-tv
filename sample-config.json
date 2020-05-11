@@ -24,6 +24,7 @@
                     "mac": "ab:cd:ef:fe:dc:ba",
                     "volumeControl": false,
                     "switchInfoMenu": false,
+                    "supportOldWebOs": false,
                     "inputs": [
                         {
                             "name": "Live TV",
