@@ -73,7 +73,6 @@ class lgwebosTvDevice {
 		this.device = device;
 
 		//device configuration
-		this.device = device;
 		this.name = device.name;
 		this.host = device.host;
 		this.mac = device.mac;
