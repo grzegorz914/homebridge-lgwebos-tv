@@ -89,7 +89,9 @@ class lgwebosTvDevice {
 
 		//setup variables
 		this.inputReferences = new Array();
+		this.inputNames = new Array();
 		this.channelReferences = new Array();
+		this.channelNames = new Array();
 		this.connectionStatus = false;
 		this.currentPowerState = false;
 		this.currentMuteState = false;
@@ -319,6 +321,7 @@ class lgwebosTvDevice {
 			this.accessory.addService(this.inputsService);
 			this.televisionService.addLinkedService(this.inputsService);
 			this.inputReferences.push(inputReference);
+			this.inputNames.push(inputName);
 		});
 	}
 
@@ -603,7 +606,7 @@ class lgwebosTvDevice {
 	getInput(callback) {
 		var me = this;
 		let inputReference = me.currentInputReference;
-		if (!me.connectionStatus || inputReference === undefined || inputReference === null) {
+		if (!me.connectionStatus || inputReference === undefined || inputReference === null || inputReference === '') {
 			me.televisionService
 				.getCharacteristic(Characteristic.ActiveIdentifier)
 				.updateValue(0);
@@ -623,17 +626,16 @@ class lgwebosTvDevice {
 	setInput(inputIdentifier, callback) {
 		var me = this;
 		let inputReference = me.inputReferences[inputIdentifier];
-		if (inputReference !== me.currentInputReference) {
-			me.lgtv.request('ssap://system.launcher/launch', { id: inputReference });
-			me.log('Device: %s %s, set new Input successful: %s', me.host, me.name, inputReference);
-			callback(null, inputIdentifier);
-		}
+		let inputName = me.inputNames[inputIdentifier];
+		me.lgtv.request('ssap://system.launcher/launch', { id: inputReference });
+		me.log('Device: %s %s, set new Input successful: %s %s', me.host, me.name, inputName, inputReference);
+		callback(null, inputIdentifier);
 	}
 
 	getChannel(callback) {
 		var me = this;
 		let channelReference = me.currentChannelReference;
-		if (!me.currentPowerState || channelReference === undefined || channelReference === null) {
+		if (!me.currentPowerState || channelReference === undefined || channelReference === null || channelReference === '') {
 			me.televisionService
 				.getCharacteristic(Characteristic.ActiveIdentifier)
 				.updateValue(0);
@@ -653,11 +655,9 @@ class lgwebosTvDevice {
 	setChannel(inputIdentifier, callback) {
 		var me = this;
 		let channelReference = me.channelReferences[inputIdentifier];
-		if (channelReference !== me.currentChannelReference) {
-			this.lgtv.request('ssap://tv/openChannel', { channelNumber: channelReference });
-			me.log('Device: %s %s, set new Channel successful: %s', me.host, me.name, channelReference);
-			callback(null, inputIdentifier);
-		}
+		this.lgtv.request('ssap://tv/openChannel', { channelNumber: channelReference });
+		me.log('Device: %s %s, set new Channel successful: %s', me.host, me.name, channelReference);
+		callback(null, inputIdentifier);
 	}
 
 	setPictureMode(remoteKey, callback) {
