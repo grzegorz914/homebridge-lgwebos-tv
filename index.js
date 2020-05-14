@@ -88,8 +88,9 @@ class lgwebosTvDevice {
 		this.firmwareRevision = device.firmwareRevision || 'FW0000004';
 
 		//setup variables
-		this.inputReferences = new Array();
 		this.inputNames = new Array();
+		this.inputReferences = new Array();
+		this.inputTypes = new Array();
 		this.channelReferences = new Array();
 		this.channelNames = new Array();
 		this.connectionStatus = false;
@@ -106,6 +107,7 @@ class lgwebosTvDevice {
 		this.softwareFile = this.prefDir + '/' + 'software_' + this.host.split('.').join('');
 		this.servicesFile = this.prefDir + '/' + 'services_' + this.host.split('.').join('');
 		this.inputsFile = this.prefDir + '/' + 'inputs_' + this.host.split('.').join('');
+		this.appsFile = this.prefDir + '/' + 'apps_' + this.host.split('.').join('');
 		this.channelsFile = this.prefDir + '/' + 'channels_' + this.host.split('.').join('');
 		this.url = 'ws://' + this.host + ':' + WEBSOCKET_PORT;
 
@@ -115,6 +117,26 @@ class lgwebosTvDevice {
 			reconnect: 3000,
 			keyFile: this.keyFile
 		});
+
+              this.defaultInputs = [
+			 {
+                            name: 'Live TV',
+                            reference: 'com.webos.app.livetv',
+                            type: 'TUNER'
+                        },
+                        {
+                            name: 'HDMI 1',
+                            reference: 'com.webos.app.hdmi1',
+                            type: 'HDMI'
+                        },
+                        {
+                            name: 'HDMI 2',
+                            reference: 'com.webos.app.hdmi2',
+                            type: 'HDMI'
+                        }
+		];
+
+		this.inputs = this.defaultInputs.concat(this.device.inputs);
 
 		//check if prefs directory ends with a /, if not then add it
 		if (this.prefDir.endsWith('/') === false) {
@@ -252,21 +274,13 @@ class lgwebosTvDevice {
 			.on('get', this.getVolume.bind(this))
 			.on('set', this.setVolume.bind(this));
 
-		this.accessory.addService(this.volumeService);
+		this.accessory.addService(this.volumeService);j
 		this.televisionService.addLinkedService(this.volumeService);
 	}
 
 	//Prepare inputs services
 	prepareInputsService() {
 		this.log.debug('prepareInputsService');
-		if (this.inputs === undefined || this.inputs === null || this.inputs.length <= 0) {
-			this.log.debug('Inputs are not defined, please add it in config.json');
-			this.inputs = [{ 'name': 'No inputs defined', 'reference': 'No inputs defined' }];
-		}
-
-		if (Array.isArray(this.inputs) === false) {
-			this.inputs = [this.inputs];
-		}
 
 		let savedNames = {};
 		try {
@@ -278,31 +292,24 @@ class lgwebosTvDevice {
 		this.inputs.forEach((input, i) => {
 
 			//get input reference
-			let inputReference = null;
-
-			if (input.reference !== undefined) {
-				inputReference = input.reference;
-			} else {
-				inputReference = input;
-			}
+			let inputReference = input.reference;
 
 			//get input name		
-			let inputName = inputReference;
+			let inputName = input.name;
 
 			if (savedNames && savedNames[inputReference]) {
 				inputName = savedNames[inputReference];
-			} else {
-				if (input.name) {
-					inputName = input.name;
-				}
 			}
+    
+                      //get input type		
+			let inputType = input.type;
 
 			this.inputsService = new Service.InputSource(inputReference, 'input' + i);
 			this.inputsService
 				.setCharacteristic(Characteristic.Identifier, i)
 				.setCharacteristic(Characteristic.ConfiguredName, inputName)
 				.setCharacteristic(Characteristic.IsConfigured, Characteristic.IsConfigured.CONFIGURED)
-				.setCharacteristic(Characteristic.InputSourceType, Characteristic.InputSourceType.TV)
+				.setCharacteristic(Characteristic.InputSourceType, Characteristic.InputSourceType, inputType)
 				.setCharacteristic(Characteristic.CurrentVisibilityState, Characteristic.CurrentVisibilityState.SHOWN);
 
 			this.inputsService
@@ -322,6 +329,7 @@ class lgwebosTvDevice {
 			this.televisionService.addLinkedService(this.inputsService);
 			this.inputReferences.push(inputReference);
 			this.inputNames.push(inputName);
+			this.inputTypes.push(inputType);
 		});
 	}
 
@@ -419,20 +427,20 @@ class lgwebosTvDevice {
 
 			me.lgtv.request('ssap://com.webos.applicationManager/listApps', (error, data) => {
 				if (!data || error || data.errorCode) {
-					me.log.debug('Device: %s %s, get inputs list error: %s', me.host, me.name, error);
+					me.log.debug('Device: %s %s, get apps list error: %s', me.host, me.name, error);
 				} else {
 					delete data['returnValue'];
-					me.log.debug('Device: %s %s, get inputs list successful: %s', me.host, me.name, JSON.stringify(data, null, 2));
-					if (fs.existsSync(me.inputsFile) === false) {
-						fs.writeFile(me.inputsFile, JSON.stringify(data), (error) => {
+					me.log.debug('Device: %s %s, get apps list successful: %s', me.host, me.name, JSON.stringify(data, null, 2));
+					if (fs.existsSync(me.appsFile) === false) {
+						fs.writeFile(me.appsFile, JSON.stringify(data), (error) => {
 							if (error) {
-								me.log.debug('Device: %s %s, could not write inputsFile, error: %s', me.host, me.name, error);
+								me.log.debug('Device: %s %s, could not write appsFile, error: %s', me.host, me.name, error);
 							} else {
-								me.log.debug('Device: %s %s, inputsFile saved successful', me.host, me.name);
+								me.log.debug('Device: %s %s, appsFile saved successful', me.host, me.name);
 							}
 						});
 					} else {
-						me.log.debug('Device: %s %s, inputsFile already exists, not saving', me.host, me.name);
+						me.log.debug('Device: %s %s, appsFile already exists, not saving', me.host, me.name);
 					}
 				}
 			});

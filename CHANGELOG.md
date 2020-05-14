@@ -1,5 +1,24 @@
 # Change Log
 All notable changes to this project will be documented in this file.
+## 0.9.0 (14.05.2020) 
+- added Types to the inputs references (please update Yours config.json)
+- do not add or remove if exist from the config.json default inputs which are now contain in the code 
+                {
+                    "name": "Live TV",
+                    "reference": "com.webos.app.livetv",
+                     "type": "TUNER"
+                },
+                {
+                    "name": "HDMI 1",
+                    "reference": "com.webos.app.hdmi1",
+                     "type": "HDMI"
+                },
+                {
+                    "name": "HDMI 2",
+                    "reference": "com.webos.app.hdmi2",
+                     "type": "HDMI"
+                }
+
 ## 0.8.0 (10.05.2020) 
 - code cleanup
 

@@ -27,36 +27,29 @@
                     "supportOldWebOs": false,
                     "inputs": [
                         {
-                            "name": "Live TV",
-                            "reference": "com.webos.app.livetv"
-                        },
-                        {
-                            "name": "HDMI 1",
-                            "reference": "com.webos.app.hdmi1"
-                        },
-                        {
-                            "name": "HDMI 2",
-                            "reference": "com.webos.app.hdmi2"
-                        },
-                        {
                             "name": "HDMI 3",
-                            "reference": "com.webos.app.hdmi3"
+                            "reference": "com.webos.app.hdmi3",
+                            "type": "HDMI"
                         },
                         {
                             "name": "HDMI 4",
-                            "reference": "com.webos.app.hdmi4"
+                            "reference": "com.webos.app.hdmi4",
+                            "type": "HDMI"
                         },
                         {
                             "name": "Netflix",
-                            "reference": "netflix"
+                            "reference": "netflix",
+                            "type": "APPLICATION"
                         },
                         {
                             "name": "YouTube",
-                            "reference": "youtube.leanback.v4"
+                            "reference": "youtube.leanback.v4",
+                            "type": "APPLICATION"
                         },
                         {
                             "name": "LG Store",
-                            "reference": "com.webos.app.discovery"
+                            "reference": "com.webos.app.discovery",
+                            "type": "APPLICATION"
                         }
                     ]
                 }

@@ -60,13 +60,87 @@
                   "name": {
                     "title": "Input name",
                     "type": "string",
-                    "default": "HDMI 1",
+                    "default": "Netflix",
                     "required": true
                   },
                   "reference": {
                     "title": "Input reference",
                     "type": "string",
-                    "default": "com.webos.app.hdmi1",
+                    "default": "netflix",
+                    "required": true
+                  },
+                  "type": {
+                    "title": "Input type",
+                    "type": "string",
+                    "default": "APPLICATION",
+                    "oneOf": [
+                      {
+                        "title": "Source input",
+                        "enum": [
+                          "OTHER"
+                        ]
+                      },
+                      {
+                        "title": "Home screen",
+                        "enum": [
+                          "HOME_SCREEN"
+                        ]
+                      },
+                      {
+                        "title": "Tuner",
+                        "enum": [
+                          "TUNER"
+                        ]
+                      },
+                      {
+                        "title": "HDMI",
+                        "enum": [
+                          "HDMI"
+                        ]
+                      },
+                      {
+                        "title": "Composite video",
+                        "enum": [
+                          "COMPOSITE_VIDEO"
+                        ]
+                      },
+                      {
+                        "title": "S Video",
+                        "enum": [
+                          "S_VIDEO"
+                        ]
+                      },
+                      {
+                        "title": "Component video",
+                        "enum": [
+                          "COMPONENT_VIDEO"
+                        ]
+                      },
+                      {
+                        "title": "Digital video input",
+                        "enum": [
+                          "DVI"
+                        ]
+                      },
+                      {
+                        "title": "Airplay",
+                        "enum": [
+                          "AIRPLAY"
+                        ]
+                      },
+                      {
+                        "title": "USB",
+                        "enum": [
+                          "USB"
+                        ]
+                      },
+                      {
+                        "title": "Application",
+                        "enum": [
+                          "APPLICATION"
+                        ]
+                      }
+                    ],
                     "required": true
                   }
                 }
