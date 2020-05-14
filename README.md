@@ -44,7 +44,7 @@ Homebridge plugin to control LG webOS TV in HomeKit as TV service. Tested with L
 3. If U use old webOS TV =< 2.0 then please enable `supportOldWebOs` in config.json.
 4. Please do not add or remove if exist from the config.json default inputs which are now contain in the code.
 
-# Default inputs.
+### Default inputs.
 ```json
     {   
     "name": "TV",
