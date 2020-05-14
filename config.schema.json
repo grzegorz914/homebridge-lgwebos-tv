@@ -50,7 +50,8 @@
               "title": "Support for old webOS",
               "type": "boolean",
               "default": false,
-              "required": false
+              "required": false,
+              "description": "This activate support for older LGwebOS TV."
             },
             "inputs": {
               "title": "Inputs",
@@ -75,7 +76,7 @@
                     "title": "Input type",
                     "type": "string",
                     "default": "APPLICATION",
-                    "description": "Her select source input type.",
+                    "description": "Here select source input type.",
                     "oneOf": [
                       {
                         "title": "Other",

@@ -1,6 +1,6 @@
 # Change Log
 All notable changes to this project will be documented in this file.
-## 0.9.9 (14.05.2020) 
+## 0.9.10 (14.05.2020) 
 - added descriptions in config.schema.json
 
 ## 0.9.8 (14.05.2020)
