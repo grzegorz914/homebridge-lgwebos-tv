@@ -42,26 +42,6 @@ Homebridge plugin to control LG webOS TV in HomeKit as TV service. Tested with L
 1. Use [Homebridge Config UI X](https://github.com/oznu/homebridge-config-ui-x) to configure the plugin (strongly recomended), or update your configuration file manually. See `sample-config.json` in this repository for a sample or add the bottom example to Your config.json file.
 2. All inputs reference and name can be found in: `homebridge_directory/lgwebosTv/inputs_19216818` where `name == title` and `reference == id`
 3. If U use old webOS TV =< 2.0 then please enable `supportOldWebOs` in config.json.
-4. Please do not add or remove if exist from the config.json default inputs which are now contain in the code.
-
-### Default inputs.
-```json
-    {   
-    "name": "TV",
-    "reference": "com.webos.app.livetv",
-	"type": "TUNER"
-	},
-	{
-	"name": "HDMI 1",
-	"reference": "com.webos.app.hdmi1",
-	"type": "HDMI"
-	},
-	{
-	"name": "HDMI 2",
-	"reference": "com.webos.app.hdmi2",
-	"type": "HDMI"
-	}
-```
 
 <p align="left">
   <a href="https://github.com/grzegorz914/homebridge-lgwebos-tv"><img src="https://raw.githubusercontent.com/grzegorz914/homebridge-lgwebos-tv/master/graphics/ustawienia.png" height="150"></a>
@@ -79,6 +59,21 @@ Homebridge plugin to control LG webOS TV in HomeKit as TV service. Tested with L
             "switchInfoMenu": false,
             "supportOldWebOs": false,
             "inputs": [
+                   {
+                            "name": "Live TV",
+                            "reference": "com.webos.app.livetv",
+                            "type": "TUNER"
+                  },
+                  {
+                            "name": "HDMI 1",
+                            "reference": "com.webos.app.hdmi1",
+                            "type": "HDMI"
+                 },
+                 {
+                            "name": "HDMI 2",
+                            "reference": "com.webos.app.hdmi2",
+                            "type": "HDMI"
+                },
                 {
                     "name": "HDMI 3",
                     "reference": "com.webos.app.hdmi3",

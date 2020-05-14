@@ -27,6 +27,21 @@
                     "supportOldWebOs": false,
                     "inputs": [
                         {
+                            "name": "Live TV",
+                            "reference": "com.webos.app.livetv",
+                            "type": "TUNER"
+                        },
+                        {
+                            "name": "HDMI 1",
+                            "reference": "com.webos.app.hdmi1",
+                            "type": "HDMI"
+                        },
+                        {
+                            "name": "HDMI 2",
+                            "reference": "com.webos.app.hdmi2",
+                            "type": "HDMI"
+                        },
+                        {
                             "name": "HDMI 3",
                             "reference": "com.webos.app.hdmi3",
                             "type": "HDMI"

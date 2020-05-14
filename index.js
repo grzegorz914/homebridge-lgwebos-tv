@@ -118,25 +118,17 @@ class lgwebosTvDevice {
 			keyFile: this.keyFile
 		});
 
-              this.defaultInputs = [
-			 {
-                            name: 'Live TV',
-                            reference: 'com.webos.app.livetv',
-                            type: 'TUNER'
-                        },
-                        {
-                            name: 'HDMI 1',
-                            reference: 'com.webos.app.hdmi1',
-                            type: 'HDMI'
-                        },
-                        {
-                            name: 'HDMI 2',
-                            reference: 'com.webos.app.hdmi2',
-                            type: 'HDMI'
-                        }
+		let defaultInputs = [
+			{
+				name: 'No inputs configured',
+				reference: 'No references configured',
+				type: 'No types configured'
+			}
 		];
 
-		this.inputs = this.defaultInputs.concat(this.device.inputs);
+		if (!Array.isArray(this.inputs) || this.inputs === undefined || this.inputs === null) {
+			this.inputs = defaultInputs;
+		}
 
 		//check if prefs directory ends with a /, if not then add it
 		if (this.prefDir.endsWith('/') === false) {
@@ -274,7 +266,7 @@ class lgwebosTvDevice {
 			.on('get', this.getVolume.bind(this))
 			.on('set', this.setVolume.bind(this));
 
-		this.accessory.addService(this.volumeService);j
+		this.accessory.addService(this.volumeService);
 		this.televisionService.addLinkedService(this.volumeService);
 	}
 
@@ -291,18 +283,20 @@ class lgwebosTvDevice {
 
 		this.inputs.forEach((input, i) => {
 
-			//get input reference
-			let inputReference = input.reference;
-
 			//get input name		
 			let inputName = input.name;
 
+			//get input reference
+			let inputReference = input.reference;
+
+			//get input type		
+			let inputType = input.type;
+
 			if (savedNames && savedNames[inputReference]) {
 				inputName = savedNames[inputReference];
+			} else {
+				inputName = input.name;
 			}
-    
-                      //get input type		
-			let inputType = input.type;
 
 			this.inputsService = new Service.InputSource(inputReference, 'input' + i);
 			this.inputsService
