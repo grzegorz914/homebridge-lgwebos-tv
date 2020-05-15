@@ -456,23 +456,24 @@ class lgwebosTvDevice {
 		me.lgtv.subscribe('ssap://com.webos.service.tvpower/power/getPowerState', (error, data) => {
 			if (!data || error || data.length <= 0) {
 				me.log.error('Device: %s %s, get current Power state error: %s.', me.host, me.name, error);
+				me.currentPowerState = false;
 			} else {
-				let powerState = ((data.state === 'Active') || (data.processing === 'Active') || (data.powerOnReason === 'Active'));
-				let pixelRefreshState = (data.state === 'Active Standby');
+				let oldWebOs = (me.supportOldWebOs === true);
+				let powerState = oldWebOs ? !((data.state === 'Active') || (data.processing === 'Active') || (data.powerOnReason === 'Active')) : ((data.state === 'Active') || (data.processing === 'Active') || (data.powerOnReason === 'Active'));
+				let pixelRefreshState = oldWebOs ? !(data.state === 'Active Standby') : (data.state === 'Active Standby');
 				if (pixelRefreshState) {
 					if (me.televisionService) {
 						me.televisionService.getCharacteristic(Characteristic.Active).updateValue(false);
 						me.log('Device: %s %s, get current Power state successful: %s', me.host, me.name, 'PIXEL REFRESH / STANDBY');
 					}
-					me.currentPowerState = false;
+					me.currentPowerState = powerState;
 					me.disconnect();
 				} else {
-					let state = me.supportOldWebOs ? !powerState : powerState;
 					if (me.televisionService) {
-						me.televisionService.getCharacteristic(Characteristic.Active).updateValue(state);
-						me.log('Device: %s %s, get current Power state successful: %s', me.host, me.name, state ? 'ON' : 'STANDBY');
+						me.televisionService.getCharacteristic(Characteristic.Active).updateValue(powerState);
+						me.log('Device: %s %s, get current Power state successful: %s', me.host, me.name, powerState ? 'ON' : 'STANDBY');
 					}
-					me.currentPowerState = state;
+					me.currentPowerState = powerState;
 				}
 			}
 		});
@@ -542,7 +543,7 @@ class lgwebosTvDevice {
 
 	setPower(state, callback) {
 		var me = this;
-		if (state && !me.currentPowerState) {
+		if (!me.currentPowerState && state) {
 			wol.wake(me.mac, (error) => {
 				if (error) {
 					me.log.debug('Device: %s %s, can not set new Power state. Might be due to a wrong settings in config, error: %s', me.host, error);
@@ -552,7 +553,7 @@ class lgwebosTvDevice {
 				}
 			});
 		} else {
-			if (!state && me.currentPowerState) {
+			if (me.currentPowerState && !state) {
 				me.lgtv.request('ssap://system/turnOff', (error, data) => {
 					if (error) {
 						me.log.debug('Device: %s %s, can not set new Power state. Might be due to a wrong settings in config, error: %s', me.host, error);
