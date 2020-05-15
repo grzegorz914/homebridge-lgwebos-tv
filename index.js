@@ -464,7 +464,7 @@ class lgwebosTvDevice {
 				let pixelRefreshState = (data.state === 'Active Standby');
 				if (pixelRefreshState) {
 					if (me.televisionService) {
-						me.televisionService.getCharacteristic(Characteristic.Active).updateValue(false);
+						me.televisionService.updateCharacteristic(Characteristic.Active, false);
 						me.log('Device: %s %s, get current Power state successful: %s', me.host, me.name, 'PIXEL REFRESH / STANDBY');
 					}
 					me.currentPowerState = false;
@@ -472,7 +472,7 @@ class lgwebosTvDevice {
 				} else {
 					let state = me.supportOldWebOs ? !powerState : powerState;
 					if (me.televisionService) {
-						me.televisionService.getCharacteristic(Characteristic.Active).updateValue(state);
+						me.televisionService.updateCharacteristic(Characteristic.Active, state);
 						me.log('Device: %s %s, get current Power state successful: %s', me.host, me.name, state ? 'ON' : 'STANDBY');
 					}
 					me.currentPowerState = state;
@@ -489,7 +489,7 @@ class lgwebosTvDevice {
 				if (me.televisionService) {
 					if (me.channelReferences && me.channelReferences.length > 0) {
 						let inputIdentifier = me.channelReferences.indexOf(channelReference);
-						//me.televisionService.getCharacteristic(Characteristic.ActiveIdentifier).updateValue(inputIdentifier);
+						//me.televisionService.updateCharacteristic(Characteristic.ActiveIdentifier, inputIdentifier);
 						me.log('Device: %s %s, get current Channel successful: %s, %s', me.host, me.name, channelReference, channelName);
 					}
 				}
@@ -506,7 +506,7 @@ class lgwebosTvDevice {
 				if (me.televisionService) {
 					if (me.inputReferences && me.inputReferences.length > 0) {
 						let inputIdentifier = me.inputReferences.indexOf(inputReference);
-						me.televisionService.getCharacteristic(Characteristic.ActiveIdentifier).updateValue(inputIdentifier);
+						me.televisionService.updateCharacteristic(Characteristic.ActiveIdentifier, inputIdentifier);
 						me.log('Device: %s %s, get current Input successful: %s', me.host, me.name, inputReference);
 					}
 				}
@@ -521,11 +521,11 @@ class lgwebosTvDevice {
 				let muteState = me.currentPowerState ? data.muted : true;
 				let volume = data.volume;
 				if (me.speakerService) {
-					me.speakerService.getCharacteristic(Characteristic.Mute).updateValue(muteState);
-					me.speakerService.getCharacteristic(Characteristic.Volume).updateValue(volume);
+					me.speakerService.updateCharacteristic(Characteristic.Mute, muteState);
+					me.speakerService.updateCharacteristic(Characteristic.Volume, volume);
 					if (me.volumeControl && me.volumeService) {
-						me.volumeService.getCharacteristic(Characteristic.On).updateValue(!muteState);
-						me.volumeService.getCharacteristic(Characteristic.Brightness).updateValue(volume);
+						me.volumeService.updateCharacteristic(Characteristic.On, !muteState);
+						me.volumeService.updateCharacteristic(Characteristic.Brightness, volume);
 					}
 					me.log('Device: %s %s, get current Mute state: %s', me.host, me.name, muteState ? 'ON' : 'OFF');
 					me.log('Device: %s %s, get current Volume level: %s', me.host, me.name, volume);
@@ -613,15 +613,13 @@ class lgwebosTvDevice {
 		let inputReference = me.currentInputReference;
 		if (!me.connectionStatus || inputReference === undefined || inputReference === null || inputReference === '') {
 			me.televisionService
-				.getCharacteristic(Characteristic.ActiveIdentifier)
-				.updateValue(0);
+				.updateCharacteristic(Characteristic.ActiveIdentifier, 0);
 			callback(null);
 		} else {
 			let inputIdentifier = me.inputReferences.indexOf(inputReference);
 			if (inputReference === me.inputReferences[inputIdentifier]) {
 				me.televisionService
-					.getCharacteristic(Characteristic.ActiveIdentifier)
-					.updateValue(inputIdentifier);
+					.updateCharacteristic(Characteristic.ActiveIdentifier, inputIdentifier);
 				me.log.debug('Device: %s %s, get current Input successful: %s', me.host, me.name, inputReference);
 			}
 			callback(null, inputIdentifier);
