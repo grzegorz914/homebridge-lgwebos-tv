@@ -460,7 +460,8 @@ class lgwebosTvDevice {
 				me.log.error("Device: %s %s, get current Power state error: %s.", me.host, me.name, error);
 				me.currentPowerState = false;
 			} else {
-				let powerState = ((data.state === "Active") || (data.processing === "Active") || (data.powerOnReason === "Active"));
+				me.log.debug(data);
+				let powerState = (data.state === "Active");
 				let pixelRefreshState = (data.state === "Active Standby");
 				if (pixelRefreshState) {
 					if (me.televisionService) {
