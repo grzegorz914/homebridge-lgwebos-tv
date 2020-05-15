@@ -551,7 +551,7 @@ class lgwebosTvDevice {
 					me.log.debug('Device: %s %s, can not set new Power state. Might be due to a wrong settings in config, error: %s', me.host, error);
 				} else {
 					me.log.debug('Device: %s %s, set new Power state successful: %s', me.host, me.name, 'ON');
-					callback(null, state);
+					callback(null);
 				}
 			});
 		} else {
@@ -561,7 +561,7 @@ class lgwebosTvDevice {
 						me.log.debug('Device: %s %s, can not set new Power state. Might be due to a wrong settings in config, error: %s', me.host, error);
 					} else {
 						me.log('Device: %s %s, set new Power state successful: %s', me.host, me.name, 'STANDBY');
-						callback(null, state);
+						callback(null);
 						me.disconnect();
 					}
 				});
@@ -589,7 +589,7 @@ class lgwebosTvDevice {
 			let newState = state;
 			me.lgtv.request('ssap://audio/setMute', { mute: newState });
 			me.log('Device: %s %s, set new Mute state successful: %s', me.host, me.name, state ? 'ON' : 'OFF');
-			callback(null, state);
+			callback(null);
 		}
 	}
 
@@ -604,7 +604,7 @@ class lgwebosTvDevice {
 		var me = this;
 		me.lgtv.request('ssap://audio/setVolume', { volume: volume });
 		me.log('Device: %s %s, set new Volume level successful: %s', me.host, me.name, volume);
-		callback(null, volume);
+		callback(null);
 	}
 
 
@@ -634,7 +634,7 @@ class lgwebosTvDevice {
 		let inputName = me.inputNames[inputIdentifier];
 		me.lgtv.request('ssap://system.launcher/launch', { id: inputReference });
 		me.log('Device: %s %s, set new Input successful: %s %s', me.host, me.name, inputName, inputReference);
-		callback(null, inputIdentifier);
+		callback(null);
 	}
 
 	getChannel(callback) {
@@ -662,7 +662,7 @@ class lgwebosTvDevice {
 		let channelReference = me.channelReferences[inputIdentifier];
 		me.lgtv.request('ssap://tv/openChannel', { channelNumber: channelReference });
 		me.log('Device: %s %s, set new Channel successful: %s', me.host, me.name, channelReference);
-		callback(null, inputIdentifier);
+		callback(null);
 	}
 
 	setPictureMode(remoteKey, callback) {
@@ -697,7 +697,7 @@ class lgwebosTvDevice {
 			}
 			me.pointerInputSocket.send('button', { name: command });
 			me.log('Device: %s %s, setPictureMode successful, remoteKey: %s, command: %s', me.host, me.name, remoteKey, command);
-			callback(null, remoteKey);
+			callback(null);
 		}
 	}
 
@@ -715,7 +715,7 @@ class lgwebosTvDevice {
 			}
 			me.pointerInputSocket.send('button', { name: command });
 			me.log('Device: %s %s, setPowerModeSelection successful, remoteKey: %s, command: %s', me.host, me.name, remoteKey, command);
-			callback(null, remoteKey);
+			callback(null);
 		}
 	}
 
@@ -733,7 +733,7 @@ class lgwebosTvDevice {
 			}
 			me.pointerInputSocket.send('button', { name: command });
 			me.log('Device: %s %s, setVolumeSelector successful, remoteKey: %s, command: %s', me.host, me.name, remoteKey, command);
-			callback(null, remoteKey);
+			callback(null);
 		}
 	}
 
@@ -789,7 +789,7 @@ class lgwebosTvDevice {
 			}
 			me.pointerInputSocket.send('button', { name: command });
 			me.log('Device: %s %s, setRemoteKey successful, remoteKey: %s, command: %s', me.host, me.name, remoteKey, command);
-			callback(null, remoteKey);
+			callback(null);
 		}
 	}
 
