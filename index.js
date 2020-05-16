@@ -468,7 +468,7 @@ class lgwebosTvDevice {
 				let pixelRefresh = (data.state === "Active Standby");
 				let powerState = (powerOn && !powerOff && !pixelRefresh);
 				let state = me.supportOldWebOs ? !powerState : powerState;
-				if (me.televisionService && !prepareOff) {
+				if (me.televisionService && !prepareOn && !prepareOff) {
 					me.televisionService.updateCharacteristic(Characteristic.Active, state);
 					me.log("Device: %s %s, get current Power state successful: %s", me.host, me.name, state ? "ON" : (pixelRefresh ? "PIXEL REFRESH" : "STANDBY"));
 				}
