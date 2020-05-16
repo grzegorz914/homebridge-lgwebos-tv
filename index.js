@@ -664,7 +664,7 @@ class lgwebosTvDevice {
 	setPictureMode(remoteKey, callback) {
 		var me = this;
 		if (me.currentPowerState) {
-			let command;
+			let command = "";
 			switch (remoteKey) {
 				case Characteristic.PictureMode.OTHER:
 					command = "INFO";
@@ -693,14 +693,14 @@ class lgwebosTvDevice {
 			}
 			me.pointerInputSocket.send("button", { name: command });
 			me.log("Device: %s %s, setPictureMode successful, remoteKey: %s, command: %s", me.host, me.name, remoteKey, command);
-			callback(null);
+			callback(null, remoteKey);
 		}
 	}
 
 	setPowerModeSelection(remoteKey, callback) {
 		var me = this;
 		if (me.currentPowerState) {
-			let command;
+			let command = "";
 			switch (remoteKey) {
 				case Characteristic.PowerModeSelection.SHOW:
 					command = me.switchInfoMenu ? "MENU" : "INFO";
@@ -711,14 +711,14 @@ class lgwebosTvDevice {
 			}
 			me.pointerInputSocket.send("button", { name: command });
 			me.log("Device: %s %s, setPowerModeSelection successful, remoteKey: %s, command: %s", me.host, me.name, remoteKey, command);
-			callback(null);
+			callback(null, remoteKey);
 		}
 	}
 
 	setVolumeSelector(remoteKey, callback) {
 		var me = this;
 		if (me.currentPowerState) {
-			let command;
+			let command = "";
 			switch (remoteKey) {
 				case Characteristic.VolumeSelector.INCREMENT:
 					command = "VOLUMEUP";
@@ -729,14 +729,14 @@ class lgwebosTvDevice {
 			}
 			me.pointerInputSocket.send("button", { name: command });
 			me.log("Device: %s %s, setVolumeSelector successful, remoteKey: %s, command: %s", me.host, me.name, remoteKey, command);
-			callback(null);
+			callback(null, remoteKey);
 		}
 	}
 
 	setRemoteKey(remoteKey, callback) {
 		var me = this;
 		if (me.currentPowerState) {
-			let command;
+			let command = "";
 			switch (remoteKey) {
 				case Characteristic.RemoteKey.REWIND:
 					command = "REWIND";
@@ -785,7 +785,7 @@ class lgwebosTvDevice {
 			}
 			me.pointerInputSocket.send("button", { name: command });
 			me.log("Device: %s %s, setRemoteKey successful, remoteKey: %s, command: %s", me.host, me.name, remoteKey, command);
-			callback(null);
+			callback(null, remoteKey);
 		}
 	}
 
