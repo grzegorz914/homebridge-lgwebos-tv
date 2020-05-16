@@ -460,23 +460,21 @@ class lgwebosTvDevice {
 				me.log.error("Device: %s %s, get current Power state error: %s.", me.host, me.name, error);
 				me.currentPowerState = false;
 			} else {
-				me.log.debug(data);
-				let powerState = (data.state === "Active");
-				let pixelRefreshState = (data.state === "Active Standby");
-				if (pixelRefreshState) {
-					if (me.televisionService) {
-						me.televisionService.updateCharacteristic(Characteristic.Active, false);
-						me.log("Device: %s %s, get current Power state successful: %s", me.host, me.name, "PIXEL REFRESH / STANDBY");
-					}
-					me.currentPowerState = false;
+				me.log.debug(me.name, data);
+				let prepareOn = (data.processing === "Screen On" || data.processing === "Request Screen Saver");
+				let powerOn = (data.state === "Active" || !prepareOn);
+				let prepareOff = (data.processing === "Request Power Off" || data.processing === "Request Active Standby" || data.processing === "Request Suspend" || data.processing === "Prepare Suspend");
+				let powerOff = (data.state === "Suspend" && !prepareOff);
+				let pixelRefresh = (data.state === "Active Standby");
+				let powerState = (powerOn && !powerOff && !pixelRefresh);
+				let state = me.supportOldWebOs ? !powerState : powerState;
+				if (me.televisionService && !prepareOff) {
+					me.televisionService.updateCharacteristic(Characteristic.Active, state);
+					me.log("Device: %s %s, get current Power state successful: %s", me.host, me.name, state ? "ON" : (pixelRefresh ? "PIXEL REFRESH" : "STANDBY"));
+				}
+				me.currentPowerState = state;
+				if (!state) {
 					me.disconnect();
-				} else {
-					let state = me.supportOldWebOs ? !powerState : powerState;
-					if (me.televisionService) {
-						me.televisionService.updateCharacteristic(Characteristic.Active, state);
-						me.log("Device: %s %s, get current Power state successful: %s", me.host, me.name, state ? "ON" : "STANDBY");
-					}
-					me.currentPowerState = state;
 				}
 			}
 		});
@@ -551,7 +549,7 @@ class lgwebosTvDevice {
 				if (error) {
 					me.log.debug("Device: %s %s, can not set new Power state. Might be due to a wrong settings in config, error: %s", me.host, error);
 				} else {
-					me.log.debug("Device: %s %s, set new Power state successful: %s", me.host, me.name, "ON");
+					me.log("Device: %s %s, set new Power state successful: %s", me.host, me.name, "ON");
 					callback(null);
 				}
 			});
@@ -563,7 +561,6 @@ class lgwebosTvDevice {
 					} else {
 						me.log("Device: %s %s, set new Power state successful: %s", me.host, me.name, "STANDBY");
 						callback(null);
-						me.disconnect();
 					}
 				});
 			}
