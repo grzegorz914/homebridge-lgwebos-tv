@@ -11,6 +11,7 @@ const PLUGIN_NAME = "homebridge-lgwebos-tv";
 const PLATFORM_NAME = "LgWebOsTv";
 
 let Accessory, Characteristic, Service, Categories, UUID;
+let pointerInputSocket;
 
 module.exports = (api) => {
 	Accessory = api.platformAccessory;
@@ -147,17 +148,16 @@ class lgwebosTvDevice {
 
 		//Check net statek
 		setInterval(function () {
-			var me = this;
-			tcpp.probe(me.host, WEBSOCKET_PORT, (error, isAlive) => {
-				if (!isAlive && me.connectionStatus) {
-					me.log.debug("Device: %s %s, state: Offline", me.host, me.name);
-					me.connectionStatus = false;
-					me.lgtv.disconnect();
+			tcpp.probe(this.host, WEBSOCKET_PORT, (error, isAlive) => {
+				if (!isAlive && this.connectionStatus) {
+					this.log.debug("Device: %s %s, state: Offline", this.host, this.name);
+					this.connectionStatus = false;
+					this.lgtv.disconnect();
 				} else {
-					if (isAlive && !me.connectionStatus) {
-						me.log("Device: %s %s, state: Online.", me.host, me.name);
-						me.connectionStatus = true;
-						me.lgtv.connect(me.url);
+					if (isAlive && !this.connectionStatus) {
+						this.log("Device: %s %s, state: Online.", this.host, this.name);
+						this.connectionStatus = true;
+						this.lgtv.connect(this.url);
 					}
 				}
 			});
@@ -190,6 +190,28 @@ class lgwebosTvDevice {
 
 		//Delay to wait for device info before publish
 		setTimeout(this.prepareTelevisionService.bind(this), 1000);
+	}
+
+	connect() {
+		this.log("Device: %s %s, connected.", this.host, this.name);
+		this.getDeviceInfo();
+		this.getDeviceState();
+		this.connectToPointerInputSocket();
+	}
+
+	disconnect() {
+		this.log("Device: %s %s, disconnected.", this.host, this.name);
+		this.lgtv.disconnect();
+	}
+
+	connectToPointerInputSocket() {
+		this.log.debug("Device: %s %s, connecting to RC socket...", this.host, this.name);
+		this.lgtv.getSocket("ssap://com.webos.service.networkinput/getPointerInputSocket", (error, sock) => {
+			if (!error) {
+				this.pointerInputSocket = sock;
+			}
+			this.log("Device: %s %s, get RC socket successful.", this.host, this.name);
+		});
 	}
 
 	//Prepare TV service 
@@ -328,28 +350,6 @@ class lgwebosTvDevice {
 		});
 	}
 
-	connect() {
-		this.log("Device: %s %s, connected.", this.host, this.name);
-		this.getDeviceInfo();
-		this.getDeviceState();
-		this.connectToPointerInputSocket();
-	}
-
-	disconnect() {
-		this.log("Device: %s %s, disconnected.", this.host, this.name);
-		this.lgtv.disconnect();
-	}
-
-	connectToPointerInputSocket() {
-		this.log.debug("Device: %s %s, connecting to RCsocket", this.host, this.name);
-		this.lgtv.getSocket("ssap://com.webos.service.networkinput/getPointerInputSocket", (error, sock) => {
-			if (!error) {
-				this.pointerInputSocket = sock;
-			}
-			this.log("Device: %s %s, get RC socket successful", this.host, this.name);
-		});
-	}
-
 	getDeviceInfo() {
 		var me = this;
 		setTimeout(() => {
@@ -448,8 +448,8 @@ class lgwebosTvDevice {
 				me.log("Serialnumber: %s", me.serialNumber);
 				me.log("Firmware: %s", me.firmwareRevision);
 				me.log("----------------------------------");
-			}, 250);
-		}, 250);
+			}, 350);
+		}, 500);
 	}
 
 	getDeviceState() {
@@ -664,7 +664,7 @@ class lgwebosTvDevice {
 	setPictureMode(remoteKey, callback) {
 		var me = this;
 		if (me.currentPowerState) {
-			let command = "";
+			let command;
 			switch (remoteKey) {
 				case Characteristic.PictureMode.OTHER:
 					command = "INFO";
@@ -691,16 +691,16 @@ class lgwebosTvDevice {
 					command = "BACK";
 					break;
 			}
-			me.pointerInputSocket.send("button", { name: command });
+			this.pointerInputSocket.send("button", { name: command });
 			me.log("Device: %s %s, setPictureMode successful, remoteKey: %s, command: %s", me.host, me.name, remoteKey, command);
-			callback(null, remoteKey);
+			callback(null);
 		}
 	}
 
 	setPowerModeSelection(remoteKey, callback) {
 		var me = this;
 		if (me.currentPowerState) {
-			let command = "";
+			let command;
 			switch (remoteKey) {
 				case Characteristic.PowerModeSelection.SHOW:
 					command = me.switchInfoMenu ? "MENU" : "INFO";
@@ -709,16 +709,16 @@ class lgwebosTvDevice {
 					command = "BACK";
 					break;
 			}
-			me.pointerInputSocket.send("button", { name: command });
+			this.pointerInputSocket.send("button", { name: command });
 			me.log("Device: %s %s, setPowerModeSelection successful, remoteKey: %s, command: %s", me.host, me.name, remoteKey, command);
-			callback(null, remoteKey);
+			callback(null);
 		}
 	}
 
 	setVolumeSelector(remoteKey, callback) {
 		var me = this;
 		if (me.currentPowerState) {
-			let command = "";
+			let command;
 			switch (remoteKey) {
 				case Characteristic.VolumeSelector.INCREMENT:
 					command = "VOLUMEUP";
@@ -727,16 +727,16 @@ class lgwebosTvDevice {
 					command = "VOLUMEDOWN";
 					break;
 			}
-			me.pointerInputSocket.send("button", { name: command });
+			this.pointerInputSocket.send("button", { name: command });
 			me.log("Device: %s %s, setVolumeSelector successful, remoteKey: %s, command: %s", me.host, me.name, remoteKey, command);
-			callback(null, remoteKey);
+			callback(null);
 		}
 	}
 
 	setRemoteKey(remoteKey, callback) {
 		var me = this;
 		if (me.currentPowerState) {
-			let command = "";
+			let command;
 			switch (remoteKey) {
 				case Characteristic.RemoteKey.REWIND:
 					command = "REWIND";
@@ -783,9 +783,9 @@ class lgwebosTvDevice {
 					command = me.switchInfoMenu ? "MENU" : "INFO";
 					break;
 			}
-			me.pointerInputSocket.send("button", { name: command });
+			this.pointerInputSocket.send("button", { name: command });
 			me.log("Device: %s %s, setRemoteKey successful, remoteKey: %s, command: %s", me.host, me.name, remoteKey, command);
-			callback(null, remoteKey);
+			callback(null);
 		}
 	}
 
