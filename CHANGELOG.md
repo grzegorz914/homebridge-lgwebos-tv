@@ -1,5 +1,8 @@
 # Change Log
 All notable changes to this project will be documented in this file.
+## 0.9.75 (17.05.2020)
+-fixed switch input if start with scene aor automation
+
 ## 0.9.65 (16.05.2020) 
 - fixed power state
 

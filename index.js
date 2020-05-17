@@ -626,11 +626,13 @@ class lgwebosTvDevice {
 
 	setInput(inputIdentifier, callback) {
 		var me = this;
-		let inputReference = me.inputReferences[inputIdentifier];
-		let inputName = me.inputNames[inputIdentifier];
-		me.lgtv.request("ssap://system.launcher/launch", { id: inputReference });
-		me.log("Device: %s %s, set new Input successful: %s %s", me.host, me.name, inputName, inputReference);
-		callback(null);
+		setTimeout(() => {
+			let inputReference = me.inputReferences[inputIdentifier];
+			let inputName = me.inputNames[inputIdentifier];
+			me.lgtv.request("ssap://system.launcher/launch", { id: inputReference });
+			me.log("Device: %s %s, set new Input successful: %s %s", me.host, me.name, inputName, inputReference);
+			callback(null);
+		}, 100);
 	}
 
 	getChannel(callback) {
@@ -655,10 +657,12 @@ class lgwebosTvDevice {
 
 	setChannel(inputIdentifier, callback) {
 		var me = this;
-		let channelReference = me.channelReferences[inputIdentifier];
-		me.lgtv.request("ssap://tv/openChannel", { channelNumber: channelReference });
-		me.log("Device: %s %s, set new Channel successful: %s", me.host, me.name, channelReference);
-		callback(null);
+		setTimeout(() => {
+			let channelReference = me.channelReferences[inputIdentifier];
+			me.lgtv.request("ssap://tv/openChannel", { channelNumber: channelReference });
+			me.log("Device: %s %s, set new Channel successful: %s", me.host, me.name, channelReference);
+			callback(null);
+		}, 100);
 	}
 
 	setPictureMode(remoteKey, callback) {
