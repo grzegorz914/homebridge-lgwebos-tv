@@ -367,7 +367,7 @@ class lgwebosTvDevice {
 						if (error) {
 							me.log.debug('Device: %s %s, could not write systemFile, error: %s', me.host, me.name, error);
 						} else {
-							me.log('Device: %s %s, systemFile saved successful', me.host, me.name);
+							me.log('Device: %s %s, systemFile saved successful in: %s', me.host, me.name, me.prefDir);
 						}
 					});
 				}
@@ -386,7 +386,7 @@ class lgwebosTvDevice {
 						if (error) {
 							me.log.debug('Device: %s %s, could not write softwareFile, error: %s', me.host, me.name, error);
 						} else {
-							me.log('Device: %s %s, softwareFile saved successful', me.host, me.name);
+							me.log('Device: %s %s, softwareFile saved successful in: %s', me.host, me.name, me.prefDir);
 						}
 					});
 				}
@@ -402,7 +402,7 @@ class lgwebosTvDevice {
 						if (error) {
 							me.log.debug('Device: %s %s, could not write servicesFile, error: %s', me.host, error);
 						} else {
-							me.log('Device: %s %s, servicesFile saved successful', me.host, me.name);
+							me.log('Device: %s %s, servicesFile saved successful in: %s', me.host, me.name, me.prefDir);
 						}
 					});
 				}
@@ -418,7 +418,7 @@ class lgwebosTvDevice {
 						if (error) {
 							me.log.debug('Device: %s %s, could not write appsFile, error: %s', me.host, me.name, error);
 						} else {
-							me.log('Device: %s %s, appsFile saved successful', me.host, me.name);
+							me.log('Device: %s %s, appsFile saved successful in: %s', me.host, me.name, me.prefDir);
 						}
 					});
 				}
