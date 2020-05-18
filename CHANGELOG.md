@@ -1,7 +1,11 @@
 # Change Log
 All notable changes to this project will be documented in this file.
+## 0.9.101 (18.05.2020)
+- fixed bug in RC control
+- fixed power state
+
 ## 0.9.75 (17.05.2020)
--fixed switch input if start with scene aor automation
+- fixed switch input if start with scene or automation
 
 ## 0.9.65 (16.05.2020) 
 - fixed power state
