@@ -108,6 +108,7 @@ class lgwebosTvDevice {
 		this.softwareFile = this.prefDir + '/' + 'software_' + this.host.split('.').join('');
 		this.servicesFile = this.prefDir + '/' + 'services_' + this.host.split('.').join('');
 		this.inputsFile = this.prefDir + '/' + 'inputs_' + this.host.split('.').join('');
+		this.customInputsFile = this.prefDir + '/' + 'customInputs_' + this.host.split('.').join('');
 		this.appsFile = this.prefDir + '/' + 'apps_' + this.host.split('.').join('');
 		this.channelsFile = this.prefDir + '/' + 'channels_' + this.host.split('.').join('');
 		this.url = 'ws://' + this.host + ':' + WEBSOCKET_PORT;
@@ -298,9 +299,9 @@ class lgwebosTvDevice {
 
 		let savedNames = {};
 		try {
-			savedNames = JSON.parse(fs.readFileSync(this.inputsFile));
+			savedNames = JSON.parse(fs.readFileSync(this.customInputsFile));
 		} catch (error) {
-			this.log.debug('Device: %s %s, read inputsFile failed, error: %s', this.host, this.name, error)
+			this.log.debug('Device: %s %s, read customInputsFile failed, error: %s', this.host, this.name, error)
 		}
 
 		this.inputs.forEach((input, i) => {
@@ -330,13 +331,13 @@ class lgwebosTvDevice {
 
 			this.inputsService
 				.getCharacteristic(Characteristic.ConfiguredName)
-				.on('set', (newInputName, callback) => {
-					this.inputs[inputReference] = newInputName;
-					fs.writeFile(this.inputsFile, JSON.stringify(this.inputs), (error) => {
+				.on('set', (name, callback) => {
+					savedNames[inputReference] = name;
+					fs.writeFile(this.customInputsFile, JSON.stringify(savedNames, null, 2), (error) => {
 						if (error) {
 							this.log.debug('Device: %s %s, new Input name saved failed, error: %s', this.host, this.name, error);
 						} else {
-							this.log('Device: %s %s, new Input name saved successful, name: %s reference: %s', this.host, this.name, newInputName, inputReference);
+							this.log('Device: %s %s, new Input name saved successful, name: %s reference: %s', this.host, this.name, name, inputReference);
 						}
 					});
 					callback(null);
@@ -362,7 +363,7 @@ class lgwebosTvDevice {
 					me.log.debug('Device: %s %s, get System info successful: %s', me.host, me.name, JSON.stringify(data, null, 2));
 					me.manufacturer = 'LG Electronics';
 					me.modelName = data.modelName;
-					fs.writeFile(me.systemFile, JSON.stringify(data), (error) => {
+					fs.writeFile(me.systemFile, JSON.stringify(data, null, 2), (error) => {
 						if (error) {
 							me.log.debug('Device: %s %s, could not write systemFile, error: %s', me.host, me.name, error);
 						} else {
@@ -381,7 +382,7 @@ class lgwebosTvDevice {
 					me.productName = data.product_name;
 					me.serialNumber = data.device_id;
 					me.firmwareRevision = data.minor_ver;
-					fs.writeFile(me.softwareFile, JSON.stringify(data), (error) => {
+					fs.writeFile(me.softwareFile, JSON.stringify(data, null, 2), (error) => {
 						if (error) {
 							me.log.debug('Device: %s %s, could not write softwareFile, error: %s', me.host, me.name, error);
 						} else {
@@ -397,7 +398,7 @@ class lgwebosTvDevice {
 				} else {
 					delete data['returnValue'];
 					me.log.debug('Device: %s %s, get Services list successful: %s', me.host, me.name, JSON.stringify(data, null, 2));
-					fs.writeFile(me.servicesFile, JSON.stringify(data), (error) => {
+					fs.writeFile(me.servicesFile, JSON.stringify(data, null, 2), (error) => {
 						if (error) {
 							me.log.debug('Device: %s %s, could not write servicesFile, error: %s', me.host, error);
 						} else {
@@ -413,7 +414,7 @@ class lgwebosTvDevice {
 				} else {
 					delete data['returnValue'];
 					me.log.debug('Device: %s %s, get apps list successful: %s', me.host, me.name, JSON.stringify(data, null, 2));
-					fs.writeFile(me.appsFile, JSON.stringify(data), (error) => {
+					fs.writeFile(me.appsFile, JSON.stringify(data, null, 2), (error) => {
 						if (error) {
 							me.log.debug('Device: %s %s, could not write appsFile, error: %s', me.host, me.name, error);
 						} else {
