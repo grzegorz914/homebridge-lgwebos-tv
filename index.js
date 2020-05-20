@@ -457,7 +457,11 @@ class lgwebosTvDevice {
 		this.log.debug('prepareVolumeService');
 		this.volumeService = new Service.Lightbulb(this.name + ' Volume', 'volumeService');
 		this.volumeService.getCharacteristic(Characteristic.On)
-			.on('get', this.getMuteSlider.bind(this));
+			.on('get', this.getMuteSlider.bind(this))
+			.on('set', (newValue, callback) => {
+				this.speakerService.setCharacteristic(Characteristic.Mute, !newValue);
+				callback(null);
+			});
 		this.volumeService.getCharacteristic(Characteristic.Brightness)
 			.on('get', this.getVolume.bind(this))
 			.on('set', this.setVolume.bind(this));
