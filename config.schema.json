@@ -14,13 +14,13 @@
           "type": "object",
           "properties": {
             "name": {
-              "title": "Name",
+              "title": "Device name",
               "type": "string",
               "default": "LG TV",
               "required": true
             },
             "host": {
-              "title": "IP Address",
+              "title": "Address IP",
               "type": "string",
               "default": "192.168.1.8",
               "required": true,
@@ -33,7 +33,7 @@
               "required": true
             },
             "volumeControl": {
-              "title": "Slider volume control",
+              "title": "Volume control",
               "type": "boolean",
               "default": false,
               "required": false,
@@ -47,11 +47,11 @@
               "description": "This toggle behaviour for *I* button in RC app and *PowerModeSelection* in settings."
             },
             "supportOldWebOs": {
-              "title": "Support for old webOS",
+              "title": "Old webOS support",
               "type": "boolean",
               "default": false,
               "required": false,
-              "description": "This activate support for older LGwebOS TV."
+              "description": "This activate support for older LG webOS TV."
             },
             "inputs": {
               "title": "Inputs",
