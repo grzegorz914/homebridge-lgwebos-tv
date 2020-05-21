@@ -57,6 +57,7 @@
               "title": "Inputs",
               "buttonText": "Add input",
               "type": "array",
+              "expandable": true,
               "items": {
                 "type": "object",
                 "properties": {
