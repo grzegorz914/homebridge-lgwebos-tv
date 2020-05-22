@@ -624,7 +624,7 @@ class lgwebosTvDevice {
 		if (inputReference === me.inputReferences[inputIdentifier]) {
 			me.televisionService
 				.updateCharacteristic(Characteristic.ActiveIdentifier, inputIdentifier);
-			me.log.info('Device: %s %s, get current Input successful: %s', me.host, me.name, inputReference);
+			me.log.info('Device: %s %s, get current Input successful: %s %s', me.host, me.name, inputName, inputReference);
 			callback(null, inputIdentifier);
 		} else {
 			me.televisionService
