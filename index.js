@@ -99,6 +99,7 @@ class lgwebosTvDevice {
 		this.currentMuteState = false;
 		this.currentVolume = 0;
 		this.currentInputReference = null;
+		this.currentInputName = null;
 		this.currentChannelReference = null;
 		this.currentChannelNumber = null;
 		this.currentChannelName = null;
