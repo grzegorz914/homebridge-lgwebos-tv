@@ -630,7 +630,7 @@ class lgwebosTvDevice {
 		} else {
 			me.televisionService
 				.updateCharacteristic(Characteristic.ActiveIdentifier, 0);
-			me.log.debug('Device: %s %s, get current Channel default: %s %s', me.host, me.name, inputName, inputReference);
+			me.log.debug('Device: %s %s, get current Input default: %s %s', me.host, me.name, inputName, inputReference);
 			callback(null, 0);
 		}
 	}
@@ -649,20 +649,19 @@ class lgwebosTvDevice {
 	getChannel(callback) {
 		var me = this;
 		let channelReference = me.currentChannelReference;
-		if (!me.currentPowerState || channelReference === undefined || channelReference === null || channelReference === '') {
+		let inputIdentifier = me.channelReferences.indexOf(channelReference);
+		if (channelReference === me.channelReferences[inputIdentifier]) {
+			me.televisionService
+				.getCharacteristic(Characteristic.ActiveIdentifier)
+				.updateValue(inputIdentifier);
+			me.log.info('Device: %s %s, get current Channel successful: %s', me.host, me.name, channelReference);
+			callback(null, inputIdentifier);
+		} else {
 			me.televisionService
 				.getCharacteristic(Characteristic.ActiveIdentifier)
 				.updateValue(0);
+			me.log.debug('Device: %s %s, get current Channel default: %s %s', me.host, me.name, channelName, channelReference);
 			callback(null, 0);
-		} else {
-			let inputIdentifier = me.channelReferences.indexOf(channelReference);
-			if (channelReference === me.channelReferences[inputIdentifier]) {
-				me.televisionService
-					.getCharacteristic(Characteristic.ActiveIdentifier)
-					.updateValue(inputIdentifier);
-				me.log.info('Device: %s %s, get current Channel successful: %s', me.host, me.name, channelReference);
-			}
-			callback(null, inputIdentifier);
 		}
 	}
 
