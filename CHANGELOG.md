@@ -1,5 +1,9 @@
 # Change Log
 All notable changes to this project will be documented in this file.
+## 0.10.40 (22.05.2020)
+- fixed RC control
+- other improvements
+
 ## 0.10.0 (20.05.2020)
 - added mute ON/OFF to the slider volume
 
