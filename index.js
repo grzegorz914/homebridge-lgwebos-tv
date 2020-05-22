@@ -393,23 +393,17 @@ class lgwebosTvDevice {
 				let mute = (data.mute === true);
 				let muteState = me.currentPowerState ? mute : true;
 				if (me.speakerService) {
-					if (data.changed.indexOf('volume') !== -1) {
-						me.speakerService.updateCharacteristic(Characteristic.Volume, volume);
-						if (me.volumeControl && me.volumeService) {
-							me.volumeService.updateCharacteristic(Characteristic.Brightness, volume);
-						}
+					me.speakerService.updateCharacteristic(Characteristic.Volume, volume);
+					me.speakerService.updateCharacteristic(Characteristic.Mute, muteState);
+					if (me.volumeControl && me.volumeService) {
+						me.volumeService.updateCharacteristic(Characteristic.Brightness, volume);
+						me.volumeService.updateCharacteristic(Characteristic.On, !muteState);
 					}
-					me.log.debug('Device: %s %s, get current Volume level: %s', me.host, me.name, volume);
-					me.currentVolume = volume;
-					if (data.changed.indexOf('mute') !== -1) {
-						me.speakerService.updateCharacteristic(Characteristic.Mute, muteState);
-						if (me.volumeControl && me.volumeService) {
-							me.volumeService.updateCharacteristic(Characteristic.On, !muteState);
-						}
-					}
-					me.log.debug('Device: %s %s, get current Mute state: %s', me.host, me.name, muteState ? 'ON' : 'OFF');
-					me.currentMuteState = muteState;
 				}
+				me.log.debug('Device: %s %s, get current Volume level: %s', me.host, me.name, volume);
+				me.log.debug('Device: %s %s, get current Mute state: %s', me.host, me.name, muteState ? 'ON' : 'OFF');
+				me.currentVolume = volume;
+				me.currentMuteState = muteState;
 			}
 		});
 	}
@@ -562,7 +556,7 @@ class lgwebosTvDevice {
 
 	setPower(state, callback) {
 		var me = this;
-		if (!me.currentPowerState && state) {
+		if (state) {
 			wol.wake(me.mac, (error) => {
 				if (error) {
 					me.log.error('Device: %s %s, can not set new Power state. Might be due to a wrong settings in config, error: %s', me.host, error);
@@ -572,17 +566,11 @@ class lgwebosTvDevice {
 			});
 			callback(null);
 		} else {
-			if (me.currentPowerState) {
-				me.lgtv.request('ssap://system/turnOff', (error, data) => {
-					if (error) {
-						me.log.error('Device: %s %s, can not set new Power state. Might be due to a wrong settings in config, error: %s', me.host, error);
-					} else {
-						me.log.info('Device: %s %s, set new Power state successful: %s', me.host, me.name, 'OFF');
-						me.disconnect();
-					}
-				});
-				callback(null);
-			}
+			me.lgtv.request('ssap://system/turnOff', (error, data) => {
+				me.log.info('Device: %s %s, set new Power state successful: %s', me.host, me.name, 'OFF');
+				me.disconnect();
+			});
+			callback(null);
 		}
 	}
 
