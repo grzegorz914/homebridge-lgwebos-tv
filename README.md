@@ -44,7 +44,7 @@ Due to HomeKit app limitation max. services for 1 accessory is 100. Over this va
 ## Configuration plugin
 1. Use [Homebridge Config UI X](https://github.com/oznu/homebridge-config-ui-x) to configure the plugin (strongly recomended), or update your configuration file manually. See `sample-config.json` in this repository for a sample or add the bottom example to Your config.json file.
 2. All inputs reference and name can be found in: `homebridge_directory/lgwebosTv/apps_19216818` where `name == title` and `reference == id`
-3. If `volumeControl` is enabled, volume can be control using slider and mute ON/OFF if button press.
+3. In `volumeControl` You can select what a additional volume control mode You want to use (None, Slider, Fan).
 4. If `switchInfoMenu` is enabled, `I` button change its behaviour in RC app between Menu and INFO.
 5. If `supportOldWebOs` is enable, U can use old webOS TV =< 2.0.
 
@@ -60,7 +60,7 @@ Due to HomeKit app limitation max. services for 1 accessory is 100. Over this va
             "name": "LG TV",
             "host": "192.168.1.8",
             "mac": "ab:cd:ef:fe:dc:ba",
-            "volumeControl": false,
+            "volumeControl": 0,
             "switchInfoMenu": false,
             "supportOldWebOs": false,
             "inputs": [
