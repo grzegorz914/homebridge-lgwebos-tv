@@ -89,13 +89,13 @@ class lgwebosTvDevice {
 		this.firmwareRevision = config.firmwareRevision || 'FW0000004';
 
 		//setup variables
+		this.connectionStatus = false;
+		this.currentPowerState = false;
 		this.inputNames = new Array();
 		this.inputReferences = new Array();
 		this.inputTypes = new Array();
 		this.channelNames = new Array();
 		this.channelReferences = new Array();
-		this.connectionStatus = false;
-		this.currentPowerState = false;
 		this.currentMuteState = false;
 		this.currentVolume = 0;
 		this.currentInputName = null;
@@ -103,7 +103,7 @@ class lgwebosTvDevice {
 		this.currentChannelNumber = null;
 		this.currentChannelName = null;
 		this.currentChannelReference = null;
-		this.isPaused = false;
+		this.currentMediaState = false; //play/pause
 		this.prefDir = path.join(api.user.storagePath(), 'lgwebosTv');
 		this.keyFile = this.prefDir + '/' + 'key_' + this.host.split('.').join('');
 		this.systemFile = this.prefDir + '/' + 'system_' + this.host.split('.').join('');
@@ -153,7 +153,7 @@ class lgwebosTvDevice {
 		setInterval(function () {
 			tcpp.probe(this.host, WEBSOCKET_PORT, (error, isAlive) => {
 				if (!isAlive && this.connectionStatus) {
-					this.log.debug('Device: %s %s, state: Offline', this.host, this.name);
+					this.log.debug('Device: %s %s, state: Offline.', this.host, this.name);
 					this.connectionStatus = false;
 					this.lgtv.disconnect();
 				} else {
@@ -229,14 +229,13 @@ class lgwebosTvDevice {
 					me.log.error('Device: %s %s, get System info error: %s', me.host, me.name, error);
 				} else {
 					delete data['returnValue'];
-					me.log.debug('Device: %s %s, get System info successful: %s', me.host, me.name, JSON.stringify(data, null, 2));
 					me.manufacturer = 'LG Electronics';
 					me.modelName = data.modelName;
 					fs.writeFile(me.systemFile, JSON.stringify(data, null, 2), (error) => {
 						if (error) {
 							me.log.error('Device: %s %s, could not write systemFile, error: %s', me.host, me.name, error);
 						} else {
-							me.log.debug('Device: %s %s, systemFile saved successful in: %s', me.host, me.name, me.prefDir);
+							me.log.debug('Device: %s %s, systemFile saved successful in: %s %s', me.host, me.name, me.prefDir, JSON.stringify(data, null, 2));
 						}
 					});
 				}
@@ -247,7 +246,6 @@ class lgwebosTvDevice {
 					me.log.error('Device: %s %s, get Software info error: %s', me.host, me.name, error);
 				} else {
 					delete data['returnValue'];
-					me.log.debug('Device: %s %s, get Software info successful: %s', me.host, me.name, JSON.stringify(data, null, 2));
 					me.productName = data.product_name;
 					me.serialNumber = data.device_id;
 					me.firmwareRevision = data.minor_ver;
@@ -255,7 +253,7 @@ class lgwebosTvDevice {
 						if (error) {
 							me.log.error('Device: %s %s, could not write softwareFile, error: %s', me.host, me.name, error);
 						} else {
-							me.log.debug('Device: %s %s, softwareFile saved successful in: %s', me.host, me.name, me.prefDir);
+							me.log.debug('Device: %s %s, softwareFile saved successful in: %s %s', me.host, me.name, me.prefDir, JSON.stringify(data, null, 2));
 						}
 					});
 				}
@@ -266,12 +264,11 @@ class lgwebosTvDevice {
 					me.log.debug('Device: %s %s, get Services list error: %s', me.host, error);
 				} else {
 					delete data['returnValue'];
-					me.log.debug('Device: %s %s, get Services list successful: %s', me.host, me.name, JSON.stringify(data, null, 2));
 					fs.writeFile(me.servicesFile, JSON.stringify(data, null, 2), (error) => {
 						if (error) {
 							me.log.error('Device: %s %s, could not write servicesFile, error: %s', me.host, error);
 						} else {
-							me.log.debug('Device: %s %s, servicesFile saved successful in: %s', me.host, me.name, me.prefDir);
+							me.log.debug('Device: %s %s, servicesFile saved successful in: %s %s', me.host, me.name, me.prefDir, JSON.stringify(data, null, 2));
 						}
 					});
 				}
@@ -282,12 +279,11 @@ class lgwebosTvDevice {
 					me.log.debug('Device: %s %s, get Channels list error: %s', me.host, me.name, error);
 				} else {
 					delete data['returnValue'];
-					me.log.debug('Device: %s %s, get Channels list successful: %s', me.host, me.name, JSON.stringify(data, null, 2));
 					fs.writeFile(me.channelsFile, JSON.stringify(data, null, 2), (error) => {
 						if (error) {
 							me.log.error('Device: %s %s, could not write chanelsFile, error: %s', me.host, me.name, error);
 						} else {
-							me.log.debug('Device: %s %s, channelsFile saved successful in: %s', me.host, me.name, me.prefDir);
+							me.log.debug('Device: %s %s, channelsFile saved successful in: %s %s', me.host, me.name, me.prefDir, JSON.stringify(data, null, 2));
 						}
 					});
 				}
@@ -298,12 +294,11 @@ class lgwebosTvDevice {
 					me.log.debug('Device: %s %s, get Apps list error: %s', me.host, me.name, error);
 				} else {
 					delete data['returnValue'];
-					me.log.debug('Device: %s %s, get Apps list successful: %s', me.host, me.name, JSON.stringify(data, null, 2));
 					fs.writeFile(me.appsFile, JSON.stringify(data, null, 2), (error) => {
 						if (error) {
 							me.log.error('Device: %s %s, could not write appsFile, error: %s', me.host, me.name, error);
 						} else {
-							me.log.debug('Device: %s %s, appsFile saved successful in: %s', me.host, me.name, me.prefDir);
+							me.log.debug('Device: %s %s, appsFile saved successful in: %s %s', me.host, me.name, me.prefDir, JSON.stringify(data, null, 2));
 						}
 					});
 				}
@@ -329,8 +324,10 @@ class lgwebosTvDevice {
 				me.log.error('Device: %s %s, get current Power state error: %s.', me.host, me.name, error);
 			} else {
 				me.log.debug('Device: %s %s, get current Power state data: %s', me.host, me.name, data);
+				let prepareOff = (data.processing === 'Request Power Off' || data.processing === 'Request Active Standby' || data.processing === 'Request Suspend' || data.processing === 'Prepare Suspend');
 				let pixelRefresh = (data.state === 'Active Standby');
 				let powerOff = (data.state === 'Suspend');
+				let prepareOn = (data.processing === 'Screen On' || data.processing === 'Request Screen Saver');
 				let powerOn = (data.state === 'Active');
 				let state = (powerOn && (!pixelRefresh || !powerOff));
 				let powerState = me.supportOldWebOs ? !state : state;
@@ -377,11 +374,12 @@ class lgwebosTvDevice {
 				me.log.debug('Device: %s %s, get current Aapp state data: %s', me.host, me.name, data);
 				let inputReference = data.appId;
 				let inputIdentifier = me.inputReferences.indexOf(inputReference);
+				let inputName = me.inputNames[inputIdentifier];
 				if (me.televisionService) {
 					me.televisionService.updateCharacteristic(Characteristic.ActiveIdentifier, inputIdentifier);
 				}
-				me.log.debug('Device: %s %s, get current Input successful: %s', me.host, me.name, inputReference);
-				me.currentInputName = me.inputNames[inputIdentifier];
+				me.log.debug('Device: %s %s, get current Input successful: %s %s', me.host, me.name, inputName, inputReference);
+				me.currentInputName = me.inputName;
 				me.currentInputReference = inputReference;
 			}
 		});
@@ -680,8 +678,9 @@ class lgwebosTvDevice {
 	}
 
 	setPictureMode(mode, callback) {
+		var me = this;
 		let command = null;
-		if (this.currentPowerState && this.pointerInputSocket) {
+		if (me.currentPowerState && me.pointerInputSocket) {
 			switch (mode) {
 				case Characteristic.PictureMode.OTHER:
 					command = '';
@@ -708,32 +707,34 @@ class lgwebosTvDevice {
 					command = '';
 					break;
 			}
-			this.log.info('Device: %s %s, setPictureMode successful, command: %s', this.host, this.name, command);
-			this.pointerInputSocket.send('button', { name: command });
+			me.log.info('Device: %s %s, setPictureMode successful, command: %s', me.host, me.name, command);
+			me.pointerInputSocket.send('button', { name: command });
 			callback(null);
 		}
 	}
 
 	setPowerModeSelection(state, callback) {
+		var me = this;
 		let command = null;
-		if (this.currentPowerState && this.pointerInputSocket) {
+		if (me.currentPowerState && me.pointerInputSocket) {
 			switch (state) {
 				case Characteristic.PowerModeSelection.SHOW:
-					command = this.switchInfoMenu ? 'MENU' : 'INFO';
+					command = me.switchInfoMenu ? 'MENU' : 'INFO';
 					break;
 				case Characteristic.PowerModeSelection.HIDE:
 					command = 'BACK';
 					break;
 			}
-			this.log.info('Device: %s %s, setPowerModeSelection successful, command: %s', this.host, this.name, command);
-			this.pointerInputSocket.send('button', { name: command });
+			me.log.info('Device: %s %s, setPowerModeSelection successful, command: %s', me.host, me.name, command);
+			me.pointerInputSocket.send('button', { name: command });
 			callback(null);
 		}
 	}
 
 	setVolumeSelector(state, callback) {
+		var me = this;
 		let command = null;
-		if (this.currentPowerState && this.pointerInputSocket) {
+		if (me.currentPowerState && me.pointerInputSocket) {
 			switch (state) {
 				case Characteristic.VolumeSelector.INCREMENT:
 					command = 'VOLUMEUP';
@@ -742,15 +743,16 @@ class lgwebosTvDevice {
 					command = 'VOLUMEDOWN';
 					break;
 			}
-			this.log.info('Device: %s %s, setVolumeSelector successful, command: %s', this.host, this.name, command);
-			this.pointerInputSocket.send('button', { name: command });
+			me.log.info('Device: %s %s, setVolumeSelector successful, command: %s', me.host, me.name, command);
+			me.pointerInputSocket.send('button', { name: command });
 			callback(null);
 		}
 	}
 
 	setRemoteKey(remoteKey, callback) {
+		var me = this;
 		let command = null;
-		if (this.currentPowerState && this.pointerInputSocket) {
+		if (me.currentPowerState && tme.pointerInputSocket) {
 			switch (remoteKey) {
 				case Characteristic.RemoteKey.REWIND:
 					command = 'REWIND';
@@ -786,15 +788,14 @@ class lgwebosTvDevice {
 					command = 'EXIT';
 					break;
 				case Characteristic.RemoteKey.PLAY_PAUSE:
-					command = this.isPaused ? 'PLAY' : 'PAUSE';
-					this.isPaused = !this.isPaused;
-					break;
+					command = me.currentMediaState ? 'PLAY' : 'PAUSE';
+					me.currentMediaState = !me.currentMediaState;
 				case Characteristic.RemoteKey.INFORMATION:
-					command = this.switchInfoMenu ? 'MENU' : 'INFO';
+					command = me.switchInfoMenu ? 'MENU' : 'INFO';
 					break;
 			}
-			this.log.info('Device: %s %s, setRemoteKey successful, command: %s', this.host, this.name, command);
-			this.pointerInputSocket.send('button', { name: command });
+			me.log.info('Device: %s %s, setRemoteKey successful, command: %s', me.host, me.name, command);
+			me.pointerInputSocket.send('button', { name: command });
 			callback(null);
 		}
 	}
