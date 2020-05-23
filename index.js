@@ -359,11 +359,11 @@ class lgwebosTvDevice {
 				let inputIdentifier = me.channelReferences.indexOf(channelReference);
 				if (me.televisionService) {
 					//me.televisionService.updateCharacteristic(Characteristic.ActiveIdentifier, inputIdentifier);
+					me.log.debug('Device: %s %s, get current Channel successful: %s, %s, %s', me.host, me.name, channelNumber, channelName, channelReference);
+					me.currentChannelNumber = channelNumber;
+					me.currentChannelName = channelName;
+					me.currentChannelReference = channelReference;
 				}
-				me.log.debug('Device: %s %s, get current Channel successful: %s, %s, %s', me.host, me.name, channelNumber, channelName, channelReference);
-				me.currentChannelNumber = channelNumber;
-				me.currentChannelName = channelName;
-				me.currentChannelReference = channelReference;
 			}
 		});
 
@@ -371,16 +371,16 @@ class lgwebosTvDevice {
 			if (error) {
 				me.log.error('Device: %s %s, get current App error: %s.', me.host, me.name, error);
 			} else {
-				me.log.debug('Device: %s %s, get current Aapp state data: %s', me.host, me.name, data);
+				me.log.debug('Device: %s %s, get current App state data: %s', me.host, me.name, data);
 				let inputReference = data.appId;
 				let inputIdentifier = me.inputReferences.indexOf(inputReference);
 				let inputName = me.inputNames[inputIdentifier];
 				if (me.televisionService) {
 					me.televisionService.updateCharacteristic(Characteristic.ActiveIdentifier, inputIdentifier);
+					me.log.debug('Device: %s %s, get current Input successful: %s %s', me.host, me.name, inputName, inputReference);
+					me.currentInputName = me.inputName;
+					me.currentInputReference = inputReference;
 				}
-				me.log.debug('Device: %s %s, get current Input successful: %s %s', me.host, me.name, inputName, inputReference);
-				me.currentInputName = me.inputName;
-				me.currentInputReference = inputReference;
 			}
 		});
 
@@ -389,21 +389,26 @@ class lgwebosTvDevice {
 				me.log.error('Device: %s %s, get current Audio state error: %s.', me.host, me.name, error);
 			} else {
 				me.log.debug('Device: %s %s, get current Audio state data: %s', me.host, me.name, data);
-				let volume = data.volume;
 				let mute = (data.mute === true);
 				let muteState = me.currentPowerState ? mute : true;
 				if (me.speakerService) {
-					me.speakerService.updateCharacteristic(Characteristic.Volume, volume);
 					me.speakerService.updateCharacteristic(Characteristic.Mute, muteState);
-					if (me.volumeControl && me.volumeService) {
-						me.volumeService.updateCharacteristic(Characteristic.Brightness, volume);
+					if (me.volumeControl) {
 						me.volumeService.updateCharacteristic(Characteristic.On, !muteState);
 					}
+					me.log.debug('Device: %s %s, get current Mute state: %s', me.host, me.name, muteState ? 'ON' : 'OFF');
+					me.currentMuteState = muteState;
 				}
-				me.log.debug('Device: %s %s, get current Volume level: %s', me.host, me.name, volume);
-				me.log.debug('Device: %s %s, get current Mute state: %s', me.host, me.name, muteState ? 'ON' : 'OFF');
-				me.currentVolume = volume;
-				me.currentMuteState = muteState;
+
+				let volume = data.volume;
+				if (me.speakerService) {
+					me.speakerService.updateCharacteristic(Characteristic.Volume, volume);
+					if (me.volumeControl) {
+						me.volumeService.updateCharacteristic(Characteristic.Brightnes, volume);
+					}
+					me.log.debug('Device: %s %s, get current Volume level: %s', me.host, me.name, volume);
+					me.currentVolume = volume;
+				}
 			}
 		});
 	}
@@ -628,7 +633,7 @@ class lgwebosTvDevice {
 		} else {
 			me.televisionService
 				.updateCharacteristic(Characteristic.ActiveIdentifier, 0);
-			me.log.debug('Device: %s %s, get current Input default: %s %s', me.host, me.name, inputName, inputReference);
+			me.log.info('Device: %s %s, get current Input default: %s %s', me.host, me.name, inputName, inputReference);
 			callback(null, 0);
 		}
 	}
