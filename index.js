@@ -92,17 +92,17 @@ class lgwebosTvDevice {
 		this.inputNames = new Array();
 		this.inputReferences = new Array();
 		this.inputTypes = new Array();
-		this.channelReferences = new Array();
 		this.channelNames = new Array();
+		this.channelReferences = new Array();
 		this.connectionStatus = false;
 		this.currentPowerState = false;
 		this.currentMuteState = false;
 		this.currentVolume = 0;
-		this.currentInputReference = null;
 		this.currentInputName = null;
-		this.currentChannelReference = null;
+		this.currentInputReference = null;
 		this.currentChannelNumber = null;
 		this.currentChannelName = null;
+		this.currentChannelReference = null;
 		this.isPaused = false;
 		this.prefDir = path.join(api.user.storagePath(), 'lgwebosTv');
 		this.keyFile = this.prefDir + '/' + 'key_' + this.host.split('.').join('');
@@ -356,17 +356,17 @@ class lgwebosTvDevice {
 				me.log.error('Device: %s %s, get current Channel and Name error: %s.', me.host, me.name, error);
 			} else {
 				me.log.debug('Device: %s %s, get current Channel data: %s', me.host, me.name, data);
-				let channelReference = data.channelId;
 				let channelNumber = data.channelNumber;
 				let channelName = data.channelName;
+				let channelReference = data.channelId;
 				let inputIdentifier = me.channelReferences.indexOf(channelReference);
 				if (me.televisionService) {
 					//me.televisionService.updateCharacteristic(Characteristic.ActiveIdentifier, inputIdentifier);
 				}
 				me.log.debug('Device: %s %s, get current Channel successful: %s, %s, %s', me.host, me.name, channelNumber, channelName, channelReference);
-				me.currentChannelReference = channelReference;
 				me.currentChannelNumber = channelNumber;
 				me.currentChannelName = channelName;
+				me.currentChannelReference = channelReference;
 			}
 		});
 
@@ -381,8 +381,8 @@ class lgwebosTvDevice {
 					me.televisionService.updateCharacteristic(Characteristic.ActiveIdentifier, inputIdentifier);
 				}
 				me.log.debug('Device: %s %s, get current Input successful: %s', me.host, me.name, inputReference);
-				me.currentInputReference = inputReference;
 				me.currentInputName = me.inputNames[inputIdentifier];
+				me.currentInputReference = inputReference;
 			}
 		});
 
@@ -543,8 +543,8 @@ class lgwebosTvDevice {
 				});
 			this.accessory.addService(this.inputsService);
 			this.televisionService.addLinkedService(this.inputsService);
-			this.inputReferences.push(inputReference);
 			this.inputNames.push(inputName);
+			this.inputReferences.push(inputReference);
 			this.inputTypes.push(inputType);
 		});
 	}
@@ -637,9 +637,9 @@ class lgwebosTvDevice {
 
 	setInput(inputIdentifier, callback) {
 		var me = this;
+		let inputName = me.currentInputName;
+		let inputReference = me.inputReferences[inputIdentifier];
 		setTimeout(() => {
-			let inputReference = me.inputReferences[inputIdentifier];
-			let inputName = me.inputNames[inputIdentifier];
 			me.lgtv.request('ssap://system.launcher/launch', { id: inputReference });
 			me.log.info('Device: %s %s, set new Input successful: %s %s', me.host, me.name, inputName, inputReference);
 			callback(null);
@@ -648,29 +648,33 @@ class lgwebosTvDevice {
 
 	getChannel(callback) {
 		var me = this;
+		let channelNumber = me.currentChannelNumber;
+		let channelName = me.currentChannelName;
 		let channelReference = me.currentChannelReference;
 		let inputIdentifier = me.channelReferences.indexOf(channelReference);
 		if (channelReference === me.channelReferences[inputIdentifier]) {
 			me.televisionService
 				.getCharacteristic(Characteristic.ActiveIdentifier)
 				.updateValue(inputIdentifier);
-			me.log.info('Device: %s %s, get current Channel successful: %s', me.host, me.name, channelReference);
+			me.log.info('Device: %s %s, get current Channel successful: %s %s', me.host, me.name, channelNumber, channelName, channelReference);
 			callback(null, inputIdentifier);
 		} else {
 			me.televisionService
 				.getCharacteristic(Characteristic.ActiveIdentifier)
 				.updateValue(0);
-			me.log.debug('Device: %s %s, get current Channel default: %s %s', me.host, me.name, channelName, channelReference);
+			me.log.debug('Device: %s %s, get current Channel default: %s %s', me.host, me.name, channelNumber, channelName, channelReference);
 			callback(null, 0);
 		}
 	}
 
 	setChannel(inputIdentifier, callback) {
 		var me = this;
+		let channelNumber = me.currentChannelNumber;
+		let channelName = me.currentChannelName;
+		let channelReference = me.channelReferences[inputIdentifier];
 		setTimeout(() => {
-			let channelReference = me.channelReferences[inputIdentifier];
 			me.lgtv.request('ssap://tv/openChannel', { channelNumber: channelReference });
-			me.log.info('Device: %s %s, set new Channel successful: %s', me.host, me.name, channelReference);
+			me.log.info('Device: %s %s, set new Channel successful: %s %s', me.host, me.name, channelNumber, channelName, channelReference);
 			callback(null);
 		}, 100);
 	}
