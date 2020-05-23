@@ -224,13 +224,15 @@ class lgwebosTvDevice {
 					delete data['returnValue'];
 					me.manufacturer = 'LG Electronics';
 					me.modelName = data.modelName;
-					fs.writeFile(me.systemFile, JSON.stringify(data, null, 2), (error) => {
-						if (error) {
-							me.log.error('Device: %s %s, could not write systemFile, error: %s', me.host, me.name, error);
-						} else {
-							me.log.debug('Device: %s %s, systemFile saved successful in: %s %s', me.host, me.name, me.prefDir, JSON.stringify(data, null, 2));
-						}
-					});
+					if (fs.existsSync(me.systemFile) === false) {
+						fs.writeFile(me.systemFile, JSON.stringify(data, null, 2), (error) => {
+							if (error) {
+								me.log.error('Device: %s %s, could not write systemFile, error: %s', me.host, me.name, error);
+							} else {
+								me.log.debug('Device: %s %s, systemFile saved successful in: %s %s', me.host, me.name, me.prefDir, JSON.stringify(data, null, 2));
+							}
+						});
+					}
 				}
 			});
 
@@ -242,13 +244,15 @@ class lgwebosTvDevice {
 					me.productName = data.product_name;
 					me.serialNumber = data.device_id;
 					me.firmwareRevision = data.minor_ver;
-					fs.writeFile(me.softwareFile, JSON.stringify(data, null, 2), (error) => {
-						if (error) {
-							me.log.error('Device: %s %s, could not write softwareFile, error: %s', me.host, me.name, error);
-						} else {
-							me.log.debug('Device: %s %s, softwareFile saved successful in: %s %s', me.host, me.name, me.prefDir, JSON.stringify(data, null, 2));
-						}
-					});
+					if (fs.existsSync(me.softwareFile) === false) {
+						fs.writeFile(me.softwareFile, JSON.stringify(data, null, 2), (error) => {
+							if (error) {
+								me.log.error('Device: %s %s, could not write softwareFile, error: %s', me.host, me.name, error);
+							} else {
+								me.log.debug('Device: %s %s, softwareFile saved successful in: %s %s', me.host, me.name, me.prefDir, JSON.stringify(data, null, 2));
+							}
+						});
+					}
 				}
 			});
 
@@ -257,13 +261,15 @@ class lgwebosTvDevice {
 					me.log.debug('Device: %s %s, get Services list error: %s', me.host, error);
 				} else {
 					delete data['returnValue'];
-					fs.writeFile(me.servicesFile, JSON.stringify(data, null, 2), (error) => {
-						if (error) {
-							me.log.error('Device: %s %s, could not write servicesFile, error: %s', me.host, error);
-						} else {
-							me.log.debug('Device: %s %s, servicesFile saved successful in: %s %s', me.host, me.name, me.prefDir, JSON.stringify(data, null, 2));
-						}
-					});
+					if (fs.existsSync(me.servicesFile) === false) {
+						fs.writeFile(me.servicesFile, JSON.stringify(data, null, 2), (error) => {
+							if (error) {
+								me.log.error('Device: %s %s, could not write servicesFile, error: %s', me.host, error);
+							} else {
+								me.log.debug('Device: %s %s, servicesFile saved successful in: %s %s', me.host, me.name, me.prefDir, JSON.stringify(data, null, 2));
+							}
+						});
+					}
 				}
 			});
 
@@ -272,13 +278,15 @@ class lgwebosTvDevice {
 					me.log.debug('Device: %s %s, get Channels list error: %s', me.host, me.name, error);
 				} else {
 					delete data['returnValue'];
-					fs.writeFile(me.channelsFile, JSON.stringify(data, null, 2), (error) => {
-						if (error) {
-							me.log.error('Device: %s %s, could not write chanelsFile, error: %s', me.host, me.name, error);
-						} else {
-							me.log.debug('Device: %s %s, channelsFile saved successful in: %s %s', me.host, me.name, me.prefDir, JSON.stringify(data, null, 2));
-						}
-					});
+					if (fs.existsSync(me.channelsFile) === false) {
+						fs.writeFile(me.channelsFile, JSON.stringify(data, null, 2), (error) => {
+							if (error) {
+								me.log.error('Device: %s %s, could not write chanelsFile, error: %s', me.host, me.name, error);
+							} else {
+								me.log.debug('Device: %s %s, channelsFile saved successful in: %s %s', me.host, me.name, me.prefDir, JSON.stringify(data, null, 2));
+							}
+						});
+					}
 				}
 			});
 
@@ -287,13 +295,15 @@ class lgwebosTvDevice {
 					me.log.debug('Device: %s %s, get Apps list error: %s', me.host, me.name, error);
 				} else {
 					delete data['returnValue'];
-					fs.writeFile(me.appsFile, JSON.stringify(data, null, 2), (error) => {
-						if (error) {
-							me.log.error('Device: %s %s, could not write appsFile, error: %s', me.host, me.name, error);
-						} else {
-							me.log.debug('Device: %s %s, appsFile saved successful in: %s %s', me.host, me.name, me.prefDir, JSON.stringify(data, null, 2));
-						}
-					});
+					if (fs.existsSync(me.appsFile) === false) {
+						fs.writeFile(me.appsFile, JSON.stringify(data, null, 2), (error) => {
+							if (error) {
+								me.log.error('Device: %s %s, could not write appsFile, error: %s', me.host, me.name, error);
+							} else {
+								me.log.debug('Device: %s %s, appsFile saved successful in: %s %s', me.host, me.name, me.prefDir, JSON.stringify(data, null, 2));
+							}
+						});
+					}
 				}
 			});
 
@@ -324,7 +334,7 @@ class lgwebosTvDevice {
 				let powerOn = (data.state === 'Active');
 				let state = (powerOn && (!pixelRefresh || !powerOff));
 				let powerState = me.supportOldWebOs ? !state : state;
-				if (!powerState && me.currentPowerState) {
+				if (!powerState) {
 					if (me.televisionService) {
 						me.televisionService.updateCharacteristic(Characteristic.Active, false);
 					}
@@ -332,13 +342,11 @@ class lgwebosTvDevice {
 					me.currentPowerState = false;
 					me.lgtv.disconnect();
 				} else {
-					if (powerState && !me.currentPowerState) {
-						if (me.televisionService) {
-							me.televisionService.updateCharacteristic(Characteristic.Active, true);
-						}
-						me.log.debug('Device: %s %s, get current Power state successful: %s', me.host, me.name, 'ON');
-						me.currentPowerState = true;
+					if (me.televisionService) {
+						me.televisionService.updateCharacteristic(Characteristic.Active, true);
 					}
+					me.log.debug('Device: %s %s, get current Power state successful: %s', me.host, me.name, 'ON');
+					me.currentPowerState = true;
 				}
 			}
 		});
@@ -400,10 +408,10 @@ class lgwebosTvDevice {
 				let volume = data.volume;
 				if (me.speakerService) {
 					me.speakerService.updateCharacteristic(Characteristic.Volume, volume);
-					if (me.volumeService && me.volumeControl === 1) {
+					if (me.volumeService && me.volumeControl == 1) {
 						me.volumeService.updateCharacteristic(Characteristic.Brightnes, volume);
 					}
-					if (me.volumeService && me.volumeControl === 2) {
+					if (me.volumeService && me.volumeControl == 2) {
 						me.volumeService.updateCharacteristic(Characteristic.RotationSpeed, volume);
 					}
 				}
@@ -480,19 +488,17 @@ class lgwebosTvDevice {
 	//Prepare volume service
 	prepareVolumeService() {
 		this.log.debug('prepareVolumeService');
-		this.volumeService = new Service.Lightbulb(this.name + ' Volume', 'volumeService');
-		if (this.volumeControl === 1) {
+		if (this.volumeControl == 1) {
 			this.volumeService = new Service.Lightbulb(this.name + ' Volume', 'volumeService');
 			this.volumeService.getCharacteristic(Characteristic.Brightness)
 				.on('get', this.getVolume.bind(this))
 				.on('set', this.setVolume.bind(this));
-		} else {
-			if (this.volumeControl === 2) {
-				this.volumeService = new Service.Fan(this.name + ' Volume', 'volumeService');
-				this.volumeService.getCharacteristic(Characteristic.RotationSpeed)
-					.on('get', this.getVolume.bind(this))
-					.on('set', this.setVolume.bind(this));
-			}
+		}
+		if (this.volumeControl == 2) {
+			this.volumeService = new Service.Fan(this.name + ' Volume', 'volumeService');
+			this.volumeService.getCharacteristic(Characteristic.RotationSpeed)
+				.on('get', this.getVolume.bind(this))
+				.on('set', this.setVolume.bind(this));
 		}
 		this.volumeService.getCharacteristic(Characteristic.On)
 			.on('get', this.getMuteSlider.bind(this))
@@ -574,7 +580,8 @@ class lgwebosTvDevice {
 		if (state && !me.currentPowerState) {
 			wol.wake(me.mac, (error) => {
 				if (error) {
-					me.log.error('Device: %s %s, can not set new Power state. Might be due to a wrong settings in config, error: %s', me.host, error);
+					me.log.error('Device: %s %s, can not set Power state ON. Might be due to a wrong settings in config, error: %s', me.host, error);
+					me.currentPowerState = false;
 				} else {
 					me.log.info('Device: %s %s, set new Power state successful: %s', me.host, me.name, 'ON');
 				}
@@ -584,6 +591,7 @@ class lgwebosTvDevice {
 			if (!state && me.currentPowerState) {
 				me.lgtv.request('ssap://system/turnOff', (error, data) => {
 					me.log.info('Device: %s %s, set new Power state successful: %s', me.host, me.name, 'OFF');
+					me.currentPowerState = false;
 					me.lgtv.disconnect();
 				});
 			}
@@ -607,8 +615,8 @@ class lgwebosTvDevice {
 
 	setMute(state, callback) {
 		var me = this;
+		let newState = state ? true : false;
 		if (me.currentPowerState) {
-			let newState = state ? true : false;
 			me.lgtv.request('ssap://audio/setMute', { mute: newState });
 			me.log.info('Device: %s %s, set new Mute state successful: %s', me.host, me.name, state ? 'ON' : 'OFF');
 			callback(null);
@@ -624,6 +632,10 @@ class lgwebosTvDevice {
 
 	setVolume(volume, callback) {
 		var me = this;
+		var targetVolume = volume;
+		if (volume == 0 || volume == 100) {
+			targetVolume = me.currentVolume;
+		}
 		me.lgtv.request('ssap://audio/setVolume', { volume: volume });
 		me.log.info('Device: %s %s, set new Volume level successful: %s', me.host, me.name, volume);
 		callback(null);
