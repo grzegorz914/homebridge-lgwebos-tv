@@ -782,7 +782,7 @@ class lgwebosTvDevice {
 					command = 'EXIT';
 					break;
 				case Characteristic.RemoteKey.PLAY_PAUSE:
-					command = me.isPaused ? 'PLAY' : 'PAUSE';
+					command = this.isPaused ? 'PLAY' : 'PAUSE';
 					this.isPaused = !this.isPaused;
 					break;
 				case Characteristic.RemoteKey.INFORMATION:
