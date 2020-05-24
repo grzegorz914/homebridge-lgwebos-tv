@@ -163,9 +163,10 @@ class lgwebosTvDevice {
 						this.log.info('Device: %s %s, state: Online.', this.host, this.name);
 						this.connectionStatus = true;
 						this.lgtv.connect(this.url);
-					}
-					if (isAlive && this.connectionStatus && this.currentPowerState) {
-						this.getDeviceState();
+					} else {
+						if (isAlive && this.connectionStatus && this.currentPowerState) {
+							this.getDeviceState();
+						}
 					}
 				}
 			});
@@ -173,13 +174,22 @@ class lgwebosTvDevice {
 
 		this.lgtv.on('connect', () => {
 			this.log.info('Device: %s %s, connected.', this.host, this.name);
-			this.getDeviceInfo();
-			this.getDeviceState();
-			this.connectToPointerInputSocket();
+			this.lgtv.request('ssap://com.webos.service.tvpower/power/getPowerState', (error, data) => {
+				if (error || (data && data.state && data.state === 'Active Standby')) {
+					this.log.debug('Device: %s %s, get current Power state successful: PIXEL REFRESH or OFF', this.host, this.name);
+					this.currentPowerState = false;
+					this.lgtv.disconnect();
+				} else {
+					this.log.info('Device: %s %s, get current Power state successful: ON', this.host, this.name);
+					this.currentPowerState = true;
+					this.getDeviceInfo();
+					this.connectToPointerInputSocket();
+				}
+			});
 		});
 
 		this.lgtv.on('close', () => {
-			this.log.debug('Device: %s %s, disconnected.', this.host, this.name);
+			this.log.info('Device: %s %s, disconnected.', this.host, this.name);
 			this.pointerInputSocket = null;
 			this.currentPowerState = false;
 		});
@@ -324,7 +334,7 @@ class lgwebosTvDevice {
 		me.log.debug('Device: %s %s, requesting Device state.', me.host, me.name);
 		me.lgtv.request('ssap://com.webos.service.tvpower/power/getPowerState', (error, data) => {
 			if (error) {
-				me.log.error('Device: %s %s, get current Power state error: %s.', me.host, me.name, error);
+				me.log.error('Device: %s %s, get current Power state error: %s %s.', me.host, me.name, error, data);
 			} else {
 				me.log.debug('Device: %s %s, get current Power state data: %s', me.host, me.name, data);
 				let prepareOff = (data.processing === 'Request Power Off' || data.processing === 'Request Active Standby' || data.processing === 'Request Suspend' || data.processing === 'Prepare Suspend');
@@ -336,19 +346,12 @@ class lgwebosTvDevice {
 				let powerOn = (data.state === 'Active' || screenSaver);
 				let state = (powerOn && (!pixelRefresh || !powerOff));
 				let powerState = me.supportOldWebOs ? !state : state;
-				if (!powerState) {
+				if (pixelRefresh) {
 					if (me.televisionService) {
 						me.televisionService.updateCharacteristic(Characteristic.Active, false);
 					}
-					me.log.debug('Device: %s %s, get current Power state successful: %s', me.host, me.name, pixelRefresh ? 'PIXEL REFRESH' : 'OFF');
-					me.currentPowerState = false;
+					me.log.debug('Device: %s %s, get current Power state successful: %s', me.host, me.name, 'PIXEL REFRESH');
 					me.lgtv.disconnect();
-				} else {
-					if (me.televisionService) {
-						me.televisionService.updateCharacteristic(Characteristic.Active, true);
-					}
-					me.log.debug('Device: %s %s, get current Power state successful: %s', me.host, me.name, 'ON');
-					me.currentPowerState = true;
 				}
 			}
 		});
@@ -602,8 +605,8 @@ class lgwebosTvDevice {
 			if (!state && me.currentPowerState) {
 				me.lgtv.request('ssap://system/turnOff', (error, data) => {
 					me.log.info('Device: %s %s, set new Power state successful: %s', me.host, me.name, 'OFF');
-					me.currentPowerState = false;
 					me.lgtv.disconnect();
+					me.currentPowerState = false;
 				});
 			}
 			callback(null);
@@ -656,7 +659,7 @@ class lgwebosTvDevice {
 
 	setInput(inputIdentifier, callback) {
 		var me = this;
-		let inputName = me.currentInputName;
+		let inputName = me.inputNames[inputIdentifier];
 		let inputReference = me.inputReferences[inputIdentifier];
 		setTimeout(() => {
 			me.lgtv.request('ssap://system.launcher/launch', { id: inputReference });
