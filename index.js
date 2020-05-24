@@ -362,7 +362,7 @@ class lgwebosTvDevice {
 				let channelName = data.channelName;
 				let channelReference = data.channelId;
 				let channelIdentifier = me.channelReferences.indexOf(channelReference);
-				if (me.televisionService) {
+				if (me.televisionService && (channelReference !== me.currentChannelReference)) {
 					//me.televisionService.updateCharacteristic(Characteristic.ActiveIdentifier, channelIdentifier);
 				}
 				me.log.debug('Device: %s %s, get current Channel successful: %s, %s, %s', me.host, me.name, channelNumber, channelName, channelReference);
@@ -381,7 +381,7 @@ class lgwebosTvDevice {
 				let inputReference = data.appId;
 				let inputIdentifier = me.inputReferences.indexOf(inputReference);
 				let inputName = me.inputNames[inputIdentifier];
-				if (me.televisionService) {
+				if (me.televisionService && (inputReference !== me.currentInputReference)) {
 					me.televisionService.updateCharacteristic(Characteristic.ActiveIdentifier, inputIdentifier);
 				}
 				me.log.debug('Device: %s %s, get current Input successful: %s %s', me.host, me.name, inputName, inputReference);
@@ -398,7 +398,7 @@ class lgwebosTvDevice {
 				me.log.debug('Device: %s %s, get current Audio state data: %s', me.host, me.name, data);
 				let mute = (data.mute === true);
 				let muteState = me.currentPowerState ? mute : true;
-				if (me.speakerService) {
+				if (me.speakerService && (muteState !== me.currentMuteState)) {
 					me.speakerService.updateCharacteristic(Characteristic.Mute, muteState);
 					if (me.volumeService && me.volumeControl >= 1) {
 						me.volumeService.updateCharacteristic(Characteristic.On, !muteState);
@@ -408,7 +408,7 @@ class lgwebosTvDevice {
 				me.currentMuteState = muteState;
 
 				let volume = data.volume;
-				if (me.speakerService) {
+				if (me.speakerService && (volume !== me.currentVolume)) {
 					me.speakerService.updateCharacteristic(Characteristic.Volume, volume);
 					if (me.volumeService && me.volumeControl == 1) {
 						me.volumeService.updateCharacteristic(Characteristic.Brightness, volume);
@@ -494,13 +494,19 @@ class lgwebosTvDevice {
 			this.volumeService = new Service.Lightbulb(this.name + ' Volume', 'volumeService');
 			this.volumeService.getCharacteristic(Characteristic.Brightness)
 				.on('get', this.getVolume.bind(this))
-				.on('set', this.setVolume.bind(this));
+				.on('set', (volume, callback) => {
+					this.speakerService.setCharacteristic(Characteristic.Volume, volume);
+					callback(null);
+				});
 		}
 		if (this.volumeControl == 2) {
 			this.volumeService = new Service.Fan(this.name + ' Volume', 'volumeService');
 			this.volumeService.getCharacteristic(Characteristic.RotationSpeed)
 				.on('get', this.getVolume.bind(this))
-				.on('set', this.setVolume.bind(this));
+				.on('set', (volume, callback) => {
+					this.speakerService.setCharacteristic(Characteristic.Volume, volume);
+					callback(null);
+				});
 		}
 		this.volumeService.getCharacteristic(Characteristic.On)
 			.on('get', (callback) => {
