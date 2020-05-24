@@ -328,10 +328,12 @@ class lgwebosTvDevice {
 			} else {
 				me.log.debug('Device: %s %s, get current Power state data: %s', me.host, me.name, data);
 				let prepareOff = (data.processing === 'Request Power Off' || data.processing === 'Request Active Standby' || data.processing === 'Request Suspend' || data.processing === 'Prepare Suspend');
+				let prepareScreenSaver = (data.processing === 'Screen Saver Ready');
+				let screenSaver = (data.state === 'Screen Saver');
 				let pixelRefresh = (data.state === 'Active Standby');
 				let powerOff = (data.state === 'Suspend');
 				let prepareOn = (data.processing === 'Screen On' || data.processing === 'Request Screen Saver');
-				let powerOn = (data.state === 'Active');
+				let powerOn = (data.state === 'Active' || screenSaver);
 				let state = (powerOn && (!pixelRefresh || !powerOff));
 				let powerState = me.supportOldWebOs ? !state : state;
 				if (!powerState) {
@@ -409,7 +411,7 @@ class lgwebosTvDevice {
 				if (me.speakerService) {
 					me.speakerService.updateCharacteristic(Characteristic.Volume, volume);
 					if (me.volumeService && me.volumeControl == 1) {
-						me.volumeService.updateCharacteristic(Characteristic.Brightnes, volume);
+						me.volumeService.updateCharacteristic(Characteristic.Brightness, volume);
 					}
 					if (me.volumeService && me.volumeControl == 2) {
 						me.volumeService.updateCharacteristic(Characteristic.RotationSpeed, volume);
@@ -580,7 +582,7 @@ class lgwebosTvDevice {
 		if (state && !me.currentPowerState) {
 			wol.wake(me.mac, (error) => {
 				if (error) {
-					me.log.error('Device: %s %s, can not set Power state ON. Might be due to a wrong settings in config, error: %s', me.host, error);
+					me.log.error('Device: %s %s, can not set Power state ON. Might be due to a wrong settings in config, error: %s', me.host);
 					me.currentPowerState = false;
 				} else {
 					me.log.info('Device: %s %s, set new Power state successful: %s', me.host, me.name, 'ON');
