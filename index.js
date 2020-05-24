@@ -169,7 +169,7 @@ class lgwebosTvDevice {
 					}
 				}
 			});
-		}.bind(this), 2000);
+		}.bind(this), 2500);
 
 		this.lgtv.on('connect', () => {
 			this.log.info('Device: %s %s, connected.', this.host, this.name);
@@ -503,9 +503,12 @@ class lgwebosTvDevice {
 				.on('set', this.setVolume.bind(this));
 		}
 		this.volumeService.getCharacteristic(Characteristic.On)
-			.on('get', this.getMuteSlider.bind(this))
-			.on('set', (newValue, callback) => {
-				this.speakerService.setCharacteristic(Characteristic.Mute, !newValue);
+			.on('get', (callback) => {
+				let state = !this.currentMuteState;
+				callback(null, state);
+			})
+			.on('set', (state, callback) => {
+				this.speakerService.setCharacteristic(Characteristic.Mute, !state);
 				callback(null);
 			});
 
@@ -608,17 +611,10 @@ class lgwebosTvDevice {
 		callback(null, state);
 	}
 
-	getMuteSlider(callback) {
-		var me = this;
-		let state = me.currentPowerState ? !me.currentMuteState : false;
-		me.log.debug('Device: %s %s, get current Mute state successful: %s', me.host, me.name, !state ? 'ON' : 'OFF');
-		callback(null, state);
-	}
-
 	setMute(state, callback) {
 		var me = this;
 		let newState = state ? true : false;
-		if (me.currentPowerState) {
+		if (me.currentPowerState && state !== me.currentMuteState) {
 			me.lgtv.request('ssap://audio/setMute', { mute: newState });
 			me.log.info('Device: %s %s, set new Mute state successful: %s', me.host, me.name, state ? 'ON' : 'OFF');
 			callback(null);
@@ -634,9 +630,8 @@ class lgwebosTvDevice {
 
 	setVolume(volume, callback) {
 		var me = this;
-		var targetVolume = volume;
 		if (volume == 0 || volume == 100) {
-			targetVolume = me.currentVolume;
+			volume = me.currentVolume;
 		}
 		me.lgtv.request('ssap://audio/setVolume', { volume: volume });
 		me.log.info('Device: %s %s, set new Volume level successful: %s', me.host, me.name, volume);
