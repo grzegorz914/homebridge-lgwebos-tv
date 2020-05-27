@@ -46,7 +46,8 @@ Due to HomeKit app limitation max. services for 1 accessory is 100. Over this va
 2. All inputs reference and name can be found in: `homebridge_directory/lgwebosTv/apps_19216818` where `name == title` and `reference == id`
 3. In `volumeControl` You can select what a additional volume control type You want to use (None, Slider, Fan). This not working with HDMI ARC control.
 4. If `switchInfoMenu` is enabled, `I` button change its behaviour in RC app between Menu and INFO.
-5. If `supportOldWebOs` is enable, U can use old webOS TV =< 2.0.
+5. In `type` select source input type.
+6. In `mode` select what a input mode You defined, select `Apps` if You defined some input reference, select `Live TV` if You defined channel reference.
 
 <p align="left">
   <a href="https://github.com/grzegorz914/homebridge-lgwebos-tv"><img src="https://raw.githubusercontent.com/grzegorz914/homebridge-lgwebos-tv/master/graphics/ustawienia.png" height="150"></a>
@@ -62,47 +63,54 @@ Due to HomeKit app limitation max. services for 1 accessory is 100. Over this va
             "mac": "ab:cd:ef:fe:dc:ba",
             "volumeControl": 0,
             "switchInfoMenu": false,
-            "supportOldWebOs": false,
             "inputs": [
                    {
-                            "name": "Live TV",
-                            "reference": "com.webos.app.livetv",
-                            "type": "TUNER"
+                      "name": "Live TV",
+                      "reference": "com.webos.app.livetv",
+                      "type": "TUNER",
+                      "mode": 0
                   },
                   {
-                            "name": "HDMI 1",
-                            "reference": "com.webos.app.hdmi1",
-                            "type": "HDMI"
+                      "name": "HDMI 1",
+                      "reference": "com.webos.app.hdmi1",
+                      "type": "HDMI",
+                      "mode": 0
                  },
                  {
-                            "name": "HDMI 2",
-                            "reference": "com.webos.app.hdmi2",
-                            "type": "HDMI"
+                      "name": "HDMI 2",
+                      "reference": "com.webos.app.hdmi2",
+                      "type": "HDMI",
+                      "mode": 0
                 },
                 {
                     "name": "HDMI 3",
                     "reference": "com.webos.app.hdmi3",
-                     "type": "HDMI"
+                    "type": "HDMI",
+                    "mode": 0
                 },
                 {
                     "name": "HDMI 4",
                     "reference": "com.webos.app.hdmi4",
-                     "type": "HDMI"
+                    "type": "HDMI",
+                    "mode": 0
                 },
                 {
                     "name": "Netflix",
                     "reference": "netflix",
-                     "type": "APPLICATION"
+                    "type": "APPLICATION",
+                    "mode": 0
                 },
                 {
                     "name": "YouTube",
                     "reference": "youtube.leanback.v4",
-                     "type": "APPLICATION"
+                    "type": "APPLICATION",
+                    "mode": 0
                 },
                 {
                     "name": "LG Store",
                     "reference": "com.webos.app.discovery",
-                     "type": "APPLICATION"
+                    "type": "APPLICATION",
+                    "mode": 0
                 }
             ]
         }

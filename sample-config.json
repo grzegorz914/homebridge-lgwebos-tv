@@ -24,47 +24,54 @@
                     "mac": "ab:cd:ef:fe:dc:ba",
                     "volumeControl": 0,
                     "switchInfoMenu": false,
-                    "supportOldWebOs": false,
                     "inputs": [
                         {
                             "name": "Live TV",
                             "reference": "com.webos.app.livetv",
-                            "type": "TUNER"
+                            "type": "TUNER",
+                            "mode": 0
                         },
                         {
                             "name": "HDMI 1",
                             "reference": "com.webos.app.hdmi1",
-                            "type": "HDMI"
+                            "type": "HDMI",
+                            "mode": 0
                         },
                         {
                             "name": "HDMI 2",
                             "reference": "com.webos.app.hdmi2",
-                            "type": "HDMI"
+                            "type": "HDMI",
+                            "mode": 0
                         },
                         {
                             "name": "HDMI 3",
                             "reference": "com.webos.app.hdmi3",
-                            "type": "HDMI"
+                            "type": "HDMI",
+                            "mode": 0
                         },
                         {
                             "name": "HDMI 4",
                             "reference": "com.webos.app.hdmi4",
-                            "type": "HDMI"
+                            "type": "HDMI",
+                            "mode": 0
                         },
                         {
                             "name": "Netflix",
                             "reference": "netflix",
-                            "type": "APPLICATION"
+                            "type": "APPLICATION",
+                            "mode": 0
                         },
                         {
                             "name": "YouTube",
                             "reference": "youtube.leanback.v4",
-                            "type": "APPLICATION"
+                            "type": "APPLICATION",
+                            "mode": 0
                         },
                         {
                             "name": "LG Store",
                             "reference": "com.webos.app.discovery",
-                            "type": "APPLICATION"
+                            "type": "APPLICATION",
+                            "mode": 0
                         }
                     ]
                 }

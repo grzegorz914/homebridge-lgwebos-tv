@@ -67,13 +67,6 @@
               "required": false,
               "description": "This toggle behaviour for *I* button in RC app and *PowerModeSelection* in settings."
             },
-            "supportOldWebOs": {
-              "title": "Old webOS support",
-              "type": "boolean",
-              "default": false,
-              "required": false,
-              "description": "This activate support for older LG webOS TV."
-            },
             "inputs": {
               "title": "Inputs",
               "buttonText": "Add input",
@@ -164,6 +157,28 @@
                         "title": "Application",
                         "enum": [
                           "APPLICATION"
+                        ]
+                      }
+                    ],
+                    "required": true
+                  },
+                  "mode": {
+                    "title": "Input mode",
+                    "type": "integer",
+                    "default": 0,
+                    "maximum": 1,
+                    "description": "Here select what a input mode You defined.",
+                    "oneOf": [
+                      {
+                        "title": "Apps",
+                        "enum": [
+                          0
+                        ]
+                      },
+                      {
+                        "title": "Live TV",
+                        "enum": [
+                          1
                         ]
                       }
                     ],
