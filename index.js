@@ -172,11 +172,12 @@ class lgwebosTvDevice {
 			this.lgtv.request('ssap://com.webos.service.tvpower/power/getPowerState', (error, data) => {
 				if (error || (data && data.state && data.state === 'Active Standby')) {
 					this.log.debug('Device: %s %s, get current Power state successful: PIXEL REFRESH or OFF', this.host, this.name);
-					this.connectionStatus = false;
+					this.currentPowerState = false;
 					this.lgtv.disconnect();
 				} else {
 					this.log.info('Device: %s %s, get current Power state successful: ON', this.host, this.name);
 					this.connectionStatus = true;
+					this.currentPowerState = true;
 					this.getDeviceInfo();
 					this.getDeviceState();
 					this.connectToPointerInputSocket();
