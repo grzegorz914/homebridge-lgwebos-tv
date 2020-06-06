@@ -187,9 +187,11 @@ class lgwebosTvDevice {
 
 		this.lgtv.on('close', () => {
 			this.log.info('Device: %s %s, disconnected.', this.host, this.name);
-			this.televisionService.updateCharacteristic(Characteristic.Active, 0);
 			this.pointerInputSocket = null;
 			this.currentPowerState = false;
+			if (this.televisionService) {
+			this.televisionService.updateCharacteristic(Characteristic.Active, 0);
+			}
 		});
 
 		this.lgtv.on('error', (error) => {
