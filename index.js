@@ -562,6 +562,9 @@ class lgwebosTvDevice {
 
 			//get input mode
 			let inputMode = input.mode;
+			if (inputMode = 1) {
+                            inputName = this.currentChannelName;
+			}
 
 			this.inputsService = new Service.InputSource(inputReference, 'input' + i);
 			this.inputsService
@@ -690,7 +693,7 @@ class lgwebosTvDevice {
 		}, 250);
 		if (inputMode == 1) {
 			setTimeout(() => {
-				me.lgtv.request('ssap://tv/openChannel', { channelNumber: channelReference });
+				me.lgtv.request('ssap://tv/openChannel', { channelId: channelReference });
 				me.log.info('Device: %s %s, set new Input successful: %s %s %s', me.host, me.name, inputNumber, inputName, channelReference);
 			}, 500);
 		}
