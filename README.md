@@ -111,6 +111,12 @@ Due to HomeKit app limitation max. services for 1 accessory is 100. Over this va
                     "reference": "com.webos.app.discovery",
                     "type": "APPLICATION",
                     "mode": 0
+                },
+                {
+                    "name": "HotBird 4K1",
+                    "reference": "7_30_585_0_700_17_318",
+                    "type": "TUNER",
+                    "mode": 1
                 }
             ]
         }

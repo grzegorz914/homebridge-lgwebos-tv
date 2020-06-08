@@ -1,5 +1,9 @@
 # Change Log
 All notable changes to this project will be documented in this file.
+## 0.12.0 (08.06.2020)
+- added possibility to switch LiveTV channels from the inputs list
+- other fixes
+
 ## 0.11.0 (23.05.2020)
 - added possibility to select what a type of extra volume control You want to use (None, Slider, Fan)
 
