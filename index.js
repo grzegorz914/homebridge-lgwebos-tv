@@ -187,7 +187,9 @@ class lgwebosTvDevice {
 
 		this.lgtv.on('close', () => {
 			this.log.info('Device: %s %s, disconnected.', this.host, this.name);
+                      if (this.televisionService) {
 			this.televisionService.updateCharacteristic(Characteristic.Active, 0);
+                      }
 			this.pointerInputSocket = null;
 			this.currentPowerState = false;
 		});
@@ -560,6 +562,9 @@ class lgwebosTvDevice {
 
 			//get input mode
 			let inputMode = input.mode;
+			if (this.currentInputMode = 1) {
+                            inputName = this.currentChannelName;
+			}
 
 			this.inputsService = new Service.InputSource(inputReference, 'input' + i);
 			this.inputsService
@@ -688,7 +693,7 @@ class lgwebosTvDevice {
 		}, 250);
 		if (inputMode == 1) {
 			setTimeout(() => {
-				me.lgtv.request('ssap://tv/openChannel', { channelNumber: channelReference });
+				me.lgtv.request('ssap://tv/openChannel', { channelId: channelReference });
 				me.log.info('Device: %s %s, set new Input successful: %s %s %s', me.host, me.name, inputNumber, inputName, channelReference);
 			}, 500);
 		}
