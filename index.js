@@ -308,6 +308,7 @@ class lgwebosTvDevice {
 				me.log('----------------------------------');
 			}, 350);
 		}, 350);
+		me.getDeviceState();
 	}
 
 	getDeviceState() {
