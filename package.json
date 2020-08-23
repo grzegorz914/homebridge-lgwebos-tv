@@ -1,6 +1,6 @@
 {
   "name": "homebridge-lgwebos-tv",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Homebridge plugin (https://github.com/homebridge/homebridge) to control LG WebOS TV.",
   "license": "MIT",
   "author": "grzegorz914",
@@ -13,9 +13,9 @@
     "url": "https://github.com/grzegorz914/homebridge-lgwebos-tv/issues"
   },
   "funding": {
-    "type" : "paypal",
-    "url" : "https://paypal.me/GrzegorzKaczor"
-    },
+    "type": "paypal",
+    "url": "https://paypal.me/GrzegorzKaczor"
+  },
   "main": "index.js",
   "files": [
     "index.js",
