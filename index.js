@@ -155,11 +155,10 @@ class lgwebosTvDevice {
 					this.lgtv.disconnect();
 				} else {
 					if (isAlive && !this.connectionStatus) {
-						this.log.info('Device: %s %s, state: Online.', this.host, this.name);
 						this.lgtv.connect(this.url);
 					} else {
-						if (isAlive && this.connectionStatus && this.currentPowerState) {
-							this.getDeviceState();
+						if (isAlive && this.connectionStatus) {
+							this.updateDeviceState();
 						}
 					}
 				}
@@ -175,10 +174,8 @@ class lgwebosTvDevice {
 					this.lgtv.disconnect();
 				} else {
 					this.log.info('Device: %s %s, get current Power state successful: ON', this.host, this.name);
-					this.connectionStatus = true;
 					this.currentPowerState = true;
 					this.getDeviceInfo();
-					this.getDeviceState();
 					this.connectToPointerInputSocket();
 				}
 			});
@@ -297,20 +294,24 @@ class lgwebosTvDevice {
 					}
 				}
 			});
-
-			setTimeout(() => {
-				me.log('-------- %s --------', me.name);
-				me.log('Manufacturer: %s', me.manufacturer);
-				me.log('Model: %s', me.modelName);
-				me.log('System: %s', me.productName);
-				me.log('Serialnr: %s', me.serialNumber);
-				me.log('Firmware: %s', me.firmwareRevision);
-				me.log('----------------------------------');
-			}, 350);
+			me.log.info('Device: %s %s, state: Online.', me.host, me.name);
+			let manufacturer = me.manufacturer;
+			let modelName = me.modelName;
+			let productName = me.productName;
+			let serialNumber = me.serialNumber;
+			let firmwareRevision = me.firmwareRevision;
+			me.log('-------- %s --------', me.name);
+			me.log('Manufacturer: %s', manufacturer);
+			me.log('Model: %s', modelName);
+			me.log('System: %s', productName);
+			me.log('Serialnr: %s', serialNumber);
+			me.log('Firmware: %s', firmwareRevision);
+			me.log('----------------------------------');
+			me.connectionStatus = true;
 		}, 350);
 	}
 
-	getDeviceState() {
+	updateDeviceState() {
 		var me = this;
 		me.log.debug('Device: %s %s, requesting Device state.', me.host, me.name);
 		me.lgtv.request('ssap://com.webos.service.tvpower/power/getPowerState', (error, data) => {
