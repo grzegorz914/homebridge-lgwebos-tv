@@ -79,7 +79,11 @@
                             "type": "TUNER",
                             "mode": 1
                         }
-                    ]
+                    ],
+                    "manufacturer": "Manufacturer",
+                    "modelName": "Model",
+                    "serialNumber": "Serial Number",
+                    "firmwareRevision": "Firmware Revision"
                 }
             ]
         }
