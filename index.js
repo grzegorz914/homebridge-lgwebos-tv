@@ -74,9 +74,9 @@ class lgwebosTvDevice {
 
 		//device info
 		this.manufacturer = config.manufacturer || 'LG Electronics';
-		this.modelName = config.modelName || PLUGIN_NAME;
-		this.serialNumber = config.serialNumber || 'SN0000004';
-		this.firmwareRevision = config.firmwareRevision || 'FW0000004';
+		this.modelName = config.modelName || 'Model Name';
+		this.serialNumber = config.serialNumber || 'Serial Number';
+		this.firmwareRevision = config.firmwareRevision || 'Firmware Revision';
 
 		//setup variables
 		this.connectionStatus = false;

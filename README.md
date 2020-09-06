@@ -118,7 +118,12 @@ Due to HomeKit app limitation max. services for 1 accessory is 100. Over this va
                     "type": "TUNER",
                     "mode": 1
                 }
-            ]
+            ],
+          "manufacturer": "Manufacturer",
+          "modelName": "Model",
+          "serialNumber": "Serial Number",
+          "firmwareRevision": "Firmware Revision"
+      }
         }
     ]
 }
