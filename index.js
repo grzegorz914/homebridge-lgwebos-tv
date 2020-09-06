@@ -220,80 +220,80 @@ class lgwebosTvDevice {
 
 	getDeviceInfo() {
 		var me = this;
+		me.log.debug('Device: %s %s, requesting Device information.', me.host, me.name);
+		me.lgtv.request('ssap://system/getSystemInfo', (error, data) => {
+			if (error || data.errorCode) {
+				me.log.debug('Device: %s %s, get System info error: %s', me.host, me.name, error);
+			} else {
+				delete data['returnValue'];
+				me.manufacturer = 'LG Electronics';
+				me.modelName = data.modelName;
+				if (fs.existsSync(me.systemFile) === false) {
+					fs.writeFile(me.systemFile, JSON.stringify(data, null, 2), (error) => {
+						if (error) {
+							me.log.error('Device: %s %s, could not write systemFile, error: %s', me.host, me.name, error);
+						} else {
+							me.log.debug('Device: %s %s, systemFile saved successful in: %s %s', me.host, me.name, me.prefDir, JSON.stringify(data, null, 2));
+						}
+					});
+				}
+			}
+		});
+
+		me.lgtv.request('ssap://com.webos.service.update/getCurrentSWInformation', (error, data) => {
+			if (error || data.errorCode) {
+				me.log.debug('Device: %s %s, get Software info error: %s', me.host, me.name, error);
+			} else {
+				delete data['returnValue'];
+				me.productName = data.product_name;
+				me.serialNumber = data.device_id;
+				me.firmwareRevision = data.minor_ver;
+				if (fs.existsSync(me.softwareFile) === false) {
+					fs.writeFile(me.softwareFile, JSON.stringify(data, null, 2), (error) => {
+						if (error) {
+							me.log.error('Device: %s %s, could not write softwareFile, error: %s', me.host, me.name, error);
+						} else {
+							me.log.debug('Device: %s %s, softwareFile saved successful in: %s %s', me.host, me.name, me.prefDir, JSON.stringify(data, null, 2));
+						}
+					});
+				}
+			}
+		});
+
+		me.lgtv.request('ssap://api/getServiceList', (error, data) => {
+			if (error || data.errorCode) {
+				me.log.debug('Device: %s %s, get Services list error: %s', me.host, error);
+			} else {
+				delete data['returnValue'];
+				if (fs.existsSync(me.servicesFile) === false) {
+					fs.writeFile(me.servicesFile, JSON.stringify(data, null, 2), (error) => {
+						if (error) {
+							me.log.error('Device: %s %s, could not write servicesFile, error: %s', me.host, error);
+						} else {
+							me.log.debug('Device: %s %s, servicesFile saved successful in: %s %s', me.host, me.name, me.prefDir, JSON.stringify(data, null, 2));
+						}
+					});
+				}
+			}
+		});
+
+		me.lgtv.request('ssap://com.webos.applicationManager/listApps', (error, data) => {
+			if (error || data.errorCode) {
+				me.log.debug('Device: %s %s, get Apps list error: %s', me.host, me.name, error);
+			} else {
+				delete data['returnValue'];
+				if (fs.existsSync(me.appsFile) === false) {
+					fs.writeFile(me.appsFile, JSON.stringify(data, null, 2), (error) => {
+						if (error) {
+							me.log.error('Device: %s %s, could not write appsFile, error: %s', me.host, me.name, error);
+						} else {
+							me.log.debug('Device: %s %s, appsFile saved successful in: %s %s', me.host, me.name, me.prefDir, JSON.stringify(data, null, 2));
+						}
+					});
+				}
+			}
+		});
 		setTimeout(() => {
-			me.log.debug('Device: %s %s, requesting Device information.', me.host, me.name);
-			me.lgtv.request('ssap://system/getSystemInfo', (error, data) => {
-				if (error || data.errorCode) {
-					me.log.debug('Device: %s %s, get System info error: %s', me.host, me.name, error);
-				} else {
-					delete data['returnValue'];
-					me.manufacturer = 'LG Electronics';
-					me.modelName = data.modelName;
-					if (fs.existsSync(me.systemFile) === false) {
-						fs.writeFile(me.systemFile, JSON.stringify(data, null, 2), (error) => {
-							if (error) {
-								me.log.error('Device: %s %s, could not write systemFile, error: %s', me.host, me.name, error);
-							} else {
-								me.log.debug('Device: %s %s, systemFile saved successful in: %s %s', me.host, me.name, me.prefDir, JSON.stringify(data, null, 2));
-							}
-						});
-					}
-				}
-			});
-
-			me.lgtv.request('ssap://com.webos.service.update/getCurrentSWInformation', (error, data) => {
-				if (error || data.errorCode) {
-					me.log.debug('Device: %s %s, get Software info error: %s', me.host, me.name, error);
-				} else {
-					delete data['returnValue'];
-					me.productName = data.product_name;
-					me.serialNumber = data.device_id;
-					me.firmwareRevision = data.minor_ver;
-					if (fs.existsSync(me.softwareFile) === false) {
-						fs.writeFile(me.softwareFile, JSON.stringify(data, null, 2), (error) => {
-							if (error) {
-								me.log.error('Device: %s %s, could not write softwareFile, error: %s', me.host, me.name, error);
-							} else {
-								me.log.debug('Device: %s %s, softwareFile saved successful in: %s %s', me.host, me.name, me.prefDir, JSON.stringify(data, null, 2));
-							}
-						});
-					}
-				}
-			});
-
-			me.lgtv.request('ssap://api/getServiceList', (error, data) => {
-				if (error || data.errorCode) {
-					me.log.debug('Device: %s %s, get Services list error: %s', me.host, error);
-				} else {
-					delete data['returnValue'];
-					if (fs.existsSync(me.servicesFile) === false) {
-						fs.writeFile(me.servicesFile, JSON.stringify(data, null, 2), (error) => {
-							if (error) {
-								me.log.error('Device: %s %s, could not write servicesFile, error: %s', me.host, error);
-							} else {
-								me.log.debug('Device: %s %s, servicesFile saved successful in: %s %s', me.host, me.name, me.prefDir, JSON.stringify(data, null, 2));
-							}
-						});
-					}
-				}
-			});
-
-			me.lgtv.request('ssap://com.webos.applicationManager/listApps', (error, data) => {
-				if (error || data.errorCode) {
-					me.log.debug('Device: %s %s, get Apps list error: %s', me.host, me.name, error);
-				} else {
-					delete data['returnValue'];
-					if (fs.existsSync(me.appsFile) === false) {
-						fs.writeFile(me.appsFile, JSON.stringify(data, null, 2), (error) => {
-							if (error) {
-								me.log.error('Device: %s %s, could not write appsFile, error: %s', me.host, me.name, error);
-							} else {
-								me.log.debug('Device: %s %s, appsFile saved successful in: %s %s', me.host, me.name, me.prefDir, JSON.stringify(data, null, 2));
-							}
-						});
-					}
-				}
-			});
 			me.log.info('Device: %s %s, state: Online.', me.host, me.name);
 			let manufacturer = me.manufacturer;
 			let modelName = me.modelName;
