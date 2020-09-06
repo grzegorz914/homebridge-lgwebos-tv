@@ -308,7 +308,6 @@ class lgwebosTvDevice {
 				me.log('----------------------------------');
 			}, 350);
 		}, 350);
-		me.getDeviceState();
 	}
 
 	getDeviceState() {
@@ -421,7 +420,6 @@ class lgwebosTvDevice {
 			.setCharacteristic(Characteristic.SerialNumber, this.serialNumber)
 			.setCharacteristic(Characteristic.FirmwareRevision, this.firmwareRevision);
 
-
 		this.televisionService = new Service.Television(accessoryName, 'televisionService');
 		this.televisionService.setCharacteristic(Characteristic.ConfiguredName, accessoryName);
 		this.televisionService.setCharacteristic(Characteristic.SleepDiscoveryMode, Characteristic.SleepDiscoveryMode.ALWAYS_DISCOVERABLE);
@@ -441,6 +439,7 @@ class lgwebosTvDevice {
 			.on('set', this.setPowerModeSelection.bind(this));
 
 		this.accessory.addService(this.televisionService);
+
 		this.prepareSpeakerService();
 		if (this.volumeControl >= 1) {
 			this.prepareVolumeService();
@@ -558,12 +557,13 @@ class lgwebosTvDevice {
 					});
 					callback(null);
 				});
-			this.accessory.addService(this.inputsService);
-			this.televisionService.addLinkedService(this.inputsService);
 			this.inputNames.push(inputName);
 			this.inputReferences.push(inputReference);
 			this.inputTypes.push(inputType);
 			this.inputModes.push(inputMode);
+
+			this.accessory.addService(this.inputsService);
+			this.televisionService.addLinkedService(this.inputsService);
 		});
 	}
 
