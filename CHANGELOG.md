@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.1.0] - (06.09.2020)
 ## Changs
-- completly reconfigured layout of config schema
+- completely reconfigured layout of config schema
 
 ## [1.0.0] - (28.06.2020)
 ### Added
