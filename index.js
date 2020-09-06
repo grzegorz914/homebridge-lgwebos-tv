@@ -461,7 +461,11 @@ class lgwebosTvDevice {
 				} else {
 					me.modelName = me.modelName;
 				};
-				let system = me.system;
+				if (typeof me.system !== 'undefined') {
+					me.system = me.system;
+				} else {
+					me.system = 'System';
+				};
 				if (typeof me.serial !== 'undefined') {
 					me.serialNumber = me.serial;
 				} else {
@@ -475,7 +479,7 @@ class lgwebosTvDevice {
 				me.log('-------- %s --------', me.name);
 				me.log('Manufacturer: %s', manufacturer);
 				me.log('Model: %s', me.modelName);
-				me.log('System: %s', system);
+				me.log('System: %s', me.system);
 				me.log('Serialnr: %s', me.serialNumber);
 				me.log('Firmware: %s', me.firmwareRevision);
 				me.log('----------------------------------');
