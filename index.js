@@ -204,8 +204,7 @@ class lgwebosTvDevice {
 			this.connectionStatus = false;
 		});
 
-		//Delay to wait for device info before publish
-		setTimeout(this.prepareTelevisionService.bind(this), 500);
+		this.prepareTelevisionService();
 	}
 
 	connectToPointerInputSocket() {
@@ -214,195 +213,6 @@ class lgwebosTvDevice {
 			if (!error) {
 				this.pointerInputSocket = sock;
 				this.log.info('Device: %s %s, RC socket connected.', this.host, this.name);
-			}
-		});
-	}
-
-	getDeviceInfo() {
-		var me = this;
-		me.log.debug('Device: %s %s, requesting Device information.', me.host, me.name);
-		me.lgtv.request('ssap://system/getSystemInfo', (error, data) => {
-			if (error || data.errorCode) {
-				me.log.debug('Device: %s %s, get System info error: %s', me.host, me.name, error);
-			} else {
-				delete data['returnValue'];
-				me.manufacturer = 'LG Electronics';
-				me.modelName = data.modelName;
-				if (fs.existsSync(me.systemFile) === false) {
-					fs.writeFile(me.systemFile, JSON.stringify(data, null, 2), (error) => {
-						if (error) {
-							me.log.error('Device: %s %s, could not write systemFile, error: %s', me.host, me.name, error);
-						} else {
-							me.log.debug('Device: %s %s, systemFile saved successful in: %s %s', me.host, me.name, me.prefDir, JSON.stringify(data, null, 2));
-						}
-					});
-				}
-			}
-		});
-
-		me.lgtv.request('ssap://com.webos.service.update/getCurrentSWInformation', (error, data) => {
-			if (error || data.errorCode) {
-				me.log.debug('Device: %s %s, get Software info error: %s', me.host, me.name, error);
-			} else {
-				delete data['returnValue'];
-				me.productName = data.product_name;
-				me.serialNumber = data.device_id;
-				me.firmwareRevision = data.minor_ver;
-				if (fs.existsSync(me.softwareFile) === false) {
-					fs.writeFile(me.softwareFile, JSON.stringify(data, null, 2), (error) => {
-						if (error) {
-							me.log.error('Device: %s %s, could not write softwareFile, error: %s', me.host, me.name, error);
-						} else {
-							me.log.debug('Device: %s %s, softwareFile saved successful in: %s %s', me.host, me.name, me.prefDir, JSON.stringify(data, null, 2));
-						}
-					});
-				}
-			}
-		});
-
-		me.lgtv.request('ssap://api/getServiceList', (error, data) => {
-			if (error || data.errorCode) {
-				me.log.debug('Device: %s %s, get Services list error: %s', me.host, error);
-			} else {
-				delete data['returnValue'];
-				if (fs.existsSync(me.servicesFile) === false) {
-					fs.writeFile(me.servicesFile, JSON.stringify(data, null, 2), (error) => {
-						if (error) {
-							me.log.error('Device: %s %s, could not write servicesFile, error: %s', me.host, error);
-						} else {
-							me.log.debug('Device: %s %s, servicesFile saved successful in: %s %s', me.host, me.name, me.prefDir, JSON.stringify(data, null, 2));
-						}
-					});
-				}
-			}
-		});
-
-		me.lgtv.request('ssap://com.webos.applicationManager/listApps', (error, data) => {
-			if (error || data.errorCode) {
-				me.log.debug('Device: %s %s, get Apps list error: %s', me.host, me.name, error);
-			} else {
-				delete data['returnValue'];
-				if (fs.existsSync(me.appsFile) === false) {
-					fs.writeFile(me.appsFile, JSON.stringify(data, null, 2), (error) => {
-						if (error) {
-							me.log.error('Device: %s %s, could not write appsFile, error: %s', me.host, me.name, error);
-						} else {
-							me.log.debug('Device: %s %s, appsFile saved successful in: %s %s', me.host, me.name, me.prefDir, JSON.stringify(data, null, 2));
-						}
-					});
-				}
-			}
-		});
-		setTimeout(() => {
-			me.log.info('Device: %s %s, state: Online.', me.host, me.name);
-			let manufacturer = me.manufacturer;
-			let modelName = me.modelName;
-			let productName = me.productName;
-			let serialNumber = me.serialNumber;
-			let firmwareRevision = me.firmwareRevision;
-			me.log('-------- %s --------', me.name);
-			me.log('Manufacturer: %s', manufacturer);
-			me.log('Model: %s', modelName);
-			me.log('System: %s', productName);
-			me.log('Serialnr: %s', serialNumber);
-			me.log('Firmware: %s', firmwareRevision);
-			me.log('----------------------------------');
-			me.connectionStatus = true;
-		}, 350);
-	}
-
-	updateDeviceState() {
-		var me = this;
-		me.log.debug('Device: %s %s, requesting Device state.', me.host, me.name);
-		me.lgtv.request('ssap://com.webos.service.tvpower/power/getPowerState', (error, data) => {
-			if (error) {
-				me.log.error('Device: %s %s, get current Power state error: %s %s.', me.host, me.name, error, data);
-			} else {
-				me.log.debug('Device: %s %s, get current Power state data: %s', me.host, me.name, data);
-				let prepareOff = (data.processing === 'Request Power Off' || data.processing === 'Request Active Standby' || data.processing === 'Request Suspend' || data.processing === 'Prepare Suspend');
-				let prepareScreenSaver = (data.processing === 'Screen Saver Ready');
-				let screenSaver = (data.state === 'Screen Saver');
-				let pixelRefresh = (data.state === 'Active Standby');
-				let powerOff = (data.state === 'Suspend');
-				let prepareOn = (data.processing === 'Screen On' || data.processing === 'Request Screen Saver');
-				let powerOn = (data.state === 'Active' || screenSaver);
-				let state = (powerOn && !pixelRefresh);
-				if (state) {
-					if (me.televisionService) {
-						me.televisionService.updateCharacteristic(Characteristic.Active, 1);
-					}
-					me.log.debug('Device: %s %s, get current Power state successful: %s', me.host, me.name, 'ON');
-				} else {
-					if (me.televisionService) {
-						me.televisionService.updateCharacteristic(Characteristic.Active, 0);
-					}
-					me.log.debug('Device: %s %s, get current Power state successful: %s', me.host, me.name, pixelRefresh ? 'PIXEL REFRESH' : 'OFF');
-					me.lgtv.disconnect();
-				}
-				me.currentPowerState = state;
-			}
-		});
-
-		me.lgtv.request('ssap://com.webos.applicationManager/getForegroundAppInfo', (error, data) => {
-			if (error) {
-				me.log.error('Device: %s %s, get current App error: %s.', me.host, me.name, error);
-			} else {
-				me.log.debug('Device: %s %s, get current App state data: %s', me.host, me.name, data);
-				let inputReference = data.appId;
-				let inputName = me.inputNames[me.currentInputIdentifier];
-				let inputMode = me.inputModes[me.currentInputIdentifier];
-				if (me.televisionService && inputMode == 0) {
-					me.televisionService.updateCharacteristic(Characteristic.ActiveIdentifier, me.currentInputIdentifier);
-					me.log.debug('Device: %s %s, get current Input successful: %s %s', me.host, me.name, inputName, inputReference);
-				}
-				me.currentInputName = inputName;
-				me.currentInputReference = inputReference;
-			}
-		});
-
-		me.lgtv.request('ssap://tv/getCurrentChannel', (error, data) => {
-			if (error) {
-				me.log.error('Device: %s %s, get current Channel and Name error: %s.', me.host, me.name, error);
-			} else {
-				me.log.debug('Device: %s %s, get current Channel data: %s', me.host, me.name, data);
-				let channelReference = data.channelId;
-				let channelName = data.channelName;
-				let inputMode = me.inputModes[me.currentInputIdentifier];
-				if (me.televisionService && inputMode == 1) {
-					me.televisionService.updateCharacteristic(Characteristic.ActiveIdentifier, me.currentInputIdentifier);
-					me.log.debug('Device: %s %s, get current Channel successful: %s, %s', me.host, me.name, channelName, channelReference);
-				}
-				me.currentChannelName = channelName;
-				me.currentChannelReference = channelReference;
-			}
-		});
-
-		me.currentInputIdentifier = me.inputReferences.indexOf(me.currentChannelReference || me.currentInputReference);
-
-		me.lgtv.request('ssap://audio/getVolume', (error, data) => {
-			if (error) {
-				me.log.error('Device: %s %s, get current Audio state error: %s.', me.host, me.name, error);
-			} else {
-				me.log.debug('Device: %s %s, get current Audio state data: %s', me.host, me.name, data);
-				let mute = me.currentPowerState ? (data.muted === true) : true;
-				let volume = data.volume;
-				if (me.speakerService) {
-					me.speakerService.updateCharacteristic(Characteristic.Mute, mute);
-					me.speakerService.updateCharacteristic(Characteristic.Volume, volume);
-					if (me.volumeService && me.volumeControl >= 1) {
-						me.volumeService.updateCharacteristic(Characteristic.On, !mute);
-					}
-					if (me.volumeService && me.volumeControl == 1) {
-						me.volumeService.updateCharacteristic(Characteristic.Brightness, volume);
-					}
-					if (me.volumeService && me.volumeControl == 2) {
-						me.volumeService.updateCharacteristic(Characteristic.RotationSpeed, volume);
-					}
-					me.log.debug('Device: %s %s, get current Mute state: %s', me.host, me.name, mute ? 'ON' : 'OFF');
-					me.log.debug('Device: %s %s, get current Volume level: %s', me.host, me.name, volume);
-				}
-				me.currentMuteState = mute;
-				me.currentVolume = volume;
 			}
 		});
 	}
@@ -565,6 +375,208 @@ class lgwebosTvDevice {
 
 			this.accessory.addService(this.inputsService);
 			this.televisionService.addLinkedService(this.inputsService);
+		});
+	}
+
+	getDeviceInfo() {
+		var me = this;
+		setTimeout(() => {
+			me.log.debug('Device: %s %s, requesting Device information.', me.host, me.name);
+			me.lgtv.request('ssap://system/getSystemInfo', (error, data) => {
+				if (error || data.errorCode) {
+					me.log.debug('Device: %s %s, get System info error: %s', me.host, me.name, error);
+				} else {
+					delete data['returnValue'];
+					me.model = data.modelName;
+					if (fs.existsSync(me.systemFile) === false) {
+						fs.writeFile(me.systemFile, JSON.stringify(data, null, 2), (error) => {
+							if (error) {
+								me.log.error('Device: %s %s, could not write systemFile, error: %s', me.host, me.name, error);
+							} else {
+								me.log.debug('Device: %s %s, systemFile saved successful in: %s %s', me.host, me.name, me.prefDir, JSON.stringify(data, null, 2));
+							}
+						});
+					}
+				}
+			});
+
+			me.lgtv.request('ssap://com.webos.service.update/getCurrentSWInformation', (error, data) => {
+				if (error || data.errorCode) {
+					me.log.debug('Device: %s %s, get Software info error: %s', me.host, me.name, error);
+				} else {
+					delete data['returnValue'];
+					me.system = data.product_name;
+					me.serial = data.device_id;
+					me.firmware = data.minor_ver;
+					if (fs.existsSync(me.softwareFile) === false) {
+						fs.writeFile(me.softwareFile, JSON.stringify(data, null, 2), (error) => {
+							if (error) {
+								me.log.error('Device: %s %s, could not write softwareFile, error: %s', me.host, me.name, error);
+							} else {
+								me.log.debug('Device: %s %s, softwareFile saved successful in: %s %s', me.host, me.name, me.prefDir, JSON.stringify(data, null, 2));
+							}
+						});
+					}
+				}
+			});
+
+			me.lgtv.request('ssap://api/getServiceList', (error, data) => {
+				if (error || data.errorCode) {
+					me.log.debug('Device: %s %s, get Services list error: %s', me.host, error);
+				} else {
+					delete data['returnValue'];
+					if (fs.existsSync(me.servicesFile) === false) {
+						fs.writeFile(me.servicesFile, JSON.stringify(data, null, 2), (error) => {
+							if (error) {
+								me.log.error('Device: %s %s, could not write servicesFile, error: %s', me.host, error);
+							} else {
+								me.log.debug('Device: %s %s, servicesFile saved successful in: %s %s', me.host, me.name, me.prefDir, JSON.stringify(data, null, 2));
+							}
+						});
+					}
+				}
+			});
+
+			me.lgtv.request('ssap://com.webos.applicationManager/listApps', (error, data) => {
+				if (error || data.errorCode) {
+					me.log.debug('Device: %s %s, get Apps list error: %s', me.host, me.name, error);
+				} else {
+					delete data['returnValue'];
+					if (fs.existsSync(me.appsFile) === false) {
+						fs.writeFile(me.appsFile, JSON.stringify(data, null, 2), (error) => {
+							if (error) {
+								me.log.error('Device: %s %s, could not write appsFile, error: %s', me.host, me.name, error);
+							} else {
+								me.log.debug('Device: %s %s, appsFile saved successful in: %s %s', me.host, me.name, me.prefDir, JSON.stringify(data, null, 2));
+							}
+						});
+					}
+				}
+			});
+			setTimeout(() => {
+				me.log.info('Device: %s %s, state: Online.', me.host, me.name);
+				let manufacturer = me.manufacturer;
+				if (typeof me.model !== 'undefined') {
+					me.modelName = me.model;
+				} else {
+					me.modelName = me.modelName;
+				};
+				let system = me.system;
+				if (typeof me.serial !== 'undefined') {
+					me.serialNumber = me.serial;
+				} else {
+					me.serialNumber = me.serialNumber;
+				};
+				if (typeof me.firmware !== 'undefined') {
+					me.firmwareRevision = me.firmware;
+				} else {
+					me.firmwareRevision = me.firmwareRevision;
+				};
+				me.log('-------- %s --------', me.name);
+				me.log('Manufacturer: %s', manufacturer);
+				me.log('Model: %s', me.modelName);
+				me.log('System: %s', system);
+				me.log('Serialnr: %s', me.serialNumber);
+				me.log('Firmware: %s', me.firmwareRevision);
+				me.log('----------------------------------');
+				me.connectionStatus = true;
+			}, 350);
+		}, 350);
+	}
+
+	updateDeviceState() {
+		var me = this;
+		me.log.debug('Device: %s %s, requesting Device state.', me.host, me.name);
+		me.lgtv.request('ssap://com.webos.service.tvpower/power/getPowerState', (error, data) => {
+			if (error) {
+				me.log.error('Device: %s %s, get current Power state error: %s %s.', me.host, me.name, error, data);
+			} else {
+				me.log.debug('Device: %s %s, get current Power state data: %s', me.host, me.name, data);
+				let prepareOff = (data.processing === 'Request Power Off' || data.processing === 'Request Active Standby' || data.processing === 'Request Suspend' || data.processing === 'Prepare Suspend');
+				let prepareScreenSaver = (data.processing === 'Screen Saver Ready');
+				let screenSaver = (data.state === 'Screen Saver');
+				let pixelRefresh = (data.state === 'Active Standby');
+				let powerOff = (data.state === 'Suspend');
+				let prepareOn = (data.processing === 'Screen On' || data.processing === 'Request Screen Saver');
+				let powerOn = (data.state === 'Active' || screenSaver);
+				let state = (powerOn && !pixelRefresh);
+				if (state) {
+					if (me.televisionService) {
+						me.televisionService.updateCharacteristic(Characteristic.Active, 1);
+					}
+					me.log.debug('Device: %s %s, get current Power state successful: %s', me.host, me.name, 'ON');
+				} else {
+					if (me.televisionService) {
+						me.televisionService.updateCharacteristic(Characteristic.Active, 0);
+					}
+					me.log.debug('Device: %s %s, get current Power state successful: %s', me.host, me.name, pixelRefresh ? 'PIXEL REFRESH' : 'OFF');
+					me.lgtv.disconnect();
+				}
+				me.currentPowerState = state;
+			}
+		});
+
+		me.lgtv.request('ssap://com.webos.applicationManager/getForegroundAppInfo', (error, data) => {
+			if (error) {
+				me.log.error('Device: %s %s, get current App error: %s.', me.host, me.name, error);
+			} else {
+				me.log.debug('Device: %s %s, get current App state data: %s', me.host, me.name, data);
+				let inputReference = data.appId;
+				let inputName = me.inputNames[me.currentInputIdentifier];
+				let inputMode = me.inputModes[me.currentInputIdentifier];
+				if (me.televisionService && inputMode == 0) {
+					me.televisionService.updateCharacteristic(Characteristic.ActiveIdentifier, me.currentInputIdentifier);
+					me.log.debug('Device: %s %s, get current Input successful: %s %s', me.host, me.name, inputName, inputReference);
+				}
+				me.currentInputName = inputName;
+				me.currentInputReference = inputReference;
+			}
+		});
+
+		me.lgtv.request('ssap://tv/getCurrentChannel', (error, data) => {
+			if (error) {
+				me.log.error('Device: %s %s, get current Channel and Name error: %s.', me.host, me.name, error);
+			} else {
+				me.log.debug('Device: %s %s, get current Channel data: %s', me.host, me.name, data);
+				let channelReference = data.channelId;
+				let channelName = data.channelName;
+				let inputMode = me.inputModes[me.currentInputIdentifier];
+				if (me.televisionService && inputMode == 1) {
+					me.televisionService.updateCharacteristic(Characteristic.ActiveIdentifier, me.currentInputIdentifier);
+					me.log.debug('Device: %s %s, get current Channel successful: %s, %s', me.host, me.name, channelName, channelReference);
+				}
+				me.currentChannelName = channelName;
+				me.currentChannelReference = channelReference;
+			}
+		});
+
+		me.currentInputIdentifier = me.inputReferences.indexOf(me.currentChannelReference || me.currentInputReference);
+
+		me.lgtv.request('ssap://audio/getVolume', (error, data) => {
+			if (error) {
+				me.log.error('Device: %s %s, get current Audio state error: %s.', me.host, me.name, error);
+			} else {
+				me.log.debug('Device: %s %s, get current Audio state data: %s', me.host, me.name, data);
+				let mute = me.currentPowerState ? (data.muted === true) : true;
+				let volume = data.volume;
+				if (me.speakerService) {
+					me.speakerService.updateCharacteristic(Characteristic.Mute, mute);
+					me.speakerService.updateCharacteristic(Characteristic.Volume, volume);
+					if (me.volumeService && me.volumeControl >= 1) {
+						me.volumeService.updateCharacteristic(Characteristic.On, !mute);
+					}
+					if (me.volumeService && me.volumeControl == 1) {
+						me.volumeService.updateCharacteristic(Characteristic.Brightness, volume);
+					}
+					if (me.volumeService && me.volumeControl == 2) {
+						me.volumeService.updateCharacteristic(Characteristic.RotationSpeed, volume);
+					}
+					me.log.debug('Device: %s %s, get current Mute state: %s', me.host, me.name, mute ? 'ON' : 'OFF');
+					me.log.debug('Device: %s %s, get current Volume level: %s', me.host, me.name, volume);
+				}
+				me.currentMuteState = mute;
+				me.currentVolume = volume;
+			}
 		});
 	}
 
