@@ -557,8 +557,8 @@ class lgwebosTvDevice {
 					});
 					callback(null);
 				});
-			this.inputNames.push(inputName);
 			this.inputReferences.push(inputReference);
+			this.inputNames.push(inputName);
 			this.inputTypes.push(inputType);
 			this.inputModes.push(inputMode);
 
