@@ -15,15 +15,18 @@ Homebridge plugin to control LG webOS TV in HomeKit as TV service. Tested with L
 
 ## Info
 1. Power ON/OFF short press tile in HomeKit app.
-2. RC/Media control is possible after You go to the RC app on iPhone/iPad.
-3. Speaker control is possible after You go to RC app on iPhone/iPad `Speaker Service`.
+2. RC/Media control is possible after you go to the RC app on iPhone/iPad.
+3. Speaker control is possible after you go to RC app on iPhone/iPad `Speaker Service`.
 4. Legacy volume and mute control is possible throught extra `lightbulb` (slider) or using Siri `Volume Service`.
 5. Inputs can be changed after loong press tile in HomeKit app and select from the list.
 6. Siri control.
 
 
 <p align="left">
-  <a href="https://github.com/grzegorz914/homebridge-lgwebos-tv"><img src="https://raw.githubusercontent.com/grzegorz914/homebridge-lgwebos-tv/master/graphics/homekit.png" height="300"></a>  <a href="https://github.com/grzegorz914/homebridge-lgwebos-tv"><img src="https://raw.githubusercontent.com/grzegorz914/homebridge-lgwebos-tv/master/graphics/inputs.png" height="300"></a>  <a href="https://github.com/grzegorz914/homebridge-lgwebos-tv"><img src="https://raw.githubusercontent.com/grzegorz914/homebridge-lgwebos-tv/master/graphics/RC.png" height="300"></a>
+  <a href="https://github.com/grzegorz914/homebridge-lgwebos-tv"><img src="https://raw.githubusercontent.com/grzegorz914/homebridge-lgwebos-tv/master/graphics/homekit.png" height="300"></a> 
+  </p>
+  <p align="left">
+  <a href="https://github.com/grzegorz914/homebridge-lgwebos-tv"><img src="https://raw.githubusercontent.com/grzegorz914/homebridge-lgwebos-tv/master/graphics/inputs.png" height="300"></a>  <a href="https://github.com/grzegorz914/homebridge-lgwebos-tv"><img src="https://raw.githubusercontent.com/grzegorz914/homebridge-lgwebos-tv/master/graphics/RC.png" height="300"></a>  <a href="https://github.com/grzegorz914/homebridge-lgwebos-tv"><img src="https://raw.githubusercontent.com/grzegorz914/homebridge-lgwebos-tv/master/graphics/rc1.png" height="300"></a>
 </p>
 
 ## Limitations
