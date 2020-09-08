@@ -51,6 +51,7 @@ Due to HomeKit app limitation max. services for 1 accessory is 100. Over this va
 4. If `switchInfoMenu` is enabled, `I` button change its behaviour in RC app between Menu and INFO.
 5. In `type` select source input type.
 6. In `mode` select what a input mode You defined, select `Apps` if You defined some input reference, select `Live TV` if You defined channel reference.
+7. `manufacturer`, `model`, `serialNumber`, `firmwareRevision` - optional branding data displayed in Home.app
 
 <p align="left">
   <a href="https://github.com/grzegorz914/homebridge-lgwebos-tv"><img src="https://raw.githubusercontent.com/grzegorz914/homebridge-lgwebos-tv/master/graphics/ustawienia.png" height="150"></a>
