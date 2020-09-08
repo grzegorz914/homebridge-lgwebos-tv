@@ -109,8 +109,8 @@ class lgwebosTvDevice {
 
 		this.lgtv = lgtv({
 			url: this.url,
-			timeout: 5000,
-			reconnect: 3000,
+			timeout: 10000,
+			reconnect: 5000,
 			keyFile: this.keyFile
 		});
 

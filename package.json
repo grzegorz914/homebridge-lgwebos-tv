@@ -1,6 +1,6 @@
 {
   "name": "homebridge-lgwebos-tv",
-  "version": "1.2.7",
+  "version": "1.2.20",
   "description": "Homebridge plugin (https://github.com/homebridge/homebridge) to control LG WebOS TV.",
   "license": "MIT",
   "author": "grzegorz914",
@@ -30,7 +30,7 @@
     "homebridge": ">=1.1.0"
   },
   "dependencies": {
-    "lgtv2": "^1.4.1",
+    "lgtv2": "^1.6.2",
     "tcp-ping": "^0.1.1",
     "wol": "^1.0.7"
   },
