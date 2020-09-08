@@ -157,7 +157,7 @@ class lgwebosTvDevice {
 					if (isAlive && !this.connectionStatus) {
 						this.lgtv.connect(this.url);
 					} else {
-						if (isAlive && this.connectionStatus) {
+						if (isAlive && this.connectionStatus && this.currentPowerState) {
 							this.updateDeviceState();
 						}
 					}
