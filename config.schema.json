@@ -32,6 +32,13 @@
               "default": "ab:cd:ef:fe:dc:ba",
               "required": true
             },
+            "refreshInterval": {
+              "title": "Refresh interval (sec)",
+              "type": "integer",
+              "default": 5,
+              "maximum": 3600,
+              "required": true
+            },
             "volumeControl": {
               "title": "Volume control mode",
               "type": "integer",
@@ -235,6 +242,7 @@
             "devices[].name",
             "devices[].host",
             "devices[].mac",
+            "devices[].refreshInterval",
             {
               "key": "devices[]",
               "type": "section",
