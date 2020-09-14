@@ -654,6 +654,7 @@ class lgwebosTvDevice {
 				if (error) {
 					me.log.error('Device: %s %s, get current Audio state error: %s.', me.host, me.name, error);
 				} else {
+					let volume = data.volume;
 					me.log.info('Device: %s %s, get current Volume level successful: %s', me.host, me.name, volume);
 					callback(null, volume);
 				}
