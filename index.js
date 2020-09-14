@@ -157,10 +157,6 @@ class lgwebosTvDevice {
 				} else {
 					if (isAlive && !this.connectionStatus) {
 						this.lgtv.connect(this.url);
-					} else {
-						if (isAlive && this.connectionStatus) {
-							this.updateDeviceState();
-						}
 					}
 				}
 			});
@@ -177,6 +173,7 @@ class lgwebosTvDevice {
 					this.log.info('Device: %s %s, get current Power state successful: ON', this.host, this.name);
 					this.currentPowerState = true;
 					this.getDeviceInfo();
+					this.updateDeviceState();
 					this.connectToPointerInputSocket();
 				}
 			});
@@ -491,9 +488,9 @@ class lgwebosTvDevice {
 
 	updateDeviceState() {
 		var me = this;
-		if (this.currentPowerState) {
+		if (me.currentPowerState) {
 			me.log.debug('Device: %s %s, requesting Device state.', me.host, me.name);
-			me.lgtv.request('ssap://com.webos.service.tvpower/power/getPowerState', (error, data) => {
+			me.lgtv.subscribe('ssap://com.webos.service.tvpower/power/getPowerState', (error, data) => {
 				if (error) {
 					me.log.error('Device: %s %s, get current Power state error: %s %s.', me.host, me.name, error, data);
 				} else {
@@ -522,7 +519,7 @@ class lgwebosTvDevice {
 				}
 			});
 
-			me.lgtv.request('ssap://com.webos.applicationManager/getForegroundAppInfo', (error, data) => {
+			me.lgtv.subscribe('ssap://com.webos.applicationManager/getForegroundAppInfo', (error, data) => {
 				if (error) {
 					me.log.error('Device: %s %s, get current App error: %s.', me.host, me.name, error);
 				} else {
@@ -530,16 +527,18 @@ class lgwebosTvDevice {
 					let inputReference = data.appId;
 					let inputName = me.inputNames[me.currentInputIdentifier];
 					let inputMode = me.inputModes[me.currentInputIdentifier];
+					let currentInputIdentifier = me.inputReferences.indexOf(inputReference);
 					if (me.televisionService && inputMode == 0) {
-						me.televisionService.updateCharacteristic(Characteristic.ActiveIdentifier, me.currentInputIdentifier);
+						me.televisionService.updateCharacteristic(Characteristic.ActiveIdentifier, currentInputIdentifier);
 						me.log.debug('Device: %s %s, get current Input successful: %s %s', me.host, me.name, inputName, inputReference);
 					}
 					me.currentInputName = inputName;
 					me.currentInputReference = inputReference;
+					me.currentInputIdentifier = currentInputIdentifier
 				}
 			});
 
-			me.lgtv.request('ssap://tv/getCurrentChannel', (error, data) => {
+			me.lgtv.subscribe('ssap://tv/getCurrentChannel', (error, data) => {
 				if (error) {
 					me.log.error('Device: %s %s, get current Channel and Name error: %s.', me.host, me.name, error);
 				} else {
@@ -547,18 +546,18 @@ class lgwebosTvDevice {
 					let channelReference = data.channelId;
 					let channelName = data.channelName;
 					let inputMode = me.inputModes[me.currentInputIdentifier];
+					let currentInputIdentifier = me.inputReferences.indexOf(channelReference);
 					if (me.televisionService && inputMode == 1) {
-						me.televisionService.updateCharacteristic(Characteristic.ActiveIdentifier, me.currentInputIdentifier);
+						me.televisionService.updateCharacteristic(Characteristic.ActiveIdentifier, currentInputIdentifier);
 						me.log.debug('Device: %s %s, get current Channel successful: %s, %s', me.host, me.name, channelName, channelReference);
 					}
 					me.currentChannelName = channelName;
 					me.currentChannelReference = channelReference;
+					me.currentInputIdentifier = currentInputIdentifier
 				}
 			});
 
-			me.currentInputIdentifier = me.inputReferences.indexOf(me.currentChannelReference || me.currentInputReference);
-
-			me.lgtv.request('ssap://audio/getVolume', (error, data) => {
+			me.lgtv.subscribe('ssap://audio/getVolume', (error, data) => {
 				if (error) {
 					me.log.error('Device: %s %s, get current Audio state error: %s.', me.host, me.name, error);
 				} else {
