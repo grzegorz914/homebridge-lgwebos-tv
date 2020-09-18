@@ -2,7 +2,7 @@
 
 const fs = require('fs');
 const lgtv = require('lgtv2');
-const wol = require('wol');
+const wakeOnLan = require('@mi-sec/wol');
 const tcpp = require('tcp-ping');
 const path = require('path');
 
@@ -188,6 +188,7 @@ class lgwebosTvDevice {
 			}
 			this.pointerInputSocket = null;
 			this.currentPowerState = false;
+			this.connectionStatus = false;
 		});
 
 		this.lgtv.on('error', (error) => {
@@ -222,8 +223,8 @@ class lgwebosTvDevice {
 		this.log.debug('prepareTelevisionService');
 		const accessoryName = this.name;
 		const accessoryUUID = UUID.generate(accessoryName);
-		this.accessory = new Accessory(accessoryName, accessoryUUID);
-		this.accessory.category = Categories.TELEVISION;
+		const accessoryCategory = Categories.TELEVISION;
+		this.accessory = new Accessory(accessoryName, accessoryUUID, accessoryCategory);
 
 		this.accessory.getService(Service.AccessoryInformation)
 			.setCharacteristic(Characteristic.Manufacturer, this.manufacturer)
@@ -595,16 +596,20 @@ class lgwebosTvDevice {
 		callback(null, state);
 	}
 
-	setPower(state, callback) {
+	async setPower(state, callback) {
 		var me = this;
 		if (state && !me.currentPowerState) {
-			wol.wake(me.mac, (error) => {
-				if (error) {
-					me.log.error('Device: %s %s, can not set Power state ON. Might be due to a wrong settings in config, error: %s', me.host);
-				} else {
-					me.log.info('Device: %s %s, set new Power state successful: %s', me.host, me.name, 'ON');
-				}
-			});
+			try {
+				await wakeOnLan(me.mac, {
+					address: '255.255.255.255',
+					packets: 3,
+					interval: 100,
+					port: 9
+				});
+				me.log.info('Device: %s %s, set new Power state successful: %s', me.host, me.name, 'ON');
+			} catch (error) {
+				me.log.error('Device: %s %s, can not set Power state ON. Might be due to a wrong settings in config, error: %s', me.host);
+			};
 			callback(null);
 		} else {
 			if (!state && me.currentPowerState) {
@@ -743,8 +748,8 @@ class lgwebosTvDevice {
 			}
 			me.log.info('Device: %s %s, setPictureMode successful, command: %s', me.host, me.name, command);
 			me.pointerInputSocket.send('button', { name: command });
-			callback(null);
 		}
+		callback(null);
 	}
 
 	setPowerModeSelection(state, callback) {
@@ -761,8 +766,8 @@ class lgwebosTvDevice {
 			}
 			me.log.info('Device: %s %s, setPowerModeSelection successful, command: %s', me.host, me.name, command);
 			me.pointerInputSocket.send('button', { name: command });
-			callback(null);
 		}
+		callback(null);
 	}
 
 	setVolumeSelector(state, callback) {
@@ -779,8 +784,8 @@ class lgwebosTvDevice {
 			}
 			me.log.info('Device: %s %s, setVolumeSelector successful, command: %s', me.host, me.name, command);
 			me.pointerInputSocket.send('button', { name: command });
-			callback(null);
 		}
+		callback(null);
 	}
 
 	setRemoteKey(remoteKey, callback) {
@@ -830,7 +835,7 @@ class lgwebosTvDevice {
 			}
 			me.log.info('Device: %s %s, setRemoteKey successful, command: %s', me.host, me.name, command);
 			me.pointerInputSocket.send('button', { name: command });
-			callback(null);
 		}
+		callback(null);
 	}
 };
