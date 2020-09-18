@@ -174,6 +174,7 @@ class lgwebosTvDevice {
 					this.lgtv.disconnect();
 				} else {
 					this.log.info('Device: %s %s, get current Power state successful: ON', this.host, this.name);
+					this.connectionStatus = true;
 					this.currentPowerState = true;
 					this.getDeviceInfo();
 					this.connectToPointerInputSocket();
@@ -484,9 +485,9 @@ class lgwebosTvDevice {
 				me.log('Serialnr: %s', me.serialNumber);
 				me.log('Firmware: %s', me.firmwareRevision);
 				me.log('----------------------------------');
-				me.connectionStatus = true;
 			}, 350);
 		}, 350);
+		me.updateDeviceState();
 	}
 
 	updateDeviceState() {
@@ -586,6 +587,11 @@ class lgwebosTvDevice {
 					me.currentVolume = volume;
 				}
 			});
+		} else {
+			if (me.televisionService) {
+				me.televisionService.updateCharacteristic(Characteristic.Active, 0);
+			}
+			me.log.info('Device: %s %s, get current Power state successfull, state: %s', me.host, me.name, 'OFF');
 		}
 	}
 
@@ -621,6 +627,9 @@ class lgwebosTvDevice {
 			}
 			callback(null);
 		}
+		setTimeout(() => {
+			me.updateDeviceState();
+		}, 5000);
 	}
 
 	getMute(callback) {
