@@ -168,7 +168,7 @@ class lgwebosTvDevice {
 		this.lgtv.on('connect', () => {
 			this.log.info('Device: %s %s, connected.', this.host, this.name);
 			this.lgtv.request('ssap://com.webos.service.tvpower/power/getPowerState', (error, response) => {
-				if (error || (data && response.state && response.state === 'Active Standby')) {
+				if (error || (response && response.state && response.state === 'Active Standby')) {
 					this.log.debug('Device: %s %s, get current Power state successful: PIXEL REFRESH or OFF', this.host, this.name);
 					this.currentPowerState = false;
 					this.lgtv.disconnect();
@@ -413,13 +413,13 @@ class lgwebosTvDevice {
 				if (error || response.errorCode) {
 					me.log.debug('Device: %s %s, get System info error: %s', me.host, me.name, error);
 				} else {
-					delete data['returnValue'];
+					delete response['returnValue'];
 					me.model = response.modelName;
-					fs.writeFile(me.systemFile, JSON.stringify(data, null, 2), (error) => {
+					fs.writeFile(me.systemFile, JSON.stringify(response, null, 2), (error) => {
 						if (error) {
 							me.log.error('Device: %s %s, could not write systemFile, error: %s', me.host, me.name, error);
 						} else {
-							me.log.debug('Device: %s %s, systemFile saved successful in: %s %s', me.host, me.name, me.prefDir, JSON.stringify(data, null, 2));
+							me.log.debug('Device: %s %s, systemFile saved successful in: %s %s', me.host, me.name, me.prefDir, JSON.stringify(response, null, 2));
 						}
 					});
 				}
@@ -429,15 +429,15 @@ class lgwebosTvDevice {
 				if (error || response.errorCode) {
 					me.log.debug('Device: %s %s, get Software info error: %s', me.host, me.name, error);
 				} else {
-					delete data['returnValue'];
+					delete response['returnValue'];
 					me.system = response.product_name;
 					me.serial = response.device_id;
 					me.firmware = response.minor_ver;
-					fs.writeFile(me.softwareFile, JSON.stringify(data, null, 2), (error) => {
+					fs.writeFile(me.softwareFile, JSON.stringify(response, null, 2), (error) => {
 						if (error) {
 							me.log.error('Device: %s %s, could not write softwareFile, error: %s', me.host, me.name, error);
 						} else {
-							me.log.debug('Device: %s %s, softwareFile saved successful in: %s %s', me.host, me.name, me.prefDir, JSON.stringify(data, null, 2));
+							me.log.debug('Device: %s %s, softwareFile saved successful in: %s %s', me.host, me.name, me.prefDir, JSON.stringify(response, null, 2));
 						}
 					});
 				}
@@ -447,12 +447,12 @@ class lgwebosTvDevice {
 				if (error || response.errorCode) {
 					me.log.debug('Device: %s %s, get Services list error: %s', me.host, error);
 				} else {
-					delete data['returnValue'];
-					fs.writeFile(me.servicesFile, JSON.stringify(data, null, 2), (error) => {
+					delete response['returnValue'];
+					fs.writeFile(me.servicesFile, JSON.stringify(response, null, 2), (error) => {
 						if (error) {
 							me.log.error('Device: %s %s, could not write servicesFile, error: %s', me.host, error);
 						} else {
-							me.log.debug('Device: %s %s, servicesFile saved successful in: %s %s', me.host, me.name, me.prefDir, JSON.stringify(data, null, 2));
+							me.log.debug('Device: %s %s, servicesFile saved successful in: %s %s', me.host, me.name, me.prefDir, JSON.stringify(response, null, 2));
 						}
 					});
 				}
@@ -462,12 +462,12 @@ class lgwebosTvDevice {
 				if (error || response.errorCode) {
 					me.log.debug('Device: %s %s, get Apps list error: %s', me.host, me.name, error);
 				} else {
-					delete data['returnValue'];
-					fs.writeFile(me.appsFile, JSON.stringify(data, null, 2), (error) => {
+					delete response['returnValue'];
+					fs.writeFile(me.appsFile, JSON.stringify(response, null, 2), (error) => {
 						if (error) {
 							me.log.error('Device: %s %s, could not write appsFile, error: %s', me.host, me.name, error);
 						} else {
-							me.log.debug('Device: %s %s, appsFile saved successful in: %s %s', me.host, me.name, me.prefDir, JSON.stringify(data, null, 2));
+							me.log.debug('Device: %s %s, appsFile saved successful in: %s %s', me.host, me.name, me.prefDir, JSON.stringify(response, null, 2));
 						}
 					});
 				}
