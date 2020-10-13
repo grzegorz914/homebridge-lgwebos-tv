@@ -93,6 +93,7 @@ class lgwebosTvDevice {
 		this.currentVolume = 0;
 		this.currentInputName = '';
 		this.currentInputReference = '';
+		this.currentInputIdentifier = 0;
 		this.currentChannelNumber = -1;
 		this.currentChannelName = '';
 		this.currentChannelReference = '';
@@ -369,7 +370,7 @@ class lgwebosTvDevice {
 				.setCharacteristic(Characteristic.Identifier, i)
 				.setCharacteristic(Characteristic.ConfiguredName, inputName)
 				.setCharacteristic(Characteristic.IsConfigured, Characteristic.IsConfigured.CONFIGURED)
-				.setCharacteristic(Characteristic.InputSourceType, Characteristic.InputSourceType, inputType)
+				.setCharacteristic(Characteristic.InputSourceType, Characteristic.InputSourceType.APPLICATION)
 				.setCharacteristic(Characteristic.CurrentVisibilityState, Characteristic.CurrentVisibilityState.SHOWN);
 
 			this.inputsService
@@ -546,7 +547,10 @@ class lgwebosTvDevice {
 				} else {
 					me.log.debug('Device: %s %s, get current App state data: %s', me.host, me.name, response);
 					let inputReference = response.appId;
-					let inputIdentifier = me.inputReferences.indexOf(inputReference);
+					let inputIdentifier = 0;
+					if (me.inputReferences.indexOf(inputReference) >= 0) {
+						inputIdentifier = me.inputReferences.indexOf(inputReference);
+					}
 					let inputName = me.inputNames[inputIdentifier];
 					let inputMode = me.inputModes[inputIdentifier];
 					if (me.televisionService && inputMode == 0) {
@@ -714,7 +718,10 @@ class lgwebosTvDevice {
 					me.log.error('Device: %s %s, get current App error: %s.', me.host, me.name, error);
 				} else {
 					let inputReference = response.appId;
-					let inputIdentifier = me.inputReferences.indexOf(inputReference);
+					let inputIdentifier = 0;
+					if (me.inputReferences.indexOf(inputReference) >= 0) {
+						inputIdentifier = me.inputReferences.indexOf(inputReference);
+					}
 					let inputName = me.inputNames[inputIdentifier];
 					me.log.info('Device: %s %s, get current Input successful: %s %s', me.host, me.name, inputName, inputReference);
 					callback(null, inputIdentifier);
