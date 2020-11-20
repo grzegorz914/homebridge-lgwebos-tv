@@ -637,7 +637,6 @@ class lgwebosTvDevice {
 			} catch (error) {
 				me.log.error('Device: %s %s, can not set Power state ON. Might be due to a wrong settings in config, error: %s', me.host);
 			};
-			callback(null);
 		} else {
 			if (!state && me.currentPowerState) {
 				me.lgtv.request('ssap://system/turnOff', (error, response) => {
@@ -646,8 +645,8 @@ class lgwebosTvDevice {
 					me.lgtv.disconnect();
 				});
 			}
-			callback(null);
 		}
+		callback(null);
 		setTimeout(() => {
 			me.updateDeviceState();
 		}, 5000);
@@ -678,8 +677,8 @@ class lgwebosTvDevice {
 		if (me.currentPowerState && state !== muteState) {
 			me.lgtv.request('ssap://audio/setMute', { mute: state });
 			me.log.info('Device: %s %s, set new Mute state successful: %s', me.host, me.name, state ? 'ON' : 'OFF');
-			callback(null);
 		}
+		callback(null);
 	}
 
 	getVolume(callback) {
@@ -751,8 +750,8 @@ class lgwebosTvDevice {
 
 	setPictureMode(mode, callback) {
 		var me = this;
-		let command = null;
 		if (me.currentPowerState && me.pointerInputSocket) {
+			let command;
 			switch (mode) {
 				case Characteristic.PictureMode.OTHER:
 					command = '';
@@ -787,8 +786,8 @@ class lgwebosTvDevice {
 
 	setPowerModeSelection(state, callback) {
 		var me = this;
-		let command = null;
 		if (me.currentPowerState && me.pointerInputSocket) {
+			let command;
 			switch (state) {
 				case Characteristic.PowerModeSelection.SHOW:
 					command = me.switchInfoMenu ? 'MENU' : 'INFO';
@@ -805,8 +804,8 @@ class lgwebosTvDevice {
 
 	setVolumeSelector(state, callback) {
 		var me = this;
-		let command = null;
 		if (me.currentPowerState && me.pointerInputSocket) {
+			let command;
 			switch (state) {
 				case Characteristic.VolumeSelector.INCREMENT:
 					command = 'VOLUMEUP';
@@ -823,8 +822,8 @@ class lgwebosTvDevice {
 
 	setRemoteKey(remoteKey, callback) {
 		var me = this;
-		let command = null;
 		if (me.currentPowerState && me.pointerInputSocket) {
+			let command;
 			switch (remoteKey) {
 				case Characteristic.RemoteKey.REWIND:
 					command = 'REWIND';
