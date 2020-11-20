@@ -137,8 +137,12 @@ Homebridge plugin to control LG webOS TV in HomeKit as TV service. Tested with L
     ]
 }
 ```
-## Whats new:
-https://github.com/grzegorz914/homebridge-lgwebos-tv/blob/master/CHANGELOG.md
 
 ## Limitations
 Due to HomeKit app limitation max. services for 1 accessory is 100. Over this value HomeKit app will no response. As services in this accessory are, (1.information service, 2.speaker service, 3.lightbulb service, 4.television service and inputs service 5-100(where every input = 1 service)). If all services are enabled possible inputs to use is 96.
+
+## Whats new:
+https://github.com/grzegorz914/homebridge-lgwebos-tv/blob/master/CHANGELOG.md
+
+## Development
+- Pull request and help in development highly appreciated.
