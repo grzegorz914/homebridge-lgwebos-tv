@@ -55,11 +55,12 @@ Homebridge plugin to control LG webOS TV in HomeKit as TV service. Tested with L
 1. Use [Homebridge Config UI X](https://github.com/oznu/homebridge-config-ui-x) to configure the plugin (strongly recomended), or update your configuration file manually. See `sample-config.json` in this repository for a sample or add the bottom example to Your config.json file.
 2. All inputs reference and name can be found in: `homebridge_directory/lgwebosTv/apps_19216818` where `name == title` and `reference == id`
 3. In `refreshInterval` set the data refresh time in seconds, default 5sec.
-4. In `volumeControl` You can select what a additional volume control type You want to use (None, Slider, Fan). This not working with HDMI ARC control.
-5. If `switchInfoMenu` is enabled, `I` button change its behaviour in RC app between Menu and INFO.
-6. In `type` select source input type.
-7. In `mode` select what a input mode You defined, select `Apps` if You defined some input reference, select `Live TV` if You defined channel reference.
-8. `manufacturer`, `model`, `serialNumber`, `firmwareRevision` - optional branding data displayed in Home.app
+4. If `disableLogInfo` is enabled, disable log info, all values and state will not be displayed in Homebridge log console.
+5. In `volumeControl` You can select what a additional volume control type You want to use (None, Slider, Fan). This not working with HDMI ARC control.
+6. If `switchInfoMenu` is enabled, `I` button change its behaviour in RC app between Menu and INFO.
+7. In `type` select source input type.
+8. In `mode` select what a input mode You defined, select `Apps` if You defined some input reference, select `Live TV` if You defined channel reference.
+9. `manufacturer`, `model`, `serialNumber`, `firmwareRevision` - optional branding data displayed in Home.app
 
 <p align="left">
   <a href="https://github.com/grzegorz914/homebridge-lgwebos-tv"><img src="https://raw.githubusercontent.com/grzegorz914/homebridge-lgwebos-tv/master/graphics/ustawienia.png" height="150"></a>
@@ -74,6 +75,7 @@ Homebridge plugin to control LG webOS TV in HomeKit as TV service. Tested with L
             "host": "192.168.1.8",
             "mac": "ab:cd:ef:fe:dc:ba",
             "refreshInterval": 5,
+            "disableLogInfo": false,
             "volumeControl": 0,
             "switchInfoMenu": false,
             "inputs": [
