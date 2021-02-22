@@ -33,6 +33,9 @@ Tested with OLED65G6V, 32LM6300PLA, 49SK8500, OLED65C7T, 55SK800PLB, OLED48CX.
 4. Tap *Add Accessory*, and select *I Don't Have a Code or Cannot Scan*. 
 5. Enter the Homebridge PIN, this can be found under the QR code in Homebridge UI or your Homebridge logs, alternatively you can select *Use Camera* and scan the QR code again.
 
+## Note
+1. Versin 1.7.0 and above need to be used with Homebridge min. v1.3.x.
+
 ## Info
 1. Power ON/OFF short press tile in HomeKit app.
 2. RC/Media control is possible after you go to the RC app on iPhone/iPad.
@@ -127,12 +130,6 @@ Tested with OLED65G6V, 32LM6300PLA, 49SK8500, OLED65C7T, 55SK800PLB, OLED48CX.
                     "reference": "com.webos.app.discovery",
                     "type": "APPLICATION",
                     "mode": 0
-                },
-                {
-                    "name": "HotBird 4K1",
-                    "reference": "7_30_585_0_700_17_318",
-                    "type": "TUNER",
-                    "mode": 1
                 }
             ],
           "manufacturer": "Manufacturer",
