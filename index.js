@@ -183,7 +183,9 @@ class lgwebosTvDevice {
 		});
 
 		this.lgtv.on('connect', () => {
-			this.log('Device: %s %s, connected.', this.host, this.name);
+			if (!this.disableLogInfo) {
+				this.log('Device: %s %s, connected.', this.host, this.name);
+			}
 			if (!this.pixelRefresh) {
 				this.connectToPointerInputSocket();
 				this.updateDeviceState();
@@ -201,7 +203,9 @@ class lgwebosTvDevice {
 		this.lgtv.getSocket('ssap://com.webos.service.networkinput/getPointerInputSocket', (error, sock) => {
 			if (!error) {
 				this.pointerInputSocket = sock;
-				this.log('Device: %s %s, RC socket connected.', this.host, this.name);
+				if (!this.disableLogInfo) {
+					this.log('Device: %s %s, RC socket connected.', this.host, this.name);
+				}
 			}
 		});
 	}
