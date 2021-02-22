@@ -219,7 +219,7 @@ class lgwebosTvDevice {
 		});
 	}
 
-	getDeviceInfo() {
+	async getDeviceInfo() {
 		var me = this;
 		me.log.debug('Device: %s %s, requesting Device Info.', me.host, me.name);
 		try {
@@ -238,22 +238,17 @@ class lgwebosTvDevice {
 						me.firmwareRevision = response.major_ver + '.' + response.minor_ver;
 					}
 					me.saveData = { 'Model': me.modelName, 'System': me.productName, 'Serial': me.serialNumber, 'Firmware': me.firmwareRevision };
-					fs.writeFile(me.devInfoFile, JSON.stringify(me.saveData, null, 2), (error) => {
-						if (error) {
-							me.log.error('Device: %s %s, devInfo saved failed, error: %s', me.host, me.name, error);
-						} else {
-							if (!me.disableLogInfo) {
-								me.log('Device: %s %s, devInfo saved successful.', me.host, me.name);
-							}
-						}
-					});
+					let data = JSON.stringify(me.saveData, null, 2);
+					await fsPromises.writeFile(me.devInfoFile, data);
+					me.log.debug('Device: %s %s, devInfoFile saved successful.', me.host, me.name);
+
 					me.log('Device: %s %s, state: Online.', me.host, me.name);
 					me.log('-------- %s --------', me.name);
 					me.log('Manufacturer: %s', me.manufacturer);
-					me.log('Model: %s', me.saveData.Model);
-					me.log('System: %s', me.saveData.System);
-					me.log('Serialnr: %s', me.saveData.Serial);
-					me.log('Firmware: %s', me.saveData.Firmware);
+					me.log('Model: %s', me.modelName);
+					me.log('System: %s', me.productName);
+					me.log('Serialnr: %s', me.serialNumber);
+					me.log('Firmware: %s', me.firmwareRevision);
 					me.log('----------------------------------');
 					me.checkDeviceInfo = false;
 				});
@@ -390,7 +385,7 @@ class lgwebosTvDevice {
 			if (this.saveData !== undefined) {
 				readData = this.saveData;
 			} else {
-				readData = { 'Model': 'Model name', 'System': 'System', 'Serial': 'Serial number', 'Firmware': 'Firmware' };
+				readData = { 'Model': 'Model name', 'Serial': 'Serial number', 'Firmware': 'Firmware' };
 			}
 		}
 
