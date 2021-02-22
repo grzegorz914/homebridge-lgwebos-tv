@@ -237,9 +237,9 @@ class lgwebosTvDevice {
 						me.serialNumber = response.device_id;
 						me.firmwareRevision = response.major_ver + '.' + response.minor_ver;
 					}
-					me.saveData = { 'Model': me.modelName, 'System': me.productName, 'Serial': me.serialNumber, 'Firmware': me.firmwareRevision };
+					me.saveData = { 'Manufacturer': me.manufacturer, 'Model': me.modelName, 'System': me.productName, 'Serial': me.serialNumber, 'Firmware': me.firmwareRevision };
 					let data = JSON.stringify(me.saveData, null, 2);
-					await fsPromises.writeFile(me.devInfoFile, data);
+					fsPromises.writeFile(me.devInfoFile, data);
 					me.log.debug('Device: %s %s, devInfoFile saved successful.', me.host, me.name);
 
 					me.log('Device: %s %s, state: Online.', me.host, me.name);
@@ -385,11 +385,11 @@ class lgwebosTvDevice {
 			if (this.saveData !== undefined) {
 				readData = this.saveData;
 			} else {
-				readData = { 'Model': 'Model name', 'Serial': 'Serial number', 'Firmware': 'Firmware' };
+				readData = { 'Manufacturer': 'Manufacturer', 'Model': 'Model name', 'Serial': 'Serial number', 'Firmware': 'Firmware' };
 			}
 		}
 
-		const manufacturer = this.manufacturer;
+		const manufacturer = readData.Manufacturer;
 		const modelName = readData.Model;
 		const serialNumber = readData.Serial;
 		const firmwareRevision = readData.Firmware;
