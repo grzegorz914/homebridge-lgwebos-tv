@@ -1,6 +1,7 @@
 'use strict';
 
 const fs = require('fs');
+const fsPromises = require('fs').promises;
 const lgtv = require('lgtv2');
 const wakeOnLan = require('@mi-sec/wol');
 const path = require('path');
@@ -101,11 +102,8 @@ class lgwebosTvDevice {
 		this.prefDir = path.join(api.user.storagePath(), 'lgwebosTv');
 		this.keyFile = this.prefDir + '/' + 'key_' + this.host.split('.').join('');
 		this.devInfoFile = this.prefDir + '/' + 'devInfo_' + this.host.split('.').join('');
-		this.softwareFile = this.prefDir + '/' + 'software_' + this.host.split('.').join('');
-		this.servicesFile = this.prefDir + '/' + 'services_' + this.host.split('.').join('');
 		this.inputsFile = this.prefDir + '/' + 'inputs_' + this.host.split('.').join('');
 		this.customInputsFile = this.prefDir + '/' + 'customInputs_' + this.host.split('.').join('');
-		this.appsFile = this.prefDir + '/' + 'apps_' + this.host.split('.').join('');
 		this.channelsFile = this.prefDir + '/' + 'channels_' + this.host.split('.').join('');
 		this.url = 'ws://' + this.host + ':' + WEBSOCKET_PORT;
 
@@ -116,32 +114,25 @@ class lgwebosTvDevice {
 			keyFile: this.keyFile
 		});
 
-		if (!Array.isArray(this.inputs) || this.inputs === undefined || this.inputs === null) {
-			let defaultInputs = [
-				{
-					name: 'No inputs configured',
-					reference: 'No references configured',
-					type: 'No types configured',
-					mode: 0
-				}
-			];
-			this.inputs = defaultInputs;
-		}
-
 		//check if prefs directory ends with a /, if not then add it
 		if (this.prefDir.endsWith('/') === false) {
 			this.prefDir = this.prefDir + '/';
 		}
-
 		//check if the directory exists, if not then create it
 		if (fs.existsSync(this.prefDir) === false) {
-			fs.mkdir(this.prefDir, { recursive: false }, (error) => {
-				if (error) {
-					this.log.error('Device: %s %s, create directory: %s, error: %s', this.host, this.name, this.prefDir, error);
-				} else {
-					this.log.debug('Device: %s %s, create directory successful: %s', this.host, this.name, this.prefDir);
-				}
-			});
+			fsPromises.mkdir(this.prefDir);
+		}
+		//check if the files exists, if not then create it
+		if (fs.existsSync(this.devInfoFile) === false) {
+			fsPromises.writeFile(this.devInfoFile, '{}');
+		}
+		//check if the files exists, if not then create it
+		if (fs.existsSync(this.inputsFile) === false) {
+			fsPromises.writeFile(this.inputsFile, '{}');
+		}
+		//check if the files exists, if not then create it
+		if (fs.existsSync(this.customInputsFile) === false) {
+			fsPromises.writeFile(this.customInputsFile, '{}');
 		}
 
 		//Check device state
@@ -378,8 +369,13 @@ class lgwebosTvDevice {
 		if (readData && readData.Model !== undefined) {
 			readData = readData;
 		} else {
-			readData = this.saveData;
+			if (this.saveData !== undefined) {
+				readData = this.saveData;
+			} else {
+				readData = { 'Model': 'Model name', 'System': 'System', 'Serial': 'Serial number', 'Firmware': 'Firmware' };
+			}
 		}
+
 		const manufacturer = this.manufacturer;
 		const modelName = readData.Model;
 		const serialNumber = readData.Serial;
