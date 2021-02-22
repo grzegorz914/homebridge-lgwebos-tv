@@ -157,6 +157,12 @@ class lgwebosTvDevice {
 			if (this.speakerService) {
 				this.speakerService.updateCharacteristic(Characteristic.Mute, true);
 			}
+			if (this.volumeService && this.volumeControl == 1) {
+				this.volumeService.updateCharacteristic(Characteristic.On, false);
+			}
+			if (this.volumeServiceFan && this.volumeControl == 2) {
+				this.volumeServiceFan.updateCharacteristic(Characteristic.On, false);
+			}
 		});
 
 		this.lgtv.on('error', (error) => {
