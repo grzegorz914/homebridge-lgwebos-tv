@@ -107,6 +107,18 @@ class lgwebosTvDevice {
 		this.channelsFile = this.prefDir + '/' + 'channels_' + this.host.split('.').join('');
 		this.url = 'ws://' + this.host + ':' + WEBSOCKET_PORT;
 
+		//check if inputs are configured, if not set default info
+		if (!Array.isArray(this.inputs) || this.inputs === undefined || this.inputs === null) {
+			this.inputs = [
+				{
+					'name': 'No inputs configured',
+					'reference': 'No references configured',
+					'type': "APPLICATION",
+					'mode': 0
+				}
+			];
+		}
+
 		this.lgtv = lgtv({
 			url: this.url,
 			timeout: 10000,
