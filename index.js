@@ -377,15 +377,13 @@ class lgwebosTvDevice {
 		//Prepare information service
 		this.log.debug('prepareInformationService');
 		try {
-			const response = fsPromises.readFile(this.devInfoFile);
+			const response = fs.readFileSync(this.devInfoFile);
 			var devInfo = JSON.parse(response);
 		} catch (error) {
 			this.log.debug('Device: %s %s, read devInfo failed, error: %s', this.host, accessoryName, error)
 		}
 
-		if (devInfo !== undefined) {
-			devInfo = devInfo;
-		} else {
+		if (devInfo === undefined) {
 			devInfo = { 'manufacturer': 'Manufacturer', 'modelName': 'Model name', 'device_id': 'Serial number', 'firmwareRevision': 'Firmware' };
 		}
 
