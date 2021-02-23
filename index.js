@@ -220,17 +220,17 @@ class lgwebosTvDevice {
 
 	async getDeviceInfo() {
 		var me = this;
-		me.log('Device: %s %s, requesting Device Info.', me.host, me.name);
+		me.log.debug('Device: %s %s, requesting Device Info.', me.host, me.name);
 		try {
 			this.lgtv.request('ssap://system/getSystemInfo', (error, response) => {
 				if (error || response.errorCode) {
-					me.log('Device: %s %s, get System info error: %s', me.host, me.name, error);
+					me.log.debug('Device: %s %s, get System info error: %s', me.host, me.name, error);
 				} else {
 					me.modelName = response.modelName;
 				}
 				me.lgtv.request('ssap://com.webos.service.update/getCurrentSWInformation', (error, response1) => {
 					if (error || response1.errorCode) {
-						me.log('Device: %s %s, get Software info error: %s', me.host, me.name, error);
+						me.log.debug('Device: %s %s, get Software info error: %s', me.host, me.name, error);
 					} else {
 						me.productName = response1.product_name;
 						me.serialNumber = response1.device_id;
@@ -256,7 +256,7 @@ class lgwebosTvDevice {
 
 			me.checkDeviceInfo = false;
 		} catch (error) {
-			me.log('Device: %s %s, requesting Device Info failed, error: %s', me.host, me.name, error)
+			me.log.debug('Device: %s %s, requesting Device Info failed, error: %s', me.host, me.name, error)
 			me.checkDeviceInfo = true;
 		}
 	}
