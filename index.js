@@ -195,10 +195,9 @@ class lgwebosTvDevice {
 			if (!this.disableLogInfo) {
 				this.log('Device: %s %s, connected.', this.host, this.name);
 			}
-			if (!this.pixelRefresh) {
+			if (!this.currentPowerState && !this.pixelRefresh) {
 				this.connectToPointerInputSocket();
 				this.updateDeviceState();
-				this.checkDeviceInfo = true;
 			}
 		});
 
@@ -221,28 +220,30 @@ class lgwebosTvDevice {
 
 	async getDeviceInfo() {
 		var me = this;
-		me.log.debug('Device: %s %s, requesting Device Info.', me.host, me.name);
+		me.log('Device: %s %s, requesting Device Info.', me.host, me.name);
 		try {
 			this.lgtv.request('ssap://system/getSystemInfo', (error, response) => {
 				if (error || response.errorCode) {
-					me.log.debug('Device: %s %s, get System info error: %s', me.host, me.name, error);
+					me.log('Device: %s %s, get System info error: %s', me.host, me.name, error);
 				} else {
-					me.modelName = response.modelName
+					me.modelName = response.modelName;
 				}
-				me.lgtv.request('ssap://com.webos.service.update/getCurrentSWInformation', (error, response) => {
-					if (error || response.errorCode) {
-						me.log.debug('Device: %s %s, get Software info error: %s', me.host, me.name, error);
+				me.lgtv.request('ssap://com.webos.service.update/getCurrentSWInformation', (error, response1) => {
+					if (error || response1.errorCode) {
+						me.log('Device: %s %s, get Software info error: %s', me.host, me.name, error);
 					} else {
-						me.productName = response.product_name;
-						me.serialNumber = response.device_id;
-						me.firmwareRevision = response.major_ver + '.' + response.minor_ver;
+						me.productName = response1.product_name;
+						me.serialNumber = response1.device_id;
+						me.firmwareRevision = response1.major_ver + '.' + response1.minor_ver;
 					}
-					me.saveData = { 'Manufacturer': me.manufacturer, 'Model': me.modelName, 'System': me.productName, 'Serial': me.serialNumber, 'Firmware': me.firmwareRevision };
-					let data = JSON.stringify(me.saveData, null, 2);
-					fsPromises.writeFile(me.devInfoFile, data);
-					me.log.debug('Device: %s %s, devInfoFile saved successful.', me.host, me.name);
+					let obj = Object.assign(response, response1);
+					let devInfo = JSON.stringify(obj, null, 2);
+					const writeDevInfoFile = fsPromises.writeFile(me.devInfoFile, devInfo);
+					me.log.debug('Device: %s %s, saved Device Info successful.', me.host, me.name);
 
-					me.log('Device: %s %s, state: Online.', me.host, me.name);
+					if (!me.disableLogInfo) {
+						me.log('Device: %s %s, state: Online.', me.host, me.name);
+					}
 					me.log('-------- %s --------', me.name);
 					me.log('Manufacturer: %s', me.manufacturer);
 					me.log('Model: %s', me.modelName);
@@ -250,11 +251,12 @@ class lgwebosTvDevice {
 					me.log('Serialnr: %s', me.serialNumber);
 					me.log('Firmware: %s', me.firmwareRevision);
 					me.log('----------------------------------');
-					me.checkDeviceInfo = false;
 				});
 			});
+
+			me.checkDeviceInfo = false;
 		} catch (error) {
-			me.log.debug('Device: %s %s, requesting Device Info failed, error: %s', me.host, me.name, error)
+			me.log('Device: %s %s, requesting Device Info failed, error: %s', me.host, me.name, error)
 			me.checkDeviceInfo = true;
 		}
 	}
@@ -281,6 +283,7 @@ class lgwebosTvDevice {
 					}
 					me.log.debug('Device: %s %s, get current Power state successful: %s', me.host, me.name, 'ON');
 					me.currentPowerState = true;
+					me.checkDeviceInfo = true;
 				} else {
 					if (me.televisionService) {
 						me.televisionService.updateCharacteristic(Characteristic.Active, false);
@@ -374,25 +377,22 @@ class lgwebosTvDevice {
 		//Prepare information service
 		this.log.debug('prepareInformationService');
 		try {
-			var readData = JSON.parse(fs.readFileSync(this.devInfoFile));
+			const response = fsPromises.readFile(this.devInfoFile);
+			var devInfo = JSON.parse(response);
 		} catch (error) {
-			this.log.debug('Device: %s %s, readData failed, error: %s', this.host, accessoryName, error)
+			this.log.debug('Device: %s %s, read devInfo failed, error: %s', this.host, accessoryName, error)
 		}
 
-		if (readData && readData.Model !== undefined) {
-			readData = readData;
+		if (devInfo !== undefined) {
+			devInfo = devInfo;
 		} else {
-			if (this.saveData !== undefined) {
-				readData = this.saveData;
-			} else {
-				readData = { 'Manufacturer': 'Manufacturer', 'Model': 'Model name', 'Serial': 'Serial number', 'Firmware': 'Firmware' };
-			}
+			devInfo = { 'manufacturer': 'Manufacturer', 'modelName': 'Model name', 'device_id': 'Serial number', 'firmwareRevision': 'Firmware' };
 		}
 
-		const manufacturer = readData.Manufacturer;
-		const modelName = readData.Model;
-		const serialNumber = readData.Serial;
-		const firmwareRevision = readData.Firmware;
+		const manufacturer = this.manufacturer;
+		const modelName = devInfo.modelName;
+		const serialNumber = devInfo.device_id;
+		const firmwareRevision = devInfo.major_ver + '.' + devInfo.minor_ver;
 
 		accessory.removeService(accessory.getService(Service.AccessoryInformation));
 		const informationService = new Service.AccessoryInformation();
