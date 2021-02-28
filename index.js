@@ -368,31 +368,31 @@ class lgwebosTvDevice {
 
 		//Prepare information service
 		this.log.debug('prepareInformationService');
+		let devInfo = {};
 		try {
-			const response = fs.readFileSync(this.devInfoFile);
-			let devInfo = JSON.parse(response.Device_Info);
-			if (devInfo === undefined) {
-				devInfo = { 'manufacturer': 'Manufacturer', 'modelName': 'Model name', 'device_id': 'Serial number', 'major_ver': 'Firmware', 'minor_ver': 'Firmware', };
-			}
-
-			const manufacturer = this.manufacturer;
-			const modelName = devInfo.modelName;
-			const serialNumber = devInfo.device_id;
-			const firmwareRevision = devInfo.major_ver + '.' + devInfo.minor_ver;
-
-			accessory.removeService(accessory.getService(Service.AccessoryInformation));
-			const informationService = new Service.AccessoryInformation();
-			informationService
-				.setCharacteristic(Characteristic.Name, accessoryName)
-				.setCharacteristic(Characteristic.Manufacturer, manufacturer)
-				.setCharacteristic(Characteristic.Model, modelName)
-				.setCharacteristic(Characteristic.SerialNumber, serialNumber)
-				.setCharacteristic(Characteristic.FirmwareRevision, firmwareRevision);
-
-			accessory.addService(informationService);
+			devInfo = JSON.parse(fs.readFileSync(this.devInfoFile));
 		} catch (error) {
 			this.log.debug('Device: %s %s, read devInfo failed, error: %s', this.host, accessoryName, error)
 		}
+		if (devInfo === undefined) {
+			devInfo = { 'manufacturer': 'Manufacturer', 'modelName': 'Model name', 'device_id': 'Serial number', 'major_ver': 'Firmware', 'minor_ver': 'Firmware', };
+		}
+
+		const manufacturer = this.manufacturer;
+		const modelName = devInfo.modelName;
+		const serialNumber = devInfo.device_id;
+		const firmwareRevision = devInfo.major_ver + '.' + devInfo.minor_ver;
+
+		accessory.removeService(accessory.getService(Service.AccessoryInformation));
+		const informationService = new Service.AccessoryInformation();
+		informationService
+			.setCharacteristic(Characteristic.Name, accessoryName)
+			.setCharacteristic(Characteristic.Manufacturer, manufacturer)
+			.setCharacteristic(Characteristic.Model, modelName)
+			.setCharacteristic(Characteristic.SerialNumber, serialNumber)
+			.setCharacteristic(Characteristic.FirmwareRevision, firmwareRevision);
+
+		accessory.addService(informationService);
 
 
 		//Prepare TV service 
