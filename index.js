@@ -37,7 +37,7 @@ class lgwebosTvPlatform {
 		this.api.on('didFinishLaunching', () => {
 			this.log.debug('didFinishLaunching');
 			for (let i = 0; i < this.devices.length; i++) {
-				let deviceName = this.devices[i];
+				const deviceName = this.devices[i];
 				if (!deviceName.name) {
 					this.log.warn('Device Name Missing')
 				} else {
@@ -219,149 +219,141 @@ class lgwebosTvDevice {
 	}
 
 	async getDeviceInfo() {
-		var me = this;
-		me.log.debug('Device: %s %s, requesting Device Info.', me.host, me.name);
+		this.log.debug('Device: %s %s, requesting Device Info.', this.host, this.name);
 		try {
 			this.lgtv.request('ssap://system/getSystemInfo', (error, response) => {
 				if (error || response.errorCode) {
-					me.log.debug('Device: %s %s, get System info error: %s', me.host, me.name, error);
+					this.log.debug('Device: %s %s, get System info error: %s', this.host, this.name, error);
 				} else {
-					me.modelName = response.modelName;
+					this.modelName = response.modelName;
 				}
-				me.lgtv.request('ssap://com.webos.service.update/getCurrentSWInformation', (error, response1) => {
+				this.lgtv.request('ssap://com.webos.service.update/getCurrentSWInformation', (error, response1) => {
 					if (error || response1.errorCode) {
-						me.log.debug('Device: %s %s, get Software info error: %s', me.host, me.name, error);
+						this.log.debug('Device: %s %s, get Software info error: %s', this.host, this.name, error);
 					} else {
-						me.productName = response1.product_name;
-						me.serialNumber = response1.device_id;
-						me.firmwareRevision = response1.major_ver + '.' + response1.minor_ver;
+						this.productName = response1.product_name;
+						this.serialNumber = response1.device_id;
+						this.firmwareRevision = response1.major_ver + '.' + response1.minor_ver;
 					}
-					let obj = Object.assign(response, response1);
-					let devInfo = JSON.stringify(obj, null, 2);
-					const writeDevInfoFile = fsPromises.writeFile(me.devInfoFile, devInfo);
-					me.log.debug('Device: %s %s, saved Device Info successful.', me.host, me.name);
+					const obj = Object.assign(response, response1);
+					const devInfo = JSON.stringify(obj, null, 2);
+					const writeDevInfoFile = fsPromises.writeFile(this.devInfoFile, devInfo);
+					this.log.debug('Device: %s %s, saved Device Info successful.', this.host, this.name);
 
-					if (!me.disableLogInfo) {
-						me.log('Device: %s %s, state: Online.', me.host, me.name);
+					if (!this.disableLogInfo) {
+						this.log('Device: %s %s, state: Online.', this.host, this.name);
 					}
-					me.log('-------- %s --------', me.name);
-					me.log('Manufacturer: %s', me.manufacturer);
-					me.log('Model: %s', me.modelName);
-					me.log('System: %s', me.productName);
-					me.log('Serialnr: %s', me.serialNumber);
-					me.log('Firmware: %s', me.firmwareRevision);
-					me.log('----------------------------------');
+					this.log('-------- %s --------', this.name);
+					this.log('Manufacturer: %s', this.manufacturer);
+					this.log('Model: %s', this.modelName);
+					this.log('System: %s', this.productName);
+					this.log('Serialnr: %s', this.serialNumber);
+					this.log('Firmware: %s', this.firmwareRevision);
+					this.log('----------------------------------');
 				});
 			});
 
-			me.checkDeviceInfo = false;
+			this.checkDeviceInfo = false;
 		} catch (error) {
-			me.log.debug('Device: %s %s, requesting Device Info failed, error: %s', me.host, me.name, error)
-			me.checkDeviceInfo = true;
+			this.log.debug('Device: %s %s, requesting Device Info failed, error: %s', this.host, this.name, error)
+			this.checkDeviceInfo = true;
 		}
 	}
 
 	updateDeviceState() {
-		var me = this;
-		me.log.debug('Device: %s %s, requesting Device state.', me.host, me.name);
-		me.lgtv.subscribe('ssap://com.webos.service.tvpower/power/getPowerState', (error, response) => {
+		this.log.debug('Device: %s %s, requesting Device state.', this.host, this.name);
+		this.lgtv.subscribe('ssap://com.webos.service.tvpower/power/getPowerState', (error, response) => {
 			if (error) {
-				me.log.error('Device: %s %s, get current Power state error: %s %s.', me.host, me.name, error, response);
+				this.log.error('Device: %s %s, get current Power state error: %s %s.', this.host, this.name, error, response);
 			} else {
-				me.log.debug('Device: %s %s, get current Power state data: %s', me.host, me.name, response);
-				let prepareOff = (response.processing === 'Request Power Off' || response.processing === 'Request Active Standby' || response.processing === 'Request Suspend' || response.processing === 'Prepare Suspend');
-				let prepareScreenSaver = (response.processing === 'Screen Saver Ready');
-				let screenSaver = (response.state === 'Screen Saver');
-				let pixelRefresh = (response.state === 'Active Standby');
-				let powerOff = (response.state === 'Suspend');
-				let prepareOn = (response.processing === 'Screen On' || response.processing === 'Request Screen Saver');
-				let powerOn = (response.state === 'Active' || screenSaver);
-				let state = (powerOn && !pixelRefresh);
+				this.log.debug('Device: %s %s, get current Power state data: %s', this.host, this.name, response);
+				const prepareOff = (response.processing === 'Request Power Off' || response.processing === 'Request Active Standby' || response.processing === 'Request Suspend' || response.processing === 'Prepare Suspend');
+				const prepareScreenSaver = (response.processing === 'Screen Saver Ready');
+				const screenSaver = (response.state === 'Screen Saver');
+				const pixelRefresh = (response.state === 'Active Standby');
+				const powerOff = (response.state === 'Suspend');
+				const prepareOn = (response.processing === 'Screen On' || response.processing === 'Request Screen Saver');
+				const powerOn = (response.state === 'Active' || screenSaver);
+				const state = (powerOn && !pixelRefresh);
 				if (state) {
-					if (me.televisionService) {
-						me.televisionService.updateCharacteristic(Characteristic.Active, true);
+					if (this.televisionService) {
+						this.televisionService.updateCharacteristic(Characteristic.Active, true);
 					}
-					me.log.debug('Device: %s %s, get current Power state successful: %s', me.host, me.name, 'ON');
-					me.currentPowerState = true;
-					me.checkDeviceInfo = true;
+					this.log.debug('Device: %s %s, get current Power state successful: %s', this.host, this.name, 'ON');
+					this.currentPowerState = true;
+					this.checkDeviceInfo = true;
 				} else {
-					if (me.televisionService) {
-						me.televisionService.updateCharacteristic(Characteristic.Active, false);
+					if (this.televisionService) {
+						this.televisionService.updateCharacteristic(Characteristic.Active, false);
 					}
-					me.log.debug('Device: %s %s, get current Power state successful: %s', me.host, me.name, pixelRefresh ? 'PIXEL REFRESH' : 'OFF');
-					me.currentPowerState = false;
-					me.lgtv.disconnect();
+					this.log.debug('Device: %s %s, get current Power state successful: %s', this.host, this.name, pixelRefresh ? 'PIXEL REFRESH' : 'OFF');
+					this.currentPowerState = false;
+					this.lgtv.disconnect();
 				}
-				me.currentPowerState = state;
-				me.pixelRefresh = pixelRefresh;
+				this.currentPowerState = state;
+				this.pixelRefresh = pixelRefresh;
 			}
 		});
-		me.lgtv.subscribe('ssap://com.webos.applicationManager/getForegroundAppInfo', (error, response) => {
+		this.lgtv.subscribe('ssap://com.webos.applicationManager/getForegroundAppInfo', (error, response) => {
 			if (error) {
-				me.log.error('Device: %s %s, get current App error: %s.', me.host, me.name, error);
+				this.log.error('Device: %s %s, get current App error: %s.', this.host, this.name, error);
 			} else {
-				me.log.debug('Device: %s %s, get current App state data: %s', me.host, me.name, response);
-				let inputReference = response.appId;
-				let inputIdentifier = me.inputReferences.indexOf(inputReference);
-				if (inputIdentifier === -1) {
-					inputIdentifier = 0;
+				this.log.debug('Device: %s %s, get current App state data: %s', this.host, this.name, response);
+				const inputReference = response.appId;
+				const inputIdentifier = (this.inputReferences.indexOf(inputReference) >= 0) ? this.inputReferences.indexOf(inputReference) : 0;
+				const inputName = this.inputNames[inputIdentifier];
+				if (this.televisionService && (inputReference !== this.currentInputReference)) {
+					this.televisionService.updateCharacteristic(Characteristic.ActiveIdentifier, inputIdentifier);
 				}
-				let inputName = me.inputNames[inputIdentifier];
-				if (me.televisionService) {
-					me.televisionService.updateCharacteristic(Characteristic.ActiveIdentifier, inputIdentifier);
-				}
-				me.log.debug('Device: %s %s, get current Input successful: %s %s', me.host, me.name, inputName, inputReference);
-				me.currentInputReference = inputReference;
-				me.currentInputName = inputName;
-				me.currentInputIdentifier = inputIdentifier
+				this.log.debug('Device: %s %s, get current Input successful: %s %s', this.host, this.name, inputName, inputReference);
+				this.currentInputReference = inputReference;
+				this.currentInputName = inputName;
+				this.currentInputIdentifier = inputIdentifier
 			}
 		});
 
-		me.lgtv.subscribe('ssap://tv/getCurrentChannel', (error, response) => {
+		this.lgtv.subscribe('ssap://tv/getCurrentChannel', (error, response) => {
 			if (error) {
-				me.log.error('Device: %s %s, get current Channel and Name error: %s.', me.host, me.name, error);
+				this.log.error('Device: %s %s, get current Channel and Name error: %s.', this.host, this.name, error);
 			} else {
-				me.log.debug('Device: %s %s, get current Channel data: %s', me.host, me.name, response);
-				let channelReference = response.channelId;
-				let channelName = response.channelName;
-				let inputIdentifier = me.inputReferences.indexOf(channelReference);
-				if (inputIdentifier === -1) {
-					inputIdentifier = 0;
+				this.log.debug('Device: %s %s, get current Channel data: %s', this.host, this.name, response);
+				const channelReference = response.channelId;
+				const channelName = response.channelName;
+				const inputIdentifier = (this.inputReferences.indexOf(channelReference) >= 0) ? this.inputReferences.indexOf(channelReference) : 0;
+				const inputMode = this.inputModes[inputIdentifier];
+				if (this.televisionService && inputMode == 1) {
+					this.televisionService.updateCharacteristic(Characteristic.ActiveIdentifier, inputIdentifier);
 				}
-				let inputMode = me.inputModes[inputIdentifier];
-				if (me.televisionService && inputMode == 1) {
-					me.televisionService.updateCharacteristic(Characteristic.ActiveIdentifier, inputIdentifier);
-				}
-				me.log.debug('Device: %s %s, get current Channel successful: %s, %s', me.host, me.name, channelName, channelReference);
-				me.currentChannelName = channelName;
-				me.currentChannelReference = channelReference;
-				me.currentInputIdentifier = inputIdentifier
+				this.log.debug('Device: %s %s, get current Channel successful: %s, %s', this.host, this.name, channelName, channelReference);
+				this.currentChannelName = channelName;
+				this.currentChannelReference = channelReference;
+				this.currentInputIdentifier = inputIdentifier
 			}
 		});
 
-		me.lgtv.subscribe('ssap://audio/getStatus', (error, response) => {
+		this.lgtv.subscribe('ssap://audio/getStatus', (error, response) => {
 			if (error) {
-				me.log.error('Device: %s %s, get current Audio state error: %s.', me.host, me.name, error);
+				this.log.error('Device: %s %s, get current Audio state error: %s.', this.host, this.name, error);
 			} else {
-				me.log.debug('Device: %s %s, get current Audio state data: %s', me.host, me.name, response);
-				let mute = me.currentPowerState ? (response.mute === true) : true;
-				let volume = response.volume;
-				if (me.speakerService) {
-					me.speakerService.updateCharacteristic(Characteristic.Mute, mute);
-					me.speakerService.updateCharacteristic(Characteristic.Volume, volume);
-					if (me.volumeService && me.volumeControl == 1) {
-						me.volumeService.updateCharacteristic(Characteristic.Brightness, volume);
-						me.volumeService.updateCharacteristic(Characteristic.On, !mute);
+				this.log.debug('Device: %s %s, get current Audio state data: %s', this.host, this.name, response);
+				const mute = this.currentPowerState ? (response.mute === true) : true;
+				const volume = response.volume;
+				if (this.speakerService) {
+					this.speakerService.updateCharacteristic(Characteristic.Mute, mute);
+					this.speakerService.updateCharacteristic(Characteristic.Volume, volume);
+					if (this.volumeService && this.volumeControl == 1) {
+						this.volumeService.updateCharacteristic(Characteristic.Brightness, volume);
+						this.volumeService.updateCharacteristic(Characteristic.On, !mute);
 					}
-					if (me.volumeServiceFan && me.volumeControl == 2) {
-						me.volumeServiceFan.updateCharacteristic(Characteristic.RotationSpeed, volume);
-						me.volumeServiceFan.updateCharacteristic(Characteristic.On, !mute);
+					if (this.volumeServiceFan && this.volumeControl == 2) {
+						this.volumeServiceFan.updateCharacteristic(Characteristic.RotationSpeed, volume);
+						this.volumeServiceFan.updateCharacteristic(Characteristic.On, !mute);
 					}
 				}
-				me.log.debug('Device: %s %s, get current Mute state: %s', me.host, me.name, mute ? 'ON' : 'OFF');
-				me.log.debug('Device: %s %s, get current Volume level: %s', me.host, me.name, volume);
-				me.currentMuteState = mute;
-				me.currentVolume = volume;
+				this.log.debug('Device: %s %s, get current Mute state: %s', this.host, this.name, mute ? 'ON' : 'OFF');
+				this.log.debug('Device: %s %s, get current Volume level: %s', this.host, this.name, volume);
+				this.currentMuteState = mute;
+				this.currentVolume = volume;
 			}
 		});
 	}
@@ -378,30 +370,29 @@ class lgwebosTvDevice {
 		this.log.debug('prepareInformationService');
 		try {
 			const response = fs.readFileSync(this.devInfoFile);
-			var devInfo = JSON.parse(response);
+			let devInfo = JSON.parse(response.Device_Info);
+			if (devInfo === undefined) {
+				devInfo = { 'manufacturer': 'Manufacturer', 'modelName': 'Model name', 'device_id': 'Serial number', 'major_ver': 'Firmware', 'minor_ver': 'Firmware', };
+			}
+
+			const manufacturer = this.manufacturer;
+			const modelName = devInfo.modelName;
+			const serialNumber = devInfo.device_id;
+			const firmwareRevision = devInfo.major_ver + '.' + devInfo.minor_ver;
+
+			accessory.removeService(accessory.getService(Service.AccessoryInformation));
+			const informationService = new Service.AccessoryInformation();
+			informationService
+				.setCharacteristic(Characteristic.Name, accessoryName)
+				.setCharacteristic(Characteristic.Manufacturer, manufacturer)
+				.setCharacteristic(Characteristic.Model, modelName)
+				.setCharacteristic(Characteristic.SerialNumber, serialNumber)
+				.setCharacteristic(Characteristic.FirmwareRevision, firmwareRevision);
+
+			accessory.addService(informationService);
 		} catch (error) {
 			this.log.debug('Device: %s %s, read devInfo failed, error: %s', this.host, accessoryName, error)
 		}
-
-		if (devInfo === undefined) {
-			devInfo = { 'manufacturer': 'Manufacturer', 'modelName': 'Model name', 'device_id': 'Serial number', 'firmwareRevision': 'Firmware' };
-		}
-
-		const manufacturer = this.manufacturer;
-		const modelName = devInfo.modelName;
-		const serialNumber = devInfo.device_id;
-		const firmwareRevision = devInfo.major_ver + '.' + devInfo.minor_ver;
-
-		accessory.removeService(accessory.getService(Service.AccessoryInformation));
-		const informationService = new Service.AccessoryInformation();
-		informationService
-			.setCharacteristic(Characteristic.Name, accessoryName)
-			.setCharacteristic(Characteristic.Manufacturer, manufacturer)
-			.setCharacteristic(Characteristic.Model, modelName)
-			.setCharacteristic(Characteristic.SerialNumber, serialNumber)
-			.setCharacteristic(Characteristic.FirmwareRevision, firmwareRevision);
-
-		accessory.addService(informationService);
 
 
 		//Prepare TV service 
@@ -412,7 +403,7 @@ class lgwebosTvDevice {
 
 		this.televisionService.getCharacteristic(Characteristic.Active)
 			.onGet(async () => {
-				let state = this.currentPowerState;
+				const state = this.currentPowerState;
 				if (!this.disableLogInfo) {
 					this.log('Device: %s %s, get current Power state successfull, state: %s', this.host, accessoryName, state ? 'ON' : 'OFF');
 				}
@@ -447,25 +438,23 @@ class lgwebosTvDevice {
 
 		this.televisionService.getCharacteristic(Characteristic.ActiveIdentifier)
 			.onGet(async () => {
-				let inputReference = this.currentInputReference;
-				let inputIdentifier = this.inputReferences.indexOf(inputReference);
-				if (inputIdentifier === -1) {
-					inputIdentifier = 0;
-				}
-				let inputName = this.inputNames[inputIdentifier];
+				const inputReference = this.currentInputReference;
+				const inputIdentifier = (this.inputReferences.indexOf(inputReference) >= 0) ? this.inputReferences.indexOf(inputReference) : 0;
+				const inputIdentifier = this.inputReferences.indexOf(inputReference);
+				const inputName = this.inputNames[inputIdentifier];
 				if (!this.disableLogInfo) {
 					this.log('Device: %s %s, get current Input successful: %s %s', this.host, accessoryName, inputName, inputReference);
 				}
 				return inputIdentifier;
 			})
 			.onSet(async (inputIdentifier) => {
-				let inputName = this.inputNames[inputIdentifier];
-				let inputReference = this.inputReferences[inputIdentifier];
+				const inputName = this.inputNames[inputIdentifier];
+				const inputReference = this.inputReferences[inputIdentifier];
 				this.lgtv.request('ssap://system.launcher/launch', { id: inputReference });
 				if (!this.disableLogInfo) {
 					this.log('Device: %s %s, set new Input successful: %s %s', this.host, accessoryName, inputName, inputReference);
 					if (inputIdentifier == 100) {
-						let channelReference = this.inputReferences[inputIdentifier];
+						const channelReference = this.inputReferences[inputIdentifier];
 						this.lgtv.request('ssap://tv/openChannel', { channelId: channelReference });
 						if (!this.disableLogInfo) {
 							this.log('Device: %s %s, set new Channel successful: %s %s', this.host, accessoryName, inputName, channelReference);
@@ -536,8 +525,8 @@ class lgwebosTvDevice {
 							command = 'BACK';
 							break;
 					}
-					if (!me.disableLogInfo) {
-						me.log('Device: %s %s, setPowerModeSelection successful, command: %s', this.host, accessoryName, command);
+					if (!this.disableLogInfo) {
+						this.log('Device: %s %s, setPowerModeSelection successful, command: %s', this.host, accessoryName, command);
 					}
 					this.pointerInputSocket.send('button', { name: command });
 				}
@@ -570,7 +559,7 @@ class lgwebosTvDevice {
 			});
 		this.speakerService.getCharacteristic(Characteristic.Volume)
 			.onGet(async () => {
-				let volume = this.currentVolume;
+				const volume = this.currentVolume;
 				if (!this.disableLogInfo) {
 					this.log('Device: %s %s, get current Volume level successful: %s', this.host, accessoryName, volume);
 				}
@@ -587,7 +576,7 @@ class lgwebosTvDevice {
 			});
 		this.speakerService.getCharacteristic(Characteristic.Mute)
 			.onGet(async () => {
-				let state = this.currentMuteState;
+				const state = this.currentMuteState;
 				if (!this.disableLogInfo) {
 					this.log('Device: %s %s, get current Mute state successful: %s', this.host, accessoryName, state ? 'ON' : 'OFF');
 				}
@@ -612,7 +601,7 @@ class lgwebosTvDevice {
 				this.volumeService = new Service.Lightbulb(accessoryName + ' Volume', 'volumeService');
 				this.volumeService.getCharacteristic(Characteristic.Brightness)
 					.onGet(async () => {
-						let volume = this.currentVolume;
+						const volume = this.currentVolume;
 						return volume;
 					})
 					.onSet(async (volume) => {
@@ -620,7 +609,7 @@ class lgwebosTvDevice {
 					});
 				this.volumeService.getCharacteristic(Characteristic.On)
 					.onGet(async () => {
-						let state = !this.currentMuteState;
+						const state = !this.currentMuteState;
 						return state;
 					})
 					.onSet(async (state) => {
@@ -633,7 +622,7 @@ class lgwebosTvDevice {
 				this.volumeServiceFan = new Service.Fan(accessoryName + ' Volume', 'volumeServiceFan');
 				this.volumeServiceFan.getCharacteristic(Characteristic.RotationSpeed)
 					.onGet(async () => {
-						let volume = this.currentVolume;
+						const volume = this.currentVolume;
 						return volume;
 					})
 					.onSet(async (volume) => {
@@ -641,7 +630,7 @@ class lgwebosTvDevice {
 					});
 				this.volumeServiceFan.getCharacteristic(Characteristic.On)
 					.onGet(async () => {
-						let state = !this.currentMuteState;
+						const state = !this.currentMuteState;
 						return state;
 					})
 					.onSet(async (state) => {
@@ -667,16 +656,23 @@ class lgwebosTvDevice {
 			appsLength = 94
 		}
 		for (let i = 0; i < appsLength; i++) {
-			let inputName = apps[i].name;
-			let inputReference = apps[i].reference;
-			let inputType = apps[i].type;
-			let inputMode = apps[i].mode;
 
+			//get input reference
+			const inputReference = apps[i].reference;
+
+			//get input name
+			let inputName = apps[i].name;
 			if (savedNames && savedNames[inputReference]) {
 				inputName = savedNames[inputReference];
 			} else {
 				inputName = apps[i].name;
 			}
+
+			//get input type
+			const inputType = apps[i].type;
+
+			//get input mode
+			const inputMode = apps[i].mode;
 
 			this.inputsService = new Service.InputSource(inputReference, 'input' + i);
 			this.inputsService
