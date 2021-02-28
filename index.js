@@ -440,7 +440,6 @@ class lgwebosTvDevice {
 			.onGet(async () => {
 				const inputReference = this.currentInputReference;
 				const inputIdentifier = (this.inputReferences.indexOf(inputReference) >= 0) ? this.inputReferences.indexOf(inputReference) : 0;
-				const inputIdentifier = this.inputReferences.indexOf(inputReference);
 				const inputName = this.inputNames[inputIdentifier];
 				if (!this.disableLogInfo) {
 					this.log('Device: %s %s, get current Input successful: %s %s', this.host, accessoryName, inputName, inputReference);
