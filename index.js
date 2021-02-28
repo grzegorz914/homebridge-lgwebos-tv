@@ -391,7 +391,6 @@ class lgwebosTvDevice {
 			.setCharacteristic(Characteristic.Model, modelName)
 			.setCharacteristic(Characteristic.SerialNumber, serialNumber)
 			.setCharacteristic(Characteristic.FirmwareRevision, firmwareRevision);
-
 		accessory.addService(informationService);
 
 
