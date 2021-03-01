@@ -50,7 +50,7 @@
             "volumeControl": {
               "title": "Volume control mode",
               "type": "integer",
-              "default": 0,
+              "minimum": 0,
               "maximum": 2,
               "description": "Here select what a volume control mode You want to use. If select *None* only hardware buttons in RC app can be used to control volume.",
               "oneOf": [
@@ -92,13 +92,11 @@
                   "name": {
                     "title": "Input name",
                     "type": "string",
-                    "default": "Netflix",
                     "required": true
                   },
                   "reference": {
                     "title": "Input reference",
                     "type": "string",
-                    "default": "netflix",
                     "required": true
                   },
                   "type": {
@@ -196,7 +194,7 @@
                         ]
                       }
                     ],
-                    "required": true
+                    "required": false
                   }
                 }
               }
