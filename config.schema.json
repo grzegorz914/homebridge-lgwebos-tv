@@ -92,11 +92,13 @@
                   "name": {
                     "title": "Input name",
                     "type": "string",
-                    "required": true
+                    "description": "Here set Your own name.",
+                    "required": false
                   },
                   "reference": {
                     "title": "Input reference",
                     "type": "string",
+                    "description": "Here set the reference.",
                     "required": true
                   },
                   "type": {
@@ -179,7 +181,7 @@
                     "type": "integer",
                     "default": 0,
                     "maximum": 1,
-                    "description": "Here select what a input mode You defined.",
+                    "description": "Here select input mode.",
                     "oneOf": [
                       {
                         "title": "Apps",
@@ -195,6 +197,28 @@
                       }
                     ],
                     "required": false
+                  }
+                }
+              }
+            },
+            "buttons": {
+              "title": "Buttons",
+              "buttonText": "Add button",
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "title": "Name",
+                    "type": "string",
+                    "description": "Here set Your own name.",
+                    "required": false
+                  },
+                  "reference": {
+                    "title": "Reference",
+                    "type": "string",
+                    "description": "Here set the reference.",
+                    "required": true
                   }
                 }
               }
@@ -258,6 +282,25 @@
                 "devices[].inputs[].reference",
                 "devices[].inputs[].type",
                 "devices[].inputs[].mode"
+              ]
+            }
+          ]
+        },
+        {
+          "key": "devices[]",
+          "type": "section",
+          "title": "Buttons",
+          "expandable": true,
+          "expanded": false,
+          "items": [
+            {
+              "key": "devices[].buttons",
+              "type": "array",
+              "orderable": false,
+              "buttonText": "Add button",
+              "items": [
+                "devices[].buttons[].name",
+                "devices[].buttons[].reference"
               ]
             }
           ]

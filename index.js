@@ -74,6 +74,7 @@ class lgwebosTvDevice {
 		this.volumeControl = config.volumeControl || 0;
 		this.switchInfoMenu = config.switchInfoMenu;
 		this.inputs = config.inputs || [];
+		this.buttons = config.buttons || [];
 
 		//device info
 		this.manufacturer = config.manufacturer || 'LG Electronics';
@@ -82,10 +83,10 @@ class lgwebosTvDevice {
 		this.firmwareRevision = config.firmwareRevision || 'Firmware Revision';
 
 		//setup variables
-		this.inputNames = new Array();
-		this.inputReferences = new Array();
-		this.inputTypes = new Array();
-		this.inputModes = new Array();
+		this.inputsName = new Array();
+		this.inputsReference = new Array();
+		this.inputsType = new Array();
+		this.inputsMode = new Array();
 		this.checkDeviceInfo = false;
 		this.checkDeviceState = false;
 		this.startPrepareAccessory = true;
@@ -139,9 +140,9 @@ class lgwebosTvDevice {
 		setInterval(function () {
 			if (!this.checkDeviceInfo) {
 				tcpp.probe(this.host, WEBSOCKET_PORT, (err, online) => {
-					if (!online && this.currentPowerState) {
+					if (!online) {
 						this.currentPowerState = false;
-					} else if (online && !this.currentPowerState) {
+					} else if (online && !this.currentPowerState && !this.pixelRefresh) {
 						this.lgtv.connect(this.url);
 					}
 				});
@@ -159,11 +160,12 @@ class lgwebosTvDevice {
 		this.lgtv.on('close', () => {
 			this.log('Device: %s %s, disconnected.', this.host, this.name);
 			this.checkDeviceInfo = false;
+			this.currentPowerState = false;
+			this.currentMuteState = true
+			this.pointerInputSocket = null;
 			if (this.televisionService) {
 				this.televisionService.updateCharacteristic(Characteristic.Active, false);
 			}
-			this.currentPowerState = false;
-			this.currentMuteState = true
 			if (this.speakerService) {
 				this.speakerService.updateCharacteristic(Characteristic.Mute, true);
 			}
@@ -173,7 +175,6 @@ class lgwebosTvDevice {
 			if (this.volumeServiceFan && this.volumeControl == 2) {
 				this.volumeServiceFan.updateCharacteristic(Characteristic.On, false);
 			}
-			this.pointerInputSocket = null;
 		});
 
 		this.lgtv.on('error', (error) => {
@@ -287,14 +288,15 @@ class lgwebosTvDevice {
 				} else {
 					this.log.debug('Device: %s %s, get current App state response: %s', this.host, this.name, response);
 					const inputReference = response.appId;
-					const inputIdentifier = (this.inputReferences.indexOf(inputReference) >= 0) ? this.inputReferences.indexOf(inputReference) : 0;
-					const inputName = this.inputNames[inputIdentifier];
-					if (this.televisionService && (inputReference !== this.currentInputReference)) {
-						this.televisionService.updateCharacteristic(Characteristic.ActiveIdentifier, inputIdentifier);
+					const inputIdentifier = (this.inputsReference.indexOf(inputReference) >= 0) ? this.inputsReference.indexOf(inputReference) : 0;
+					const inputName = this.inputsName[inputIdentifier];
+					if (this.televisionService) {
+						this.televisionService
+							.updateCharacteristic(Characteristic.ActiveIdentifier, inputIdentifier);
 					}
 					this.currentInputReference = inputReference;
-					this.currentInputName = inputName;
 					this.currentInputIdentifier = inputIdentifier
+					this.currentInputName = inputName;
 				}
 			});
 
@@ -305,8 +307,8 @@ class lgwebosTvDevice {
 					this.log.debug('Device: %s %s, get current Channel response: %s', this.host, this.name, response);
 					const channelReference = response.channelId;
 					const channelName = response.channelName;
-					const inputIdentifier = (this.inputReferences.indexOf(channelReference) >= 0) ? this.inputReferences.indexOf(channelReference) : 0;
-					const inputMode = this.inputModes[inputIdentifier];
+					const inputIdentifier = (this.inputsReference.indexOf(channelReference) >= 0) ? this.inputsReference.indexOf(channelReference) : 0;
+					const inputMode = this.inputsMode[inputIdentifier];
 					if (this.televisionService && inputMode == 1) {
 						this.televisionService.updateCharacteristic(Characteristic.ActiveIdentifier, inputIdentifier);
 					}
@@ -321,18 +323,21 @@ class lgwebosTvDevice {
 					this.log.error('Device: %s %s, get current Audio state error: %s.', this.host, this.name, error);
 				} else {
 					this.log.debug('Device: %s %s, get current Audio state response: %s', this.host, this.name, response);
-					const mute = this.currentPowerState ? (response.mute === true) : true;
 					const volume = response.volume;
+					const mute = this.currentPowerState ? (response.mute === true) : true;
 					if (this.speakerService) {
-						this.speakerService.updateCharacteristic(Characteristic.Mute, mute);
-						this.speakerService.updateCharacteristic(Characteristic.Volume, volume);
-						if (this.volumeService && this.volumeControl == 1) {
-							this.volumeService.updateCharacteristic(Characteristic.Brightness, volume);
-							this.volumeService.updateCharacteristic(Characteristic.On, !mute);
+						this.speakerService
+							.updateCharacteristic(Characteristic.Volume, volume)
+							.updateCharacteristic(Characteristic.Mute, mute);
+						if (this.volumeService && this.volumeControl === 1) {
+							this.volumeService
+								.updateCharacteristic(Characteristic.Brightness, volume)
+								.updateCharacteristic(Characteristic.On, !mute);
 						}
-						if (this.volumeServiceFan && this.volumeControl == 2) {
-							this.volumeServiceFan.updateCharacteristic(Characteristic.RotationSpeed, volume);
-							this.volumeServiceFan.updateCharacteristic(Characteristic.On, !mute);
+						if (this.volumeServiceFan && this.volumeControl === 2) {
+							this.volumeServiceFan
+								.updateCharacteristic(Characteristic.RotationSpeed, volume)
+								.updateCharacteristic(Characteristic.On, !mute);
 						}
 					}
 					this.currentMuteState = mute;
@@ -414,15 +419,19 @@ class lgwebosTvDevice {
 					}
 				} else {
 					if (!state && this.currentPowerState) {
-						this.lgtv.request('ssap://system/turnOff', (error, response) => {
-							if (!this.disableLogInfo) {
-								this.log('Device: %s %s, set new Power state successful: %s', this.host, accessoryName, 'OFF');
-							}
-							if (this.televisionService) {
-								this.televisionService.updateCharacteristic(Characteristic.Active, false);
-							}
-							this.lgtv.disconnect();
-						});
+						try {
+							this.lgtv.request('ssap://system/turnOff', (error, response) => {
+								if (!this.disableLogInfo) {
+									this.log('Device: %s %s, set new Power state successful: %s', this.host, accessoryName, 'OFF');
+								}
+								if (this.televisionService) {
+									this.televisionService.updateCharacteristic(Characteristic.Active, false);
+								}
+								this.lgtv.disconnect();
+							});
+						} catch (error) {
+							this.log.error('Device: %s %s, can not set Power state OFF. Might be due to a wrong settings in config, error: %s', this.host);
+						};
 					}
 				}
 			});
@@ -430,27 +439,25 @@ class lgwebosTvDevice {
 		this.televisionService.getCharacteristic(Characteristic.ActiveIdentifier)
 			.onGet(async () => {
 				const inputReference = this.currentInputReference;
-				const inputIdentifier = (this.inputReferences.indexOf(inputReference) >= 0) ? this.inputReferences.indexOf(inputReference) : 0;
-				const inputName = this.inputNames[inputIdentifier];
+				const inputIdentifier = (this.inputsReference.indexOf(inputReference) >= 0) ? this.inputsReference.indexOf(inputReference) : 0;
+				const inputName = this.inputsName[inputIdentifier];
 				if (!this.disableLogInfo) {
 					this.log('Device: %s %s, get current Input successful: %s %s', this.host, accessoryName, inputName, inputReference);
 				}
 				return inputIdentifier;
 			})
 			.onSet(async (inputIdentifier) => {
-				const inputName = this.inputNames[inputIdentifier];
-				const inputReference = this.inputReferences[inputIdentifier];
-				this.lgtv.request('ssap://system.launcher/launch', { id: inputReference });
-				if (!this.disableLogInfo) {
-					this.log('Device: %s %s, set new Input successful: %s %s', this.host, accessoryName, inputName, inputReference);
-					if (inputIdentifier == 100) {
-						const channelReference = this.inputReferences[inputIdentifier];
-						this.lgtv.request('ssap://tv/openChannel', { channelId: channelReference });
-						if (!this.disableLogInfo) {
-							this.log('Device: %s %s, set new Channel successful: %s %s', this.host, accessoryName, inputName, channelReference);
-						}
+				try {
+					const inputName = this.inputsName[inputIdentifier];
+					const inputReference = this.inputsReference[inputIdentifier];
+					this.lgtv.request('ssap://system.launcher/launch', { id: inputReference });
+					if (!this.disableLogInfo) {
+						this.log('Device: %s %s, set new Input successful: %s %s', this.host, accessoryName, inputName, inputReference);
 					}
-				}
+					this.currentInputReference = inputReference;
+				} catch (error) {
+					this.log.error('Device: %s %s, can not set new Input. Might be due to a wrong settings in config, error: %s', this.host, accessoryName, error);
+				};
 			});
 
 		this.televisionService.getCharacteristic(Characteristic.RemoteKey)
@@ -634,6 +641,7 @@ class lgwebosTvDevice {
 		//Prepare inputs service
 		if (this.inputs.length > 0) {
 			this.log.debug('prepareInputsService');
+			this.inputsService = new Array();
 			let savedNames = {};
 			try {
 				savedNames = JSON.parse(fs.readFileSync(this.customInputsFile));
@@ -642,32 +650,32 @@ class lgwebosTvDevice {
 				this.log.error('Device: %s %s, read savedNames failed, error: %s', this.host, accessoryName, error)
 			}
 
-			const apps = this.inputs;
-			let appsLength = apps.length;
-			if (appsLength > 94) {
-				appsLength = 94
+			const inputs = this.inputs;
+			let inputsLength = inputs.length;
+			if (inputsLength > 94) {
+				inputsLength = 94
 			}
-			for (let i = 0; i < appsLength; i++) {
+			for (let i = 0; i < inputsLength; i++) {
 
 				//get input reference
-				const inputReference = apps[i].reference;
+				const inputReference = inputs[i].reference;
 
 				//get input name
-				let inputName = apps[i].name;
+				let inputName = inputs[i].name;
 				if (savedNames && savedNames[inputReference]) {
 					inputName = savedNames[inputReference];
 				} else {
-					inputName = apps[i].name;
+					inputName = (inputs[i].name !== undefined) ? inputs[i].name : inputs[i].reference;;
 				}
 
 				//get input type
-				const inputType = apps[i].type;
+				const inputType = inputs[i].type;
 
 				//get input mode
-				const inputMode = apps[i].mode;
+				const inputMode = inputs[i].mode;
 
-				this.inputsService = new Service.InputSource(inputReference, 'input' + i);
-				this.inputsService
+				const inputService = new Service.InputSource(inputReference, 'input' + i);
+				inputService
 					.setCharacteristic(Characteristic.Identifier, i)
 					.setCharacteristic(Characteristic.ConfiguredName, inputName)
 					.setCharacteristic(Characteristic.IsConfigured, Characteristic.IsConfigured.CONFIGURED)
@@ -675,7 +683,7 @@ class lgwebosTvDevice {
 					.setCharacteristic(Characteristic.CurrentVisibilityState, Characteristic.CurrentVisibilityState.SHOWN)
 					.setCharacteristic(Characteristic.TargetVisibilityState, Characteristic.TargetVisibilityState.SHOWN);
 
-				this.inputsService
+				inputService
 					.getCharacteristic(Characteristic.ConfiguredName)
 					.onSet(async (name) => {
 						savedNames[inputReference] = name;
@@ -690,13 +698,60 @@ class lgwebosTvDevice {
 							}
 						});
 					});
-				this.inputReferences.push(inputReference);
-				this.inputNames.push(inputName);
-				this.inputTypes.push(inputType);
-				this.inputModes.push(inputMode);
+				this.inputsReference.push(inputReference);
+				this.inputsName.push(inputName);
+				this.inputsType.push(inputType);
+				this.inputsMode.push(inputMode);
 
-				accessory.addService(this.inputsService);
-				this.televisionService.addLinkedService(this.inputsService);
+				this.inputsService.push(inputService);
+				accessory.addService(this.inputsService[i]);
+				this.televisionService.addLinkedService(this.inputsService[i]);
+			}
+		}
+
+		//Prepare inputs button services
+		if (this.buttons.length > 0) {
+			this.log.debug('prepareInputsButtonService');
+			this.buttonsService = new Array();
+			this.buttonsName = new Array();
+			this.buttonsReference = new Array();
+			for (let i = 0; i < this.buttons.length; i++) {
+				const buttonName = (buttons[i].name !== undefined) ? buttons[i].name : buttons[i].reference;
+				const buttonReference = this.buttons[i].reference;
+				const buttonService = new Service.Switch(accessoryName + ' ' + this.buttons[i].name, 'buttonService' + i);
+				buttonService.getCharacteristic(Characteristic.On)
+					.onGet(async () => {
+						const state = false;
+						if (!this.disableLogInfo) {
+							this.log('Device: %s %s, get current state successful: %s', this.host, accessoryName, state);
+						}
+						return state;
+					})
+					.onSet(async (state) => {
+						if (state && this.currentPowerState) {
+							try {
+								this.lgtv.request('ssap://system.launcher/launch', { id: buttonReference });
+								if (!this.disableLogInfo) {
+									this.log('Device: %s %s, set new Input successful: %s %s', this.host, accessoryName, buttonName, buttonReference);
+								}
+								setTimeout(() => {
+									buttonService.getCharacteristic(Characteristic.On).updateValue(false);
+								}, 350);
+							} catch (error) {
+								this.log.error('Device: %s %s, can not set new Input. Might be due to a wrong settings in config, error: %s.', this.host, accessoryName, error);
+							};
+						} else {
+							setTimeout(() => {
+								buttonService.getCharacteristic(Characteristic.On).updateValue(false);
+							}, 350);
+						}
+					});
+				this.buttonsReference.push(buttonReference);
+				this.buttonsName.push(buttonName);
+
+				this.buttonsService.push(buttonService)
+				accessory.addService(this.buttonsService[i]);
+				this.televisionService.addLinkedService(this.buttonsService[i]);
 			}
 		}
 
