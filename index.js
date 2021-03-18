@@ -83,10 +83,6 @@ class lgwebosTvDevice {
 		this.firmwareRevision = config.firmwareRevision || 'Firmware Revision';
 
 		//setup variables
-		this.inputsName = new Array();
-		this.inputsReference = new Array();
-		this.inputsType = new Array();
-		this.inputsMode = new Array();
 		this.checkDeviceInfo = false;
 		this.connectedToTv = false;
 		this.startPrepareAccessory = true;
@@ -639,6 +635,10 @@ class lgwebosTvDevice {
 		if (this.inputsLength > 0) {
 			this.log.debug('prepareInputsService');
 			this.inputsService = new Array();
+			this.inputsReference = new Array();
+			this.inputsName = new Array();
+			this.inputsType = new Array();
+			this.inputsMode = new Array();
 			const inputs = this.inputs;
 
 			const savedNames = (fs.readFileSync(this.customInputsFile) !== undefined) ? JSON.parse(fs.readFileSync(this.customInputsFile)) : {};

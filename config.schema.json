@@ -93,7 +93,7 @@
                     "title": "Input name",
                     "type": "string",
                     "description": "Here set Your own name.",
-                    "required": false
+                    "required": true
                   },
                   "reference": {
                     "title": "Input reference",
@@ -104,7 +104,6 @@
                   "type": {
                     "title": "Input type",
                     "type": "string",
-                    "default": "APPLICATION",
                     "description": "Here select source input type.",
                     "oneOf": [
                       {
@@ -179,7 +178,6 @@
                   "mode": {
                     "title": "Input mode",
                     "type": "integer",
-                    "default": 0,
                     "maximum": 1,
                     "description": "Here select input mode.",
                     "oneOf": [
@@ -196,7 +194,7 @@
                         ]
                       }
                     ],
-                    "required": false
+                    "required": true
                   }
                 }
               }
