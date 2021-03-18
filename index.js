@@ -649,8 +649,8 @@ class lgwebosTvDevice {
 
 			//check possible inputs count
 			let inputsLength = this.inputsLength;
-			if (inputsLength > 97) {
-				inputsLength = 97;
+			if (inputsLength > 96) {
+				inputsLength = 96;
 				this.log('Inputs count reduced to: %s, because excedded maximum of services', inputsLength)
 			}
 			for (let i = 0; i < inputsLength; i++) {
@@ -667,10 +667,10 @@ class lgwebosTvDevice {
 				//get input mode
 				const inputMode = inputs[i].mode;
 
-				//get input mode
+				//get input configured
 				const isConfigured = 1;
 
-				//get visibility state
+				//get input visibility state
 				const targetVisibility = (savedTargetVisibility[inputReference] !== undefined) ? savedTargetVisibility[inputReference] : 0;
 				const currentVisibility = targetVisibility;
 
@@ -745,7 +745,7 @@ class lgwebosTvDevice {
 			//check possible buttons count
 			let buttonsLength = this.buttonsLength;
 			if ((this.inputsLength + buttonsLength) > 97) {
-				buttonsLength = 97 - this.inputsLength;
+				buttonsLength = 96 - this.inputsLength;
 				this.log('Buttons count reduced to: %s, because excedded maximum of services', buttonsLength)
 			}
 			for (let i = 0; i < buttonsLength; i++) {
