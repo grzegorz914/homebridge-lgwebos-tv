@@ -295,8 +295,8 @@ class lgwebosTvDevice {
 				} else {
 					this.log.debug('Device: %s %s, get current App state response: %s', this.host, this.name, response);
 					const inputReference = response.appId;
-					const inputIdentifier = (this.inputsReference.indexOf(inputReference) >= 0) ? this.inputsReference.indexOf(inputReference) : 0;
-					const inputName = this.inputsName[inputIdentifier];
+					const inputIdentifier = (this.inputs.indexOf(inputReference) >= 0) ? this.inputs.indexOf(inputReference) : 0;
+					const inputName = this.inputs[inputIdentifier].name;
 					if (this.televisionService) {
 						this.televisionService
 							.updateCharacteristic(Characteristic.ActiveIdentifier, inputIdentifier);
@@ -314,8 +314,8 @@ class lgwebosTvDevice {
 					this.log.debug('Device: %s %s, get current Channel response: %s', this.host, this.name, response);
 					const channelReference = response.channelId;
 					const channelName = response.channelName;
-					const inputIdentifier = (this.inputsReference.indexOf(channelReference) >= 0) ? this.inputsReference.indexOf(channelReference) : 0;
-					const inputMode = this.inputsMode[inputIdentifier];
+					const inputIdentifier = (this.inputs.indexOf(channelReference) >= 0) ? this.inputs.indexOf(channelReference) : 0;
+					const inputMode = this.inputs[inputIdentifier].mode;
 					if (this.televisionService && inputMode == 1) {
 						this.televisionService.updateCharacteristic(Characteristic.ActiveIdentifier, inputIdentifier);
 					}
@@ -432,8 +432,8 @@ class lgwebosTvDevice {
 		this.televisionService.getCharacteristic(Characteristic.ActiveIdentifier)
 			.onGet(async () => {
 				const inputReference = this.currentInputReference;
-				const inputIdentifier = (this.inputsReference.indexOf(inputReference) >= 0) ? this.inputsReference.indexOf(inputReference) : 0;
-				const inputName = this.inputsName[inputIdentifier];
+				const inputIdentifier = (this.inputs.indexOf(inputReference) >= 0) ? this.inputs.indexOf(inputReference) : 0;
+				const inputName = this.inputs[inputIdentifier].name;
 				if (!this.disableLogInfo) {
 					this.log('Device: %s %s, get current Input successful: %s %s', this.host, accessoryName, inputName, inputReference);
 				}
@@ -441,8 +441,8 @@ class lgwebosTvDevice {
 			})
 			.onSet(async (inputIdentifier) => {
 				try {
-					const inputName = this.inputsName[inputIdentifier];
-					const inputReference = this.inputsReference[inputIdentifier];
+					const inputName = this.inputs[inputIdentifier].name;
+					const inputReference = this.inputs[inputIdentifier].reference;
 					this.lgtv.request('ssap://system.launcher/launch', { id: inputReference });
 					if (!this.disableLogInfo) {
 						this.log('Device: %s %s, set new Input successful: %s %s', this.host, accessoryName, inputName, inputReference);
