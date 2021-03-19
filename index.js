@@ -83,6 +83,10 @@ class lgwebosTvDevice {
 		this.firmwareRevision = config.firmwareRevision || 'Firmware Revision';
 
 		//setup variables
+		this.inputsReference = new Array();
+		this.inputsName = new Array();
+		this.inputsType = new Array();
+		this.inputsMode = new Array();
 		this.checkDeviceInfo = false;
 		this.connectedToTv = false;
 		this.startPrepareAccessory = true;
@@ -137,7 +141,7 @@ class lgwebosTvDevice {
 		setInterval(function () {
 			if (!this.connectedToTv) {
 				tcpp.probe(this.host, WEBSOCKET_PORT, (err, online) => {
-					if (online && !this.pixelRefresh && !this.currentPowerState) {
+					if (online && !this.currentPowerState) {
 						this.connectToTv();
 					}
 				});
@@ -165,7 +169,6 @@ class lgwebosTvDevice {
 					this.log('Device: %s %s, connected.', this.host, this.name);
 				}
 				this.connectedToTv = true;
-				this.currentPowerState = true;
 				this.lgtv.getSocket('ssap://com.webos.service.networkinput/getPointerInputSocket', (error, sock) => {
 					this.pointerInputSocket = sock;
 					if (!this.disableLogInfo) {
@@ -204,6 +207,7 @@ class lgwebosTvDevice {
 					this.log('Device: %s %s, disconnected.', this.host, this.name);
 				}
 				this.pointerInputSocket = null;
+				this.currentPowerState = false;
 				this.connectedToTv = false;
 			});
 		} catch (error) {
@@ -283,7 +287,6 @@ class lgwebosTvDevice {
 					}
 					if (this.televisionService && powerStateOff) {
 						this.televisionService.updateCharacteristic(Characteristic.Active, false);
-						this.currentPowerState = false;
 						this.disconnectFromTv();
 					}
 					this.pixelRefresh = pixelRefresh;
@@ -295,8 +298,8 @@ class lgwebosTvDevice {
 				} else {
 					this.log.debug('Device: %s %s, get current App state response: %s', this.host, this.name, response);
 					const inputReference = response.appId;
-					const inputIdentifier = (this.inputs.indexOf(inputReference) >= 0) ? this.inputs.indexOf(inputReference) : 0;
-					const inputName = this.inputs[inputIdentifier].name;
+					const inputIdentifier = (this.inputsReference.indexOf(inputReference) >= 0) ? this.inputsReference.indexOf(inputReference) : 0;
+					const inputName = this.inputsName[inputIdentifier];
 					if (this.televisionService) {
 						this.televisionService
 							.updateCharacteristic(Characteristic.ActiveIdentifier, inputIdentifier);
@@ -432,8 +435,8 @@ class lgwebosTvDevice {
 		this.televisionService.getCharacteristic(Characteristic.ActiveIdentifier)
 			.onGet(async () => {
 				const inputReference = this.currentInputReference;
-				const inputIdentifier = (this.inputs.indexOf(inputReference) >= 0) ? this.inputs.indexOf(inputReference) : 0;
-				const inputName = this.inputs[inputIdentifier].name;
+				const inputIdentifier = (this.inputsReference.indexOf(inputReference) >= 0) ? this.inputsReference.indexOf(inputReference) : 0;
+				const inputName = this.inputsName[inputIdentifier];
 				if (!this.disableLogInfo) {
 					this.log('Device: %s %s, get current Input successful: %s %s', this.host, accessoryName, inputName, inputReference);
 				}
@@ -441,8 +444,8 @@ class lgwebosTvDevice {
 			})
 			.onSet(async (inputIdentifier) => {
 				try {
-					const inputName = this.inputs[inputIdentifier].name;
-					const inputReference = this.inputs[inputIdentifier].reference;
+					const inputName = this.inputsName[inputIdentifier];
+					const inputReference = this.inputsReference[inputIdentifier];
 					this.lgtv.request('ssap://system.launcher/launch', { id: inputReference });
 					if (!this.disableLogInfo) {
 						this.log('Device: %s %s, set new Input successful: %s %s', this.host, accessoryName, inputName, inputReference);
@@ -635,10 +638,6 @@ class lgwebosTvDevice {
 		if (this.inputsLength > 0) {
 			this.log.debug('prepareInputsService');
 			this.inputsService = new Array();
-			this.inputsReference = new Array();
-			this.inputsName = new Array();
-			this.inputsType = new Array();
-			this.inputsMode = new Array();
 			const inputs = this.inputs;
 
 			const savedNames = (fs.readFileSync(this.customInputsFile) !== undefined) ? JSON.parse(fs.readFileSync(this.customInputsFile)) : {};
