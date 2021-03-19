@@ -91,7 +91,7 @@ class lgwebosTvDevice {
 		this.connectedToTv = false;
 		this.startPrepareAccessory = true;
 		this.currentPowerState = false;
-		this.pixelRefresh = false;
+		this.screenPixelRefresh = false;
 		this.currentMuteState = false;
 		this.currentVolume = 0;
 		this.currentInputName = '';
@@ -266,30 +266,40 @@ class lgwebosTvDevice {
 					this.log.error('Device: %s %s, get current Power state error: %s %s.', this.host, this.name, error, response);
 				} else {
 					this.log.debug('Device: %s %s, get current Power state data: %s', this.host, this.name, response);
-					const preparePowerOn = (response.state === 'Suspend' && response.processing === 'Screen On');
-					const powerOnStill = (response.state === 'Active' && response.processing === 'Screen On');
 
-					const prepareOff = ((response.state === 'Active' && response.processing === 'Request Power Off' && response.onOff === 'off') || (response.state === 'Active' && response.processing === 'Request Active Standby') || (response.state === 'Active' && response.processing === 'Request Suspend') || (response.state === 'Active' && response.processing === 'Prepare Suspend'));
+					//screen On
+					const prepareScreenOn = ((response.state === 'Suspend' && response.processing === 'Screen On') || (response.state === 'Screen Saver' && response.processing === 'Screen On') || (response.state === 'Active Standby' && response.processing === 'Screen On'));
+					const stillScreenOn = (response.state === 'Active' && response.processing === 'Screen On');
+					const screenOn = (response.state === 'Active');
 
-					const powerOn = ((response.state === 'Active') && (prepareOff === false));
-					const powerOff = ((response.state === 'Suspend') && (preparePowerOn === false));
-
+					//screen Saver
 					const prepareScreenSaver = (response.state === 'Active' && response.processing === 'Request Screen Saver');
 					const screenSaver = (response.state === 'Screen Saver');
 
-					const pixelRefresh = (response.state === 'Active Standby');
+					//screen Off
+					const prepareScreenOff = ((response.state === 'Active' && response.processing === 'Request Power Off') || (response.state === 'Active' && response.processing === 'Request Suspend') || (response.state === 'Active' && response.processing === 'Prepare Suspend') ||
+						(response.state === 'Screen Saver' && response.processing === 'Request Power Off') || (response.state === 'Screen Saver' && response.processing === 'Request Suspend') || (response.state === 'Screen Saver' && response.processing === 'Prepare Suspend')) ||
+						(response.state === 'Active Standby' && response.processing === 'Request Power Off') || (response.state === 'Active Standby' && response.processing === 'Request Suspend') || (response.state === 'Active Standby' && response.processing === 'Prepare Suspend');
+					const screenOff = (response.state === 'Suspend');
 
-					const powerStateOn = ((preparePowerOn || powerOnStill || powerOn || prepareScreenSaver) === true);
-					const powerStateOff = ((prepareOff || powerOff || pixelRefresh) === true);
-					if (this.televisionService && powerStateOn) {
+					//pixelRefresh
+					const prepareScreenPixelRefresh = ((response.state === 'Active' && response.processing === 'Request Active Standby') || (response.state === 'Screen Saver' && response.processing === 'Request Active Standby'));
+					const screenPixelRefresh = (response.state === 'Active Standby');
+
+					//powerState
+					const pixelRefresh = (prepareScreenPixelRefresh || screenPixelRefresh);
+					const powerOn = ((prepareScreenOn || stillScreenOn || screenOn || prepareScreenSaver || screenSaver) && !prepareScreenOff);
+					const powerOff = ((prepareScreenOff || screenOff || pixelRefresh) && !prepareScreenOn);
+
+					if (this.televisionService && powerOn) {
 						this.televisionService.updateCharacteristic(Characteristic.Active, true);
 						this.currentPowerState = true;
 					}
-					if (this.televisionService && powerStateOff) {
+					if (this.televisionService && powerOff) {
 						this.televisionService.updateCharacteristic(Characteristic.Active, false);
 						this.disconnectFromTv();
 					}
-					this.pixelRefresh = pixelRefresh;
+					this.screenPixelRefresh = pixelRefresh;
 				}
 			});
 			this.lgtv.subscribe('ssap://com.webos.applicationManager/getForegroundAppInfo', (error, response) => {
