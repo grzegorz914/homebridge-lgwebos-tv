@@ -420,15 +420,19 @@ class lgwebosTvDevice {
 
 		this.televisionService.getCharacteristic(Characteristic.Active)
 			.onGet(async () => {
-				const state = this.currentPowerState;
-				if (!this.disableLogInfo) {
-					this.log('Device: %s %s, get current Power state successfull, state: %s', this.host, accessoryName, state ? 'ON' : 'OFF');
-				}
-				return state;
+				try {
+					const state = this.currentPowerState;
+					if (!this.disableLogInfo) {
+						this.log('Device: %s %s, get current Power state successfull, state: %s', this.host, accessoryName, state ? 'ON' : 'OFF');
+					}
+					return state;
+				} catch (error) {
+					this.log.error('Device: %s %s, get current Power state error: %s', this.host, accessoryName, error);
+				};
 			})
 			.onSet(async (state) => {
 				try {
-					if (state) {
+					if (state && (state !== this.currentPowerState)) {
 						wakeOnLan(this.mac, {
 							address: '255.255.255.255',
 							packets: 3,
