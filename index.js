@@ -83,10 +83,14 @@ class lgwebosTvDevice {
 		this.firmwareRevision = config.firmwareRevision || 'Firmware Revision';
 
 		//setup variables
+		this.inputsService = new Array();
 		this.inputsReference = new Array();
 		this.inputsName = new Array();
 		this.inputsType = new Array();
 		this.inputsMode = new Array();
+		this.buttonsService = new Array();
+		this.buttonsName = new Array();
+		this.buttonsReference = new Array();
 		this.checkDeviceInfo = false;
 		this.connectedToTv = false;
 		this.startPrepareAccessory = true;
@@ -654,7 +658,6 @@ class lgwebosTvDevice {
 		//Prepare inputs service
 		if (this.inputsLength > 0) {
 			this.log.debug('prepareInputsService');
-			this.inputsService = new Array();
 			const inputs = this.inputs;
 
 			const savedNames = (fs.readFileSync(this.customInputsFile) !== undefined) ? JSON.parse(fs.readFileSync(this.customInputsFile)) : {};
@@ -753,9 +756,6 @@ class lgwebosTvDevice {
 		//Prepare inputs button services
 		if (this.buttonsLength > 0) {
 			this.log.debug('prepareInputsButtonService');
-			this.buttonsService = new Array();
-			this.buttonsName = new Array();
-			this.buttonsReference = new Array();
 			const buttons = this.buttons;
 
 			//check possible buttons count
@@ -788,6 +788,9 @@ class lgwebosTvDevice {
 								}, 350);
 							} catch (error) {
 								this.log.error('Device: %s %s, can not set new Input. Might be due to a wrong settings in config, error: %s.', this.host, accessoryName, error);
+								setTimeout(() => {
+									buttonService.updateCharacteristic(Characteristic.On, false);
+								}, 350);
 							};
 						} else {
 							setTimeout(() => {
