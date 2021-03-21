@@ -575,6 +575,7 @@ class lgwebosTvDevice {
 					this.pointerInputSocket.send('button', { name: command });
 				}
 			});
+
 		this.speakerService.getCharacteristic(Characteristic.Volume)
 			.onGet(async () => {
 				const volume = this.currentVolume;
@@ -592,6 +593,7 @@ class lgwebosTvDevice {
 					this.log('Device: %s %s, set new Volume level successful: %s', this.host, accessoryName, volume);
 				}
 			});
+
 		this.speakerService.getCharacteristic(Characteristic.Mute)
 			.onGet(async () => {
 				const state = this.currentPowerState ? this.currentMuteState : true;
@@ -609,8 +611,8 @@ class lgwebosTvDevice {
 				}
 			});
 
-		accessory.addService(this.speakerService);
 		this.televisionService.addLinkedService(this.speakerService);
+		accessory.addService(this.speakerService);
 
 		//Prepare volume service
 		if (this.volumeControl >= 1) {
@@ -633,8 +635,8 @@ class lgwebosTvDevice {
 					.onSet(async (state) => {
 						this.speakerService.setCharacteristic(Characteristic.Mute, !state);
 					});
+
 				accessory.addService(this.volumeService);
-				this.volumeService.addLinkedService(this.volumeService);
 			}
 			if (this.volumeControl == 2) {
 				this.volumeServiceFan = new Service.Fan(accessoryName + ' Volume', 'volumeServiceFan');
@@ -654,8 +656,8 @@ class lgwebosTvDevice {
 					.onSet(async (state) => {
 						this.speakerService.setCharacteristic(Characteristic.Mute, !state);
 					});
+
 				accessory.addService(this.volumeServiceFan);
-				this.televisionService.addLinkedService(this.volumeServiceFan);
 			}
 		}
 
@@ -752,8 +754,8 @@ class lgwebosTvDevice {
 				this.inputsMode.push(inputMode);
 
 				this.inputsService.push(inputService);
-				accessory.addService(this.inputsService[i]);
 				this.televisionService.addLinkedService(this.inputsService[i]);
+				accessory.addService(this.inputsService[i]);
 			}
 		}
 
@@ -807,7 +809,6 @@ class lgwebosTvDevice {
 
 				this.buttonsService.push(buttonService)
 				accessory.addService(this.buttonsService[i]);
-				this.televisionService.addLinkedService(this.buttonsService[i]);
 			}
 		}
 
