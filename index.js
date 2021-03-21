@@ -319,6 +319,7 @@ class lgwebosTvDevice {
 					const inputReference = response.appId;
 					const inputIdentifier = (this.inputsReference.indexOf(inputReference) >= 0) ? this.inputsReference.indexOf(inputReference) : 0;
 					const inputName = this.inputsName[inputIdentifier];
+					const inputMode = this.inputsMode[inputIdentifier];
 					if (this.televisionService && inputMode == 0) {
 						this.televisionService
 							.updateCharacteristic(Characteristic.ActiveIdentifier, inputIdentifier);
@@ -335,15 +336,15 @@ class lgwebosTvDevice {
 				} else {
 					this.log.debug('Device: %s %s, get current Channel response: %s', this.host, this.name, response);
 					const channelReference = response.channelId;
-					const channelName = response.channelName;
 					const inputIdentifier = (this.inputsReference.indexOf(channelReference) >= 0) ? this.inputsReference.indexOf(channelReference) : 0;
+					const channelName = response.channelName;
 					const inputMode = this.inputsMode[inputIdentifier];
 					if (this.televisionService && inputMode == 1) {
 						this.televisionService
 							.updateCharacteristic(Characteristic.ActiveIdentifier, inputIdentifier);
-						this.currentChannelName = channelName;
-						this.currentInputIdentifier = inputIdentifier
 						this.currentChannelReference = channelReference;
+						this.currentInputIdentifier = inputIdentifier
+						this.currentChannelName = channelName;
 					}
 				}
 			});
@@ -469,9 +470,9 @@ class lgwebosTvDevice {
 			.onSet(async (inputIdentifier) => {
 				try {
 					const inputName = this.inputsName[inputIdentifier];
-					const inputMode = this.inputModes[inputIdentifier];
+					const inputMode = this.inputsMode[inputIdentifier];
 					const inputReference = (this.inputsReference[inputIdentifier] !== undefined) ? [this.inputsReference[inputIdentifier], "com.webos.app.livetv"][inputMode] : 0;
-					const channelReference = this.inputReferences[inputIdentifier];
+					const channelReference = this.inputsReference[inputIdentifier];
 					if (this.currentPowerState) {
 						this.lgtv.request('ssap://system.launcher/launch', { id: inputReference });
 						if (!this.disableLogInfo) {
