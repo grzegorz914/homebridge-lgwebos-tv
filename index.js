@@ -411,7 +411,7 @@ class lgwebosTvDevice {
 
 		//Prepare information service
 		this.log.debug('prepareInformationService');
-		const devInfo = (fs.readFileSync(this.devInfoFile) !== undefined) ? JSON.parse(fs.readFileSync(this.devInfoFile)) : { 'manufacturer': 'Manufacturer', 'modelName': 'Model name', 'device_id': 'Serial number', 'major_ver': 'Firmware', 'minor_ver': 'Firmware', };
+		const devInfo = ((fs.readFileSync(this.devInfoFile)).length > 0) ? JSON.parse(fs.readFileSync(this.devInfoFile)) : { 'manufacturer': 'Manufacturer', 'modelName': 'Model name', 'device_id': 'Serial number', 'major_ver': 'Firmware', 'minor_ver': 'Firmware' };
 		this.log.debug('Device: %s %s, read devInfo: %s', this.host, accessoryName, devInfo)
 
 		const manufacturer = this.manufacturer;
