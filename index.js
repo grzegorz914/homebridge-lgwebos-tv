@@ -413,10 +413,10 @@ class lgwebosTvDevice {
 		this.log.debug('prepareInformationService');
 		try {
 			const readDevInfo = await fsPromises.readFile(this.devInfoFile);
-			const devInfo = (readDevInfo !== undefined) ? JSON.parse(readDevInfo) : { 'manufacturer': this.manufacturer, 'modelName': this.modelName, 'device_id': this.serialNumber, 'major_ver': 'Firmware', 'minor_ver': 'Firmware' };
+			const devInfo = (readDevInfo.modelName !== undefined) ? JSON.parse(readDevInfo) : { 'modelName': this.modelName, 'device_id': this.serialNumber, 'major_ver': 'Firmware', 'minor_ver': 'Firmware' };
 			this.log.debug('Device: %s %s, read devInfo: %s', this.host, accessoryName, devInfo)
 
-			const manufacturer = devInfo.manufacturer;
+			const manufacturer = 'LG Electronics';
 			const modelName = devInfo.modelName;
 			const serialNumber = devInfo.device_id;
 			const firmwareRevision = devInfo.major_ver + '.' + devInfo.minor_ver;
