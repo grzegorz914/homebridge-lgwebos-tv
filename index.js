@@ -402,7 +402,7 @@ class lgwebosTvDevice {
 	}
 
 	//Prepare accessory
-	prepareAccessory() {
+	async prepareAccessory() {
 		this.log.debug('prepareAccessory');
 		const accessoryName = this.name;
 		const accessoryUUID = UUID.generate(accessoryName);
@@ -411,24 +411,29 @@ class lgwebosTvDevice {
 
 		//Prepare information service
 		this.log.debug('prepareInformationService');
-		const devInfo = ((fs.readFileSync(this.devInfoFile)).length > 0) ? JSON.parse(fs.readFileSync(this.devInfoFile)) : { 'manufacturer': 'Manufacturer', 'modelName': 'Model name', 'device_id': 'Serial number', 'major_ver': 'Firmware', 'minor_ver': 'Firmware' };
-		this.log.debug('Device: %s %s, read devInfo: %s', this.host, accessoryName, devInfo)
+		try {
+			const readDevInfo = await fsPromises.readFile(this.devInfoFile);
+			const devInfo = (readDevInfo !== undefined) ? JSON.parse(readDevInfo) : { 'manufacturer': this.manufacturer, 'modelName': this.modelName, 'device_id': this.serialNumber, 'major_ver': 'Firmware', 'minor_ver': 'Firmware' };
+			this.log.debug('Device: %s %s, read devInfo: %s', this.host, accessoryName, devInfo)
 
-		const manufacturer = this.manufacturer;
-		const modelName = devInfo.modelName;
-		const serialNumber = devInfo.device_id;
-		const firmwareRevision = devInfo.major_ver + '.' + devInfo.minor_ver;
+			const manufacturer = devInfo.manufacturer;
+			const modelName = devInfo.modelName;
+			const serialNumber = devInfo.device_id;
+			const firmwareRevision = devInfo.major_ver + '.' + devInfo.minor_ver;
 
-		accessory.removeService(accessory.getService(Service.AccessoryInformation));
-		const informationService = new Service.AccessoryInformation();
-		informationService
-			.setCharacteristic(Characteristic.Name, accessoryName)
-			.setCharacteristic(Characteristic.Manufacturer, manufacturer)
-			.setCharacteristic(Characteristic.Model, modelName)
-			.setCharacteristic(Characteristic.SerialNumber, serialNumber)
-			.setCharacteristic(Characteristic.FirmwareRevision, firmwareRevision);
-		accessory.addService(informationService);
-
+			accessory.removeService(accessory.getService(Service.AccessoryInformation));
+			const informationService = new Service.AccessoryInformation();
+			informationService
+				.setCharacteristic(Characteristic.Name, accessoryName)
+				.setCharacteristic(Characteristic.Manufacturer, manufacturer)
+				.setCharacteristic(Characteristic.Model, modelName)
+				.setCharacteristic(Characteristic.SerialNumber, serialNumber)
+				.setCharacteristic(Characteristic.FirmwareRevision, firmwareRevision);
+			accessory.addService(informationService);
+		} catch (error) {
+			this.log.error('Device: %s %s, prepareInformationService error: %s', this.host, accessoryName, error);
+			this.checkDeviceInfo = true;
+		};
 
 		//Prepare TV service 
 		this.log.debug('prepareTelevisionService');
