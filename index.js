@@ -93,6 +93,7 @@ class lgwebosTvDevice {
 		this.buttonsReference = new Array();
 		this.checkDeviceInfo = false;
 		this.connectedToTv = false;
+		this.setStartInput = false;
 		this.startPrepareAccessory = true;
 		this.currentPowerState = false;
 		this.screenPixelRefresh = false;
@@ -317,8 +318,9 @@ class lgwebosTvDevice {
 
 					if (this.televisionService && powerOn) {
 						this.televisionService.updateCharacteristic(Characteristic.Active, true);
-						if (!this.currentPowerState) {
+						if (!this.currentPowerState && this.setStartInput) {
 							this.currentPowerState = true;
+							this.setStartInput = false;
 							this.televisionService
 								.setCharacteristic(Characteristic.ActiveIdentifier, this.startInputIdentifier);
 						}
@@ -507,6 +509,7 @@ class lgwebosTvDevice {
 					}
 					this.currentInputReference = [inputReference, channelReference][inputMode];
 					this.startInputIdentifier = inputIdentifier;
+					this.setStartInput = true;
 				} catch (error) {
 					this.log.error('Device: %s %s, can not set new Input. Might be due to a wrong settings in config, error: %s', this.host, accessoryName, error);
 				};
