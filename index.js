@@ -91,7 +91,6 @@ class lgwebosTvDevice {
 		this.buttonsService = new Array();
 		this.buttonsName = new Array();
 		this.buttonsReference = new Array();
-		this.checkDeviceInfo = false;
 		this.connectedToTv = false;
 		this.currentPowerState = false;
 		this.screenPixelRefresh = false;
@@ -180,6 +179,7 @@ class lgwebosTvDevice {
 						this.log('Device: %s %s, RC socket connected.', this.host, this.name);
 					}
 					this.getDeviceInfo();
+					this.updateDeviceState();
 				});
 			});
 
@@ -229,55 +229,61 @@ class lgwebosTvDevice {
 					this.log.error('Device: %s %s, get System info error: %s', this.host, this.name, error);
 				} else {
 					this.log.debug('Device: %s %s, get System info response: %s', this.host, this.name, response);
-					this.modelName = response.modelName;
-				}
-				this.lgtv.request('ssap://com.webos.service.update/getCurrentSWInformation', (error, response1) => {
-					if (error || response1.errorCode) {
-						this.log.error('Device: %s %s, get Software info error: %s', this.host, this.name, error);
-					} else {
-						this.log.debug('Device: %s %s, get System info response1: %s', this.host, this.name, response1);
-						this.productName = response1.product_name;
-						this.serialNumber = response1.device_id;
-						this.firmwareRevision = response1.major_ver + '.' + response1.minor_ver;
-					}
-					const obj = Object.assign(response, response1);
-					const devInfo = JSON.stringify(obj, null, 2);
-					const writeDevInfoFile = fsPromises.writeFile(this.devInfoFile, devInfo);
-					this.log.debug('Device: %s %s, saved Device Info successful: %s', this.host, this.name, devInfo);
+					const modelName = response.modelName;
 
-					this.lgtv.request('ssap://com.webos.applicationManager/listApps', (error, response2) => {
-						if (error || response2.errorCode) {
-							this.log.error('Device: %s %s, get apps list error: %s', this.host, this.name, error);
+					this.lgtv.request('ssap://com.webos.service.update/getCurrentSWInformation', (error, response1) => {
+						if (error || response1.errorCode) {
+							this.log.error('Device: %s %s, get Software info error: %s', this.host, this.name, error);
 						} else {
-							this.log.debug('Device: %s %s, get apps list response2: %s', this.host, this.name, response2);
-							const appsLength = response2.apps.length;
-							const appsArr = new Array();
-							for (let i = 0; i < appsLength; i++) {
-								const name = response2.apps[i].title;
-								const reference = response2.apps[i].id;
-								const appsObj = { 'name': name, 'reference': reference }
-								appsArr.push(appsObj);
+							this.log.debug('Device: %s %s, get System info response1: %s', this.host, this.name, response1);
+							const productName = response1.product_name;
+							const serialNumber = response1.device_id;
+							const firmwareRevision = response1.major_ver + '.' + response1.minor_ver;
+
+							const obj = Object.assign(response, response1);
+							const devInfo = JSON.stringify(obj, null, 2);
+							const writeDevInfoFile = fsPromises.writeFile(this.devInfoFile, devInfo);
+							this.log.debug('Device: %s %s, saved Device Info successful: %s', this.host, this.name, devInfo);
+
+							this.lgtv.request('ssap://com.webos.applicationManager/listApps', (error, response2) => {
+								if (error || response2.errorCode) {
+									this.log.error('Device: %s %s, get apps list error: %s', this.host, this.name, error);
+								} else {
+									this.log.debug('Device: %s %s, get apps list response2: %s', this.host, this.name, response2);
+									const appsLength = response2.apps.length;
+									const appsArr = new Array();
+									for (let i = 0; i < appsLength; i++) {
+										const name = response2.apps[i].title;
+										const reference = response2.apps[i].id;
+										const appsObj = { 'name': name, 'reference': reference }
+										appsArr.push(appsObj);
+									}
+									const obj = JSON.stringify(appsArr, null, 2);
+									const writeInputsFile = fsPromises.writeFile(this.inputsFile, obj);
+									this.log.debug('Device: %s %s, write apps list: %s', this.host, this.name, obj);
+								}
+							});
+
+							if (!this.disableLogInfo) {
+								this.log('Device: %s %s, state: Online.', this.host, this.name);
 							}
-							const obj = JSON.stringify(appsArr, null, 2);
-							const writeInputsFile = fsPromises.writeFile(this.inputsFile, obj);
-							this.log.debug('Device: %s %s, write apps list: %s', this.host, this.name, obj);
+							this.log('-------- %s --------', this.name);
+							this.log('Manufacturer: %s', this.manufacturer);
+							this.log('Model: %s', modelName);
+							this.log('System: %s', productName);
+							this.log('Serialnr: %s', serialNumber);
+							this.log('Firmware: %s', firmwareRevision);
+							this.log('----------------------------------');
+
+							this.modelName = modelName;
+							this.productName = productName;
+							this.serialNumber = serialNumber;
+							this.firmwareRevision = firmwareRevision;
 						}
 					});
-
-					if (!this.disableLogInfo) {
-						this.log('Device: %s %s, state: Online.', this.host, this.name);
-					}
-					this.log('-------- %s --------', this.name);
-					this.log('Manufacturer: %s', this.manufacturer);
-					this.log('Model: %s', this.modelName);
-					this.log('System: %s', this.productName);
-					this.log('Serialnr: %s', this.serialNumber);
-					this.log('Firmware: %s', this.firmwareRevision);
-					this.log('----------------------------------');
-				});
+				}
 			});
 
-			this.updateDeviceState();
 		} catch (error) {
 			this.log.error('Device: %s %s, requesting Device Info failed, error: %s', this.host, this.name, error)
 		}
@@ -399,7 +405,6 @@ class lgwebosTvDevice {
 			});
 		} catch (error) {
 			this.log.error('Device: %s %s, update Device state error: %s', this.host, this.name, error);
-			this.checkDeviceInfo = false;
 		};
 	}
 
@@ -434,7 +439,6 @@ class lgwebosTvDevice {
 			accessory.addService(informationService);
 		} catch (error) {
 			this.log.error('Device: %s %s, prepareInformationService error: %s', this.host, accessoryName, error);
-			this.checkDeviceInfo = true;
 		};
 
 		//Prepare TV service 
