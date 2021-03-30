@@ -93,8 +93,6 @@ class lgwebosTvDevice {
 		this.buttonsReference = new Array();
 		this.checkDeviceInfo = false;
 		this.connectedToTv = false;
-		this.setStartInput = false;
-		this.startPrepareAccessory = true;
 		this.currentPowerState = false;
 		this.screenPixelRefresh = false;
 		this.currentMuteState = false;
@@ -106,6 +104,8 @@ class lgwebosTvDevice {
 		this.currentChannelNumber = -1;
 		this.currentChannelName = '';
 		this.currentChannelReference = '';
+		this.startInputIdentifier = 0;
+		this.setStartInput = false;
 		this.inputsLength = this.inputs.length;
 		this.buttonsLength = this.buttons.length;
 		this.currentMediaState = false; //play/pause
@@ -154,9 +154,8 @@ class lgwebosTvDevice {
 			}
 		}.bind(this), this.refreshInterval * 1000);
 
-		if (this.startPrepareAccessory) {
-			this.prepareAccessory();
-		}
+		//start prepare accessory
+		this.prepareAccessory();
 	}
 
 	connectToTv() {
@@ -317,7 +316,8 @@ class lgwebosTvDevice {
 					const powerOff = ((prepareScreenOff || screenOff || pixelRefresh) && !prepareScreenOn);
 
 					if (this.televisionService && powerOn) {
-						this.televisionService.updateCharacteristic(Characteristic.Active, true);
+						this.televisionService
+							.updateCharacteristic(Characteristic.Active, true);
 						if (!this.currentPowerState && this.setStartInput) {
 							this.currentPowerState = true;
 							this.setStartInput = false;
@@ -834,7 +834,6 @@ class lgwebosTvDevice {
 			accessory.addService(this.buttonsService[i]);
 		}
 
-		this.startPrepareAccessory = false;
 		this.log.debug('Device: %s %s, publishExternalAccessories.', this.host, accessoryName);
 		this.api.publishExternalAccessories(PLUGIN_NAME, [accessory]);
 	}
