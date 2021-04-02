@@ -153,7 +153,6 @@ class lgwebosTvDevice {
 			}
 		}.bind(this), this.refreshInterval * 1000);
 
-		//start prepare accessory
 		this.prepareAccessory();
 	}
 
@@ -172,12 +171,12 @@ class lgwebosTvDevice {
 				if (!this.disableLogInfo) {
 					this.log('Device: %s %s, connected.', this.host, this.name);
 				}
-				this.connectedToTv = true;
 				this.lgtv.getSocket('ssap://com.webos.service.networkinput/getPointerInputSocket', (error, sock) => {
 					this.pointerInputSocket = sock;
 					if (!this.disableLogInfo) {
 						this.log('Device: %s %s, RC socket connected.', this.host, this.name);
 					}
+					this.connectedToTv = true;
 					this.getDeviceInfo();
 					this.updateDeviceState();
 				});
@@ -264,21 +263,24 @@ class lgwebosTvDevice {
 								}
 							});
 
+							const manufacturer = this.manufacturer
+
 							if (!this.disableLogInfo) {
 								this.log('Device: %s %s, state: Online.', this.host, this.name);
 							}
 							this.log('-------- %s --------', this.name);
-							this.log('Manufacturer: %s', this.manufacturer);
+							this.log('Manufacturer: %s', manufacturer);
 							this.log('Model: %s', modelName);
 							this.log('System: %s', productName);
 							this.log('Serialnr: %s', serialNumber);
 							this.log('Firmware: %s', firmwareRevision);
 							this.log('----------------------------------');
 
+							this.manufacturer = manufacturer;
 							this.modelName = modelName;
-							this.productName = productName;
 							this.serialNumber = serialNumber;
 							this.firmwareRevision = firmwareRevision;
+
 						}
 					});
 				}
@@ -420,7 +422,7 @@ class lgwebosTvDevice {
 		this.log.debug('prepareInformationService');
 		try {
 			const readDevInfo = await fsPromises.readFile(this.devInfoFile);
-			const devInfo = (readDevInfo.modelName !== undefined) ? JSON.parse(readDevInfo) : { 'modelName': this.modelName, 'device_id': this.serialNumber, 'major_ver': 'Firmware', 'minor_ver': 'Firmware' };
+			const devInfo = (JSON.parse(readDevInfo).modelName !== undefined) ? JSON.parse(readDevInfo) : { 'modelName': this.modelName, 'device_id': this.serialNumber, 'major_ver': 'Firmware', 'minor_ver': 'Firmware' };
 			this.log.debug('Device: %s %s, read devInfo: %s', this.host, accessoryName, devInfo)
 
 			const manufacturer = 'LG Electronics';
@@ -429,9 +431,7 @@ class lgwebosTvDevice {
 			const firmwareRevision = devInfo.major_ver + '.' + devInfo.minor_ver;
 
 			accessory.removeService(accessory.getService(Service.AccessoryInformation));
-			const informationService = new Service.AccessoryInformation();
-			informationService
-				.setCharacteristic(Characteristic.Name, accessoryName)
+			const informationService = new Service.AccessoryInformation(accessoryName)
 				.setCharacteristic(Characteristic.Manufacturer, manufacturer)
 				.setCharacteristic(Characteristic.Model, modelName)
 				.setCharacteristic(Characteristic.SerialNumber, serialNumber)
