@@ -326,6 +326,7 @@ class lgwebosTvDevice {
 					if (this.televisionService && powerOn) {
 						this.televisionService
 							.updateCharacteristic(Characteristic.Active, true);
+						this.currentPowerState = true;
 					}
 					if (this.televisionService && powerOff) {
 						this.televisionService.updateCharacteristic(Characteristic.Active, false);
