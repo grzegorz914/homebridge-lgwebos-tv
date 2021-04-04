@@ -92,6 +92,7 @@ class lgwebosTvDevice {
 		this.buttonsName = new Array();
 		this.buttonsReference = new Array();
 		this.connectedToTv = false;
+		this.setStartInput = false;
 		this.currentPowerState = false;
 		this.screenPixelRefresh = false;
 		this.currentMuteState = false;
@@ -99,12 +100,11 @@ class lgwebosTvDevice {
 		this.currentInputName = '';
 		this.currentInputReference = '';
 		this.currentInputIdentifier = 0;
-		this.startInputIdentifier = 0;
+		this.setStartInputIdentifier = 0;
 		this.currentChannelNumber = -1;
 		this.currentChannelName = '';
 		this.currentChannelReference = '';
-		this.startInputIdentifier = 0;
-		this.setStartInput = false;
+		this.setStartInputIdentifier = 0;
 		this.inputsLength = this.inputs.length;
 		this.buttonsLength = this.buttons.length;
 		this.currentMediaState = false; //play/pause
@@ -326,13 +326,6 @@ class lgwebosTvDevice {
 					if (this.televisionService && powerOn) {
 						this.televisionService
 							.updateCharacteristic(Characteristic.Active, true);
-						if (!this.currentPowerState && this.setStartInput) {
-							this.currentPowerState = true;
-							this.setStartInput = false;
-							this.televisionService
-								.setCharacteristic(Characteristic.ActiveIdentifier, this.startInputIdentifier);
-						}
-						this.currentPowerState = true;
 					}
 					if (this.televisionService && powerOff) {
 						this.televisionService.updateCharacteristic(Characteristic.Active, false);
@@ -350,10 +343,19 @@ class lgwebosTvDevice {
 					const inputIdentifier = (this.inputsReference.indexOf(inputReference) >= 0) ? this.inputsReference.indexOf(inputReference) : 0;
 					const inputName = this.inputsName[inputIdentifier];
 					const inputMode = this.inputsMode[inputIdentifier];
-					if (this.televisionService && inputMode == 0) {
+					if (this.televisionService && this.currentPowerState && inputMode == 0) {
 						this.televisionService
 							.updateCharacteristic(Characteristic.ActiveIdentifier, inputIdentifier);
+
+						if (this.setStartInput) {
+							this.televisionService
+								.setCharacteristic(Characteristic.ActiveIdentifier, this.setStartInputIdentifier);
+							if (this.setStartInputIdentifier === inputIdentifier) {
+								this.setStartInput = false;
+							}
+						}
 					}
+
 					this.currentInputReference = inputReference;
 					this.currentInputIdentifier = inputIdentifier
 					this.currentInputName = inputName;
@@ -369,13 +371,13 @@ class lgwebosTvDevice {
 					const inputIdentifier = (this.inputsReference.indexOf(channelReference) >= 0) ? this.inputsReference.indexOf(channelReference) : 0;
 					const channelName = response.channelName;
 					const inputMode = this.inputsMode[inputIdentifier];
-					if (this.televisionService && inputMode == 1) {
+					if (this.televisionService && this.currentPowerState && inputMode == 1) {
 						this.televisionService
 							.updateCharacteristic(Characteristic.ActiveIdentifier, inputIdentifier);
-						this.currentChannelReference = channelReference;
-						this.currentInputIdentifier = inputIdentifier
-						this.currentChannelName = channelName;
 					}
+					this.currentChannelReference = channelReference;
+					this.currentInputIdentifier = inputIdentifier
+					this.currentChannelName = channelName;
 				}
 			});
 
@@ -400,9 +402,9 @@ class lgwebosTvDevice {
 								.updateCharacteristic(Characteristic.RotationSpeed, volume)
 								.updateCharacteristic(Characteristic.On, !mute);
 						}
+						this.currentVolume = volume;
+						this.currentMuteState = mute;
 					}
-					this.currentMuteState = mute;
-					this.currentVolume = volume;
 				}
 			});
 		} catch (error) {
@@ -422,7 +424,7 @@ class lgwebosTvDevice {
 		this.log.debug('prepareInformationService');
 		try {
 			const readDevInfo = await fsPromises.readFile(this.devInfoFile);
-			const devInfo = (JSON.parse(readDevInfo).modelName !== undefined) ? JSON.parse(readDevInfo) : { 'modelName': this.modelName, 'device_id': this.serialNumber, 'major_ver': 'Firmware', 'minor_ver': 'Firmware' };
+			const devInfo = (readDevInfo !== undefined) ? JSON.parse(readDevInfo) : { 'modelName': this.modelName, 'device_id': this.serialNumber, 'major_ver': 'Firmware', 'minor_ver': 'Firmware' };
 			this.log.debug('Device: %s %s, read devInfo: %s', this.host, accessoryName, devInfo)
 
 			const manufacturer = 'LG Electronics';
@@ -485,9 +487,9 @@ class lgwebosTvDevice {
 
 		this.televisionService.getCharacteristic(Characteristic.ActiveIdentifier)
 			.onGet(async () => {
+				const inputName = this.currentInputName;
 				const inputReference = this.currentInputReference;
-				const inputIdentifier = (this.inputsReference.indexOf(inputReference) >= 0) ? this.inputsReference.indexOf(inputReference) : 0;
-				const inputName = this.inputsName[inputIdentifier];
+				const inputIdentifier = this.currentInputIdentifier;
 				if (!this.disableLogInfo) {
 					this.log('Device: %s %s, get current Input successful: %s %s', this.host, accessoryName, inputName, inputReference);
 				}
@@ -499,21 +501,18 @@ class lgwebosTvDevice {
 					const inputMode = this.inputsMode[inputIdentifier];
 					const inputReference = (this.inputsReference[inputIdentifier] !== undefined) ? [this.inputsReference[inputIdentifier], "com.webos.app.livetv"][inputMode] : 0;
 					const channelReference = this.inputsReference[inputIdentifier];
-					if (this.currentPowerState) {
-						this.lgtv.request('ssap://system.launcher/launch', { id: inputReference });
+					this.lgtv.request('ssap://system.launcher/launch', { id: inputReference });
+					if (!this.disableLogInfo) {
+						this.log('Device: %s %s, set new Input successful: %s %s', this.host, accessoryName, inputName, inputReference);
+					}
+					if (inputMode == 1) {
+						this.lgtv.request('ssap://tv/openChannel', { channelId: channelReference });
 						if (!this.disableLogInfo) {
-							this.log('Device: %s %s, set new Input successful: %s %s', this.host, accessoryName, inputName, inputReference);
-						}
-						if (inputMode == 1) {
-							this.lgtv.request('ssap://tv/openChannel', { channelId: channelReference });
-							if (!this.disableLogInfo) {
-								this.log('Device: %s %s, set new Channel successful: %s %s', this.host, accessoryName, inputName, channelReference);
-							}
+							this.log('Device: %s %s, set new Channel successful: %s %s', this.host, accessoryName, inputName, channelReference);
 						}
 					}
-					this.currentInputReference = [inputReference, channelReference][inputMode];
-					this.startInputIdentifier = inputIdentifier;
-					this.setStartInput = true;
+					this.setStartInputIdentifier = this.currentPowerState ? this.currentInputIdentifier : inputIdentifier;
+					this.setStartInput = this.currentPowerState ? false : true;
 				} catch (error) {
 					this.log.error('Device: %s %s, can not set new Input. Might be due to a wrong settings in config, error: %s', this.host, accessoryName, error);
 				};
