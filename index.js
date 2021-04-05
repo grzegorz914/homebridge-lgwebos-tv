@@ -172,13 +172,18 @@ class lgwebosTvDevice {
 					this.log('Device: %s %s, connected.', this.host, this.name);
 				}
 				this.lgtv.getSocket('ssap://com.webos.service.networkinput/getPointerInputSocket', (error, sock) => {
-					this.pointerInputSocket = sock;
-					if (!this.disableLogInfo) {
-						this.log('Device: %s %s, RC socket connected.', this.host, this.name);
+					if (error) {
+						this.log.error('Device: %s %s, RC socket connected error: %s', this.host, this.name, error);
+						this.connectedToTv = false;
+					} else {
+						this.pointerInputSocket = sock;
+						if (!this.disableLogInfo) {
+							this.log('Device: %s %s, RC socket connected.', this.host, this.name);
+						}
+						this.connectedToTv = true;
+						this.getDeviceInfo();
+						this.updateDeviceState();
 					}
-					this.connectedToTv = true;
-					this.getDeviceInfo();
-					this.updateDeviceState();
 				});
 			});
 
@@ -341,20 +346,15 @@ class lgwebosTvDevice {
 				} else {
 					this.log.debug('Device: %s %s, get current App state response: %s', this.host, this.name, response);
 					const inputReference = response.appId;
-					const inputIdentifier = (this.inputsReference.indexOf(inputReference) >= 0) ? this.inputsReference.indexOf(inputReference) : 0;
+					const inputIdentifier = this.setStartInput ? this.setStartInputIdentifier : (this.inputsReference.indexOf(inputReference) >= 0) ? this.inputsReference.indexOf(inputReference) : 0;
 					const inputName = this.inputsName[inputIdentifier];
 					const inputMode = this.inputsMode[inputIdentifier];
 					if (this.televisionService && this.currentPowerState && inputMode == 0) {
 						this.televisionService
 							.updateCharacteristic(Characteristic.ActiveIdentifier, inputIdentifier);
 
-						if (this.setStartInput) {
-							this.televisionService
-								.setCharacteristic(Characteristic.ActiveIdentifier, this.setStartInputIdentifier);
-							if (this.setStartInputIdentifier === inputIdentifier) {
-								this.setStartInput = false;
-							}
-						}
+						this.televisionService.updateCharacteristic(Characteristic.ActiveIdentifier, inputIdentifier);
+						this.setStatrtInput = (this.setStatrtInput && this.setStartInputIdentifier === inputIdentifier) ? false : true;
 					}
 
 					this.currentInputReference = inputReference;
@@ -502,7 +502,7 @@ class lgwebosTvDevice {
 					const inputMode = this.inputsMode[inputIdentifier];
 					const inputReference = (this.inputsReference[inputIdentifier] !== undefined) ? [this.inputsReference[inputIdentifier], "com.webos.app.livetv"][inputMode] : 0;
 					const channelReference = this.inputsReference[inputIdentifier];
-					this.lgtv.request('ssap://system.launcher/launch', { id: inputReference });
+					const setNewInput = this.currentPowerState ? this.lgtv.request('ssap://system.launcher/launch', { id: inputReference }) : false;
 					if (!this.disableLogInfo) {
 						this.log('Device: %s %s, set new Input successful: %s %s', this.host, accessoryName, inputName, inputReference);
 					}
