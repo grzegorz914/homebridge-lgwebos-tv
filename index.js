@@ -290,14 +290,13 @@ class lgwebosTvDevice {
 					});
 				}
 			});
-
 		} catch (error) {
-			this.log.error('Device: %s %s, requesting Device Info failed, error: %s', this.host, this.name, error)
+			this.log.error('Device: %s %s, requesting device info failed, error: %s', this.host, this.name, error)
 		}
 	}
 
 	updateDeviceState() {
-		this.log.debug('Device: %s %s, requesting Device state.', this.host, this.name);
+		this.log.debug('Device: %s %s, requesting device state.', this.host, this.name);
 		try {
 			this.lgtv.subscribe('ssap://com.webos.service.tvpower/power/getPowerState', (error, response) => {
 				if (error) {
@@ -409,7 +408,7 @@ class lgwebosTvDevice {
 				}
 			});
 		} catch (error) {
-			this.log.error('Device: %s %s, update Device state error: %s', this.host, this.name, error);
+			this.log.error('Device: %s %s, update device state error: %s', this.host, this.name, error);
 		};
 	}
 
