@@ -146,7 +146,7 @@ class lgwebosTvDevice {
 		setInterval(function () {
 			if (!this.connectedToTv) {
 				tcpp.probe(this.host, WEBSOCKET_PORT, (err, online) => {
-					if (online && !this.currentPowerState) {
+					if (online && !this.currentPowerState && !this.connectedToTv) {
 						this.connectToTv();
 					}
 				});
@@ -171,6 +171,7 @@ class lgwebosTvDevice {
 				if (!this.disableLogInfo) {
 					this.log('Device: %s %s, connected.', this.host, this.name);
 				}
+				this.connectedToTv = true;
 				this.lgtv.getSocket('ssap://com.webos.service.networkinput/getPointerInputSocket', (error, sock) => {
 					if (error) {
 						this.log.error('Device: %s %s, RC socket connected error: %s', this.host, this.name, error);
@@ -180,7 +181,6 @@ class lgwebosTvDevice {
 						if (!this.disableLogInfo) {
 							this.log('Device: %s %s, RC socket connected.', this.host, this.name);
 						}
-						this.connectedToTv = true;
 						this.getDeviceInfo();
 						this.updateDeviceState();
 					}
@@ -189,6 +189,7 @@ class lgwebosTvDevice {
 
 			this.lgtv.on('error', (error) => {
 				this.log.debug('Device: %s %s, error: %s', this.host, this.name, error);
+				this.connectedToTv = false;
 			});
 
 			this.lgtv.on('prompt', () => {
@@ -291,7 +292,7 @@ class lgwebosTvDevice {
 				}
 			});
 		} catch (error) {
-			this.log.error('Device: %s %s, requesting device info failed, error: %s', this.host, this.name, error)
+			this.log.debug('Device: %s %s, requesting device info failed, error: %s', this.host, this.name, error)
 		}
 	}
 
@@ -424,10 +425,10 @@ class lgwebosTvDevice {
 		this.log.debug('prepareInformationService');
 		try {
 			const readDevInfo = await fsPromises.readFile(this.devInfoFile);
-			const devInfo = (readDevInfo !== undefined) ? JSON.parse(readDevInfo) : { 'modelName': this.modelName, 'device_id': this.serialNumber, 'major_ver': 'Firmware', 'minor_ver': 'Firmware' };
+			const devInfo = (readDevInfo !== undefined) ? JSON.parse(readDevInfo) : { 'manufacturer': this.manufacturer, 'modelName': this.modelName, 'device_id': this.serialNumber, 'major_ver': 'Firmware', 'minor_ver': 'Firmware' };
 			this.log.debug('Device: %s %s, read devInfo: %s', this.host, accessoryName, devInfo)
 
-			const manufacturer = 'LG Electronics';
+			const manufacturer = devInfo.manufacturer;
 			const modelName = devInfo.modelName;
 			const serialNumber = devInfo.device_id;
 			const firmwareRevision = devInfo.major_ver + '.' + devInfo.minor_ver;
@@ -440,7 +441,7 @@ class lgwebosTvDevice {
 				.setCharacteristic(Characteristic.FirmwareRevision, firmwareRevision);
 			accessory.addService(informationService);
 		} catch (error) {
-			this.log.error('Device: %s %s, prepareInformationService error: %s', this.host, accessoryName, error);
+			this.log.debug('Device: %s %s, prepareInformationService error: %s', this.host, accessoryName, error);
 		};
 
 		//Prepare TV service 
@@ -473,7 +474,7 @@ class lgwebosTvDevice {
 						if (!this.disableLogInfo) {
 							this.log('Device: %s %s, set new Power state successful: %s', this.host, accessoryName, 'ON');
 						}
-					} else {
+					} else if (!state && (state !== this.currentPowerState)) {
 						this.lgtv.request('ssap://system/turnOff', (error, response) => {
 							if (!this.disableLogInfo) {
 								this.log('Device: %s %s, set new Power state successful: %s', this.host, accessoryName, 'OFF');
