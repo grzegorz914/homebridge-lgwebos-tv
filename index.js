@@ -170,27 +170,13 @@ class lgwebosTvDevice {
 
 			this.lgtv.connect(this.url);
 			this.lgtv.on('connect', () => {
-				if (!this.disableLogInfo) {
-					this.log('Device: %s %s, connected.', this.host, this.name);
-				}
+				this.log('Device: %s %s, connected.', this.host, this.name);
 				this.connectedToTv = true;
-				this.lgtv.getSocket('ssap://com.webos.service.networkinput/getPointerInputSocket', (error, sock) => {
-					if (error) {
-						this.log.error('Device: %s %s, RC socket connected error: %s', this.host, this.name, error);
-						this.connectedToTv = false;
-					} else {
-						this.pointerInputSocket = sock;
-						if (!this.disableLogInfo) {
-							this.log('Device: %s %s, RC socket connected.', this.host, this.name);
-						}
-						this.getDeviceInfo();
-						this.updateDeviceState();
-					}
-				});
+				this.connectToRcSockeet();
 			});
 
 			this.lgtv.on('error', (error) => {
-				this.log.debug('Device: %s %s, error: %s', this.host, this.name, error);
+				this.log.debug('Device: %s %s, connect error: %s', this.host, this.name, error);
 				this.connectedToTv = false;
 			});
 
@@ -210,14 +196,29 @@ class lgwebosTvDevice {
 		};
 	}
 
+	connectToRcSockeet() {
+		this.lgtv.getSocket('ssap://com.webos.service.networkinput/getPointerInputSocket', (error, sock) => {
+			if (error) {
+				this.log.error('Device: %s %s, RC socket connected error: %s', this.host, this.name, error);
+				this.connectedToTv = false;
+			} else {
+				this.connectedToTv = true;
+				this.pointerInputSocket = sock;
+				if (!this.disableLogInfo) {
+					this.log('Device: %s %s, RC socket connected.', this.host, this.name);
+				}
+				this.getDeviceInfo();
+				this.updateDeviceState();
+			}
+		});
+	}
+
 	disconnectFromTv() {
 		this.log.debug('Device: %s %s, disconnecting from TV', this.host, this.name);
 		try {
 			this.lgtv.disconnect();
 			this.lgtv.on('close', () => {
-				if (!this.disableLogInfo) {
-					this.log('Device: %s %s, disconnected.', this.host, this.name);
-				}
+				this.log('Device: %s %s, disconnected.', this.host, this.name);
 				this.pointerInputSocket = null;
 				this.currentPowerState = false;
 				this.connectedToTv = false;
