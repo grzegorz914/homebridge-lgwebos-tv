@@ -453,7 +453,7 @@ class lgwebosTvDevice {
 			})
 			.onSet(async (state) => {
 				try {
-					if (state && (state !== this.currentPowerState)) {
+					if (state && !this.currentPowerState) {
 						wakeOnLan(this.mac, {
 							address: '255.255.255.255',
 							packets: 3,
@@ -463,12 +463,14 @@ class lgwebosTvDevice {
 						if (!this.disableLogInfo) {
 							this.log('Device: %s %s, set new Power state successful: %s', this.host, accessoryName, 'ON');
 						}
-					} else if (!state && (state !== this.currentPowerState)) {
-						this.lgtv.request('ssap://system/turnOff', (error, response) => {
-							if (!this.disableLogInfo) {
-								this.log('Device: %s %s, set new Power state successful: %s', this.host, accessoryName, 'OFF');
-							}
-						});
+					} else {
+						if (!state && this.currentPowerState) {
+							this.lgtv.request('ssap://system/turnOff', (error, response) => {
+								if (!this.disableLogInfo) {
+									this.log('Device: %s %s, set new Power state successful: %s', this.host, accessoryName, 'OFF');
+								}
+							});
+						}
 					}
 				} catch (error) {
 					this.log.error('Device: %s %s, can not set new Power state. Might be due to a wrong settings in config, error: %s', this.host, accessoryName, error);
