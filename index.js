@@ -39,9 +39,11 @@ class lgwebosTvPlatform {
 			this.log.debug('didFinishLaunching');
 			for (let i = 0; i < this.devices.length; i++) {
 				const device = this.devices[i];
-				if (!device.name) {
+				const deviceName = device.name;
+				if (!deviceName) {
 					this.log.warn('Device Name Missing')
 				} else {
+					this.log.info('Adding new accessory:', deviceName);
 					this.accessories.push(new lgwebosTvDevice(this.log, device, this.api));
 				}
 			}
@@ -398,7 +400,7 @@ class lgwebosTvDevice {
 				}
 			});
 		} catch (error) {
-			this.log.error('Device: %s %s, update device state error: %s', this.host, this.name, error);
+			this.log.debug('Device: %s %s, update device state error: %s', this.host, this.name, error);
 		};
 	}
 
