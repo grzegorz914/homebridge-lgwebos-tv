@@ -50,17 +50,6 @@ Tested with OLED65G6V, 32LM6300PLA, 49SK8500, OLED65C7T, 55SK800PLB, OLED48CX.
 ## Configuration TV
 1. [Please configure LG Connect Apps](https://www.lg.com/ca_en/support/product-help/CT20098005-1437129879355-others)
 
-## Configuration plugin
-1. Use [Homebridge Config UI X](https://github.com/oznu/homebridge-config-ui-x) to configure the plugin (strongly recomended), or update your configuration file manually. See `sample-config.json` in this repository for a sample or add the bottom example to Your config.json file.
-2. All inputs reference and name can be found in: `homebridge_directory/lgwebosTv/apps_19216818` where `name == title` and `reference == id`
-3. In `refreshInterval` set the data refresh time in seconds, default 5sec.
-4. If `disableLogInfo` is enabled, disable log info, all values and state will not be displayed in Homebridge log console.
-5. In `volumeControl` You can select what a additional volume control type You want to use (None, Slider, Fan). This not working with HDMI ARC control.
-6. If `switchInfoMenu` is enabled, `I` button change its behaviour in RC app between Menu and INFO.
-7. In `type` select source input type.
-8. In `mode` select what a input mode You defined, select `Apps` if You defined some input reference, select `Live TV` if You defined channel reference.
-9. `manufacturer`, `model`, `serialNumber`, `firmwareRevision` - optional branding data displayed in Home.app
-
 ## Configuration Values
 | Key | Description | 
 | --- | --- |
