@@ -558,10 +558,10 @@ class lgwebosTvDevice {
 							command = this.switchInfoMenu ? 'MENU' : 'INFO';
 							break;
 					}
+					this.pointerInputSocket.send('button', { name: command });
 					if (!this.disableLogInfo) {
 						this.log('Device: %s %s, setRemoteKey successful, command: %s', this.host, accessoryName, command);
 					}
-					this.pointerInputSocket.send('button', { name: command });
 				}
 			});
 
