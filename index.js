@@ -343,7 +343,9 @@ class lgwebosTvDevice {
 					if (this.televisionService && inputMode === 0) {
 						const setUpdateCharacteristic = this.setStartInput ? this.televisionService.setCharacteristic(Characteristic.ActiveIdentifier, inputIdentifier) :
 							this.televisionService.updateCharacteristic(Characteristic.ActiveIdentifier, inputIdentifier);
-						this.setStartInput = (currentInputIdentifier === inputIdentifier) ? false : true;
+						setTimeout(() => {
+							this.setStartInput = (currentInputIdentifier === inputIdentifier) ? false : true;
+						}, 500);
 						this.currentInputReference = inputReference;
 						this.currentInputIdentifier = inputIdentifier
 						this.currentInputName = inputName;
@@ -487,8 +489,6 @@ class lgwebosTvDevice {
 				if (!this.disableLogInfo) {
 					this.log('Device: %s %s, get current Input successful: %s %s', this.host, accessoryName, inputName, inputReference);
 				}
-				this.televisionService
-					.updateCharacteristic(Characteristic.ActiveIdentifier, inputIdentifier);
 				return inputIdentifier;
 			})
 			.onSet(async (inputIdentifier) => {
@@ -507,7 +507,7 @@ class lgwebosTvDevice {
 							this.log('Device: %s %s, set new Channel successful: %s %s', this.host, accessoryName, inputName, channelReference);
 						}
 					}
-					this.setStartInputIdentifier = this.currentPowerState ? this.currentInputIdentifier : inputIdentifier;
+					this.setStartInputIdentifier = inputIdentifier;
 					this.setStartInput = this.currentPowerState ? false : true;
 				} catch (error) {
 					this.log.error('Device: %s %s, can not set new Input. Might be due to a wrong settings in config, error: %s', this.host, accessoryName, error);
