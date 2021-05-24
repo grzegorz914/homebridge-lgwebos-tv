@@ -311,8 +311,8 @@
           "expanded": false,
           "items": [
             "devices[].disableLogInfo",
-            "devices[].refreshInterval",
             "devices[].switchInfoMenu",
+            "devices[].refreshInterval",
             "devices[].volumeControl"
           ]
         },
