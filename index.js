@@ -149,7 +149,7 @@ class lgwebosTvDevice {
 
 		//Check device state
 		setInterval(function () {
-			if (!this.connectedToTv && !this.currentPowerState) {
+			if (!this.connectedToTv) {
 				tcpp.probe(this.host, WEBSOCKET_PORT, (err, online) => {
 					if (online) {
 						this.connectToTv();
@@ -209,12 +209,12 @@ class lgwebosTvDevice {
 
 	disconnectFromTv() {
 		this.log.debug('Device: %s %s, disconnecting from TV', this.host, this.name);
-		this.lgtv.disconnect();
+		this.currentPowerState = false;
 		this.lgtv.on('close', () => {
 			this.log('Device: %s %s, disconnected.', this.host, this.name);
 			this.pointerInputSocket = null;
-			this.currentPowerState = false;
 			this.connectedToTv = false;
+			this.lgtv.disconnect();
 		});
 	}
 
