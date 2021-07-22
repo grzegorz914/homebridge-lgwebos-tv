@@ -175,7 +175,7 @@ class lgwebosTvDevice {
 		this.lgtv.on('connect', () => {
 			this.log('Device: %s %s, connected.', this.host, this.name);
 			this.connectedToTv = true;
-			this.connectToTvRcSockeet();
+			this.connectToTvRcSocket();
 		});
 
 		this.lgtv.on('error', (error) => {
@@ -193,13 +193,13 @@ class lgwebosTvDevice {
 		});
 	}
 
-	connectToTvRcSockeet() {
-		this.log.debug('Device: %s %s, connecting to TV Rc socket', this.host, this.name);
+	connectToTvRcSocket() {
+		this.log.debug('Device: %s %s, connecting to TV RC Socket', this.host, this.name);
 		this.lgtv.getSocket('ssap://com.webos.service.networkinput/getPointerInputSocket', (error, sock) => {
 			if (error) {
-				this.log.debug('Device: %s %s, RC socket connected error: %s', this.host, this.name, error);
+				this.log.debug('Device: %s %s, RC Socket connected error: %s', this.host, this.name, error);
 			} else {
-				this.log('Device: %s %s, RC socket connected.', this.host, this.name);
+				this.log('Device: %s %s, RC Socket connected.', this.host, this.name);
 				this.pointerInputSocket = sock;
 				this.getDeviceInfo();
 				this.updateDeviceState();
@@ -321,15 +321,26 @@ class lgwebosTvDevice {
 							.updateCharacteristic(Characteristic.Active, true);
 						this.currentPowerState = true;
 					}
-					if (this.televisionService && powerOff) {
+					if (this.currentPowerState && this.televisionService && powerOff) {
 						this.televisionService.updateCharacteristic(Characteristic.Active, false);
-					}
-					if (this.currentPowerState && powerOff) {
+						if (this.speakerService) {
+							this.speakerService
+								.updateCharacteristic(Characteristic.Mute, true);
+							if (this.volumeService && this.volumeControl === 1) {
+								this.volumeService
+									.updateCharacteristic(Characteristic.On, false);
+							}
+							if (this.volumeServiceFan && this.volumeControl === 2) {
+								this.volumeServiceFan
+									.updateCharacteristic(Characteristic.On, false);
+							}
+						}
 						this.disconnectFromTv();
 					}
 					this.screenPixelRefresh = pixelRefresh;
 				}
 			});
+
 			this.lgtv.subscribe('ssap://com.webos.applicationManager/getForegroundAppInfo', (error, response) => {
 				if (error) {
 					this.log.error('Device: %s %s, get current App error: %s.', this.host, this.name, error);
@@ -661,8 +672,8 @@ class lgwebosTvDevice {
 					});
 				this.volumeService.getCharacteristic(Characteristic.On)
 					.onGet(async () => {
-						const state = this.currentPowerState ? !this.currentMuteState : false;
-						return state;
+						const state = this.currentPowerState ? this.currentMuteState : true;
+						return !state;
 					})
 					.onSet(async (state) => {
 						this.speakerService.setCharacteristic(Characteristic.Mute, !state);
