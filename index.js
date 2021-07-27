@@ -526,7 +526,7 @@ class lgwebosTvDevice {
 
 		this.televisionService.getCharacteristic(Characteristic.RemoteKey)
 			.onSet(async (command) => {
-				if (this.currentPowerState && this.pointerInputSocket) {
+				if (this.currentPowerState) {
 					switch (command) {
 						case Characteristic.RemoteKey.REWIND:
 							command = 'REWIND';
@@ -577,7 +577,7 @@ class lgwebosTvDevice {
 
 		this.televisionService.getCharacteristic(Characteristic.PowerModeSelection)
 			.onSet(async (command) => {
-				if (this.currentPowerState && this.pointerInputSocket) {
+				if (this.currentPowerState) {
 					switch (command) {
 						case Characteristic.PowerModeSelection.SHOW:
 							command = this.switchInfoMenu ? 'MENU' : 'INFO';
