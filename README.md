@@ -62,6 +62,7 @@ Tested with OLED65G6V, 32LM6300PLA, 49SK8500, OLED65C7T, 55SK800PLB, OLED48CX.
 | `refreshInterval` | Set the data refresh time in seconds, default is every 5 seconds |
 | `volumeControl`| Select what a additional volume control mode You want to use (None, Slider, Fan) |
 | `switchInfoMenu`| If `true` then the `I` button will toggle its behaviour in the Apple Remote in Control Center and `PowerModeSelection` in settings |
+| `getInputsFromDevice`| If `true` then the inputs and apps wil be get direct from device. |
 | `disableLogInfo`| If `true` then disable log info, all values and state will not be displayed in Homebridge log console |
 | `manufacturer` | Optional free-form informational data that will be displayed in the Home.app if it is filled in |
 | `model` | Optional free-form informational data that will be displayed in the Home.app if it is filled in |
@@ -84,6 +85,7 @@ Tested with OLED65G6V, 32LM6300PLA, 49SK8500, OLED65C7T, 55SK800PLB, OLED48CX.
             "disableLogInfo": false,
             "volumeControl": 0,
             "switchInfoMenu": false,
+            "getInputsFromDevice": false,
             "inputs": [
                    {
                       "name": "Live TV",
@@ -152,12 +154,15 @@ Each accessory needs to be manually paired.
 5. Enter the Homebridge PIN, this can be found under the QR code in Homebridge UI or your Homebridge logs, alternatively you can select *Use Camera* and scan the QR code again.
 
 ## Limitations
-The HomeKit app has a limitation of a maximum number of 100 services per 1 accessory. If the number of services per accessory is over 100 then the Home app will stop responding. Items that are considered to be services in each accessory are when using this plugin are: 
-  1. Information service
-  2. Speaker service
-  3. Lightbulb service
-  4. Television service and inputs service 
-  5. 5-100, where every input = 1 service
+* Due to a HomeKit limitation, that maximum services for 1 accessory is 100. Acessories containing services above this value in the HomeKit app will not respond.
+* If all services are enabled possible inputs to use is 95. The services in this accessory are:
+  * Information service.
+  * Speaker service.
+  * Lightbulb service.
+  * Fan service
+  * Television service.
+  * Inputs service which may range from 6 to 100 as each input is 1 service.
+  * Buttons service which may range from 6 to 100 as each input is 1 service.
 
 ## Whats new:
 https://github.com/grzegorz914/homebridge-lgwebos-tv/blob/master/CHANGELOG.md
