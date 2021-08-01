@@ -75,7 +75,7 @@ class lgwebosTvDevice {
 		this.disableLogInfo = config.disableLogInfo;
 		this.volumeControl = config.volumeControl || 0;
 		this.switchInfoMenu = config.switchInfoMenu;
-		this.getIputsFromDevice = config.getIputsFromDevice;
+		this.getInputsFromDevice = config.getInputsFromDevice;
 		this.inputs = config.inputs || [];
 		this.buttons = config.buttons || [];
 
@@ -115,7 +115,8 @@ class lgwebosTvDevice {
 		this.setStartInputIdentifier = 0;
 		this.inputsLength = this.inputs.length;
 		this.buttonsLength = this.buttons.length;
-		this.currentMediaState = false; //play/pause
+		this.currentMediaState = false;
+		this.pictureMode = 0;
 
 		this.prefDir = path.join(api.user.storagePath(), 'lgwebosTv');
 		this.keyFile = this.prefDir + '/' + 'key_' + this.host.split('.').join('');
@@ -262,7 +263,9 @@ class lgwebosTvDevice {
 								for (let i = 0; i < appsLength; i++) {
 									const name = response2.apps[i].title;
 									const reference = response2.apps[i].id;
-									const appsObj = { 'name': name, 'reference': reference }
+									const type = 'APPLICATION';
+									const mode = 0;
+									const appsObj = { 'name': name, 'reference': reference, 'type': type, 'mode': mode }
 									appsArr.push(appsObj);
 								}
 								const obj = JSON.stringify(appsArr, null, 2);
@@ -424,6 +427,26 @@ class lgwebosTvDevice {
 					}
 				}
 			});
+
+			const params = {
+				category: 'picture',
+				keys: ['brightness', 'backlight', 'contrast', 'color']
+			}
+			this.lgtv.subscribe('ssap://settings/getSystemSettings', params, (error, response) => {
+				if (error) {
+					this.log.error('Device: %s %s, get system settings error: %s.', this.host, this.name, error);
+				} else {
+					this.log.debug('Device: %s %s, get system settings response: %s %s', this.host, this.name, response, response.settings);
+					const pictureMode = 3;
+					if (this.televisionService) {
+						this.televisionService
+							.updateCharacteristic(Characteristic.PictureMode, pictureMode)
+						this.pictureMode = pictureMode;
+					}
+					this.pictureMode = pictureMode;
+				}
+			});
+
 			this.checkDeviceState = true;
 		} catch (error) {
 			this.log.debug('Device: %s %s, update device state error: %s', this.host, this.name, error);
@@ -608,6 +631,65 @@ class lgwebosTvDevice {
 					this.pointerInputSocket.send('button', { name: command });
 				}
 			});
+		this.televisionService.getCharacteristic(Characteristic.PictureMode)
+			.onGet(async () => {
+				const pictureMode = this.pictureMode;
+				if (!this.disableLogInfo) {
+					this.log('Device: %s %s %s, get current Picture mode: %s', this.host, accessoryName, pictureMode);
+				}
+				return pictureMode;
+			})
+			.onSet(async (command) => {
+				try {
+					switch (command) {
+						//Set picture mode for current input, dynamic range and 3d mode.
+						//Known picture modes are: cinema, eco, expert1, expert2, game,
+						// normal, photo, sports, technicolor, vivid, hdrEffect,  hdrCinema,
+						//hdrCinemaBright, hdrExternal, hdrGame, hdrStandard, hdrTechnicolor,
+						//hdrVivid, dolbyHdrCinema, dolbyHdrCinemaBright, dolbyHdrDarkAmazon,
+						//dolbyHdrGame, dolbyHdrStandard, dolbyHdrVivid, dolbyStandard
+						case Characteristic.PictureMode.OTHER:
+							command = 'cinema';
+							break;
+						case Characteristic.PictureMode.STANDARD:
+							command = 'normal';
+							break;
+						case Characteristic.PictureMode.CALIBRATED:
+							command = 'expert1';
+							break;
+						case Characteristic.PictureMode.CALIBRATED_DARK:
+							command = 'expert2';
+							break;
+						case Characteristic.PictureMode.VIVID:
+							command = 'vivid';
+							break;
+						case Characteristic.PictureMode.GAME:
+							command = 'game';
+							break;
+						case Characteristic.PictureMode.COMPUTER:
+							command = 'photo';
+							break;
+						case Characteristic.PictureMode.CUSTOM:
+							command = 'sport';
+							break;
+					}
+					const params = {
+						category: 'picture',
+						settings: { 'pictureMode': command }
+					}
+					this.lgtv.request('ssap://settings/setSystemSettings', params, (error, response) => {
+						if (error) {
+							this.log.error('Device: %s %s, set system settings error: %s.', this.host, this.name, error);
+						} else {
+							if (!this.disableLogInfo) {
+								this.log('Device: %s %s, setPictureMode successful, command: %s', this.host, accessoryName, command);
+							}
+						}
+					});
+				} catch (error) {
+					this.log.error('Device: %s %s %s, can not setPictureMode command. Might be due to a wrong settings in config, error: %s', this.host, accessoryName, error);
+				};
+			});
 
 		accessory.addService(this.televisionService);
 
@@ -733,7 +815,7 @@ class lgwebosTvDevice {
 		this.log.debug('Device: %s %s, read savedTargetVisibility: %s', this.host, accessoryName, savedTargetVisibility);
 
 		//check available inputs and possible inputs count (max 95)
-		const inputs = this.getIputsFromDevice ? savedInputs : this.inputs;
+		const inputs = this.getInputsFromDevice ? savedInputs : this.inputs;
 		const inputsCount = inputs.length;
 		const maxInputsCount = (inputsCount > 95) ? 95 : inputsCount;
 		for (let i = 0; i < maxInputsCount; i++) {
@@ -745,10 +827,10 @@ class lgwebosTvDevice {
 			const inputName = (savedInputsNames[inputReference] !== undefined) ? savedInputsNames[inputReference] : (inputs[i].name !== undefined) ? inputs[i].name : inputs[i].reference;
 
 			//get input type
-			const inputType = inputs[i].type;
+			const inputType = inputs[i].type !== undefined ? inputs[i].type : 'APPLICATION';
 
 			//get input mode
-			const inputMode = inputs[i].mode;
+			const inputMode = inputs[i].mode !== undefined ? inputs[i].mode : 0;
 
 			//get input configured
 			const isConfigured = 1;

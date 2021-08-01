@@ -82,7 +82,7 @@
               "required": false,
               "description": "This toggle behaviour for *I* button in RC app and *PowerModeSelection* in settings."
             },
-            "getIputsFromDevice": {
+            "getInputsFromDevice": {
               "title": "Get inputs from device",
               "type": "boolean",
               "default": false,
@@ -270,7 +270,7 @@
         "devices[].name",
         "devices[].host",
         "devices[].mac",
-        "devices[].getIputsFromDevice",
+        "devices[].getInputsFromDevice",
         {
           "key": "devices[]",
           "type": "section",
