@@ -89,7 +89,6 @@ class lgwebosTvDevice {
 		this.checkDeviceInfo = true;
 		this.checkDeviceState = false;
 		this.connectedToTv = false;
-		this.startPrepareAccessory = true;
 
 		this.inputsService = new Array();
 		this.inputsReference = new Array();
@@ -166,6 +165,8 @@ class lgwebosTvDevice {
 				}
 			}
 		}.bind(this), this.refreshInterval * 1000);
+
+		this.prepareAccessory();
 	}
 
 	connectToTv() {
@@ -424,11 +425,6 @@ class lgwebosTvDevice {
 				}
 			});
 			this.checkDeviceState = true;
-
-			//start prepare accessory
-			if (this.startPrepareAccessory) {
-				this.prepareAccessory();
-			}
 		} catch (error) {
 			this.log.debug('Device: %s %s, update device state error: %s', this.host, this.name, error);
 			this.checkDeviceState = false;
@@ -875,7 +871,6 @@ class lgwebosTvDevice {
 			accessory.addService(this.buttonsService[i]);
 		}
 
-		this.startPrepareAccessory = false;
 		this.log.debug('Device: %s %s, publishExternalAccessories.', this.host, accessoryName);
 		this.api.publishExternalAccessories(PLUGIN_NAME, [accessory]);
 	}
