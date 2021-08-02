@@ -199,6 +199,15 @@ class lgwebosTvDevice {
 			this.log.debug('Device: %s %s, connecting...', this.host, this.name);
 			this.currentPowerState = false;
 		});
+
+		this.lgtv.on('close', () => {
+			this.log('Device: %s %s, disconnected.', this.host, this.name);
+			this.pointerInputSocket = null;
+			this.connectedToTv = false;
+			this.checkDeviceInfo = false;
+			this.currentPowerState = false;
+			this.lgtv.disconnect();
+		});
 	}
 
 	connectToTvRcSocket() {
@@ -212,18 +221,6 @@ class lgwebosTvDevice {
 				this.pointerInputSocket = sock;
 				this.checkDeviceInfo = true;
 			}
-		});
-	}
-
-	disconnectFromTv() {
-		this.log.debug('Device: %s %s, disconnecting from TV', this.host, this.name);
-		this.currentPowerState = false;
-		this.lgtv.on('close', () => {
-			this.log('Device: %s %s, disconnected.', this.host, this.name);
-			this.pointerInputSocket = null;
-			this.connectedToTv = false;
-			this.checkDeviceInfo = false;
-			this.lgtv.disconnect();
 		});
 	}
 
@@ -258,9 +255,9 @@ class lgwebosTvDevice {
 								this.checkDeviceInfo = true;
 							} else {
 								this.log.debug('Device: %s %s, get apps list response2: %s', this.host, this.name, response2);
-								const appsLength = response2.apps.length;
+								const appsCount = response2.apps.length;
 								const appsArr = new Array();
-								for (let i = 0; i < appsLength; i++) {
+								for (let i = 0; i < appsCount; i++) {
 									const name = response2.apps[i].title;
 									const reference = response2.apps[i].id;
 									const type = 'APPLICATION';
@@ -351,7 +348,7 @@ class lgwebosTvDevice {
 									.updateCharacteristic(Characteristic.On, false);
 							}
 						}
-						this.disconnectFromTv();
+						this.currentPowerState = false;
 					}
 					this.screenPixelRefresh = pixelRefresh;
 				}
@@ -824,7 +821,7 @@ class lgwebosTvDevice {
 			const inputReference = inputs[i].reference;
 
 			//get input name		
-			const inputName = (savedInputsNames[inputReference] !== undefined) ? savedInputsNames[inputReference] : (inputs[i].name !== undefined) ? inputs[i].name : inputs[i].reference;
+			const inputName = savedInputsNames[inputReference] !== undefined ? savedInputsNames[inputReference] : inputs[i].name !== undefined ? inputs[i].name : inputs[i].reference;
 
 			//get input type
 			const inputType = inputs[i].type !== undefined ? inputs[i].type : 'APPLICATION';
@@ -836,7 +833,7 @@ class lgwebosTvDevice {
 			const isConfigured = 1;
 
 			//get input visibility state
-			const targetVisibility = (savedTargetVisibility[inputReference] !== undefined) ? savedTargetVisibility[inputReference] : 0;
+			const targetVisibility = savedTargetVisibility[inputReference] !== undefined ? savedTargetVisibility[inputReference] : 0;
 			const currentVisibility = targetVisibility;
 
 			const inputService = new Service.InputSource(inputReference, 'input' + i);
@@ -855,7 +852,7 @@ class lgwebosTvDevice {
 						let newName = savedInputsNames;
 						newName[inputReference] = name;
 						const newCustomName = JSON.stringify(newName);
-						await fsPromises.writeFile(this.inputsNamesFile, newCustomName);
+						const writeNewCustomName = await fsPromises.writeFile(this.inputsNamesFile, newCustomName);
 						this.log.debug('Device: %s %s, saved new Input successful, savedInputsNames: %s', this.host, accessoryName, newCustomName);
 						if (!this.disableLogInfo) {
 							this.log('Device: %s %s, new Input name saved successful, name: %s reference: %s', this.host, accessoryName, name, inputReference);
