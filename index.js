@@ -3,7 +3,7 @@
 const fs = require('fs');
 const fsPromises = require('fs').promises;
 const lgtv = require('lgtv2');
-const wakeOnLan = require('@mi-sec/wol');
+const wol = require('@mi-sec/wol');
 const tcpp = require('tcp-ping');
 const path = require('path');
 
@@ -86,7 +86,7 @@ class lgwebosTvDevice {
 		this.firmwareRevision = config.firmwareRevision || 'Firmware Revision';
 
 		//setup variables
-		this.checkDeviceInfo = true;
+		this.checkDeviceInfo = false;
 		this.checkDeviceState = false;
 		this.connectedToTv = false;
 
@@ -475,6 +475,7 @@ class lgwebosTvDevice {
 
 			accessory.removeService(accessory.getService(Service.AccessoryInformation));
 			const informationService = new Service.AccessoryInformation(accessoryName)
+				.setCharacteristic(Characteristic.Name, accessoryName)
 				.setCharacteristic(Characteristic.Manufacturer, manufacturer)
 				.setCharacteristic(Characteristic.Model, modelName)
 				.setCharacteristic(Characteristic.SerialNumber, serialNumber)
@@ -505,7 +506,7 @@ class lgwebosTvDevice {
 			.onSet(async (state) => {
 				try {
 					if (state && !this.currentPowerState) {
-						wakeOnLan(this.mac, {
+						wol(this.mac, {
 							address: '255.255.255.255',
 							packets: 3,
 							interval: 100,
