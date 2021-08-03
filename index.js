@@ -205,6 +205,7 @@ class lgwebosTvDevice {
 			this.pointerInputSocket = null;
 			this.connectedToTv = false;
 			this.checkDeviceInfo = false;
+			this.checkDeviceState = false;
 			this.currentPowerState = false;
 			this.lgtv.disconnect();
 		});
