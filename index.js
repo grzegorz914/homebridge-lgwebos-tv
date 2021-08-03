@@ -116,6 +116,12 @@ class lgwebosTvDevice {
 		this.inputsLength = this.inputs.length;
 		this.buttonsLength = this.buttons.length;
 		this.currentMediaState = false;
+		this.productName = 0;
+
+		this.brightness = 0;
+		this.backlight = 0;
+		this.contrast = 0;
+		this.color = 0;
 		this.pictureMode = 0;
 
 		this.prefDir = path.join(api.user.storagePath(), 'lgwebosTv');
@@ -287,6 +293,7 @@ class lgwebosTvDevice {
 
 						this.manufacturer = manufacturer;
 						this.modelName = modelName;
+						this.productName = productName;
 						this.serialNumber = serialNumber;
 						this.firmwareRevision = firmwareRevision;
 
@@ -426,24 +433,37 @@ class lgwebosTvDevice {
 				}
 			});
 
-			const params = {
-				category: 'picture',
-				keys: ['brightness', 'backlight', 'contrast', 'color']
-			}
-			this.lgtv.subscribe('ssap://settings/getSystemSettings', params, (error, response) => {
-				if (error) {
-					this.log.error('Device: %s %s, get system settings error: %s.', this.host, this.name, error);
-				} else {
-					this.log.debug('Device: %s %s, get system settings response: %s %s', this.host, this.name, response, response.settings);
-					const pictureMode = 3;
-					if (this.televisionService) {
-						this.televisionService
-							.updateCharacteristic(Characteristic.PictureMode, pictureMode)
-						this.pictureMode = pictureMode;
-					}
-					this.pictureMode = pictureMode;
+			//check picture settings supported ab webOS 4.0
+			const webOS = this.productName.slice(8, -2);
+			if (webOS >= 4) {
+				const params = {
+					category: 'picture',
+					keys: ['brightness', 'backlight', 'contrast', 'color']
 				}
-			});
+				this.lgtv.subscribe('ssap://settings/getSystemSettings', params, (error, response) => {
+					if (error) {
+						this.log.error('Device: %s %s, get system settings error: %s.', this.host, this.name, error);
+					} else {
+						this.log.debug('Device: %s %s, get system settings response: %s, response.settings: %s', this.host, this.name, response, response.settings);
+						const brightness = response.settings.brightness;
+						const backlight = response.settings.backlight;
+						const contrast = response.settings.contrast;
+						const color = response.settings.color;
+						const pictureMode = 3;
+						if (this.televisionService) {
+							this.televisionService
+								.updateCharacteristic(Characteristic.Brightness, brightness)
+								.updateCharacteristic(Characteristic.PictureMode, pictureMode);
+						}
+						this.brightness = brightness;
+						this.backlight = backlight;
+						this.contrast = contrast;
+						this.color = color;
+						this.pictureMode = pictureMode;
+
+					}
+				});
+			}
 
 			this.checkDeviceState = true;
 		} catch (error) {
@@ -613,30 +633,94 @@ class lgwebosTvDevice {
 				}
 			});
 
-		this.televisionService.getCharacteristic(Characteristic.PowerModeSelection)
-			.onSet(async (command) => {
-				if (this.currentPowerState) {
-					switch (command) {
-						case Characteristic.PowerModeSelection.SHOW:
-							command = this.switchInfoMenu ? 'MENU' : 'INFO';
-							break;
-						case Characteristic.PowerModeSelection.HIDE:
-							command = 'BACK';
-							break;
+		//optional characteristics
+		this.televisionService.getCharacteristic(Characteristic.Brightness)
+			.onGet(async () => {
+				const value = this.brightness;
+				if (!this.disableLogInfo) {
+					this.log('Device: %s %s, get brightness successful: %s %', this.host, accessoryName, value);
+				}
+				return value;
+			})
+			.onSet(async (value) => {
+				const params = {
+					category: 'picture',
+					settings: { 'brightness': value }
+				}
+				this.lgtv.request('ssap://settings/setSystemSettings', params, (error, response) => {
+					if (error) {
+						this.log.error('Device: %s %s, set brightness error: %s.', this.host, this.name, error);
+					} else {
+						if (!this.disableLogInfo) {
+							this.log('Device: %s %s, set brightness successful: %s %.', this.host, accessoryName, value);
+						}
 					}
-					if (!this.disableLogInfo) {
-						this.log('Device: %s %s, setPowerModeSelection successful, command: %s', this.host, accessoryName, command);
-					}
-					this.pointerInputSocket.send('button', { name: command });
+				});
+			});
+
+		this.televisionService.getCharacteristic(Characteristic.ClosedCaptions)
+			.onGet(async () => {
+				const state = 0;
+				if (!this.disableLogInfo) {
+					this.log('Device: %s %s, get closed captions successful: %s %', this.host, accessoryName, state);
+				}
+				return state;
+			})
+			.onSet(async (state) => {
+				if (!this.disableLogInfo) {
+					this.log('Device: %s %s, set closed captions successful: %s.', this.host, accessoryName, state);
 				}
 			});
+
+		//this.televisionService.getCharacteristic(Characteristic.DisplayOrder)
+		//	.onGet(async () => {
+		//		const tag = 0x02;
+		//		const length = 0x01;
+		//		const value = 0x01;
+		//		const data = [tag, length, value];
+		//		if (!this.disableLogInfo) {
+		//			this.log('Device: %s %s, get display order successful: %s %', this.host, accessoryName, data);
+		//		}
+		//		return data;
+		//	})
+		//	.onSet(async (data) => {
+		//		if (!this.disableLogInfo) {
+		//			this.log('Device: %s %s, set display order successful: %s.', this.host, accessoryName, data);
+		//		}
+		//	});
+
+		this.televisionService.getCharacteristic(Characteristic.CurrentMediaState)
+			.onGet(async () => {
+				//0 - PLAY, 1 - PAUSE, 2 - STOP, 3 - LOADING, 4 - INTERRUPTED
+				const value = 2;
+				if (!this.disableLogInfo) {
+					this.log('Device: %s %s, get current media state successful: %s %', this.host, accessoryName, value);
+				}
+				return value;
+			});
+
+		this.televisionService.getCharacteristic(Characteristic.TargetMediaState)
+			.onGet(async () => {
+				//0 - PLAY, 1 - PAUSE, 2 - STOP
+				const value = 2;
+				if (!this.disableLogInfo) {
+					this.log('Device: %s %s, get target media state successful: %s %', this.host, accessoryName, value);
+				}
+				return value;
+			})
+			.onSet(async (value) => {
+				if (!this.disableLogInfo) {
+					this.log('Device: %s %s, set target media state successful: %s.', this.host, accessoryName, value);
+				}
+			});
+
 		this.televisionService.getCharacteristic(Characteristic.PictureMode)
 			.onGet(async () => {
-				const pictureMode = this.pictureMode;
+				const value = this.pictureMode;
 				if (!this.disableLogInfo) {
-					this.log('Device: %s %s %s, get current Picture mode: %s', this.host, accessoryName, pictureMode);
+					this.log('Device: %s %s %s, get current Picture mode: %s', this.host, accessoryName, value);
 				}
-				return pictureMode;
+				return value;
 			})
 			.onSet(async (command) => {
 				try {
@@ -688,6 +772,24 @@ class lgwebosTvDevice {
 				} catch (error) {
 					this.log.error('Device: %s %s %s, can not setPictureMode command. Might be due to a wrong settings in config, error: %s', this.host, accessoryName, error);
 				};
+			});
+
+		this.televisionService.getCharacteristic(Characteristic.PowerModeSelection)
+			.onSet(async (command) => {
+				if (this.currentPowerState) {
+					switch (command) {
+						case Characteristic.PowerModeSelection.SHOW:
+							command = this.switchInfoMenu ? 'MENU' : 'INFO';
+							break;
+						case Characteristic.PowerModeSelection.HIDE:
+							command = 'BACK';
+							break;
+					}
+					if (!this.disableLogInfo) {
+						this.log('Device: %s %s, setPowerModeSelection successful, command: %s', this.host, accessoryName, command);
+					}
+					this.pointerInputSocket.send('button', { name: command });
+				}
 			});
 
 		accessory.addService(this.televisionService);
