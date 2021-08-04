@@ -87,7 +87,6 @@ class lgwebosTvDevice {
 
 		//setup variables
 		this.checkDeviceInfo = false;
-		this.checkDeviceState = false;
 		this.connectedToTv = false;
 
 		this.inputsService = new Array();
@@ -116,7 +115,8 @@ class lgwebosTvDevice {
 		this.inputsLength = this.inputs.length;
 		this.buttonsLength = this.buttons.length;
 		this.currentMediaState = false;
-		this.productName = 0;
+		this.productName = '';
+		this.webOS = 0;
 
 		this.brightness = 0;
 		this.backlight = 0;
@@ -131,7 +131,6 @@ class lgwebosTvDevice {
 		this.inputsNamesFile = this.prefDir + '/' + 'inputsNames_' + this.host.split('.').join('');
 		this.targetVisibilityInputsFile = this.prefDir + '/' + 'targetVisibilityInputs_' + this.host.split('.').join('');
 		this.channelsFile = this.prefDir + '/' + 'channels_' + this.host.split('.').join('');
-		this.url = 'ws://' + this.host + ':' + WEBSOCKET_PORT;
 
 		//check if prefs directory ends with a /, if not then add it
 		if (this.prefDir.endsWith('/') === false) {
@@ -162,7 +161,7 @@ class lgwebosTvDevice {
 		setInterval(function () {
 			if (!this.connectedToTv) {
 				tcpp.probe(this.host, WEBSOCKET_PORT, (err, online) => {
-					if (online) {
+					if (!this.connectedToTv && online) {
 						this.connectToTv();
 					}
 				});
@@ -178,6 +177,8 @@ class lgwebosTvDevice {
 
 	connectToTv() {
 		this.log.debug('Device: %s %s, connecting to TV', this.host, this.name);
+		this.url = 'ws://' + this.host + ':' + WEBSOCKET_PORT;
+
 		this.lgtv = lgtv({
 			url: this.url,
 			timeout: 3000,
@@ -189,6 +190,7 @@ class lgwebosTvDevice {
 
 		this.lgtv.on('connect', () => {
 			this.log('Device: %s %s, connected.', this.host, this.name);
+			this.connectedToTv = true;
 			this.connectToTvRcSocket();
 		});
 
@@ -208,10 +210,8 @@ class lgwebosTvDevice {
 
 		this.lgtv.on('close', () => {
 			this.log('Device: %s %s, disconnected.', this.host, this.name);
-			this.pointerInputSocket = null;
 			this.connectedToTv = false;
-			this.checkDeviceInfo = false;
-			this.checkDeviceState = false;
+			this.pointerInputSocket = null;
 			this.currentPowerState = false;
 			this.lgtv.disconnect();
 		});
@@ -224,7 +224,6 @@ class lgwebosTvDevice {
 				this.log.debug('Device: %s %s, RC Socket connected error: %s', this.host, this.name, error);
 			} else {
 				this.log('Device: %s %s, RC Socket connected.', this.host, this.name);
-				this.connectedToTv = true;
 				this.pointerInputSocket = sock;
 				this.checkDeviceInfo = true;
 			}
@@ -296,9 +295,10 @@ class lgwebosTvDevice {
 						this.productName = productName;
 						this.serialNumber = serialNumber;
 						this.firmwareRevision = firmwareRevision;
+						this.webOS = productName.slice(8, -2);;
 
+						const updateDeviceState = this.checkDeviceInfo ? this.updateDeviceState() : false;
 						this.checkDeviceInfo = false;
-						const updateDeviceState = !this.checkDeviceState ? this.updateDeviceState() : false;
 					}
 				});
 			}
@@ -308,6 +308,8 @@ class lgwebosTvDevice {
 	updateDeviceState() {
 		this.log.debug('Device: %s %s, requesting device state.', this.host, this.name);
 		try {
+			const webOS = this.webOS;
+
 			this.lgtv.subscribe('ssap://com.webos.service.tvpower/power/getPowerState', (error, response) => {
 				if (error) {
 					this.log.error('Device: %s %s, get current Power state error: %s %s.', this.host, this.name, error, response);
@@ -334,29 +336,31 @@ class lgwebosTvDevice {
 
 					//powerState
 					const pixelRefresh = (prepareScreenPixelRefresh || screenPixelRefresh);
-					const powerOn = ((prepareScreenOn || stillScreenOn || screenOn || prepareScreenSaver || screenSaver) && !prepareScreenOff);
-					const powerOff = ((prepareScreenOff || screenOff || pixelRefresh) && !prepareScreenOn);
+					const powerOn = webOS <= 2 ? this.connectedToTv ? true : false : ((prepareScreenOn || stillScreenOn || screenOn || prepareScreenSaver || screenSaver) && !prepareScreenOff);
+					const powerOff = webOS <= 2 ? !this.connectedToTv ? true : false : ((prepareScreenOff || screenOff || pixelRefresh) && !prepareScreenOn);
 
-					if (this.televisionService && powerOn) {
-						this.televisionService
-							.updateCharacteristic(Characteristic.Active, true);
-						this.currentPowerState = true;
-					}
-					if (this.currentPowerState && this.televisionService && powerOff) {
-						this.televisionService.updateCharacteristic(Characteristic.Active, false);
-						if (this.speakerService) {
-							this.speakerService
-								.updateCharacteristic(Characteristic.Mute, true);
-							if (this.volumeService && this.volumeControl === 1) {
-								this.volumeService
-									.updateCharacteristic(Characteristic.On, false);
-							}
-							if (this.volumeServiceFan && this.volumeControl === 2) {
-								this.volumeServiceFan
-									.updateCharacteristic(Characteristic.On, false);
-							}
+					if (this.televisionService) {
+						if (powerOn) {
+							this.televisionService
+								.updateCharacteristic(Characteristic.Active, true);
+							this.currentPowerState = true;
 						}
-						this.currentPowerState = false;
+						if (powerOff) {
+							this.televisionService.updateCharacteristic(Characteristic.Active, false);
+							if (this.speakerService) {
+								this.speakerService
+									.updateCharacteristic(Characteristic.Mute, true);
+								if (this.volumeService && this.volumeControl === 1) {
+									this.volumeService
+										.updateCharacteristic(Characteristic.On, false);
+								}
+								if (this.volumeServiceFan && this.volumeControl === 2) {
+									this.volumeServiceFan
+										.updateCharacteristic(Characteristic.On, false);
+								}
+							}
+							this.currentPowerState = false;
+						}
 					}
 					this.screenPixelRefresh = pixelRefresh;
 				}
@@ -412,7 +416,7 @@ class lgwebosTvDevice {
 				} else {
 					this.log.debug('Device: %s %s, get current Audio state response: %s', this.host, this.name, response);
 					const volume = response.volume;
-					const mute = (response.mute === true);
+					const mute = this.currentPowerState ? (response.mute === true) : true;
 					if (this.speakerService) {
 						this.speakerService
 							.updateCharacteristic(Characteristic.Volume, volume)
@@ -434,7 +438,6 @@ class lgwebosTvDevice {
 			});
 
 			//check picture settings supported ab webOS 4.0
-			const webOS = this.productName.slice(8, -2);
 			if (webOS >= 4) {
 				const params = {
 					category: 'picture',
@@ -464,11 +467,9 @@ class lgwebosTvDevice {
 					}
 				});
 			}
-
-			this.checkDeviceState = true;
+			this.checkDeviceInfo = false;
 		} catch (error) {
 			this.log.debug('Device: %s %s, update device state error: %s', this.host, this.name, error);
-			this.checkDeviceState = false;
 			this.checkDeviceInfo = true;
 		};
 	}
