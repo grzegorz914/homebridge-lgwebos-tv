@@ -292,7 +292,7 @@
             }
           ],
           "condition": {
-            "functionBody": "return model.devices[arrayIndices].getIputsFromDevice == false;"
+            "functionBody": "return model.devices[arrayIndices].getInputsFromDevice === false;"
           }
         },
         {

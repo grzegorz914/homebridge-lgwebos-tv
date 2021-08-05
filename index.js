@@ -191,6 +191,7 @@ class lgwebosTvDevice {
 		this.lgtv.on('connect', () => {
 			this.log('Device: %s %s, connected.', this.host, this.name);
 			this.connectedToDevice = true;
+			this.checkDeviceInfo = true;
 			this.connectToTvRcSocket();
 		});
 
@@ -225,7 +226,6 @@ class lgwebosTvDevice {
 			} else {
 				this.log('Device: %s %s, RC Socket connected.', this.host, this.name);
 				this.pointerInputSocket = sock;
-				this.checkDeviceInfo = true;
 			}
 		});
 	}
