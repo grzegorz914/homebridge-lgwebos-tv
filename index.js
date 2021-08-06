@@ -441,7 +441,7 @@ class lgwebosTvDevice {
 				} else {
 					this.log.debug('Device: %s %s, get current Audio state response: %s', this.host, this.name, response);
 					const volume = response.volume;
-					const muteState = (response.mute === true);
+					const muteState = this.powerState ? (response.mute === true) : true;
 					if (this.speakerService) {
 						this.speakerService
 							.updateCharacteristic(Characteristic.Volume, volume)
@@ -457,7 +457,7 @@ class lgwebosTvDevice {
 								.updateCharacteristic(Characteristic.On, !muteState);
 						}
 						this.volume = volume;
-						this.muteState = this.powerState ? muteState : true;
+						this.muteState = muteState;
 					}
 				}
 			});
