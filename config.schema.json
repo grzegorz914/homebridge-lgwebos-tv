@@ -53,8 +53,7 @@
               "minimum": 0,
               "maximum": 2,
               "description": "Here select what a volume control mode You want to use. If select *None* only hardware buttons in RC app can be used to control volume.",
-              "oneOf": [
-                {
+              "oneOf": [{
                   "title": "None",
                   "enum": [
                     0
@@ -112,8 +111,7 @@
                     "title": "Input type",
                     "type": "string",
                     "description": "Here select source input type.",
-                    "oneOf": [
-                      {
+                    "oneOf": [{
                         "title": "Other",
                         "enum": [
                           "OTHER"
@@ -187,8 +185,7 @@
                     "type": "integer",
                     "maximum": 1,
                     "description": "Here select input mode.",
-                    "oneOf": [
-                      {
+                    "oneOf": [{
                         "title": "Apps",
                         "enum": [
                           0
@@ -261,86 +258,80 @@
       }
     }
   },
-  "layout": [
-    {
-      "key": "devices",
-      "type": "tabarray",
-      "title": "{{ value.name || 'new device' }}",
-      "items": [
-        "devices[].name",
-        "devices[].host",
-        "devices[].mac",
-        "devices[].getInputsFromDevice",
-        {
-          "key": "devices[]",
-          "type": "section",
-          "title": "Inputs",
-          "expandable": true,
-          "expanded": false,
+  "layout": [{
+    "key": "devices",
+    "type": "tabarray",
+    "title": "{{ value.name || 'new device' }}",
+    "items": [
+      "devices[].name",
+      "devices[].host",
+      "devices[].mac",
+      "devices[].getInputsFromDevice",
+      {
+        "key": "devices[]",
+        "type": "section",
+        "title": "Inputs",
+        "expandable": true,
+        "expanded": false,
+        "items": [{
+          "key": "devices[].inputs",
+          "type": "array",
+          "orderable": false,
+          "buttonText": "Add input",
           "items": [
-            {
-              "key": "devices[].inputs",
-              "type": "array",
-              "orderable": false,
-              "buttonText": "Add input",
-              "items": [
-                "devices[].inputs[].name",
-                "devices[].inputs[].reference",
-                "devices[].inputs[].type",
-                "devices[].inputs[].mode"
-              ]
-            }
-          ],
-          "condition": {
-            "functionBody": "return model.devices[arrayIndices].getInputsFromDevice === false;"
-          }
-        },
-        {
-          "key": "devices[]",
-          "type": "section",
-          "title": "Buttons",
-          "expandable": true,
-          "expanded": false,
-          "items": [
-            {
-              "key": "devices[].buttons",
-              "type": "array",
-              "orderable": false,
-              "buttonText": "Add button",
-              "items": [
-                "devices[].buttons[].name",
-                "devices[].buttons[].reference"
-              ]
-            }
+            "devices[].inputs[].name",
+            "devices[].inputs[].reference",
+            "devices[].inputs[].type",
+            "devices[].inputs[].mode"
           ]
-        },
-        {
-          "key": "devices[]",
-          "type": "section",
-          "title": "Advanced Settings",
-          "expandable": true,
-          "expanded": false,
-          "items": [
-            "devices[].disableLogInfo",
-            "devices[].switchInfoMenu",
-            "devices[].refreshInterval",
-            "devices[].volumeControl"
-          ]
-        },
-        {
-          "key": "devices[]",
-          "type": "section",
-          "title": "Branding",
-          "expandable": true,
-          "expanded": false,
-          "items": [
-            "devices[].manufacturer",
-            "devices[].modelName",
-            "devices[].serialNumber",
-            "devices[].firmwareRevision"
-          ]
+        }],
+        "condition": {
+          "functionBody": "return model.devices[arrayIndices].getInputsFromDevice === false;"
         }
-      ]
-    }
-  ]
+      },
+      {
+        "key": "devices[]",
+        "type": "section",
+        "title": "Buttons",
+        "expandable": true,
+        "expanded": false,
+        "items": [{
+          "key": "devices[].buttons",
+          "type": "array",
+          "orderable": false,
+          "buttonText": "Add button",
+          "items": [
+            "devices[].buttons[].name",
+            "devices[].buttons[].reference"
+          ]
+        }]
+      },
+      {
+        "key": "devices[]",
+        "type": "section",
+        "title": "Advanced Settings",
+        "expandable": true,
+        "expanded": false,
+        "items": [
+          "devices[].disableLogInfo",
+          "devices[].switchInfoMenu",
+          "devices[].refreshInterval",
+          "devices[].volumeControl"
+        ]
+      },
+      {
+        "key": "devices[]",
+        "type": "section",
+        "title": "Branding",
+        "expandable": true,
+        "expanded": false,
+        "items": [
+          "devices[].manufacturer",
+          "devices[].modelName",
+          "devices[].serialNumber",
+          "devices[].firmwareRevision"
+        ]
+      }
+    ]
+  }]
 }

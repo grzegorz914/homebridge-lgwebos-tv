@@ -14,81 +14,76 @@
         "comment": "In this section set the port for Homebridge accessories."
     },
     "accessories": [],
-    "platforms": [
-        {
-            "platform": "LgWebOsTv",
-            "devices": [
+    "platforms": [{
+        "platform": "LgWebOsTv",
+        "devices": [{
+            "name": "LG TV",
+            "host": "192.168.1.8",
+            "mac": "ab:cd:ef:fe:dc:ba",
+            "refreshInterval": 5,
+            "disableLogInfo": false,
+            "volumeControl": 0,
+            "switchInfoMenu": false,
+            "getInputsFromDevice": false,
+            "inputs": [{
+                    "name": "Live TV",
+                    "reference": "com.webos.app.livetv",
+                    "type": "TUNER",
+                    "mode": 0
+                },
                 {
-                    "name": "LG TV",
-                    "host": "192.168.1.8",
-                    "mac": "ab:cd:ef:fe:dc:ba",
-                    "refreshInterval": 5,
-                    "disableLogInfo": false,
-                    "volumeControl": 0,
-                    "switchInfoMenu": false,
-                    "getInputsFromDevice": false,
-                    "inputs": [
-                        {
-                            "name": "Live TV",
-                            "reference": "com.webos.app.livetv",
-                            "type": "TUNER",
-                            "mode": 0
-                        },
-                        {
-                            "name": "HDMI 1",
-                            "reference": "com.webos.app.hdmi1",
-                            "type": "HDMI",
-                            "mode": 0
-                        },
-                        {
-                            "name": "HDMI 2",
-                            "reference": "com.webos.app.hdmi2",
-                            "type": "HDMI",
-                            "mode": 0
-                        },
-                        {
-                            "name": "HDMI 3",
-                            "reference": "com.webos.app.hdmi3",
-                            "type": "HDMI",
-                            "mode": 0
-                        },
-                        {
-                            "name": "HDMI 4",
-                            "reference": "com.webos.app.hdmi4",
-                            "type": "HDMI",
-                            "mode": 0
-                        },
-                        {
-                            "name": "Netflix",
-                            "reference": "netflix",
-                            "type": "APPLICATION",
-                            "mode": 0
-                        },
-                        {
-                            "name": "YouTube",
-                            "reference": "youtube.leanback.v4",
-                            "type": "APPLICATION",
-                            "mode": 0
-                        },
-                        {
-                            "name": "LG Store",
-                            "reference": "com.webos.app.discovery",
-                            "type": "APPLICATION",
-                            "mode": 0
-                        },
-                        {
-                            "name": "Plex",
-                            "reference": "cdp-30",
-                            "type": "APPLICATION",
-                            "mode": 0
-                        }
-                    ],
-                    "manufacturer": "Manufacturer",
-                    "modelName": "Model",
-                    "serialNumber": "Serial Number",
-                    "firmwareRevision": "Firmware Revision"
+                    "name": "HDMI 1",
+                    "reference": "com.webos.app.hdmi1",
+                    "type": "HDMI",
+                    "mode": 0
+                },
+                {
+                    "name": "HDMI 2",
+                    "reference": "com.webos.app.hdmi2",
+                    "type": "HDMI",
+                    "mode": 0
+                },
+                {
+                    "name": "HDMI 3",
+                    "reference": "com.webos.app.hdmi3",
+                    "type": "HDMI",
+                    "mode": 0
+                },
+                {
+                    "name": "HDMI 4",
+                    "reference": "com.webos.app.hdmi4",
+                    "type": "HDMI",
+                    "mode": 0
+                },
+                {
+                    "name": "Netflix",
+                    "reference": "netflix",
+                    "type": "APPLICATION",
+                    "mode": 0
+                },
+                {
+                    "name": "YouTube",
+                    "reference": "youtube.leanback.v4",
+                    "type": "APPLICATION",
+                    "mode": 0
+                },
+                {
+                    "name": "LG Store",
+                    "reference": "com.webos.app.discovery",
+                    "type": "APPLICATION",
+                    "mode": 0
+                },
+                {
+                    "name": "Plex",
+                    "reference": "cdp-30",
+                    "type": "APPLICATION",
+                    "mode": 0
                 }
-            ]
-        }
-    ]
+            ],
+            "manufacturer": "Manufacturer",
+            "modelName": "Model",
+            "serialNumber": "Serial Number",
+            "firmwareRevision": "Firmware Revision"
+        }]
+    }]
 }
