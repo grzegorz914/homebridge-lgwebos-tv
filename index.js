@@ -1,24 +1,24 @@
 'use strict';
 
+const path = require('path');
 const fs = require('fs');
 const fsPromises = require('fs').promises;
 const lgtv = require('lgtv2');
 const wol = require('@mi-sec/wol');
 const tcpp = require('tcp-ping');
-const path = require('path');
 
 const WEBSOCKET_PORT = 3000;
 const PLUGIN_NAME = 'homebridge-lgwebos-tv';
 const PLATFORM_NAME = 'LgWebOsTv';
 
-let Accessory, Characteristic, Service, Categories, UUID;
+let Accessory, Characteristic, Service, Categories, AccessoryUUID;
 
 module.exports = (api) => {
 	Accessory = api.platformAccessory;
 	Characteristic = api.hap.Characteristic;
 	Service = api.hap.Service;
 	Categories = api.hap.Categories;
-	UUID = api.hap.uuid;
+	AccessoryUUID = api.hap.uuid;
 	api.registerPlatform(PLUGIN_NAME, PLATFORM_NAME, lgwebosTvPlatform, true);
 };
 
@@ -136,27 +136,27 @@ class lgwebosTvDevice {
 		this.channelsFile = this.prefDir + '/' + 'channels_' + this.host.split('.').join('');
 
 		//check if prefs directory ends with a /, if not then add it
-		if (this.prefDir.endsWith('/') === false) {
+		if (this.prefDir.endsWith('/') == false) {
 			this.prefDir = this.prefDir + '/';
 		}
 		//check if the directory exists, if not then create it
-		if (fs.existsSync(this.prefDir) === false) {
+		if (fs.existsSync(this.prefDir) == false) {
 			fsPromises.mkdir(this.prefDir);
 		}
 		//check if the files exists, if not then create it
-		if (fs.existsSync(this.inputsFile) === false) {
+		if (fs.existsSync(this.inputsFile) == false) {
 			fsPromises.writeFile(this.inputsFile, '');
 		}
 		//check if the files exists, if not then create it
-		if (fs.existsSync(this.inputsNamesFile) === false) {
+		if (fs.existsSync(this.inputsNamesFile) == false) {
 			fsPromises.writeFile(this.inputsNamesFile, '');
 		}
 		//check if the files exists, if not then create it
-		if (fs.existsSync(this.targetVisibilityInputsFile) === false) {
+		if (fs.existsSync(this.targetVisibilityInputsFile) == false) {
 			fsPromises.writeFile(this.targetVisibilityInputsFile, '');
 		}
 		//check if the files exists, if not then create it
-		if (fs.existsSync(this.devInfoFile) === false) {
+		if (fs.existsSync(this.devInfoFile) == false) {
 			fsPromises.writeFile(this.devInfoFile, '');
 		}
 
@@ -324,23 +324,23 @@ class lgwebosTvDevice {
 				} else {
 					this.log.debug('Device: %s %s, get current Power state data: %s', this.host, this.name, response);
 					//screen On
-					const prepareScreenOn = ((response.state === 'Suspend' && response.processing === 'Screen On') || (response.state === 'Screen Saver' && response.processing === 'Screen On') || (response.state === 'Active Standby' && response.processing === 'Screen On'));
-					const stillScreenOn = (response.state === 'Active' && response.processing === 'Screen On');
-					const screenOn = (response.state === 'Active');
+					const prepareScreenOn = ((response.state == 'Suspend' && response.processing == 'Screen On') || (response.state == 'Screen Saver' && response.processing == 'Screen On') || (response.state == 'Active Standby' && response.processing == 'Screen On'));
+					const stillScreenOn = (response.state == 'Active' && response.processing == 'Screen On');
+					const screenOn = (response.state == 'Active');
 
 					//screen Saver
-					const prepareScreenSaver = (response.state === 'Active' && response.processing === 'Request Screen Saver');
-					const screenSaver = (response.state === 'Screen Saver');
+					const prepareScreenSaver = (response.state == 'Active' && response.processing == 'Request Screen Saver');
+					const screenSaver = (response.state == 'Screen Saver');
 
 					//screen Off
-					const prepareScreenOff = ((response.state === 'Active' && response.processing === 'Request Power Off') || (response.state === 'Active' && response.processing === 'Request Suspend') || (response.state === 'Active' && response.processing === 'Prepare Suspend') ||
-							(response.state === 'Screen Saver' && response.processing === 'Request Power Off') || (response.state === 'Screen Saver' && response.processing === 'Request Suspend') || (response.state === 'Screen Saver' && response.processing === 'Prepare Suspend')) ||
-						(response.state === 'Active Standby' && response.processing === 'Request Power Off') || (response.state === 'Active Standby' && response.processing === 'Request Suspend') || (response.state === 'Active Standby' && response.processing === 'Prepare Suspend');
-					const screenOff = (response.state === 'Suspend');
+					const prepareScreenOff = ((response.state == 'Active' && response.processing == 'Request Power Off') || (response.state == 'Active' && response.processing == 'Request Suspend') || (response.state == 'Active' && response.processing == 'Prepare Suspend') ||
+							(response.state == 'Screen Saver' && response.processing == 'Request Power Off') || (response.state == 'Screen Saver' && response.processing == 'Request Suspend') || (response.state == 'Screen Saver' && response.processing == 'Prepare Suspend')) ||
+						(response.state == 'Active Standby' && response.processing == 'Request Power Off') || (response.state == 'Active Standby' && response.processing == 'Request Suspend') || (response.state == 'Active Standby' && response.processing == 'Prepare Suspend');
+					const screenOff = (response.state == 'Suspend');
 
 					//pixelRefresh
-					const prepareScreenPixelRefresh = ((response.state === 'Active' && response.processing === 'Request Active Standby') || (response.state === 'Screen Saver' && response.processing === 'Request Active Standby'));
-					const screenPixelRefresh = (response.state === 'Active Standby');
+					const prepareScreenPixelRefresh = ((response.state == 'Active' && response.processing == 'Request Active Standby') || (response.state == 'Screen Saver' && response.processing == 'Request Active Standby'));
+					const screenPixelRefresh = (response.state == 'Active Standby');
 
 					//powerState
 					const pixelRefresh = (prepareScreenPixelRefresh || screenPixelRefresh);
@@ -356,11 +356,11 @@ class lgwebosTvDevice {
 							if (this.speakerService) {
 								this.speakerService
 									.updateCharacteristic(Characteristic.Mute, false);
-								if (this.volumeService && this.volumeControl === 1) {
+								if (this.volumeService && this.volumeControl == 1) {
 									this.volumeService
 										.updateCharacteristic(Characteristic.On, true);
 								}
-								if (this.volumeServiceFan && this.volumeControl === 2) {
+								if (this.volumeServiceFan && this.volumeControl == 2) {
 									this.volumeServiceFan
 										.updateCharacteristic(Characteristic.On, true);
 								}
@@ -375,11 +375,11 @@ class lgwebosTvDevice {
 							if (this.speakerService) {
 								this.speakerService
 									.updateCharacteristic(Characteristic.Mute, true);
-								if (this.volumeService && this.volumeControl === 1) {
+								if (this.volumeService && this.volumeControl == 1) {
 									this.volumeService
 										.updateCharacteristic(Characteristic.On, false);
 								}
-								if (this.volumeServiceFan && this.volumeControl === 2) {
+								if (this.volumeServiceFan && this.volumeControl == 2) {
 									this.volumeServiceFan
 										.updateCharacteristic(Characteristic.On, false);
 								}
@@ -401,10 +401,10 @@ class lgwebosTvDevice {
 					const inputIdentifier = this.setStartInput ? this.setStartInputIdentifier : currentInputIdentifier;
 					const inputName = this.inputsName[inputIdentifier];
 					const inputMode = this.inputsMode[inputIdentifier];
-					if (this.televisionService && inputMode === 0) {
+					if (this.televisionService && inputMode == 0) {
 						const setUpdateCharacteristic = this.setStartInput ? this.televisionService.setCharacteristic(Characteristic.ActiveIdentifier, inputIdentifier) :
 							this.televisionService.updateCharacteristic(Characteristic.ActiveIdentifier, inputIdentifier);
-						this.setStartInput = (currentInputIdentifier === inputIdentifier) ? false : true;
+						this.setStartInput = (currentInputIdentifier == inputIdentifier) ? false : true;
 
 						this.inputReference = inputReference;
 						this.inputIdentifier = inputIdentifier
@@ -424,10 +424,10 @@ class lgwebosTvDevice {
 					const inputIdentifier = this.setStartInput ? this.setStartInputIdentifier : currentInputIdentifier;
 					const channelName = response.channelName;
 					const inputMode = this.inputsMode[inputIdentifier];
-					if (this.televisionService && inputMode === 1) {
+					if (this.televisionService && inputMode == 1) {
 						const setUpdateCharacteristic = this.setStartInput ? this.televisionService.setCharacteristic(Characteristic.ActiveIdentifier, inputIdentifier) :
 							this.televisionService.updateCharacteristic(Characteristic.ActiveIdentifier, inputIdentifier);
-						this.setStartInput = (currentInputIdentifier === inputIdentifier) ? false : true;
+						this.setStartInput = (currentInputIdentifier == inputIdentifier) ? false : true;
 						this.channelReference = channelReference;
 						this.inputIdentifier = inputIdentifier
 						this.channelName = channelName;
@@ -441,17 +441,17 @@ class lgwebosTvDevice {
 				} else {
 					this.log.debug('Device: %s %s, get current Audio state response: %s', this.host, this.name, response);
 					const volume = response.volume;
-					const muteState = this.powerState ? (response.mute === true) : true;
+					const muteState = this.powerState ? (response.mute == true) : true;
 					if (this.speakerService) {
 						this.speakerService
 							.updateCharacteristic(Characteristic.Volume, volume)
 							.updateCharacteristic(Characteristic.Mute, muteState);
-						if (this.volumeService && this.volumeControl === 1) {
+						if (this.volumeService && this.volumeControl == 1) {
 							this.volumeService
 								.updateCharacteristic(Characteristic.Brightness, volume)
 								.updateCharacteristic(Characteristic.On, !muteState);
 						}
-						if (this.volumeServiceFan && this.volumeControl === 2) {
+						if (this.volumeServiceFan && this.volumeControl == 2) {
 							this.volumeServiceFan
 								.updateCharacteristic(Characteristic.RotationSpeed, volume)
 								.updateCharacteristic(Characteristic.On, !muteState);
@@ -503,7 +503,7 @@ class lgwebosTvDevice {
 	async prepareAccessory() {
 		this.log.debug('prepareAccessory');
 		const accessoryName = this.name;
-		const accessoryUUID = UUID.generate(accessoryName);
+		const accessoryUUID = AccessoryUUID.generate(accessoryName);
 		const accessoryCategory = Categories.TELEVISION;
 		const accessory = new Accessory(accessoryName, accessoryUUID, accessoryCategory);
 
@@ -511,7 +511,7 @@ class lgwebosTvDevice {
 		this.log.debug('prepareInformationService');
 		try {
 			const readDevInfo = await fsPromises.readFile(this.devInfoFile);
-			const devInfo = (readDevInfo !== undefined) ? JSON.parse(readDevInfo) : {
+			const devInfo = (readDevInfo != undefined) ? JSON.parse(readDevInfo) : {
 				'manufacturer': this.manufacturer,
 				'modelName': this.modelName,
 				'device_id': this.serialNumber,
@@ -595,15 +595,15 @@ class lgwebosTvDevice {
 				try {
 					const inputName = this.inputsName[inputIdentifier];
 					const inputMode = this.inputsMode[inputIdentifier];
-					const inputReference = (inputMode === 0 && this.inputsReference[inputIdentifier] !== undefined) ? this.inputsReference[inputIdentifier] : "com.webos.app.livetv";
+					const inputReference = (inputMode == 0 && this.inputsReference[inputIdentifier] != undefined) ? this.inputsReference[inputIdentifier] : "com.webos.app.livetv";
 					const setInput = this.connectedToDevice ? this.lgtv.request('ssap://system.launcher/launch', {
 						id: inputReference
 					}) : false;
 					if (!this.disableLogInfo) {
 						this.log('Device: %s %s, set new Input successful: %s %s', this.host, accessoryName, inputName, inputReference);
 					}
-					if (inputMode === 1) {
-						const channelReference = (this.inputsReference[inputIdentifier] !== undefined) ? this.inputsReference[inputIdentifier] : 0;
+					if (inputMode == 1) {
+						const channelReference = (this.inputsReference[inputIdentifier] != undefined) ? this.inputsReference[inputIdentifier] : 0;
 						this.lgtv.request('ssap://tv/openChannel', {
 							channelId: channelReference
 						});
@@ -893,7 +893,7 @@ class lgwebosTvDevice {
 				return state;
 			})
 			.onSet(async (state) => {
-				if (state !== this.muteState) {
+				if (state != this.muteState) {
 					this.lgtv.request('ssap://audio/setMute', {
 						muteState: state
 					});
@@ -975,19 +975,19 @@ class lgwebosTvDevice {
 			const inputReference = inputs[i].reference;
 
 			//get input name		
-			const inputName = savedInputsNames[inputReference] !== undefined ? savedInputsNames[inputReference] : inputs[i].name !== undefined ? inputs[i].name : inputs[i].reference;
+			const inputName = savedInputsNames[inputReference] != undefined ? savedInputsNames[inputReference] : inputs[i].name != undefined ? inputs[i].name : inputs[i].reference;
 
 			//get input type
-			const inputType = inputs[i].type !== undefined ? inputs[i].type : 'APPLICATION';
+			const inputType = inputs[i].type != undefined ? inputs[i].type : 'APPLICATION';
 
 			//get input mode
-			const inputMode = inputs[i].mode !== undefined ? inputs[i].mode : 0;
+			const inputMode = inputs[i].mode != undefined ? inputs[i].mode : 0;
 
 			//get input configured
 			const isConfigured = 1;
 
 			//get input visibility state
-			const targetVisibility = savedTargetVisibility[inputReference] !== undefined ? savedTargetVisibility[inputReference] : 0;
+			const targetVisibility = savedTargetVisibility[inputReference] != undefined ? savedTargetVisibility[inputReference] : 0;
 			const currentVisibility = targetVisibility;
 
 			const inputService = new Service.InputSource(inputReference, 'input' + i);
@@ -1064,7 +1064,7 @@ class lgwebosTvDevice {
 			const buttonReference = buttons[i].reference;
 
 			//get button name
-			const buttonName = (buttons[i].name !== undefined) ? buttons[i].name : buttons[i].reference;
+			const buttonName = (buttons[i].name != undefined) ? buttons[i].name : buttons[i].reference;
 
 			const buttonService = new Service.Switch(accessoryName + ' ' + buttonName, 'buttonService' + i);
 			buttonService.getCharacteristic(Characteristic.On)
