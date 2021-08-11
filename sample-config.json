@@ -26,24 +26,6 @@
             "switchInfoMenu": false,
             "getInputsFromDevice": false,
             "inputs": [{
-                    "name": "Live TV",
-                    "reference": "com.webos.app.livetv",
-                    "type": "TUNER",
-                    "mode": 0
-                },
-                {
-                    "name": "HDMI 1",
-                    "reference": "com.webos.app.hdmi1",
-                    "type": "HDMI",
-                    "mode": 0
-                },
-                {
-                    "name": "HDMI 2",
-                    "reference": "com.webos.app.hdmi2",
-                    "type": "HDMI",
-                    "mode": 0
-                },
-                {
                     "name": "HDMI 3",
                     "reference": "com.webos.app.hdmi3",
                     "type": "HDMI",
