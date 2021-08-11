@@ -54,7 +54,7 @@ Tested with OLED65G6V, 32LM6300PLA, 49SK8500, OLED65C7T, 55SK800PLB, OLED48CX.
 ## Configuration Values
 | Key | Description | 
 | --- | --- |
-| `inputs` | all reference and name can be found in: `homebridge_directory/lgwebosTv/apps_xxxxxx` where `name == title` and `reference == id`, `Live TV`, `HDMI 1`, `HDMI 2` inputs are created by default. |
+| `inputs` | all reference and name can be found in: `homebridge_directory/lgwebosTv/inputs_xxxxxx` where `name == title` and `reference == id`, `Live TV`, `HDMI 1`, `HDMI 2` inputs are created by default. |
 | `inputs.name` | set the name which will be displayed as inputs list in HomeKit app |
 | `inputs.reference` | set the reference of Inputs/Applications |
 | `inputs.type` | select source input type |
