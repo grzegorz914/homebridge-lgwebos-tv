@@ -1022,20 +1022,24 @@ class lgwebosTvDevice {
 			const isConfigured = 1;
 
 			//get input visibility state
-			const targetVisibility = savedTargetVisibility[inputReference] != undefined ? savedTargetVisibility[inputReference] : 0;
+			const targetVisibility = (savedTargetVisibility[inputReference] != undefined) ? savedTargetVisibility[inputReference] : 0;
 			const currentVisibility = targetVisibility;
 
-			const inputService = new Service.InputSource(inputReference, 'input' + i);
+			const inputService = new Service.InputSource(accessoryName, 'Input' + i);
 			inputService
 				.setCharacteristic(Characteristic.Identifier, i)
-				.setCharacteristic(Characteristic.ConfiguredName, inputName)
 				.setCharacteristic(Characteristic.IsConfigured, isConfigured)
-				.setCharacteristic(Characteristic.InputSourceType, inputType)
-				.setCharacteristic(Characteristic.CurrentVisibilityState, currentVisibility)
-				.setCharacteristic(Characteristic.TargetVisibilityState, targetVisibility);
+				.setCharacteristic(Characteristic.InputSourceType, inputType);
 
 			inputService
 				.getCharacteristic(Characteristic.ConfiguredName)
+				.onGet(async () => {
+					const value = inputName;
+					if (!this.disableLogInfo) {
+						this.log('Device: %s %s, Input name: %s', this.host, accessoryName, value);
+					}
+					return value;
+				})
 				.onSet(async (name) => {
 					try {
 						let newName = savedInputsNames;
@@ -1049,6 +1053,16 @@ class lgwebosTvDevice {
 					} catch (error) {
 						this.log.error('Device: %s %s, new Input name saved failed, error: %s', this.host, accessoryName, error);
 					}
+				});
+
+			inputService
+				.getCharacteristic(Characteristic.CurrentVisibilityState)
+				.onGet(async () => {
+					const state = currentVisibility;
+					if (!this.disableLogInfo) {
+						this.log('Device: %s %s, Input: %s, get current visibility state: %s', this.host, accessoryName, inputName, state ? 'HIDEN' : 'SHOWN');
+					}
+					return state;
 				});
 
 			inputService
