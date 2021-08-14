@@ -106,7 +106,7 @@ class lgwebosTvDevice {
 		for (let i = 0; i < inputsCount; i++) {
 			const name = this.inputs[i].name;
 			const reference = this.inputs[i].reference;
-			const type = this.inputs[i].type;
+			const type = INPUT_SOURCE_TYPES.indexOf(this.inputs[i].type);
 			const mode = this.inputs[i].mode;
 			const obj = {
 				'name': name,
@@ -434,10 +434,12 @@ class lgwebosTvDevice {
 				} else {
 					this.log.debug('Device: %s %s, get current App state response: %s', this.host, this.name, response);
 					const inputReference = response.appId;
+
 					const currentInputIdentifier = (this.inputsReference.indexOf(inputReference) >= 0) ? this.inputsReference.indexOf(inputReference) : 0;
 					const inputIdentifier = this.setStartInput ? this.setStartInputIdentifier : currentInputIdentifier;
 					const inputName = this.inputsName[inputIdentifier];
 					const inputMode = this.inputsMode[inputIdentifier];
+
 					if (this.televisionService && inputMode == 0) {
 						const setUpdateCharacteristic = this.setStartInput ? this.televisionService.setCharacteristic(Characteristic.ActiveIdentifier, inputIdentifier) :
 							this.televisionService.updateCharacteristic(Characteristic.ActiveIdentifier, inputIdentifier);
@@ -456,11 +458,14 @@ class lgwebosTvDevice {
 					this.log.error('Device: %s %s, get current Channel and Name error: %s.', this.host, this.name, error);
 				} else {
 					this.log.debug('Device: %s %s, get current Channel response: %s', this.host, this.name, response);
+
 					const channelReference = response.channelId;
+					const channelName = response.channelName;
+
 					const currentInputIdentifier = (this.inputsReference.indexOf(channelReference) >= 0) ? this.inputsReference.indexOf(channelReference) : 0;
 					const inputIdentifier = this.setStartInput ? this.setStartInputIdentifier : currentInputIdentifier;
-					const channelName = response.channelName;
 					const inputMode = this.inputsMode[inputIdentifier];
+
 					if (this.televisionService && inputMode == 1) {
 						const setUpdateCharacteristic = this.setStartInput ? this.televisionService.setCharacteristic(Characteristic.ActiveIdentifier, inputIdentifier) :
 							this.televisionService.updateCharacteristic(Characteristic.ActiveIdentifier, inputIdentifier);
@@ -477,8 +482,10 @@ class lgwebosTvDevice {
 					this.log.error('Device: %s %s, get current Audio state error: %s.', this.host, this.name, error);
 				} else {
 					this.log.debug('Device: %s %s, get current Audio state response: %s', this.host, this.name, response);
+
 					const volume = response.volume;
 					const muteState = this.powerState ? (response.mute == true) : true;
+
 					if (this.speakerService) {
 						this.speakerService
 							.updateCharacteristic(Characteristic.Volume, volume)
@@ -510,11 +517,13 @@ class lgwebosTvDevice {
 						this.log.error('Device: %s %s, get system settings error: %s.', this.host, this.name, error);
 					} else {
 						this.log.debug('Device: %s %s, get system settings response: %s, response.settings: %s', this.host, this.name, response, response.settings);
+
 						const brightness = response.settings.brightness;
 						const backlight = response.settings.backlight;
 						const contrast = response.settings.contrast;
 						const color = response.settings.color;
 						const pictureMode = 3;
+
 						if (this.televisionService) {
 							this.televisionService
 								.updateCharacteristic(Characteristic.Brightness, brightness)
@@ -576,7 +585,7 @@ class lgwebosTvDevice {
 
 		//Prepare TV service 
 		this.log.debug('prepareTelevisionService');
-		this.televisionService = new Service.Television(accessoryName, 'televisionService');
+		this.televisionService = new Service.Television(accessoryName, 'Television');
 		this.televisionService.setCharacteristic(Characteristic.ConfiguredName, accessoryName);
 		this.televisionService.setCharacteristic(Characteristic.SleepDiscoveryMode, Characteristic.SleepDiscoveryMode.ALWAYS_DISCOVERABLE);
 
@@ -849,7 +858,7 @@ class lgwebosTvDevice {
 						}
 					});
 				} catch (error) {
-					this.log.error('Device: %s %s %s, can not setPictureMode command. Might be due to a wrong settings in config, error: %s', this.host, accessoryName, error);
+					this.log.error('Device: %s %s %s, can not setP icture Mode command. Might be due to a wrong settings in config, error: %s', this.host, accessoryName, error);
 				};
 			});
 
@@ -865,7 +874,7 @@ class lgwebosTvDevice {
 							break;
 					}
 					if (!this.disableLogInfo) {
-						this.log('Device: %s %s, setPowerModeSelection successful, command: %s', this.host, accessoryName, command);
+						this.log('Device: %s %s, set Power Mode Selection successful, command: %s', this.host, accessoryName, command);
 					}
 					this.pointerInputSocket.send('button', {
 						name: command
@@ -877,7 +886,7 @@ class lgwebosTvDevice {
 
 		//Prepare speaker service
 		this.log.debug('prepareSpeakerService');
-		this.speakerService = new Service.TelevisionSpeaker(accessoryName + ' Speaker', 'speakerService');
+		this.speakerService = new Service.TelevisionSpeaker(accessoryName, 'Speaker');
 		this.speakerService
 			.setCharacteristic(Characteristic.Active, Characteristic.Active.ACTIVE)
 			.setCharacteristic(Characteristic.VolumeControlType, Characteristic.VolumeControlType.ABSOLUTE);
@@ -893,7 +902,7 @@ class lgwebosTvDevice {
 							break;
 					}
 					if (!this.disableLogInfo) {
-						this.log('Device: %s %s, setVolumeSelector successful, command: %s', this.host, accessoryName, command);
+						this.log('Device: %s %s, set Volume Selector successful, command: %s', this.host, accessoryName, command);
 					}
 					this.pointerInputSocket.send('button', {
 						name: command
@@ -947,7 +956,7 @@ class lgwebosTvDevice {
 		if (this.volumeControl >= 1) {
 			this.log.debug('prepareVolumeService');
 			if (this.volumeControl == 1) {
-				this.volumeService = new Service.Lightbulb(accessoryName + ' Volume', 'volumeService');
+				this.volumeService = new Service.Lightbulb(accessoryName, 'Volume');
 				this.volumeService.getCharacteristic(Characteristic.Brightness)
 					.onGet(async () => {
 						const volume = this.volume;
@@ -964,11 +973,11 @@ class lgwebosTvDevice {
 					.onSet(async (state) => {
 						this.speakerService.setCharacteristic(Characteristic.Mute, !state);
 					});
-
+				this.televisionService.addLinkedService(this.volumeService);
 				accessory.addService(this.volumeService);
 			}
 			if (this.volumeControl == 2) {
-				this.volumeServiceFan = new Service.Fan(accessoryName + ' Volume', 'volumeServiceFan');
+				this.volumeServiceFan = new Service.Fan(accessoryName, 'Volume');
 				this.volumeServiceFan.getCharacteristic(Characteristic.RotationSpeed)
 					.onGet(async () => {
 						const volume = this.volume;
@@ -985,7 +994,7 @@ class lgwebosTvDevice {
 					.onSet(async (state) => {
 						this.speakerService.setCharacteristic(Characteristic.Mute, !state);
 					});
-
+				this.televisionService.addLinkedService(this.volumeServiceFan);
 				accessory.addService(this.volumeServiceFan);
 			}
 		}
@@ -1015,7 +1024,7 @@ class lgwebosTvDevice {
 			const inputName = (savedInputsNames[inputReference] != undefined) ? savedInputsNames[inputReference] : inputs[i].name;
 
 			//get input type
-			const inputType = (inputs[i].type != undefined) ? INPUT_SOURCE_TYPES.indexOf(inputs[i].type) : 'APPLICATION';
+			const inputType = (inputs[i].type != undefined) ? INPUT_SOURCE_TYPES.indexOf(inputs[i].type) : 10;
 
 			//get input mode
 			const inputMode = (inputs[i].mode != undefined) ? inputs[i].mode : 0;
@@ -1027,7 +1036,7 @@ class lgwebosTvDevice {
 			const targetVisibility = (savedTargetVisibility[inputReference] != undefined) ? savedTargetVisibility[inputReference] : 0;
 			const currentVisibility = targetVisibility;
 
-			const inputService = new Service.InputSource(accessoryName, 'Input' + i);
+			const inputService = new Service.InputSource(accessoryName, 'Input ' + i);
 			inputService
 				.setCharacteristic(Characteristic.Identifier, i)
 				.setCharacteristic(Characteristic.IsConfigured, isConfigured);
@@ -1126,7 +1135,7 @@ class lgwebosTvDevice {
 			//get button name
 			const buttonName = (buttons[i].name != undefined) ? buttons[i].name : buttons[i].reference;
 
-			const buttonService = new Service.Switch(accessoryName + ' ' + buttonName, 'buttonService' + i);
+			const buttonService = new Service.Switch(accessoryName, 'Button ' + i);
 			buttonService.getCharacteristic(Characteristic.On)
 				.onGet(async () => {
 					const state = false;
@@ -1163,6 +1172,7 @@ class lgwebosTvDevice {
 			this.buttonsName.push(buttonName);
 
 			this.buttonsService.push(buttonService)
+			this.televisionService.addLinkedService(this.buttonsService[i]);
 			accessory.addService(this.buttonsService[i]);
 		}
 
