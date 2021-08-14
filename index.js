@@ -101,13 +101,14 @@ class lgwebosTvDevice {
 		this.buttons = config.buttons || [];
 
 		//add configured inputs to the default inputs
-		const defaultInputsArr = DEFAULT_INPUTS;
-		const inputsCount = this.inputs.length;
-		for (let i = 0; i < inputsCount; i++) {
-			const name = this.inputs[i].name;
-			const reference = this.inputs[i].reference;
-			const type = INPUT_SOURCE_TYPES.indexOf(this.inputs[i].type);
-			const mode = this.inputs[i].mode;
+		const defaultInputsArr = new Array();
+
+		const defaultInputsCount = DEFAULT_INPUTS.length;
+		for (let i = 0; i < defaultInputsCount; i++) {
+			const name = DEFAULT_INPUTS[i].name;
+			const reference = DEFAULT_INPUTS[i].reference;
+			const type = DEFAULT_INPUTS[i].type;
+			const mode = DEFAULT_INPUTS[i].mode;
 			const obj = {
 				'name': name,
 				'reference': reference,
@@ -115,6 +116,21 @@ class lgwebosTvDevice {
 				'mode': mode
 			};
 			defaultInputsArr.push(obj);
+		}
+
+		const inputsCount = this.inputs.length;
+		for (let j = 0; j < inputsCount; j++) {
+			const name = this.inputs[j].name;
+			const reference = this.inputs[j].reference;
+			const type = this.inputs[j].type;
+			const mode = this.inputs[j].mode;
+			const obj1 = {
+				'name': name,
+				'reference': reference,
+				'type': type,
+				'mode': mode
+			};
+			defaultInputsArr.push(obj1);
 		}
 		this.inputs = defaultInputsArr;
 
@@ -1016,7 +1032,7 @@ class lgwebosTvDevice {
 		for (let i = 0; i < maxInputsCount; i++) {
 
 			//get input reference
-			const inputReference = (inputs[i].reference != undefined) ? inputs[i].reference : '0';
+			const inputReference = (inputs[i].reference != undefined) ? inputs[i].reference : undefined;
 
 			//get input name		
 			const inputName = (savedInputsNames[inputReference] != undefined) ? savedInputsNames[inputReference] : inputs[i].name;
@@ -1050,10 +1066,11 @@ class lgwebosTvDevice {
 				})
 				.onSet(async (name) => {
 					try {
+						const nameIdentifier = (inputReference != undefined) ? inputReference : false;
 						let newName = savedInputsNames;
-						newName[inputReference] = name;
+						newName[nameIdentifier] = name;
 						const newCustomName = JSON.stringify(newName);
-						const writeNewCustomName = await fsPromises.writeFile(this.inputsNamesFile, newCustomName);
+						const writeNewCustomName = (nameIdentifier != false) ? await fsPromises.writeFile(this.inputsNamesFile, newCustomName) : false;
 						this.log.debug('Device: %s %s, saved new Input successful, savedInputsNames: %s', this.host, accessoryName, newCustomName);
 						if (!this.disableLogInfo) {
 							this.log('Device: %s %s, new Input name saved successful, name: %s reference: %s', this.host, accessoryName, name, inputReference);
@@ -1094,10 +1111,11 @@ class lgwebosTvDevice {
 				})
 				.onSet(async (state) => {
 					try {
-						let newState = savedTargetVisibility;
-						newState[inputReference] = state;
+						const targetVisibilityIdentifier = (inputReference != undefined) ? inputReference : false;
+						let newState = savedInputsNames;
+						newState[targetVisibilityIdentifier] = state;
 						const newTargetVisibility = JSON.stringify(newState);
-						await fsPromises.writeFile(this.targetVisibilityInputsFile, newTargetVisibility);
+						const writeNewTargetVisibility = (targetVisibilityIdentifier != false) ? await fsPromises.writeFile(this.targetVisibilityInputsFile, newTargetVisibility) : false;
 						this.log.debug('Device: %s %s, Input: %s, saved target visibility state: %s', this.host, accessoryName, inputName, newTargetVisibility);
 						if (!this.disableLogInfo) {
 							this.log('Device: %s %s, Input: %s, saved target visibility state: %s', this.host, accessoryName, inputName, state ? 'HIDEN' : 'SHOWN');
