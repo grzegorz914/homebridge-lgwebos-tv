@@ -102,7 +102,6 @@ class lgwebosTvDevice {
 
 		//add configured inputs to the default inputs
 		const defaultInputsArr = new Array();
-
 		const defaultInputsCount = DEFAULT_INPUTS.length;
 		for (let i = 0; i < defaultInputsCount; i++) {
 			const name = DEFAULT_INPUTS[i].name;
@@ -117,7 +116,6 @@ class lgwebosTvDevice {
 			};
 			defaultInputsArr.push(obj);
 		}
-
 		const inputsCount = this.inputs.length;
 		for (let j = 0; j < inputsCount; j++) {
 			const name = this.inputs[j].name;
@@ -1161,28 +1159,19 @@ class lgwebosTvDevice {
 					return state;
 				})
 				.onSet(async (state) => {
-					if (state && this.powerState) {
-						try {
-							this.lgtv.request('ssap://system.launcher/launch', {
-								id: buttonReference
-							});
-							if (!this.disableLogInfo) {
-								this.log('Device: %s %s, set new Input successful: %s %s', this.host, accessoryName, buttonName, buttonReference);
-							}
-							setTimeout(() => {
-								buttonService.updateCharacteristic(Characteristic.On, false);
-							}, 250);
-						} catch (error) {
-							this.log.error('Device: %s %s, can not set new Input. Might be due to a wrong settings in config, error: %s.', this.host, accessoryName, error);
-							setTimeout(() => {
-								buttonService.updateCharacteristic(Characteristic.On, false);
-							}, 250);
-						};
-					} else {
-						setTimeout(() => {
-							buttonService.updateCharacteristic(Characteristic.On, false);
-						}, 250);
-					}
+					try {
+						const setInput = (state && this.powerState) ? this.lgtv.request('ssap://system.launcher/launch', {
+							id: buttonReference
+						}) : false;
+						if (!this.disableLogInfo) {
+							this.log('Device: %s %s, set new Input successful: %s %s', this.host, accessoryName, buttonName, buttonReference);
+						}
+					} catch (error) {
+						this.log.error('Device: %s %s, can not set new Input. Might be due to a wrong settings in config, error: %s.', this.host, accessoryName, error);
+					};
+					setTimeout(() => {
+						buttonService.updateCharacteristic(Characteristic.On, false);
+					}, 250);
 				});
 			this.buttonsReference.push(buttonReference);
 			this.buttonsName.push(buttonName);
