@@ -1077,13 +1077,6 @@ class lgwebosTvDevice {
 
 			inputService
 				.getCharacteristic(Characteristic.TargetVisibilityState)
-				.onGet(async () => {
-					const state = targetVisibility;
-					if (!this.disableLogInfo) {
-						this.log('Device: %s %s, Input: %s, get target visibility state: %s', this.host, accessoryName, inputName, state ? 'HIDEN' : 'SHOWN');
-					}
-					return state;
-				})
 				.onSet(async (state) => {
 					try {
 						const targetVisibilityIdentifier = (inputReference != undefined) ? inputReference : false;
@@ -1092,10 +1085,10 @@ class lgwebosTvDevice {
 						const newTargetVisibility = JSON.stringify(newState);
 						const writeNewTargetVisibility = (targetVisibilityIdentifier != false) ? await fsPromises.writeFile(this.targetVisibilityInputsFile, newTargetVisibility) : false;
 						this.log.debug('Device: %s %s, Input: %s, saved target visibility state: %s', this.host, accessoryName, inputName, newTargetVisibility);
-						if (this.disableLogInfo) {
+						if (!this.disableLogInfo) {
 							this.log('Device: %s %s, Input: %s, saved target visibility state: %s', this.host, accessoryName, inputName, state ? 'HIDEN' : 'SHOWN');
 						}
-						inputService.updateCharacteristic(Characteristic.CurrentVisibilityState, state);
+						inputService.setCharacteristic(Characteristic.CurrentVisibilityState, state);
 					} catch (error) {
 						this.log.error('Device: %s %s, Input: %s, saved target visibility state error: %s', this.host, accessoryName, error);
 					}
