@@ -139,8 +139,9 @@ class lgwebosTvDevice {
 		this.firmwareRevision = config.firmwareRevision || 'Firmware Revision';
 
 		//setup variables
-		this.checkDeviceInfo = false;
 		this.connectedToDevice = false;
+		this.checkDeviceInfo = false;
+		this.pointerInputSocket = null;
 
 		this.inputsService = new Array();
 		this.inputsReference = new Array();
@@ -222,8 +223,12 @@ class lgwebosTvDevice {
 					}
 				});
 			} else {
-				if (this.checkDeviceInfo) {
-					this.getDeviceInfo();
+				if (this.pointerInputSocket == null) {
+					this.connectToTvRcSocket();
+				} else {
+					if (this.checkDeviceInfo) {
+						this.getDeviceInfo();
+					}
 				}
 			}
 		}.bind(this), this.refreshInterval * 1000);
@@ -247,8 +252,6 @@ class lgwebosTvDevice {
 		this.lgtv.on('connect', () => {
 			this.log('Device: %s %s, connected.', this.host, this.name);
 			this.connectedToDevice = true;
-			this.checkDeviceInfo = true;
-			this.connectToTvRcSocket();
 		});
 
 		this.lgtv.on('error', (error) => {
@@ -270,6 +273,7 @@ class lgwebosTvDevice {
 			this.connectedToDevice = false;
 			this.pointerInputSocket = null;
 			this.powerState = false;
+			this.checkDeviceInfo = false;
 			this.lgtv.disconnect();
 		});
 	}
@@ -278,10 +282,13 @@ class lgwebosTvDevice {
 		this.log.debug('Device: %s %s, connecting to TV RC Socket', this.host, this.name);
 		this.lgtv.getSocket('ssap://com.webos.service.networkinput/getPointerInputSocket', (error, sock) => {
 			if (error) {
-				this.log.debug('Device: %s %s, RC Socket connected error: %s', this.host, this.name, error);
+				this.log.error('Device: %s %s, RC Socket connect error: %s', this.host, this.name, error);
+				this.pointerInputSocket = null;
 			} else {
+				this.log.debug('Device: %s %s, RC Socket: %s.', this.host, this.name, sock);
 				this.log('Device: %s %s, RC Socket connected.', this.host, this.name);
 				this.pointerInputSocket = sock;
+				this.checkDeviceInfo = true;
 			}
 		});
 	}
@@ -290,7 +297,7 @@ class lgwebosTvDevice {
 		this.log.debug('Device: %s %s, requesting Device Info.', this.host, this.name);
 		this.lgtv.request('ssap://system/getSystemInfo', (error, response) => {
 			if (error || response.errorCode) {
-				this.log.error('Device: %s %s, get System info error: %s', this.host, this.name, error);
+				this.log.debug('Device: %s %s, get System info error: %s', this.host, this.name, error);
 				this.checkDeviceInfo = true;
 			} else {
 				this.log.debug('Device: %s %s, get System info response: %s', this.host, this.name, response);
@@ -298,7 +305,7 @@ class lgwebosTvDevice {
 
 				this.lgtv.request('ssap://com.webos.service.update/getCurrentSWInformation', (error, response1) => {
 					if (error || response1.errorCode) {
-						this.log.error('Device: %s %s, get Software info error: %s', this.host, this.name, error);
+						this.log.debug('Device: %s %s, get Software info error: %s', this.host, this.name, error);
 						this.checkDeviceInfo = true;
 					} else {
 						this.log.debug('Device: %s %s, get System info response1: %s', this.host, this.name, response1);
@@ -313,7 +320,7 @@ class lgwebosTvDevice {
 
 						this.lgtv.request('ssap://com.webos.applicationManager/listApps', (error, response2) => {
 							if (error || response2.errorCode) {
-								this.log.error('Device: %s %s, get apps list error: %s', this.host, this.name, error);
+								this.log.debug('Device: %s %s, get apps list error: %s', this.host, this.name, error);
 								this.checkDeviceInfo = true;
 							} else {
 								this.log.debug('Device: %s %s, get apps list response2: %s', this.host, this.name, response2);
