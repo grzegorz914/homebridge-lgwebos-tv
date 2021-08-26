@@ -3,7 +3,7 @@
 const path = require('path');
 const fs = require('fs');
 const fsPromises = require('fs').promises;
-const lgtv = require('lgtv2');
+const lgtv = require('./src/lgwebos');
 const wol = require('@mi-sec/wol');
 const tcpp = require('tcp-ping');
 
@@ -99,6 +99,7 @@ class lgwebosTvDevice {
 		this.getInputsFromDevice = config.getInputsFromDevice;
 		this.inputs = config.inputs || [];
 		this.buttons = config.buttons || [];
+		this.url = 'ws://' + this.host + ':' + WEBSOCKET_PORT || 'ws://lgwebostv:3000';
 
 		//add configured inputs to the default inputs
 		const defaultInputsArr = new Array();
@@ -238,11 +239,10 @@ class lgwebosTvDevice {
 
 	connectToTv() {
 		this.log.debug('Device: %s %s, connecting to TV', this.host, this.name);
-		this.url = 'ws://' + this.host + ':' + WEBSOCKET_PORT;
 
-		this.lgtv = lgtv({
+		this.lgtv = new lgtv({
 			url: this.url,
-			timeout: 3000,
+			timeout: 5000,
 			reconnect: 5000,
 			keyFile: this.keyFile
 		});
