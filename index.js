@@ -233,8 +233,6 @@ class lgwebosTvDevice {
 				}
 			}
 		}.bind(this), this.refreshInterval * 1000);
-
-		this.prepareAccessory();
 	}
 
 	connectToTv() {
