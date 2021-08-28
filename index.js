@@ -368,6 +368,11 @@ class lgwebosTvDevice {
 
 						const updateDeviceState = this.checkDeviceInfo ? this.updateDeviceState() : false;
 						this.checkDeviceInfo = false;
+
+						//start prepare accessory
+						if (this.startPrepareAccessory) {
+							this.prepareAccessory();
+						}
 					}
 				});
 			}
@@ -561,11 +566,6 @@ class lgwebosTvDevice {
 				});
 			}
 			this.checkDeviceInfo = false;
-
-			//start prepare accessory
-			if (this.startPrepareAccessory) {
-				this.prepareAccessory();
-			}
 		} catch (error) {
 			this.log.debug('Device: %s %s, update device state error: %s', this.host, this.name, error);
 			this.checkDeviceInfo = true;
