@@ -107,20 +107,10 @@ class lgwebosTvDevice {
 		this.url = 'ws://' + this.host + ':' + WEBSOCKET_PORT || 'ws://lgwebostv:3000';
 
 		//add configured inputs to the default inputs
-		const defaultInputsArr = new Array();
+		const inputsArr = new Array();
 		const defaultInputsCount = DEFAULT_INPUTS.length;
 		for (let i = 0; i < defaultInputsCount; i++) {
-			const name = DEFAULT_INPUTS[i].name;
-			const reference = DEFAULT_INPUTS[i].reference;
-			const type = DEFAULT_INPUTS[i].type;
-			const mode = DEFAULT_INPUTS[i].mode;
-			const obj = {
-				'name': name,
-				'reference': reference,
-				'type': type,
-				'mode': mode
-			};
-			defaultInputsArr.push(obj);
+			inputsArr.push(DEFAULT_INPUTS[i]);
 		}
 		const inputsCount = this.inputs.length;
 		for (let j = 0; j < inputsCount; j++) {
@@ -128,15 +118,15 @@ class lgwebosTvDevice {
 			const reference = this.inputs[j].reference;
 			const type = this.inputs[j].type;
 			const mode = this.inputs[j].mode;
-			const obj1 = {
+			const inputsObj = {
 				'name': name,
 				'reference': reference,
 				'type': type,
 				'mode': mode
 			};
-			defaultInputsArr.push(obj1);
+			inputsArr.push(inputsObj);
 		}
-		this.inputs = defaultInputsArr;
+		this.inputs = inputsArr;
 
 		//device info
 		this.manufacturer = config.manufacturer || 'LG Electronics';
