@@ -12,6 +12,11 @@ const PLUGIN_NAME = 'homebridge-lgwebos-tv';
 const PLATFORM_NAME = 'LgWebOsTv';
 
 const DEFAULT_INPUTS = [{
+		'name': 'Unconfigured input',
+		'reference': 'undefined',
+		'type': 'undefined',
+		'mode': 'undefined'
+	}, {
 		'name': 'Live TV',
 		'reference': 'com.webos.app.livetv',
 		'type': 'TUNER',
@@ -190,13 +195,17 @@ class lgwebosTvDevice {
 		this.targetVisibilityInputsFile = this.prefDir + '/' + 'targetVisibilityInputs_' + this.host.split('.').join('');
 		this.channelsFile = this.prefDir + '/' + 'channels_' + this.host.split('.').join('');
 
-		//check if prefs directory ends with a /, if not then add it
-		if (this.prefDir.endsWith('/') == false) {
-			this.prefDir = this.prefDir + '/';
-		}
 		//check if the directory exists, if not then create it
 		if (fs.existsSync(this.prefDir) == false) {
 			fsPromises.mkdir(this.prefDir);
+		}
+		//check if the files exists, if not then create it
+		if (fs.existsSync(this.keyFile) == false) {
+			fsPromises.writeFile(this.keyFile, '');
+		}
+		//check if the files exists, if not then create it
+		if (fs.existsSync(this.devInfoFile) == false) {
+			fsPromises.writeFile(this.devInfoFile, '');
 		}
 		//check if the files exists, if not then create it
 		if (fs.existsSync(this.inputsFile) == false) {
@@ -211,8 +220,8 @@ class lgwebosTvDevice {
 			fsPromises.writeFile(this.targetVisibilityInputsFile, '');
 		}
 		//check if the files exists, if not then create it
-		if (fs.existsSync(this.devInfoFile) == false) {
-			fsPromises.writeFile(this.devInfoFile, '');
+		if (fs.existsSync(this.channelsFile) == false) {
+			fsPromises.writeFile(this.channelsFile, '');
 		}
 
 		//Check device state
@@ -662,21 +671,25 @@ class lgwebosTvDevice {
 				try {
 					const inputName = this.inputsName[inputIdentifier];
 					const inputMode = this.inputsMode[inputIdentifier];
-					const inputReference = (inputMode == 0 && this.inputsReference[inputIdentifier] != undefined) ? this.inputsReference[inputIdentifier] : "com.webos.app.livetv";
-					const setInput = this.connectedToDevice ? this.lgtv.request('ssap://system.launcher/launch', {
+					const inputReference = (inputMode == 0) ? this.inputsReference[inputIdentifier] : "com.webos.app.livetv";
+					const setInput = (inputReference != undefined) ? this.lgtv.request('ssap://system.launcher/launch', {
 						id: inputReference
 					}) : false;
 					if (!this.disableLogInfo) {
 						this.log('Device: %s %s, set Input successful: %s %s', this.host, accessoryName, inputName, inputReference);
 					}
 					if (inputMode == 1) {
-						const channelReference = (this.inputsReference[inputIdentifier] != undefined) ? this.inputsReference[inputIdentifier] : 0;
-						this.lgtv.request('ssap://tv/openChannel', {
-							channelId: channelReference
-						});
-						if (!this.disableLogInfo) {
-							this.log('Device: %s %s, set Channel successful: %s %s', this.host, accessoryName, inputName, channelReference);
-						}
+						try {
+							const channelReference = this.inputsReference[inputIdentifier];
+							const setChannel = (channelReference != undefined) ? this.lgtv.request('ssap://tv/openChannel', {
+								channelId: channelReference
+							}) : false;
+							if (!this.disableLogInfo) {
+								this.log('Device: %s %s, set Channel successful: %s %s', this.host, accessoryName, inputName, channelReference);
+							}
+						} catch (error) {
+							this.log.error('Device: %s %s, can not set new Channel. Might be due to a wrong settings in config, error: %s', this.host, accessoryName, error);
+						};
 					}
 					this.setStartInputIdentifier = inputIdentifier;
 					this.setStartInput = this.powerState ? false : true;
