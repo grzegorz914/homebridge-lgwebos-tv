@@ -147,6 +147,7 @@ class lgwebosTvDevice {
 		//setup variables
 		this.connectedToDevice = false;
 		this.checkDeviceInfo = false;
+		this.startPrepareAccessory = true;
 		this.pointerInputSocket = null;
 
 		this.inputsService = new Array();
@@ -333,24 +334,27 @@ class lgwebosTvDevice {
 								this.checkDeviceInfo = true;
 							} else {
 								this.log.debug('Device: %s %s, get apps list response2: %s', this.host, this.name, response2);
-								const appsCount = response2.apps.length;
-								const appsArr = new Array();
-								for (let i = 0; i < appsCount; i++) {
-									const name = response2.apps[i].title;
-									const reference = response2.apps[i].id;
-									const type = 'APPLICATION';
-									const mode = 0;
-									const appsObj = {
+								//save inputs to the file
+								const getInputsFromDevice = this.getInputsFromDevice;
+								const inputsArr = getInputsFromDevice ? new Array(DEFAULT_INPUTS[0]) : new Array();
+								const inputsData = getInputsFromDevice ? response2.apps : this.inputs;
+								const inputsCount = inputsData.length;
+								for (let i = 0; i < inputsCount; i++) {
+									const name = getInputsFromDevice ? inputsData[i].title : inputsData[i].name;
+									const reference = getInputsFromDevice ? inputsData[i].id : inputsData[i].reference;
+									const type = getInputsFromDevice ? 'APPLICATION' : inputsData[i].type;
+									const mode = getInputsFromDevice ? 0 : inputsData[i].mode;
+									const inputsObj = {
 										'name': name,
 										'reference': reference,
 										'type': type,
 										'mode': mode
 									}
-									appsArr.push(appsObj);
+									inputsArr.push(inputsObj);
 								}
-								const obj = JSON.stringify(appsArr, null, 2);
+								const obj = JSON.stringify(inputsArr, null, 2);
 								const writeInputs = fsPromises.writeFile(this.inputsFile, obj);
-								this.log.debug('Device: %s %s, write apps list: %s', this.host, this.name, obj);
+								this.log.debug('Device: %s %s, write inputs list: %s', this.host, this.name, obj);
 							}
 						});
 
@@ -569,6 +573,11 @@ class lgwebosTvDevice {
 				});
 			}
 			this.checkDeviceInfo = false;
+
+			//start prepare accessory
+			if (this.startPrepareAccessory) {
+				this.prepareAccessory();
+			}
 		} catch (error) {
 			this.log.debug('Device: %s %s, update device state error: %s', this.host, this.name, error);
 			this.checkDeviceInfo = true;
@@ -1044,7 +1053,7 @@ class lgwebosTvDevice {
 		this.log.debug('Device: %s %s, read saved Target Visibility successful, states %s', this.host, accessoryName, savedTargetVisibility);
 
 		//check available inputs and possible inputs count (max 95)
-		const inputs = this.getInputsFromDevice ? (savedInputs.length > 0) ? savedInputs : this.inputs : this.inputs;
+		const inputs = (savedInputs.length > 0) ? savedInputs : this.inputs;
 		const inputsCount = inputs.length;
 		const maxInputsCount = (inputsCount < 94) ? inputsCount : 94;
 		for (let i = 0; i < maxInputsCount; i++) {
@@ -1170,6 +1179,7 @@ class lgwebosTvDevice {
 			accessory.addService(this.buttonsService[i]);
 		}
 
+		this.startPrepareAccessory = false;
 		this.log.debug('Device: %s %s, publishExternalAccessories.', this.host, accessoryName);
 		this.api.publishExternalAccessories(PLUGIN_NAME, [accessory]);
 	}
