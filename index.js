@@ -52,37 +52,34 @@ class lgwebosTvPlatform {
 	constructor(log, config, api) {
 		// only load if configured
 		if (!config || !Array.isArray(config.devices)) {
-			log('No configuration found for homebridge-lgwebos-tv');
+			log('No configuration found for %s', PLUGIN_NAME);
 			return;
 		}
 		this.log = log;
-		this.config = config;
 		this.api = api;
-		this.devices = config.devices;
+		this.devices = config.devices || [];
 		this.accessories = [];
 
 		this.api.on('didFinishLaunching', () => {
 			this.log.debug('didFinishLaunching');
 			for (let i = 0; i < this.devices.length; i++) {
 				const device = this.devices[i];
-				const deviceName = device.name;
-				if (!deviceName) {
-					this.log.warn('Device Name Missing')
+				if (!device.name) {
+					this.log.warn('Device Name Missing');
 				} else {
-					this.log.info('Adding new accessory:', deviceName);
-					this.accessories.push(new lgwebosTvDevice(this.log, device, this.api));
+					new lgwebosTvDevice(this.log, device, this.api);
 				}
 			}
 		});
 	}
 
 	configureAccessory(accessory) {
-		this.log.debug('configureAccessory');
+		this.log.debug('configurePlatformAccessory');
 		this.accessories.push(accessory);
 	}
 
 	removeAccessory(accessory) {
-		this.log.debug('removeAccessory');
+		this.log.debug('removePlatformAccessory');
 		this.api.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
 	}
 }
@@ -91,7 +88,6 @@ class lgwebosTvDevice {
 	constructor(log, config, api) {
 		this.log = log;
 		this.api = api;
-		this.config = config;
 
 		//device configuration
 		this.name = config.name;
@@ -162,7 +158,6 @@ class lgwebosTvDevice {
 		this.inputIdentifier = 0;
 		this.inputReference = '';
 		this.inputName = '';
-		this.inputMode = 0;
 
 		this.channelIdentifier = 0;
 		this.channelReference = '';
