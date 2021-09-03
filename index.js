@@ -87,6 +87,7 @@ class lgwebosTvPlatform {
 class lgwebosTvDevice {
 	constructor(log, config, api) {
 		this.log = log;
+		this.config = config;
 		this.api = api;
 
 		//device configuration
@@ -133,7 +134,6 @@ class lgwebosTvDevice {
 		//setup variables
 		this.connectedToDevice = false;
 		this.checkDeviceInfo = false;
-		this.startPrepareAccessory = true;
 		this.pointerInputSocket = null;
 
 		this.inputsService = new Array();
@@ -185,27 +185,21 @@ class lgwebosTvDevice {
 		if (fs.existsSync(this.prefDir) == false) {
 			fsPromises.mkdir(this.prefDir);
 		}
-		//check if the files exists, if not then create it
 		if (fs.existsSync(this.keyFile) == false) {
 			fsPromises.writeFile(this.keyFile, '');
 		}
-		//check if the files exists, if not then create it
 		if (fs.existsSync(this.devInfoFile) == false) {
 			fsPromises.writeFile(this.devInfoFile, '');
 		}
-		//check if the files exists, if not then create it
 		if (fs.existsSync(this.inputsFile) == false) {
 			fsPromises.writeFile(this.inputsFile, '');
 		}
-		//check if the files exists, if not then create it
 		if (fs.existsSync(this.inputsNamesFile) == false) {
 			fsPromises.writeFile(this.inputsNamesFile, '');
 		}
-		//check if the files exists, if not then create it
 		if (fs.existsSync(this.targetVisibilityInputsFile) == false) {
 			fsPromises.writeFile(this.targetVisibilityInputsFile, '');
 		}
-		//check if the files exists, if not then create it
 		if (fs.existsSync(this.channelsFile) == false) {
 			fsPromises.writeFile(this.channelsFile, '');
 		}
@@ -228,6 +222,8 @@ class lgwebosTvDevice {
 				}
 			}
 		}.bind(this), this.refreshInterval * 1000);
+		//start prepare accessory
+		this.prepareAccessory();
 	}
 
 	connectToTv() {
@@ -323,17 +319,21 @@ class lgwebosTvDevice {
 								const inputsData = getInputsFromDevice ? response2.apps : this.inputs;
 								const inputsCount = inputsData.length;
 								for (let i = 0; i < inputsCount; i++) {
-									const name = getInputsFromDevice ? inputsData[i].title : inputsData[i].name;
-									const reference = getInputsFromDevice ? inputsData[i].id : inputsData[i].reference;
-									const type = getInputsFromDevice ? 'APPLICATION' : inputsData[i].type;
-									const mode = getInputsFromDevice ? 0 : inputsData[i].mode;
-									const inputsObj = {
-										'name': name,
-										'reference': reference,
-										'type': type,
-										'mode': mode
+									const removeExampleApp = getInputsFromDevice ? (inputsData[i].id.substr(0, 20) != 'com.webos.exampleapp') : true;
+									const removeExampleApp1 = getInputsFromDevice ? (inputsData[i].id.substr(0, 17) != 'com.webos.app.acr') : true;
+									if (removeExampleApp && removeExampleApp1) {
+										const name = getInputsFromDevice ? inputsData[i].title : inputsData[i].name;
+										const reference = getInputsFromDevice ? inputsData[i].id : inputsData[i].reference;
+										const type = getInputsFromDevice ? 'APPLICATION' : inputsData[i].type;
+										const mode = getInputsFromDevice ? 0 : inputsData[i].mode;
+										const inputsObj = {
+											'name': name,
+											'reference': reference,
+											'type': type,
+											'mode': mode
+										}
+										inputsArr.push(inputsObj);
 									}
-									inputsArr.push(inputsObj);
 								}
 								const obj = JSON.stringify(inputsArr, null, 2);
 								const writeInputs = fsPromises.writeFile(this.inputsFile, obj);
@@ -363,11 +363,6 @@ class lgwebosTvDevice {
 
 						const updateDeviceState = this.checkDeviceInfo ? this.updateDeviceState() : false;
 						this.checkDeviceInfo = false;
-
-						//start prepare accessory
-						if (this.startPrepareAccessory) {
-							this.prepareAccessory();
-						}
 					}
 				});
 			}
@@ -571,9 +566,10 @@ class lgwebosTvDevice {
 	async prepareAccessory() {
 		this.log.debug('prepareAccessory');
 		const accessoryName = this.name;
-		const accessoryUUID = AccessoryUUID.generate(accessoryName);
+		const accessoryUUID = AccessoryUUID.generate(this.mac);
 		const accessoryCategory = Categories.TELEVISION;
 		const accessory = new Accessory(accessoryName, accessoryUUID, accessoryCategory);
+		accessory.context.device = this.config.device;
 
 		//Prepare information service
 		this.log.debug('prepareInformationService');
@@ -1057,8 +1053,8 @@ class lgwebosTvDevice {
 			const isConfigured = 1;
 
 			//get input visibility state
-			const targetVisibility = (savedTargetVisibility[inputReference] != undefined) ? savedTargetVisibility[inputReference] : 0;
-			const currentVisibility = targetVisibility;
+			const currentVisibility = (savedTargetVisibility[inputReference] != undefined) ? savedTargetVisibility[inputReference] : 0;
+			const targetVisibility = currentVisibility;
 
 			const inputService = new Service.InputSource(accessoryName, 'Input ' + i);
 			inputService
@@ -1158,11 +1154,10 @@ class lgwebosTvDevice {
 			this.buttonsReference.push(buttonReference);
 			this.buttonsName.push(buttonName);
 
-			this.buttonsService.push(buttonService)
+			this.buttonsService.push(buttonService);
 			accessory.addService(this.buttonsService[i]);
 		}
 
-		this.startPrepareAccessory = false;
 		this.log.debug('Device: %s %s, publishExternalAccessories.', this.host, accessoryName);
 		this.api.publishExternalAccessories(PLUGIN_NAME, [accessory]);
 	}
