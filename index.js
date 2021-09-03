@@ -322,7 +322,7 @@ class lgwebosTvDevice {
 									const filterApp = getInputsFromDevice ? (inputsData[i].id.substr(0, 20) != 'com.webos.exampleapp') : true;
 									const filterApp1 = getInputsFromDevice ? (inputsData[i].id.substr(0, 17) != 'com.webos.app.acr') : true;
 									const filterApp2 = getInputsFromDevice ? (inputsData[i].id.substr(0, 22) != 'com.webos.app.livezoom') : true;
-									const filterpp3 = getInputsFromDevice ? (inputsData[i].id.substr(0, 26) != 'com.webos.app.twinlivezoom') : true;
+									const filterApp3 = getInputsFromDevice ? (inputsData[i].id.substr(0, 26) != 'com.webos.app.twinlivezoom') : true;
 									if (filterApp && filterApp1 && filterApp2 && filterApp3) {
 										const name = getInputsFromDevice ? inputsData[i].title : inputsData[i].name;
 										const reference = getInputsFromDevice ? inputsData[i].id : inputsData[i].reference;
