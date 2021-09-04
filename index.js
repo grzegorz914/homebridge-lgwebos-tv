@@ -309,7 +309,7 @@ class lgwebosTvDevice {
 								const inputsData = getInputsFromDevice ? response2.apps : this.inputs;
 								const inputsCount = inputsData.length;
 								for (let i = 0; i < inputsCount; i++) {
-
+									this.log(inputsData[i])
 									const name = getInputsFromDevice ? inputsData[i].title : inputsData[i].name;
 									const reference = getInputsFromDevice ? inputsData[i].id : inputsData[i].reference;
 									const type = getInputsFromDevice ? 'APPLICATION' : inputsData[i].type;
@@ -734,7 +734,7 @@ class lgwebosTvDevice {
 		//optional characteristics
 		this.televisionService.getCharacteristic(Characteristic.Brightness)
 			.onGet(async () => {
-				const value = this.brightness;
+				const value = (webOS >= 4) ? this.brightness : 0;
 				if (!this.disableLogInfo) {
 					this.log('Device: %s %s, get Brightness successful: %s %', this.host, accessoryName, value);
 				}
