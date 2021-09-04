@@ -111,17 +111,7 @@ class lgwebosTvDevice {
 		}
 		const inputsCount = this.inputs.length;
 		for (let j = 0; j < inputsCount; j++) {
-			const name = this.inputs[j].name;
-			const reference = this.inputs[j].reference;
-			const type = this.inputs[j].type;
-			const mode = this.inputs[j].mode;
-			const inputsObj = {
-				'name': name,
-				'reference': reference,
-				'type': type,
-				'mode': mode
-			};
-			inputsArr.push(inputsObj);
+			inputsArr.push(this.inputs[j]);
 		}
 		this.inputs = inputsArr;
 
