@@ -111,17 +111,7 @@ class lgwebosTvDevice {
 		}
 		const inputsCount = this.inputs.length;
 		for (let j = 0; j < inputsCount; j++) {
-			const name = this.inputs[j].name;
-			const reference = this.inputs[j].reference;
-			const type = this.inputs[j].type;
-			const mode = this.inputs[j].mode;
-			const inputsObj = {
-				'name': name,
-				'reference': reference,
-				'type': type,
-				'mode': mode
-			};
-			inputsArr.push(inputsObj);
+			inputsArr.push(this.inputs[j]);
 		}
 		this.inputs = inputsArr;
 
@@ -319,24 +309,23 @@ class lgwebosTvDevice {
 								const inputsData = getInputsFromDevice ? response2.apps : this.inputs;
 								const inputsCount = inputsData.length;
 								for (let i = 0; i < inputsCount; i++) {
-									const filterApp = getInputsFromDevice ? (inputsData[i].id.substr(0, 20) != 'com.webos.exampleapp') : true;
-									const filterApp1 = getInputsFromDevice ? (inputsData[i].id.substr(0, 17) != 'com.webos.app.acr') : true;
-									const filterApp2 = getInputsFromDevice ? (inputsData[i].id.substr(0, 22) != 'com.webos.app.livezoom') : true;
-									const filterApp3 = getInputsFromDevice ? (inputsData[i].id.substr(0, 26) != 'com.webos.app.twinlivezoom') : true;
-									const filterApp4 = getInputsFromDevice ? (inputsData[i].id.substr(0, 22) != 'com.webos.app.twinzoom') : true;
-									if (filterApp && filterApp1 && filterApp2 && filterApp3 && filterApp4) {
-										const name = getInputsFromDevice ? inputsData[i].title : inputsData[i].name;
-										const reference = getInputsFromDevice ? inputsData[i].id : inputsData[i].reference;
-										const type = getInputsFromDevice ? 'APPLICATION' : inputsData[i].type;
-										const mode = getInputsFromDevice ? 0 : inputsData[i].mode;
-										const inputsObj = {
-											'name': name,
-											'reference': reference,
-											'type': type,
-											'mode': mode
-										}
-										inputsArr.push(inputsObj);
+
+									const name = getInputsFromDevice ? inputsData[i].title : inputsData[i].name;
+									const reference = getInputsFromDevice ? inputsData[i].id : inputsData[i].reference;
+									const type = getInputsFromDevice ? 'APPLICATION' : inputsData[i].type;
+									const mode = getInputsFromDevice ? 0 : inputsData[i].mode;
+									const inputsObj = {
+										'name': name,
+										'reference': reference,
+										'type': type,
+										'mode': mode
 									}
+									const filterApp = (reference.substr(0, 20) != 'com.webos.exampleapp');
+									const filterApp1 = (reference.substr(0, 17) != 'com.webos.app.acr');
+									const filterApp2 = (reference.substr(0, 22) != 'com.webos.app.livezoom');
+									const filterApp3 = (reference.substr(0, 26) != 'com.webos.app.twinlivezoom');
+									const filterApp4 = (reference.substr(0, 22) != 'com.webos.app.twinzoom');
+									const push = (filterApp && filterApp1 && filterApp2 && filterApp3 && filterApp4) ? inputsArr.push(inputsObj) : false
 								}
 								const obj = JSON.stringify(inputsArr, null, 2);
 								const writeInputs = fsPromises.writeFile(this.inputsFile, obj);
