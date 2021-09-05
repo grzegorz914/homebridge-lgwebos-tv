@@ -19,7 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - added default inputs Live TV, HDMI1, HDMI2, no need to create it in config
 - many small changes and stability improvements
 
-## [1.9.8] - (05.09.2021)
+## [1.9.9] - (05.09.2021)
 ## Changes
 - extend filter possibility
 - updated config.schema
