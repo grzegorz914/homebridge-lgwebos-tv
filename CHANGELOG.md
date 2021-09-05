@@ -19,6 +19,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - added default inputs Live TV, HDMI1, HDMI2, no need to create it in config
 - many small changes and stability improvements
 
+## [1.9.8] - (05.09.2021)
+## Changes
+- extend filter possibility
+- updated config.schema
+- code cleanup
+
+## [1.9.3] - (02.09.2021)
+## Changes
+- add more filter for unnecesared inputs from inputs list if load inputs list from device
+
+## [1.9.2] - (02.09.2021)
+## Changes
+- filter unnecesared inputs from inputs list if load inputs list from device
+
+## [1.9.0] - (31.08.2021)
+## Changes
+- code refactorin
+- removed not nedded library
+- added load inputs list from device
+- added default inputs Live TV, HDMI1, HDMI2, no need to create it in config
+- many small changes and stability improvements
+
 ## [1.7.0] - (22.02.2021)
 ## Changes
 - code rebuild, use Characteristic.onSet/onGet

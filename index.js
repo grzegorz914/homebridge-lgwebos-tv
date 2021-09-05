@@ -91,14 +91,15 @@ class lgwebosTvDevice {
 		this.api = api;
 
 		//device configuration
-		this.name = config.name;
-		this.host = config.host;
-		this.mac = config.mac;
+		this.name = config.name || 'LG TV';
+		this.host = config.host || '';
+		this.mac = config.mac || '';
 		this.refreshInterval = config.refreshInterval || 5;
-		this.disableLogInfo = config.disableLogInfo;
+		this.disableLogInfo = config.disableLogInfo || false;
 		this.volumeControl = config.volumeControl || 0;
-		this.switchInfoMenu = config.switchInfoMenu;
-		this.getInputsFromDevice = config.getInputsFromDevice;
+		this.switchInfoMenu = config.switchInfoMenu || false;
+		this.getInputsFromDevice = config.getInputsFromDevice || false;
+		this.filterSystemApps = config.filterSystemApps || false;
 		this.inputs = config.inputs || [];
 		this.buttons = config.buttons || [];
 		this.url = 'ws://' + this.host + ':' + WEBSOCKET_PORT || 'ws://lgwebostv:3000';
@@ -319,12 +320,7 @@ class lgwebosTvDevice {
 										'type': type,
 										'mode': mode
 									}
-									const filterApp = (reference.substr(0, 20) != 'com.webos.exampleapp');
-									const filterApp1 = (reference.substr(0, 17) != 'com.webos.app.acr');
-									const filterApp2 = (reference.substr(0, 22) != 'com.webos.app.livezoom');
-									const filterApp3 = (reference.substr(0, 26) != 'com.webos.app.twinlivezoom');
-									const filterApp4 = (reference.substr(0, 22) != 'com.webos.app.twinzoom');
-									const push = (filterApp && filterApp1 && filterApp2 && filterApp3 && filterApp4) ? inputsArr.push(inputsObj) : false
+									inputsArr.push(inputsObj);
 								}
 								const obj = JSON.stringify(inputsArr, null, 2);
 								const writeInputs = fsPromises.writeFile(this.inputsFile, obj);
@@ -1022,23 +1018,40 @@ class lgwebosTvDevice {
 		const savedTargetVisibility = ((fs.readFileSync(this.targetVisibilityInputsFile)).length > 0) ? JSON.parse(fs.readFileSync(this.targetVisibilityInputsFile)) : {};
 		this.log.debug('Device: %s %s, read saved Target Visibility successful, states %s', this.host, accessoryName, savedTargetVisibility);
 
-		//check available inputs and possible inputs count (max 95)
-		const inputs = (savedInputs.length > 0) ? savedInputs : this.inputs;
+		//check available inputs and filter costom inputs
+		const allInputs = (savedInputs.length > 0) ? savedInputs : this.inputs;
+		const inputsArr = new Array();
+		const allInputsCount = allInputs.length;
+		for (let i = 0; i < allInputsCount; i++) {
+			const reference = allInputs[i].reference;
+			const filterApp = (reference.substr(0, 20) != 'com.webos.exampleapp');
+			const filterApp1 = (reference.substr(0, 17) != 'com.webos.app.acr');
+			const filterApp2 = (reference.substr(0, 22) != 'com.webos.app.livezoom');
+			const filterApp3 = (reference.substr(0, 26) != 'com.webos.app.twinlivezoom');
+			const filterApp4 = (reference.substr(0, 22) != 'com.webos.app.twinzoom');
+			const filterApp5 = reference != 'com.webos.app.softwareupdate';
+			const filterApp6 = reference != 'google.assistant';
+
+			const push = this.filterSystemApps ? (filterApp && filterApp1 && filterApp2 && filterApp3 && filterApp4 && filterApp5 && filterApp6) ? inputsArr.push(allInputs[i]) : false : inputsArr.push(allInputs[i]);
+		}
+
+		//check available inputs and possible inputs count (max 94)
+		const inputs = inputsArr;
 		const inputsCount = inputs.length;
 		const maxInputsCount = (inputsCount < 94) ? inputsCount : 94;
-		for (let i = 0; i < maxInputsCount; i++) {
+		for (let j = 0; j < maxInputsCount; j++) {
 
 			//get input reference
-			const inputReference = (inputs[i].reference != undefined) ? inputs[i].reference : undefined;
+			const inputReference = (inputs[j].reference != undefined) ? inputs[j].reference : undefined;
 
 			//get input name		
-			const inputName = (savedInputsNames[inputReference] != undefined) ? savedInputsNames[inputReference] : inputs[i].name;
+			const inputName = (savedInputsNames[inputReference] != undefined) ? savedInputsNames[inputReference] : inputs[j].name;
 
 			//get input type
-			const inputType = (inputs[i].type != undefined) ? INPUT_SOURCE_TYPES.indexOf(inputs[i].type) : 10;
+			const inputType = (inputs[j].type != undefined) ? INPUT_SOURCE_TYPES.indexOf(inputs[j].type) : 10;
 
 			//get input mode
-			const inputMode = (inputs[i].mode != undefined) ? inputs[i].mode : 0;
+			const inputMode = (inputs[j].mode != undefined) ? inputs[j].mode : 0;
 
 			//get input configured
 			const isConfigured = 1;
@@ -1047,9 +1060,9 @@ class lgwebosTvDevice {
 			const currentVisibility = (savedTargetVisibility[inputReference] != undefined) ? savedTargetVisibility[inputReference] : 0;
 			const targetVisibility = currentVisibility;
 
-			const inputService = new Service.InputSource(accessoryName, 'Input ' + i);
+			const inputService = new Service.InputSource(accessoryName, 'Input ' + j);
 			inputService
-				.setCharacteristic(Characteristic.Identifier, i)
+				.setCharacteristic(Characteristic.Identifier, j)
 				.setCharacteristic(Characteristic.ConfiguredName, inputName)
 				.setCharacteristic(Characteristic.IsConfigured, isConfigured)
 				.setCharacteristic(Characteristic.InputSourceType, inputType)
@@ -1099,8 +1112,8 @@ class lgwebosTvDevice {
 			this.inputsMode.push(inputMode);
 
 			this.inputsService.push(inputService);
-			this.televisionService.addLinkedService(this.inputsService[i]);
-			accessory.addService(this.inputsService[i]);
+			this.televisionService.addLinkedService(this.inputsService[j]);
+			accessory.addService(this.inputsService[j]);
 		}
 
 		//Prepare inputs button services
