@@ -209,6 +209,7 @@ class lgwebosTvDevice {
 				} else {
 					if (this.checkDeviceInfo) {
 						this.getDeviceInfo();
+						this.getAndSaveInputs();
 					}
 				}
 			}
@@ -298,36 +299,6 @@ class lgwebosTvDevice {
 						const writeDevInfo = fsPromises.writeFile(this.devInfoFile, devInfo);
 						this.log.debug('Device: %s %s, saved Device Info successful: %s', this.host, this.name, devInfo);
 
-						this.lgtv.request('ssap://com.webos.applicationManager/listApps', (error, response2) => {
-							if (error || response2.errorCode) {
-								this.log.debug('Device: %s %s, get apps list error: %s', this.host, this.name, error);
-								this.checkDeviceInfo = true;
-							} else {
-								this.log.debug('Device: %s %s, get apps list response2: %s', this.host, this.name, response2);
-								//save inputs to the file
-								const getInputsFromDevice = this.getInputsFromDevice;
-								const inputsArr = getInputsFromDevice ? new Array(DEFAULT_INPUTS[0]) : new Array();
-								const inputsData = getInputsFromDevice ? response2.apps : this.inputs;
-								const inputsCount = inputsData.length;
-								for (let i = 0; i < inputsCount; i++) {
-									const name = getInputsFromDevice ? inputsData[i].title : inputsData[i].name;
-									const reference = getInputsFromDevice ? inputsData[i].id : inputsData[i].reference;
-									const type = getInputsFromDevice ? 'APPLICATION' : inputsData[i].type;
-									const mode = getInputsFromDevice ? 0 : inputsData[i].mode;
-									const inputsObj = {
-										'name': name,
-										'reference': reference,
-										'type': type,
-										'mode': mode
-									}
-									inputsArr.push(inputsObj);
-								}
-								const obj = JSON.stringify(inputsArr, null, 2);
-								const writeInputs = fsPromises.writeFile(this.inputsFile, obj);
-								this.log.debug('Device: %s %s, write inputs list: %s', this.host, this.name, obj);
-							}
-						});
-
 						const manufacturer = this.manufacturer
 
 						if (!this.disableLogInfo) {
@@ -352,6 +323,38 @@ class lgwebosTvDevice {
 						this.checkDeviceInfo = false;
 					}
 				});
+			}
+		});
+	}
+
+	getAndSaveInputs() {
+		this.lgtv.request('ssap://com.webos.applicationManager/listApps', (error, response2) => {
+			if (error || response2.errorCode) {
+				this.log.debug('Device: %s %s, get apps list error: %s', this.host, this.name, error);
+				this.checkDeviceInfo = true;
+			} else {
+				this.log.debug('Device: %s %s, get apps list response2: %s', this.host, this.name, response2);
+				//save inputs to the file
+				const getInputsFromDevice = this.getInputsFromDevice;
+				const inputsArr = getInputsFromDevice ? new Array(DEFAULT_INPUTS[0]) : new Array();
+				const inputsData = getInputsFromDevice ? response2.apps : this.inputs;
+				const inputsCount = inputsData.length;
+				for (let i = 0; i < inputsCount; i++) {
+					const name = getInputsFromDevice ? inputsData[i].title : inputsData[i].name;
+					const reference = getInputsFromDevice ? inputsData[i].id : inputsData[i].reference;
+					const type = getInputsFromDevice ? 'APPLICATION' : inputsData[i].type;
+					const mode = getInputsFromDevice ? 0 : inputsData[i].mode;
+					const inputsObj = {
+						'name': name,
+						'reference': reference,
+						'type': type,
+						'mode': mode
+					}
+					inputsArr.push(inputsObj);
+				}
+				const obj = JSON.stringify(inputsArr, null, 2);
+				const writeInputs = fsPromises.writeFile(this.inputsFile, obj);
+				this.log.debug('Device: %s %s, write inputs list: %s', this.host, this.name, obj);
 			}
 		});
 	}
@@ -1018,21 +1021,22 @@ class lgwebosTvDevice {
 		const savedTargetVisibility = ((fs.readFileSync(this.targetVisibilityInputsFile)).length > 0) ? JSON.parse(fs.readFileSync(this.targetVisibilityInputsFile)) : {};
 		this.log.debug('Device: %s %s, read saved Target Visibility successful, states %s', this.host, accessoryName, savedTargetVisibility);
 
-		//check available inputs and filter costom inputs
+		//check available inputs and filter custom unnecessary inputs
 		const allInputs = (savedInputs.length > 0) ? savedInputs : this.inputs;
 		const inputsArr = new Array();
 		const allInputsCount = allInputs.length;
 		for (let i = 0; i < allInputsCount; i++) {
 			const reference = allInputs[i].reference;
-			const filterApp = (reference.substr(0, 20) != 'com.webos.exampleapp');
-			const filterApp1 = (reference.substr(0, 17) != 'com.webos.app.acr');
-			const filterApp2 = (reference.substr(0, 22) != 'com.webos.app.livezoom');
-			const filterApp3 = (reference.substr(0, 26) != 'com.webos.app.twinlivezoom');
-			const filterApp4 = (reference.substr(0, 22) != 'com.webos.app.twinzoom');
-			const filterApp5 = reference != 'com.webos.app.softwareupdate';
-			const filterApp6 = reference != 'google.assistant';
+			const filterApp = reference.substr(0, 20) != 'com.webos.exampleapp';
+			const filterApp1 = reference.substr(0, 17) != 'com.webos.app.acr';
+			const filterApp2 = reference.substr(0, 22) != 'com.webos.app.livezoom';
+			const filterApp3 = reference.substr(0, 28) != 'com.webos.app.livemenuplayer';
+			const filterApp4 = reference.substr(0, 22) != 'com.webos.app.twinzoom';
+			const filterApp5 = reference.substr(0, 26) != 'com.webos.app.twinlivezoom';
+			const filterApp6 = reference != 'com.webos.app.softwareupdate';
+			const filterApp7 = reference != 'google.assistant';
 
-			const push = this.filterSystemApps ? (filterApp && filterApp1 && filterApp2 && filterApp3 && filterApp4 && filterApp5 && filterApp6) ? inputsArr.push(allInputs[i]) : false : inputsArr.push(allInputs[i]);
+			const push = this.filterSystemApps ? (filterApp && filterApp1 && filterApp2 && filterApp3 && filterApp4 && filterApp5 && filterApp6 && filterApp7) ? inputsArr.push(allInputs[i]) : false : inputsArr.push(allInputs[i]);
 		}
 
 		//check available inputs and possible inputs count (max 94)
@@ -1101,6 +1105,7 @@ class lgwebosTvDevice {
 							this.log('Device: %s %s, Input: %s, saved target visibility state: %s', this.host, accessoryName, inputName, state ? 'HIDEN' : 'SHOWN');
 						}
 						inputService.setCharacteristic(Characteristic.CurrentVisibilityState, state);
+						this.getAndSaveInputs();
 					} catch (error) {
 						this.log.error('Device: %s %s, Input: %s, saved target visibility state error: %s', this.host, accessoryName, error);
 					}
@@ -1165,5 +1170,4 @@ class lgwebosTvDevice {
 		this.log.debug('Device: %s %s, publishExternalAccessories.', this.host, accessoryName);
 		this.api.publishExternalAccessories(PLUGIN_NAME, [accessory]);
 	}
-
 };

@@ -82,7 +82,7 @@
               "description": "This toggle behaviour for *I* button in RC app and *PowerModeSelection* in settings."
             },
             "getInputsFromDevice": {
-              "title": "Get inputs from device",
+              "title": "Load inputs from device",
               "type": "boolean",
               "default": false,
               "required": false,
@@ -106,14 +106,16 @@
                 "type": "object",
                 "properties": {
                   "name": {
-                    "title": "Input name",
+                    "title": "Name",
                     "type": "string",
+                    "placeholder": "Input name",
                     "description": "Here set Your own name.",
                     "required": true
                   },
                   "reference": {
-                    "title": "Input reference",
+                    "title": "Reference",
                     "type": "string",
+                    "placeholder": "Input reference",
                     "description": "Here set the reference.",
                     "required": true
                   },
@@ -223,12 +225,14 @@
                   "name": {
                     "title": "Name",
                     "type": "string",
+                    "placeholder": "Button name",
                     "description": "Here set Your own name.",
                     "required": false
                   },
                   "reference": {
                     "title": "Reference",
                     "type": "string",
+                    "placeholder": "Button reference",
                     "description": "Here set the reference.",
                     "required": true
                   }
