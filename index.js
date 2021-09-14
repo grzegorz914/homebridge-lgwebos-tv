@@ -650,30 +650,24 @@ class lgwebosTvDevice {
 					const inputName = this.inputsName[inputIdentifier];
 					const inputMode = this.inputsMode[inputIdentifier];
 					const inputReference = (inputMode == 0) ? this.inputsReference[inputIdentifier] : "com.webos.app.livetv";
+					const channelReference = this.inputsReference[inputIdentifier];
 					const setInput = (inputReference != undefined) ? this.lgtv.request('ssap://system.launcher/launch', {
 						id: inputReference
 					}) : false;
 					if (!this.disableLogInfo) {
 						this.log('Device: %s %s, set Input successful: %s %s', this.host, accessoryName, inputName, inputReference);
 					}
-					if (inputMode == 1) {
-						try {
-							const channelReference = this.inputsReference[inputIdentifier];
-							const setChannel = (channelReference != undefined) ? this.lgtv.request('ssap://tv/openChannel', {
-								channelId: channelReference
-							}) : false;
-							if (!this.disableLogInfo) {
-								this.log('Device: %s %s, set Channel successful: %s %s', this.host, accessoryName, inputName, channelReference);
-							}
-						} catch (error) {
-							this.log.error('Device: %s %s, can not set new Channel. Might be due to a wrong settings in config, error: %s', this.host, accessoryName, error);
-						};
+					const setChannel = (channelReference != undefined && inputMode == 1) ? this.lgtv.request('ssap://tv/openChannel', {
+						channelId: channelReference
+					}) : false;
+					if (!this.disableLogInfo) {
+						this.log('Device: %s %s, set Channel successful: %s %s', this.host, accessoryName, inputName, channelReference);
 					}
-					this.setStartInputIdentifier = inputIdentifier;
-					this.setStartInput = this.powerState ? false : true;
 				} catch (error) {
 					this.log.error('Device: %s %s, can not set new Input. Might be due to a wrong settings in config, error: %s', this.host, accessoryName, error);
 				};
+				this.setStartInputIdentifier = inputIdentifier;
+				this.setStartInput = this.powerState ? false : true;
 			});
 
 		this.televisionService.getCharacteristic(Characteristic.RemoteKey)
