@@ -7,12 +7,12 @@ const lgtv = require('./src/lgwebos');
 const wol = require('@mi-sec/wol');
 const tcpp = require('tcp-ping');
 
-const WEBSOCKET_PORT = 3000;
 const PLUGIN_NAME = 'homebridge-lgwebos-tv';
 const PLATFORM_NAME = 'LgWebOsTv';
 
+const WEBSOCKET_PORT = 3000;
 const DEFAULT_INPUTS = [{
-		'name': 'Unconfigured input',
+		'name': 'Undefined',
 		'reference': 'undefined',
 		'type': 'undefined',
 		'mode': 'undefined'
@@ -102,7 +102,6 @@ class lgwebosTvDevice {
 		this.filterSystemApps = config.filterSystemApps || false;
 		this.inputs = config.inputs || [];
 		this.buttons = config.buttons || [];
-		this.url = 'ws://' + this.host + ':' + WEBSOCKET_PORT || 'ws://lgwebostv:3000';
 
 		//add configured inputs to the default inputs
 		const inputsArr = new Array();
@@ -164,17 +163,17 @@ class lgwebosTvDevice {
 		this.color = 0;
 		this.pictureMode = 0;
 
-		this.prefDir = path.join(api.user.storagePath(), 'lgwebosTv');
-		this.keyFile = this.prefDir + '/' + 'key_' + this.host.split('.').join('');
-		this.devInfoFile = this.prefDir + '/' + 'devInfo_' + this.host.split('.').join('');
-		this.inputsFile = this.prefDir + '/' + 'inputs_' + this.host.split('.').join('');
-		this.inputsNamesFile = this.prefDir + '/' + 'inputsNames_' + this.host.split('.').join('');
-		this.targetVisibilityInputsFile = this.prefDir + '/' + 'targetVisibilityInputs_' + this.host.split('.').join('');
-		this.channelsFile = this.prefDir + '/' + 'channels_' + this.host.split('.').join('');
+		const prefDir = path.join(api.user.storagePath(), 'lgwebosTv');
+		this.keyFile = prefDir + '/' + 'key_' + this.host.split('.').join('');
+		this.devInfoFile = prefDir + '/' + 'devInfo_' + this.host.split('.').join('');
+		this.inputsFile = prefDir + '/' + 'inputs_' + this.host.split('.').join('');
+		this.inputsNamesFile = prefDir + '/' + 'inputsNames_' + this.host.split('.').join('');
+		this.targetVisibilityInputsFile = prefDir + '/' + 'targetVisibilityInputs_' + this.host.split('.').join('');
+		this.channelsFile = prefDir + '/' + 'channels_' + this.host.split('.').join('');
 
 		//check if the directory exists, if not then create it
-		if (fs.existsSync(this.prefDir) == false) {
-			fsPromises.mkdir(this.prefDir);
+		if (fs.existsSync(prefDir) == false) {
+			fsPromises.mkdir(prefDir);
 		}
 		if (fs.existsSync(this.keyFile) == false) {
 			fsPromises.writeFile(this.keyFile, '');
@@ -221,14 +220,15 @@ class lgwebosTvDevice {
 	connectToTv() {
 		this.log.debug('Device: %s %s, connecting to TV', this.host, this.name);
 
+		const url = 'ws://' + this.host + ':' + WEBSOCKET_PORT || 'ws://lgwebostv:3000';
 		this.lgtv = new lgtv({
-			url: this.url,
+			url: url,
 			timeout: 5000,
 			reconnect: 5000,
 			keyFile: this.keyFile
 		});
 
-		this.lgtv.connect(this.url);
+		this.lgtv.connect(url);
 
 		this.lgtv.on('connect', () => {
 			this.log('Device: %s %s, connected.', this.host, this.name);
