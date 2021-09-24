@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ## Changes
 - code cleanup
 
+## [1.9.13] - (24.09.2021)
+## Changes
+- code cleanup
+
 ## [1.9.10] - (06.09.2021)
 ## Changes
 - extend filters

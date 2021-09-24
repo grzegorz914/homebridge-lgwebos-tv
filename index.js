@@ -2,7 +2,7 @@
 
 const path = require('path');
 const fs = require('fs');
-const fsPromises = require('fs').promises;
+const fsPromises = fs.promises;
 const lgtv = require('./src/lgwebos');
 const wol = require('@mi-sec/wol');
 const tcpp = require('tcp-ping');
@@ -37,14 +37,14 @@ const DEFAULT_INPUTS = [{
 
 const INPUT_SOURCE_TYPES = ['OTHER', 'HOME_SCREEN', 'TUNER', 'HDMI', 'COMPOSITE_VIDEO', 'S_VIDEO', 'COMPONENT_VIDEO', 'DVI', 'AIRPLAY', 'USB', 'APPLICATION'];
 
-let Accessory, Characteristic, Service, Categories, AccessoryUUID;
+let Accessory, Characteristic, Service, Categories, UUID;
 
 module.exports = (api) => {
 	Accessory = api.platformAccessory;
 	Characteristic = api.hap.Characteristic;
 	Service = api.hap.Service;
 	Categories = api.hap.Categories;
-	AccessoryUUID = api.hap.uuid;
+	UUID = api.hap.uuid;
 	api.registerPlatform(PLUGIN_NAME, PLATFORM_NAME, lgwebosTvPlatform, true);
 };
 
@@ -556,7 +556,7 @@ class lgwebosTvDevice {
 	async prepareAccessory() {
 		this.log.debug('prepareAccessory');
 		const accessoryName = this.name;
-		const accessoryUUID = AccessoryUUID.generate(this.mac);
+		const accessoryUUID = UUID.generate(this.mac);
 		const accessoryCategory = Categories.TELEVISION;
 		const accessory = new Accessory(accessoryName, accessoryUUID, accessoryCategory);
 		accessory.context.device = this.config.device;
