@@ -3,6 +3,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
+## [1.9.14] - (24.09.2021)
+## Changes
+- code cleanup
+- updated ES5 to ES6
+- updated config.schema
+
 ## [1.9.13] - (24.09.2021)
 ## Changes
 - code cleanup

@@ -8,26 +8,26 @@
     "type": "object",
     "properties": {
       "devices": {
-        "title": "Devices",
         "type": "array",
         "items": {
+          "title": "Devices",
           "type": "object",
           "properties": {
             "name": {
-              "title": "Device name",
+              "title": "Name",
               "type": "string",
               "placeholder": "LG TV",
               "required": true
             },
             "host": {
-              "title": "Address IP",
+              "title": "IP/Hostname",
               "type": "string",
               "placeholder": "192.168.1.8",
               "required": true,
               "format": "hostname"
             },
             "mac": {
-              "title": "Adress Mac",
+              "title": "Address Mac",
               "type": "string",
               "placeholder": "ab:cd:ef:fe:dc:ba",
               "required": true
