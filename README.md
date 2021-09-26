@@ -19,7 +19,7 @@ Tested with OLED65G6V, 32LM6300PLA, 49SK8500, OLED65C7T, 55SK800PLB, OLED48CX.
 | --- | --- | --- | --- |
 | [Homebridge](https://github.com/homebridge/homebridge) | [Homebridge Wiki](https://github.com/homebridge/homebridge/wiki) | HomeKit Bridge | Required |
 | [Homebridge Config UI X](https://github.com/oznu/homebridge-config-ui-x/wiki) | [Homebridge Config UI X Wiki](https://github.com/oznu/homebridge-config-ui-x/wiki) | Web User Interface | Recommended |
-| [Homebridge LG webOS TV](https://www.npmjs.com/package/homebridge-lgwebos-tv) | `npm npm install -g homebridge-lgwebos-tv` | Plug-In | Required |
+| [Homebridge LG webOS TV](https://www.npmjs.com/package/homebridge-lgwebos-tv) | `npm install -g homebridge-lgwebos-tv` | Plug-In | Required |
 
 ## Note
 * Versin 1.7.0 and above need to be used with Homebridge min. v1.3.x.
@@ -43,7 +43,7 @@ Tested with OLED65G6V, 32LM6300PLA, 49SK8500, OLED65C7T, 55SK800PLB, OLED48CX.
 </p>
 
 ## Configuration
-* [Please configure LG Connect Apps](https://www.lg.com/ca_en/support/product-help/CT20098005-1437129879355-others)
+* [First please configure LG Connect Apps](https://www.lg.com/ca_en/support/product-help/CT20098005-1437129879355-others)
 Install and use [Homebridge Config UI X](https://github.com/oznu/homebridge-config-ui-x/wiki) plugin to configure this plugin (Highly Recommended). The sample configuration can be edited and used manually as an alternative. See the `sample-config.json` file in this repository for an example or copy the example below into your config.json file, making the apporpriate changes before saving it. Be sure to always make a backup copy of your config.json file before making any changes to it.
 
 <p align="left">
@@ -53,20 +53,20 @@ Install and use [Homebridge Config UI X](https://github.com/oznu/homebridge-conf
 | Key | Description | 
 | --- | --- |
 | `name` | Here set the accessory *Name* to be displayed in *Homebridge/HomeKit*. |
-| `host` | Here set the *Hsostname or Address IP* of TV.|
-| `mac` | Here set the *Mac Address* of TV.|
-| `refreshInterval` | Set the data refresh time in seconds, default is every 5 seconds |
-| `disableLogInfo`| | If enabled, disable log info, all values and state will not be displayed in Homebridge log console. |
-| `volumeControl`| Here choice what a additional volume control mode You want to use (None, Slider, Fan). |
-| `switchInfoMenu`| If enabled, `I` button change its behaviour in RC app between Menu and INFO. |
-| `getInputsFromDevice`| If `true` then the inputs and apps wil be get direct from device. |
+| `host` | Here set the *Hsostname or Address IP* of TV. |
+| `mac` | Here set the *Mac Address* of TV. |
+| `refreshInterval` | Set the data refresh time in seconds, default is every 5 seconds. |
+| `disableLogInfo` | If enabled, disable log info, all values and state will not be displayed in Homebridge log console. |
+| `volumeControl` | Here choice what a additional volume control mode You want to use (None, Slider, Fan). |
+| `switchInfoMenu` | If enabled, `I` button change its behaviour in RC app between Menu and INFO. |
+| `getInputsFromDevice` | If `true` then the inputs and apps wil be get direct from device. |
 | `inputs.name` | Here set *Channel Name* which You want expose to the *Homebridge/HomeKit*. |
 | `inputs.reference` | Here set *Input Reference*. All can be found in `homebridge_directory/lgwebosTv/inputs_xxxxxx`, where `name == title` and `reference == id`, `Live TV`, `HDMI 1`, `HDMI 2` inputs are created by default. | 
-| `inputs.type` | select source input type |
+| `inputs.type` | select source input type. |
 | `inputs.mode` | select what a input mode You defined, select `Apps` if You defined some input reference, select `Live TV` if You defined channel reference. |
-| `buttons.name` | Here set *Button Name* which You want expose to the *Homebridge/HomeKit*.| 
+| `buttons.name` | Here set *Button Name* which You want expose to the *Homebridge/HomeKit*. | 
 | `buttons.reference` | Here set *Input Reference*. All can be found in `homebridge_directory/lgwebosTv/inputs_xxxxxx`, where `name == title` and `reference == id`. | 
-| `manufacturer`, `model`, `serialNumber`, `firmwareRevision` | Optional free-form informational data that will be displayed in the Home.app if it is filled in |
+| `manufacturer`, `model`, `serialNumber`, `firmwareRevision` | Optional free-form informational data that will be displayed in the Home.app. |
 
 ```json
 {
