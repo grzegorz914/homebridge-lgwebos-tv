@@ -67,7 +67,7 @@ Install and use [Homebridge Config UI X](https://github.com/oznu/homebridge-conf
 | `inputs.mode` | select what a input mode You defined, select `Apps` if You defined some input reference, select `Live TV` if You defined channel reference. |
 | `buttons.name` | Here set *Button Name* which You want expose to the *Homebridge/HomeKit*. | 
 | `buttons.reference` | Here set *Input Reference*. All can be found in `homebridge_directory/lgwebosTv/inputs_xxxxxx`, where `name == title` and `reference == id`. | 
-| `manufacturer`, `model`, `serialNumber`, `firmwareRevision` | Optional free-form informational data that will be displayed in the Home.app. |
+| `manufacturer`, `modelName`, `serialNumber`, `firmwareRevision` | Optional free-form informational data that will be displayed in the Home.app. |
 
 ```json
 {
