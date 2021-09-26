@@ -1,5 +1,5 @@
 <p align="center">
-  <a href="https://github.com/grzegorz914/homebridge-lgwebos-tv"><img src="https://raw.githubusercontent.com/grzegorz914/homebridge-lgwebos-tv/master/graphics/lgwebos.png" width="840"></a>
+  <a href="https://github.com/grzegorz914/homebridge-lgwebos-tv"><img src="https://raw.githubusercontent.com/grzegorz914/homebridge-lgwebos-tv/master/graphics/lgwebos.png" width="640"></a>
 </p>
 
 <span align="center">
@@ -49,23 +49,24 @@ Install and use [Homebridge Config UI X](https://github.com/oznu/homebridge-conf
 <p align="left">
   <a href="https://github.com/grzegorz914/homebridge-lgwebos-tv"><img src="https://raw.githubusercontent.com/grzegorz914/homebridge-lgwebos-tv/master/graphics/ustawienia.png" width="840"></a>
 </p>
-## Configuration Values
+
 | Key | Description | 
 | --- | --- |
-| `inputs` | all reference and name can be found in: `homebridge_directory/lgwebosTv/inputs_xxxxxx` where `name == title` and `reference == id`, `Live TV`, `HDMI 1`, `HDMI 2` inputs are created by default. |
-| `inputs.name` | set the name which will be displayed as inputs list in HomeKit app |
-| `inputs.reference` | set the reference of Inputs/Applications |
+| `name` | Here set the accessory *Name* to be displayed in *Homebridge/HomeKit*. |
+| `host` | Here set the *Hsostname or Address IP* of TV.|
+| `mac` | Here set the *Mac Address* of TV.|
+| `refreshInterval` | Set the data refresh time in seconds, default is every 5 seconds |
+| `disableLogInfo`| | If enabled, disable log info, all values and state will not be displayed in Homebridge log console. |
+| `volumeControl`| Here choice what a additional volume control mode You want to use (None, Slider, Fan). |
+| `switchInfoMenu`| If enabled, `I` button change its behaviour in RC app between Menu and INFO. |
+| `getInputsFromDevice`| If `true` then the inputs and apps wil be get direct from device. |
+| `inputs.name` | Here set *Channel Name* which You want expose to the *Homebridge/HomeKit*. |
+| `inputs.reference` | Here set *Input Reference*. All can be found in `homebridge_directory/lgwebosTv/inputs_xxxxxx`, where `name == title` and `reference == id`, `Live TV`, `HDMI 1`, `HDMI 2` inputs are created by default. | 
 | `inputs.type` | select source input type |
 | `inputs.mode` | select what a input mode You defined, select `Apps` if You defined some input reference, select `Live TV` if You defined channel reference. |
-| `refreshInterval` | Set the data refresh time in seconds, default is every 5 seconds |
-| `volumeControl`| Select what a additional volume control mode You want to use (None, Slider, Fan) |
-| `switchInfoMenu`| If `true` then the `I` button will toggle its behaviour in the Apple Remote in Control Center and `PowerModeSelection` in settings |
-| `getInputsFromDevice`| If `true` then the inputs and apps wil be get direct from device. |
-| `disableLogInfo`| If `true` then disable log info, all values and state will not be displayed in Homebridge log console |
-| `manufacturer` | Optional free-form informational data that will be displayed in the Home.app if it is filled in |
-| `model` | Optional free-form informational data that will be displayed in the Home.app if it is filled in |
-| `serialNumber` | Optional free-form informational data that will be displayed in the Home.app if it is filled in |
-| `firmwareRevision` | Optional free-form informational data that will be displayed in the Home.app if it is filled in |
+| `buttons.name` | Here set *Button Name* which You want expose to the *Homebridge/HomeKit*.| 
+| `buttons.reference` | Here set *Input Reference*. All can be found in `homebridge_directory/lgwebosTv/inputs_xxxxxx`, where `name == title` and `reference == id`. | 
+| `manufacturer`, `model`, `serialNumber`, `firmwareRevision` | Optional free-form informational data that will be displayed in the Home.app if it is filled in |
 
 ```json
 {
