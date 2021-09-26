@@ -23,8 +23,8 @@
               "title": "IP/Hostname",
               "type": "string",
               "placeholder": "192.168.1.8",
-              "required": true,
-              "format": "hostname"
+              "format": "hostname",
+              "required": true
             },
             "mac": {
               "title": "Address Mac",
@@ -44,8 +44,8 @@
               "title": "Disable log info",
               "type": "boolean",
               "default": false,
-              "required": false,
-              "description": "This disable log info, all values and state will not be displayed in Homebridge log console."
+              "description": "This disable log info, all values and state will not be displayed in Homebridge log console.",
+              "required": false
             },
             "volumeControl": {
               "title": "Volume control mode",
@@ -72,28 +72,28 @@
                   ]
                 }
               ],
-              "required": false
+              "required": true
             },
             "switchInfoMenu": {
               "title": "Switch Info/Menu",
               "type": "boolean",
               "default": false,
-              "required": false,
-              "description": "This toggle behaviour for *I* button in RC app and *PowerModeSelection* in settings."
+              "description": "This toggle behaviour for *I* button in RC app and *PowerModeSelection* in settings.",
+              "required": false
             },
             "getInputsFromDevice": {
               "title": "Load inputs from device",
               "type": "boolean",
               "default": false,
-              "required": false,
-              "description": "This function get all available inputs direct from device, manually configured inputs will be skipped."
+              "description": "This function get all available inputs direct from device, manually configured inputs will be skipped.",
+              "required": false
             },
             "filterSystemApps": {
               "title": "Hide System Apps",
               "type": "boolean",
               "default": false,
-              "required": false,
               "description": "If enabled, all System Apps will not be displayed on the list of inputs.",
+              "required": false,
               "condition": {
                 "functionBody": "return model.devices[arrayIndices].getInputsFromDevice === true"
               }
@@ -234,7 +234,7 @@
                     "type": "string",
                     "placeholder": "Button reference",
                     "description": "Here set the reference.",
-                    "required": true
+                    "required": false
                   }
                 }
               }
