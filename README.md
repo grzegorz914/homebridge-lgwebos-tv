@@ -1,5 +1,5 @@
 <p align="center">
-  <a href="https://github.com/grzegorz914/homebridge-lgwebos-tv"><img src="https://raw.githubusercontent.com/grzegorz914/homebridge-lgwebos-tv/master/graphics/lgwebos.png" height="140"></a>
+  <a href="https://github.com/grzegorz914/homebridge-lgwebos-tv"><img src="https://raw.githubusercontent.com/grzegorz914/homebridge-lgwebos-tv/master/graphics/lgwebos.png" width="840"></a>
 </p>
 
 <span align="center">
@@ -15,42 +15,40 @@ Tested with OLED65G6V, 32LM6300PLA, 49SK8500, OLED65C7T, 55SK800PLB, OLED48CX.
 </span>
 
 ## Package Requirements
-| Package Link | Required |
-| --- | --- |
-| [Homebridge](https://github.com/homebridge/homebridge) | Required | 
-| [Homebridge Config UI X](https://github.com/oznu/homebridge-config-ui-x) | Highly Recommended |
+| Package Link | Installation | Role | Required |
+| --- | --- | --- | --- |
+| [Homebridge](https://github.com/homebridge/homebridge) | [Homebridge Wiki](https://github.com/homebridge/homebridge/wiki) | HomeKit Bridge | Required |
+| [Homebridge Config UI X](https://github.com/oznu/homebridge-config-ui-x/wiki) | [Homebridge Config UI X Wiki](https://github.com/oznu/homebridge-config-ui-x/wiki) | Web User Interface | Recommended |
+| [Homebridge LG webOS TV](https://www.npmjs.com/package/homebridge-lgwebos-tv) | `npm npm install -g homebridge-lgwebos-tv` | Plug-In | Required |
 
 ## Note
-1. Versin 1.7.0 and above need to be used with Homebridge min. v1.3.x.
+* Versin 1.7.0 and above need to be used with Homebridge min. v1.3.x.
 
 ## Know issues
-1. If use with Hoobs possible config incompatibilty.
-2. webOS 2.0 may be not working correct.
-3. 
-## Installation Instructions
-1. Follow the step-by-step instructions at [Homebridge Wiki](https://github.com/homebridge/homebridge/wiki) for how to install Homebridge.
-2. Follow the step-by-step instructions at [Homebridge Config UI X](https://github.com/oznu/homebridge-config-ui-x/wiki) for how to install Homebridge Config UI X.
-3. Install homebridge-lgwebos-tv using: `npm install -g homebridge-lgwebos-tv` or search for `Lgwebos TV` in Config UI X.
+* If use with Hoobs possible config incompatibilty.
+* webOS 2.0 may be not working correct.
 
 ## Features and How To Use Them
-1. Power ON/OFF using a short press of the created device tile in the HomeKit app.
-2. Remote Control and Media control is possible by using the Apple Remote in Control Center on iPhone/iPad (must be installed from the App store prior to iOS/iPadOS 14).
-3. Speaker control is possible after you go to Apple Remote in Control Center on iPhone/iPad `Speaker Service`.
-4. Legacy volume and mute control is possible throught the extra `lightbulb` (slider) or using Siri `Volume Service`.
-5. Inputs can be changed by performing a long press of the device tile in the HomeKit app and then selecting from the list. It is also possible to create separate tiles in the Inputs and Functions button.
-8. Siri control, (Volume, Mute) if volume control enabled Slider or Fan.
+* Power ON/OFF short press tile in HomeKit app.
+* RC/Media control is possible after you go to the RC app on iPhone/iPad.
+* Speaker control is possible after you go to RC app on iPhone/iPad `Speaker Service`.
+* Legacy volume and mute control is possible throught extra `lightbulb` (slider) or using Siri `Volume Service`.
+* Inputs can be changed after loong press tile in Home.app and select from the list or create separate tile in the Buttons section.
+* Siri control.
 
 
 <p align="left">
-  <a href="https://github.com/grzegorz914/homebridge-lgwebos-tv"><img src="https://raw.githubusercontent.com/grzegorz914/homebridge-lgwebos-tv/master/graphics/homekit.png" height="300"></a> 
-  </p>
-  <p align="left">
-  <a href="https://github.com/grzegorz914/homebridge-lgwebos-tv"><img src="https://raw.githubusercontent.com/grzegorz914/homebridge-lgwebos-tv/master/graphics/inputs.png" height="300"></a>  <a href="https://github.com/grzegorz914/homebridge-lgwebos-tv"><img src="https://raw.githubusercontent.com/grzegorz914/homebridge-lgwebos-tv/master/graphics/RC.png" height="300"></a>  <a href="https://github.com/grzegorz914/homebridge-lgwebos-tv"><img src="https://raw.githubusercontent.com/grzegorz914/homebridge-lgwebos-tv/master/graphics/rc1.png" height="300"></a>
+  <a href="https://github.com/grzegorz914/homebridge-lgwebos-tv"><img src="https://raw.githubusercontent.com/grzegorz914/homebridge-lgwebos-tv/master/graphics/homekit.png" width="480"></a> 
+  <a href="https://github.com/grzegorz914/homebridge-lgwebos-tv"><img src="https://raw.githubusercontent.com/grzegorz914/homebridge-lgwebos-tv/master/graphics/inputs.png" width="115"></a>  <a href="https://github.com/grzegorz914/homebridge-lgwebos-tv"><img src="https://raw.githubusercontent.com/grzegorz914/homebridge-lgwebos-tv/master/graphics/RC.png" width="115"></a>  <a href="https://github.com/grzegorz914/homebridge-lgwebos-tv"><img src="https://raw.githubusercontent.com/grzegorz914/homebridge-lgwebos-tv/master/graphics/rc1.png" width="115"></a>
 </p>
 
-## Configuration TV
-1. [Please configure LG Connect Apps](https://www.lg.com/ca_en/support/product-help/CT20098005-1437129879355-others)
+## Configuration
+* [Please configure LG Connect Apps](https://www.lg.com/ca_en/support/product-help/CT20098005-1437129879355-others)
+Install and use [Homebridge Config UI X](https://github.com/oznu/homebridge-config-ui-x/wiki) plugin to configure this plugin (Highly Recommended). The sample configuration can be edited and used manually as an alternative. See the `sample-config.json` file in this repository for an example or copy the example below into your config.json file, making the apporpriate changes before saving it. Be sure to always make a backup copy of your config.json file before making any changes to it.
 
+<p align="left">
+  <a href="https://github.com/grzegorz914/homebridge-lgwebos-tv"><img src="https://raw.githubusercontent.com/grzegorz914/homebridge-lgwebos-tv/master/graphics/ustawienia.png" width="840"></a>
+</p>
 ## Configuration Values
 | Key | Description | 
 | --- | --- |
@@ -68,10 +66,6 @@ Tested with OLED65G6V, 32LM6300PLA, 49SK8500, OLED65C7T, 55SK800PLB, OLED48CX.
 | `model` | Optional free-form informational data that will be displayed in the Home.app if it is filled in |
 | `serialNumber` | Optional free-form informational data that will be displayed in the Home.app if it is filled in |
 | `firmwareRevision` | Optional free-form informational data that will be displayed in the Home.app if it is filled in |
-
-<p align="left">
-  <a href="https://github.com/grzegorz914/homebridge-lgwebos-tv"><img src="https://raw.githubusercontent.com/grzegorz914/homebridge-lgwebos-tv/master/graphics/ustawienia.png" height="170"></a>
-</p>
 
 ```json
 {
@@ -129,8 +123,8 @@ Tested with OLED65G6V, 32LM6300PLA, 49SK8500, OLED65C7T, 55SK800PLB, OLED48CX.
 
 ## Adding to HomeKit
 Each accessory needs to be manually paired. 
-1. Open the Home <img src='https://user-images.githubusercontent.com/3979615/78010622-4ea1d380-738e-11ea-8a17-e6a465eeec35.png' height='16.42px'> app on your device. 
-2. Tap the Home tab, then tap <img src='https://user-images.githubusercontent.com/3979615/78010869-9aed1380-738e-11ea-9644-9f46b3633026.png' height='16.42px'>. 
+1. Open the Home <img src='https://user-images.githubusercontent.com/3979615/78010622-4ea1d380-738e-11ea-8a17-e6a465eeec35.png' width='16.42px'> app on your device. 
+2. Tap the Home tab, then tap <img src='https://user-images.githubusercontent.com/3979615/78010869-9aed1380-738e-11ea-9644-9f46b3633026.png' width='16.42px'>. 
 3. Tap *Add Accessory*, and select *I Don't Have a Code or Cannot Scan*. 
 4. Select Your accessory. 
 5. Enter the Homebridge PIN, this can be found under the QR code in Homebridge UI or your Homebridge logs, alternatively you can select *Use Camera* and scan the QR code again.
@@ -150,4 +144,4 @@ Each accessory needs to be manually paired.
 https://github.com/grzegorz914/homebridge-lgwebos-tv/blob/master/CHANGELOG.md
 
 ## Development
-- Pull request and help in development highly appreciated.
+* Pull request and help in development highly appreciated.
