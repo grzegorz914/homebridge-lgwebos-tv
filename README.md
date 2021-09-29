@@ -18,8 +18,8 @@ Tested with OLED65G6V, 32LM6300PLA, 49SK8500, OLED65C7T, 55SK800PLB, OLED48CX.
 | Package Link | Installation | Role | Required |
 | --- | --- | --- | --- |
 | [Homebridge](https://github.com/homebridge/homebridge) | [Homebridge Wiki](https://github.com/homebridge/homebridge/wiki) | HomeKit Bridge | Required |
-| [Homebridge Config UI X](https://github.com/oznu/homebridge-config-ui-x/wiki) | [Homebridge Config UI X Wiki](https://github.com/oznu/homebridge-config-ui-x/wiki) | Web User Interface | Recommended |
-| [Homebridge LG webOS TV](https://www.npmjs.com/package/homebridge-lgwebos-tv) | `npm install -g homebridge-lgwebos-tv` | Plug-In | Required |
+| [Config UI X](https://github.com/oznu/homebridge-config-ui-x/wiki) | [Config UI X Wiki](https://github.com/oznu/homebridge-config-ui-x/wiki) | Web User Interface | Recommended |
+| [LG webOS TV](https://www.npmjs.com/package/homebridge-lgwebos-tv) | `npm install -g homebridge-lgwebos-tv` | Plug-In | Required |
 
 ## Note
 * Versin 1.7.0 and above need to be used with Homebridge min. v1.3.x.
