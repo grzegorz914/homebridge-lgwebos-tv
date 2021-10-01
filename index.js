@@ -228,46 +228,37 @@ class lgwebosTvDevice {
 			keyFile: this.keyFile
 		});
 
-		this.lgtv.connect(url);
+		this.lgtv.connect();
 
-		this.lgtv.on('connect', () => {
-			this.log('Device: %s %s, connected.', this.host, this.name);
+		this.lgtv.on('connect', (message) => {
+			this.log('Device: %s %s, Message: %s', this.host, this.name, message);
 			this.connectedToDevice = true;
+		});
+
+		this.lgtv.on('message', (message) => {
+			this.log('Device: %s %s, Message: %s', this.host, this.name, message);
 		});
 
 		this.lgtv.on('error', (error) => {
 			this.log.debug('Device: %s %s, connect error: %s', this.host, this.name, error);
 		});
 
-		this.lgtv.on('prompt', () => {
-			this.log('Device: %s %s, waiting on confirmation...', this.host, this.name);
-			this.powerState = false;
-		});
-
-		this.lgtv.on('connecting', () => {
-			this.log.debug('Device: %s %s, connecting...', this.host, this.name);
-			this.powerState = false;
-		});
-
-		this.lgtv.on('close', () => {
-			this.log('Device: %s %s, disconnected.', this.host, this.name);
+		this.lgtv.on('close', (message) => {
+			this.log('Device: %s %s, Message: %s', this.host, this.name, message);
 			this.connectedToDevice = false;
 			this.pointerInputSocket = null;
 			this.powerState = false;
 			this.checkDeviceInfo = false;
-			this.lgtv.disconnect();
 		});
 	}
 
 	connectToTvRcSocket() {
 		this.log.debug('Device: %s %s, connecting to TV RC Socket', this.host, this.name);
-		this.lgtv.getSocket('ssap://com.webos.service.networkinput/getPointerInputSocket', (error, sock) => {
+		this.lgtv.getSocket((error, sock) => {
 			if (error) {
-				this.log.error('Device: %s %s, RC Socket connect error: %s', this.host, this.name, error);
 				this.pointerInputSocket = null;
 			} else {
 				this.log.debug('Device: %s %s, RC Socket: %s.', this.host, this.name, sock);
-				this.log('Device: %s %s, RC Socket connected.', this.host, this.name);
 				this.pointerInputSocket = sock;
 				this.checkDeviceInfo = true;
 			}
@@ -428,6 +419,7 @@ class lgwebosTvDevice {
 								}
 								this.muteState = true;
 							}
+							this.lgtv.disconnect();
 						}
 					}
 					this.powerState = powerState;

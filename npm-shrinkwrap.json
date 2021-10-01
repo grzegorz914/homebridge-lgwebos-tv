@@ -1,11 +1,11 @@
 {
   "name": "homebridge-lgwebos-tv",
-  "version": "1.9.3",
+  "version": "1.9.16-beta211",
   "lockfileVersion": 2,
   "requires": true,
   "packages": {
     "": {
-      "version": "1.9.2",
+      "version": "1.9.16-beta211",
       "license": "MIT",
       "dependencies": {
         "@mi-sec/wol": "^1.0.13",
@@ -161,7 +161,7 @@
       "integrity": "sha512-PRDso2sGwF6kM75QykIesBijKSVceR6jL2G8NGYyq2XrItNC2P5/qL5XeR056GhA+Ly7JMFvJb9I312mJfmqnQ==",
       "license": "Apache-2.0",
       "dependencies": {
-        "bufferutil": "^4.0.1",
+        "bufferutil": "<=4.0.3",
         "debug": "^2.2.0",
         "es5-ext": "^0.10.50",
         "typedarray-to-buffer": "^3.1.5",
@@ -315,7 +315,7 @@
       "resolved": "https://registry.npmjs.org/websocket/-/websocket-1.0.34.tgz",
       "integrity": "sha512-PRDso2sGwF6kM75QykIesBijKSVceR6jL2G8NGYyq2XrItNC2P5/qL5XeR056GhA+Ly7JMFvJb9I312mJfmqnQ==",
       "requires": {
-        "bufferutil": "^4.0.1",
+        "bufferutil": "<=4.0.3",
         "debug": "^2.2.0",
         "es5-ext": "^0.10.50",
         "typedarray-to-buffer": "^3.1.5",

@@ -3,68 +3,42 @@ const EventEmitter = require('events').EventEmitter;
 const WebSocketClient = require('websocket').client;
 const pairing = require('./pairing.json');
 
-const SpecializedSocket = function (ws) {
-    this.send = (type, payload) => {
-        payload = payload || {};
-        const message = Object.keys(payload).reduce((acc, k) => {
-            return acc.concat([k + ':' + payload[k]]);
-        }, ['type:' + type]).join('\n') + '\n\n';
-        ws.send(message);
-    };
+const SOCKET_URL = 'ssap://com.webos.service.networkinput/getPointerInputSocket';
 
-    this.close = () => {
-        ws.close();
-    };
-};
+class SpecializedSocket {
+    constructor(ws) {
+        this.send = (type, payload) => {
+            payload = payload || {};
+            const message = Object.keys(payload).reduce((acc, k) => {
+                return acc.concat([k + ':' + payload[k]]);
+            }, ['type:' + type]).join('\n') + '\n\n';
+            ws.send(message);
+        };
+        this.close = () => {
+            ws.close();
+        };
+    }
+}
 
 class LGTV extends EventEmitter {
     constructor(config) {
         super();
-        this.config = config || {};
-        this.url = config.url || 'ws://lgwebostv:3000';
-        this.timeout = config.timeout || 15000;
-        this.reconnect = (typeof config.reconnect === 'undefined') ? 5000 : config.reconnect;
+        this.url = config.url;
+        this.timeout = config.timeout;
+        this.reconnect = config.reconnect;
         this.keyFile = config.keyFile;
-        this.clientKey = config.clientKey;
 
-        if (typeof this.clientKey === 'undefined') {
-            try {
-                this.clientKey = fs.readFileSync(this.keyFile).toString();
-            } catch (err) {}
-        } else {
-            this.clientKey = this.clientKey;
-        }
+        this.client = new WebSocketClient();
 
-        this.saveKey = this.config.saveKey || function (key, response) {
-            this.clientKey = key;
-            fs.writeFile(this.keyFile, key, response);
-        };
-
-        const wsConfig = {
-            keepalive: true,
-            keepaliveInterval: 10000,
-            dropConnectionOnKeepaliveTimeout: true,
-            keepaliveGracePeriod: 5000
-        };
-
-        const client = new WebSocketClient(wsConfig);
-        let connection = {};
-        let isPaired = false;
-        let autoReconnect = this.reconnect;
-
-        let specializedSockets = {};
-
-        let callbacks = {};
-        let cidCount = 0;
-        let cidPrefix = ('0000000' + (Math.floor(Math.random() * 0xFFFFFFFF).toString(16))).slice(-8);
-
-        function getCid() {
-            return cidPrefix + ('000' + (cidCount++).toString(16)).slice(-4);
-        }
+        this.connection = {};
+        this.specializedSockets = {};
+        this.callbacks = {};
+        this.isPaired = false;
+        this.autoReconnect = false;
 
         let lastError;
 
-        client.on('connectFailed', (error) => {
+        this.client.on('connectFailed', (error) => {
             if (lastError !== error.toString()) {
                 this.emit('error', error);
             }
@@ -72,225 +46,216 @@ class LGTV extends EventEmitter {
 
             if (this.reconnect) {
                 setTimeout(() => {
-                    if (autoReconnect) {
-                        this.connect(this.url);
-                    }
+                    const autoReconnect = this.autoReconnect ? this.connect() : false;
                 }, this.reconnect);
             }
         });
 
-        client.on('connect', (conn) => {
-            connection = conn;
+        this.client.on('connect', (connection) => {
+            this.connection = connection;
 
-            connection.on('error', (error) => {
+            this.connection.on('error', (error) => {
                 this.emit('error', error);
             });
 
-            connection.on('close', (e) => {
-                connection = {};
-                Object.keys(callbacks).forEach((cid) => {
-                    delete callbacks[cid];
+            this.connection.on('close', () => {
+                this.emit('message', 'TV Disconnected.');
+
+                Object.keys(this.callbacks).forEach((cid) => {
+                    delete this.callbacks[cid];
                 });
 
-                this.emit('close', e);
-                this.connection = false;
                 if (this.reconnect) {
                     setTimeout(() => {
-                        if (autoReconnect) {
-                            this.connect(this.url);
-                        }
+                        const autoReconnect = this.autoReconnect ? this.connect() : false;
                     }, this.reconnect);
                 }
             });
 
-            connection.on('message', (message) => {
-                this.emit('message', message);
-                let parsedMessage;
+            this.connection.on('message', (message) => {
                 if (message.type === 'utf8') {
-                    if (message.utf8Data) {
-                        try {
-                            parsedMessage = JSON.parse(message.utf8Data);
-                        } catch (err) {
-                            this.emit('error', new Error('JSON parse error ' + message.utf8Data));
-                        }
-                    }
-                    if (parsedMessage && callbacks[parsedMessage.id]) {
+                    const messageUtf8Data = message.utf8Data;
+                    const parsedMessage = messageUtf8Data ? JSON.parse(messageUtf8Data) : this.emit('message', 'JSON parse error ' + messageUtf8Data);
+
+                    if (parsedMessage && this.callbacks[parsedMessage.id]) {
                         if (parsedMessage.payload && parsedMessage.payload.subscribed) {
                             if (typeof parsedMessage.payload.muted !== 'undefined') {
-                                if (parsedMessage.payload.changed) {
-                                    parsedMessage.payload.changed.push('muted');
-                                } else {
-                                    parsedMessage.payload.changed = ['muted'];
-                                }
+                                const pushMessage = parsedMessage.payload.changed ? parsedMessage.payload.changed.push('muted') : parsedMessage.payload.changed = ['muted'];
                             }
                             if (typeof parsedMessage.payload.volume !== 'undefined') {
-                                if (parsedMessage.payload.changed) {
-                                    parsedMessage.payload.changed.push('volume');
-                                } else {
-                                    parsedMessage.payload.changed = ['volume'];
-                                }
+                                const pushMessage = parsedMessage.payload.changed ? parsedMessage.payload.changed.push('volume') : parsedMessage.payload.changed = ['volume'];
                             }
                         }
-                        callbacks[parsedMessage.id](null, parsedMessage.payload);
+                        this.callbacks[parsedMessage.id](null, parsedMessage.payload);
                     }
                 } else {
-                    this.emit('error', new Error('received non utf8 message ' + message.toString()));
+                    this.emit('message', 'Received non utf8 message ' + message.toString());
                 }
             });
 
-            isPaired = false;
-
-            this.connection = false;
-
+            this.isPaired = false;
             this.register();
         });
+    };
 
-        this.register = () => {
-            pairing['client-key'] = this.clientKey || undefined;
+    register() {
+        const pairingKey = (fs.readFileSync(this.keyFile).toString() != undefined) ? fs.readFileSync(this.keyFile).toString() : undefined;
+        pairing['client-key'] = pairingKey;
 
-            this.send('register', undefined, pairing, (err, res) => {
-                if (!err && res) {
-                    if (res['client-key']) {
-                        this.emit('connect');
-                        this.connection = true;
-                        this.saveKey(res['client-key'], (err) => {
-                            if (err) {
-                                this.emit('error', err);
-                            }
-                        });
-                        isPaired = true;
-                    } else {
-                        this.emit('prompt');
-                    }
-                } else {
-                    this.emit('error', err);
-                }
-            });
-        };
-
-        this.request = (uri, payload, response) => {
-            this.send('request', uri, payload, response);
-        };
-
-        this.subscribe = (uri, payload, response) => {
-            this.send('subscribe', uri, payload, response);
-        };
-
-        this.send = (type, uri, payload, response) => {
-            if (typeof payload === 'function') {
-                response = payload;
-                payload = {};
-            }
-
-            if (!connection.connected) {
-                if (typeof response === 'function') {
-                    response(new Error('not connected'));
-                }
-                return;
-            }
-
-            let cid = getCid();
-
-            const json = JSON.stringify({
-                id: cid,
-                type: type,
-                uri: uri,
-                payload: payload
-            });
-
-            if (typeof response === 'function') {
-                switch (type) {
-                    case 'request':
-                        callbacks[cid] = (err, res) => {
-                            delete callbacks[cid];
-                            response(err, res);
-                        };
-
-                        // Set callback timeout
-                        setTimeout(() => {
-                            if (callbacks[cid]) {
-                                response(new Error('timeout'));
-                            }
-                            delete callbacks[cid];
-                        }, this.timeout);
-                        break;
-
-                    case 'subscribe':
-                        callbacks[cid] = response;
-                        break;
-
-                    case 'register':
-                        callbacks[cid] = response;
-                        break;
-                    default:
-                        throw new Error('unknown type');
-                }
-            }
-            connection.send(json);
-        };
-
-        this.getSocket = (url, response) => {
-            if (specializedSockets[url]) {
-                response(null, specializedSockets[url]);
-                return;
-            }
-
-            this.request(url, (err, data) => {
-                if (err) {
-                    response(err);
-                    return;
-                }
-
-                const special = new WebSocketClient();
-                special
-                    .on('connect', (conn) => {
-                        conn
-                            .on('error', (error) => {
-                                this.emit('error', error);
-                            })
-                            .on('close', () => {
-                                delete specializedSockets[url];
-                            });
-
-                        specializedSockets[url] = new SpecializedSocket(conn);
-                        response(null, specializedSockets[url]);
-                    })
-                    .on('connectFailed', (error) => {
-                        this.emit('error', error);
+        this.send('register', undefined, pairing, (err, res) => {
+            if (!err && res) {
+                if (res['client-key']) {
+                    this.emit('connect', 'TV Connected.');
+                    this.saveKey(res['client-key'], (err) => {
+                        const emitMessage = err ? this.emit('error', err) : this.emit('info', 'Pairing Key Saved.');
                     });
-
-                special.connect(data.socketPath);
-            });
-        };
-
-        this.connect = (host) => {
-            autoReconnect = this.reconnect;
-
-            if (connection.connected && !isPaired) {
-                this.register();
-            } else if (!connection.connected) {
-                this.emit('connecting', host);
-                connection = {};
-                client.connect(host);
-            }
-        };
-
-        this.disconnect = () => {
-            if (connection && connection.close) {
-                connection.close();
-            }
-            autoReconnect = false;
-
-            Object.keys(specializedSockets).forEach(
-                (k) => {
-                    specializedSockets[k].close();
+                    this.isConnected = true;
+                    this.isPaired = true;
+                } else {
+                    this.emit('message', 'Waiting on TV confirmation...');
                 }
-            );
-        };
+            } else {
+                this.emit('error', err);
+            }
+        });
+    };
 
-        setTimeout(() => {
-            this.connect(this.url);
-        }, 0);
+    saveKey(key, response) {
+        fs.writeFile(this.keyFile, key, response);
+    };
+
+    request(uri, payload, cb) {
+        this.send('request', uri, payload, cb);
+    };
+
+    subscribe(uri, payload, cb) {
+        this.send('subscribe', uri, payload, cb);
+    };
+
+    send(type, uri, payload, cb) {
+        if (typeof payload === 'function') {
+            cb = payload;
+            payload = {};
+        }
+
+        if (!this.connection.connected) {
+            if (typeof cb === 'function') {
+                cb(new Error('not connected'));
+            }
+            return;
+        }
+
+        const cid = this.getCid();
+        const json = JSON.stringify({
+            id: cid,
+            type: type,
+            uri: uri,
+            payload: payload
+        });
+
+        if (typeof cb === 'function') {
+            switch (type) {
+                case 'request':
+                    this.callbacks[cid] = (err, res) => {
+                        delete this.callbacks[cid];
+                        cb(err, res);
+                    };
+
+                    // Set callback timeout
+                    setTimeout(() => {
+                        if (this.callbacks[cid]) {
+                            cb(new Error('timeout'));
+                        }
+                        delete this.callbacks[cid];
+                    }, this.timeout);
+                    break;
+
+                case 'subscribe':
+                    this.callbacks[cid] = cb;
+                    break;
+
+                case 'register':
+                    this.callbacks[cid] = cb;
+                    break;
+
+                default:
+                    throw new Error('unknown type');
+            }
+        }
+        const sendJson = this.connection.connected ? this.connection.send(json) : false;
+    };
+
+    getCid() {
+        let cidCount = 0;
+        let cidPrefix = ('0000000' + (Math.floor(Math.random() * 0xFFFFFFFF).toString(16))).slice(-8);
+        return cidPrefix + ('000' + (cidCount++).toString(16)).slice(-4);
+    }
+
+    getSocket(response) {
+        if (this.specializedSockets[SOCKET_URL]) {
+            response(null, this.specializedSockets[SOCKET_URL]);
+            return;
+        }
+
+        this.request(SOCKET_URL, (err, data) => {
+            if (err) {
+                this.emit('error', err);
+                response(err);
+                return;
+            }
+
+            const specialClient = new WebSocketClient();
+            specialClient
+                .on('connect', (connection) => {
+                    connection
+                        .on('error', (error) => {
+                            this.emit('error', error);
+                        })
+                        .on('close', () => {
+                            delete this.specializedSockets[SOCKET_URL];
+                            this.emit('message', 'Specjalized Socket Disconnected.');
+                        });
+
+                    this.specializedSockets[SOCKET_URL] = new SpecializedSocket(connection);
+                    response(null, this.specializedSockets[SOCKET_URL]);
+                    this.emit('message', 'Specjalized Socket Connected.');
+                })
+                .on('connectFailed', (error) => {
+                    this.emit('error', error);
+                });
+
+            const socketPath = data.socketPath;
+            specialClient.connect(socketPath);
+        });
+    };
+
+    connect() {
+        this.autoReconnect = true;
+        if (this.connection.connected && !this.isPaired) {
+            this.register();
+        } else if (!this.connection.connected) {
+            const options = {
+                keepalive: true,
+                keepaliveInterval: 10000,
+                dropConnectionOnKeepaliveTimeout: true,
+                keepaliveGracePeriod: 5000
+            };
+            this.emit('message', 'Connecting to ' + this.url);
+            this.client.connect(this.url, options);
+        }
+    };
+
+    disconnect() {
+        this.autoReconnect = false;
+        if (this.connection && this.connection.close) {
+            this.connection.close();
+        }
+
+        Object.keys(this.specializedSockets).forEach(
+            (k) => {
+                this.specializedSockets[k].close();
+            }
+        );
     };
 }
 module.exports = LGTV;
