@@ -247,9 +247,7 @@ class LGTV extends EventEmitter {
 
     disconnect() {
         this.autoReconnect = false;
-        if (this.connection && this.connection.close) {
-            this.connection.close();
-        }
+        this.connection.close();
 
         Object.keys(this.specializedSockets).forEach(
             (k) => {

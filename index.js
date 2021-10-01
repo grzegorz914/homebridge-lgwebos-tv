@@ -249,6 +249,7 @@ class lgwebosTvDevice {
 			this.pointerInputSocket = null;
 			this.powerState = false;
 			this.checkDeviceInfo = false;
+			this.lgtv.disconnect();
 		});
 	}
 
@@ -419,7 +420,6 @@ class lgwebosTvDevice {
 								}
 								this.muteState = true;
 							}
-							this.lgtv.disconnect();
 						}
 					}
 					this.powerState = powerState;
