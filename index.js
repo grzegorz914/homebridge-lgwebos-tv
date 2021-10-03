@@ -202,15 +202,10 @@ class lgwebosTvDevice {
 						this.connectToTv();
 					}
 				});
-			} else {
-				if (this.pointerInputSocket == null) {
-					this.connectToTvRcSocket();
-				} else {
-					if (this.checkDeviceInfo) {
-						this.getDeviceInfo();
-						this.getAndSaveInputs();
-					}
-				}
+			} else
+			if (this.checkDeviceInfo) {
+				this.getDeviceInfo();
+				this.getAndSaveInputs();
 			}
 		}.bind(this), this.refreshInterval * 1000);
 		//start prepare accessory
@@ -232,7 +227,9 @@ class lgwebosTvDevice {
 
 		this.lgtv.on('connect', (message) => {
 			this.log('Device: %s %s, Message: %s', this.host, this.name, message);
+			this.connectToTvRcSocket();
 			this.connectedToDevice = true;
+			this.checkDeviceInfo = true;
 		});
 
 		this.lgtv.on('message', (message) => {
@@ -261,7 +258,6 @@ class lgwebosTvDevice {
 			} else {
 				this.log.debug('Device: %s %s, RC Socket: %s.', this.host, this.name, sock);
 				this.pointerInputSocket = sock;
-				this.checkDeviceInfo = true;
 			}
 		});
 	}

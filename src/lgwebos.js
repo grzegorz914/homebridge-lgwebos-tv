@@ -28,13 +28,19 @@ class LGTV extends EventEmitter {
         this.reconnect = config.reconnect;
         this.keyFile = config.keyFile;
 
-        this.client = new WebSocketClient();
+        const options = {
+            keepalive: true,
+            keepaliveInterval: 10000,
+            dropConnectionOnKeepaliveTimeout: true,
+            keepaliveGracePeriod: 5000
+        };
+        this.client = new WebSocketClient(options);
 
         this.connection = {};
         this.specializedSockets = {};
         this.callbacks = {};
         this.isPaired = false;
-        this.autoReconnect = false;
+        this.autoReconnect = config.reconnect;
 
         let lastError;
 
@@ -59,12 +65,11 @@ class LGTV extends EventEmitter {
             });
 
             this.connection.on('close', () => {
-                this.emit('message', 'TV Disconnected.');
-
+                this.connection = {};
                 Object.keys(this.callbacks).forEach((cid) => {
                     delete this.callbacks[cid];
                 });
-
+                this.emit('message', 'Disconnected.');
                 if (this.reconnect) {
                     setTimeout(() => {
                         const autoReconnect = this.autoReconnect ? this.connect() : false;
@@ -79,12 +84,8 @@ class LGTV extends EventEmitter {
 
                     if (parsedMessage && this.callbacks[parsedMessage.id]) {
                         if (parsedMessage.payload && parsedMessage.payload.subscribed) {
-                            if (typeof parsedMessage.payload.muted !== 'undefined') {
-                                const pushMessage = parsedMessage.payload.changed ? parsedMessage.payload.changed.push('muted') : parsedMessage.payload.changed = ['muted'];
-                            }
-                            if (typeof parsedMessage.payload.volume !== 'undefined') {
-                                const pushMessage = parsedMessage.payload.changed ? parsedMessage.payload.changed.push('volume') : parsedMessage.payload.changed = ['volume'];
-                            }
+                            const pushMuteMessage = (typeof parsedMessage.payload.muted !== 'undefined' && parsedMessage.payload.changed) ? parsedMessage.payload.changed.push('muted') : parsedMessage.payload.changed = ['muted'];
+                            const pushVolumeMessage = (typeof parsedMessage.payload.volume !== 'undefined' && parsedMessage.payload.changed) ? parsedMessage.payload.changed.push('volume') : parsedMessage.payload.changed = ['volume'];
                         }
                         this.callbacks[parsedMessage.id](null, parsedMessage.payload);
                     }
@@ -105,12 +106,11 @@ class LGTV extends EventEmitter {
         this.send('register', undefined, pairing, (err, res) => {
             if (!err && res) {
                 if (res['client-key']) {
-                    this.emit('connect', 'TV Connected.');
                     this.saveKey(res['client-key'], (err) => {
                         const emitMessage = err ? this.emit('error', err) : this.emit('info', 'Pairing Key Saved.');
                     });
-                    this.isConnected = true;
                     this.isPaired = true;
+                    this.emit('connect', 'Connected.');
                 } else {
                     this.emit('message', 'Waiting on TV confirmation...');
                 }
@@ -182,7 +182,7 @@ class LGTV extends EventEmitter {
                     throw new Error('unknown type');
             }
         }
-        const sendJson = this.connection.connected ? this.connection.send(json) : false;
+        this.connection.send(json);
     };
 
     getCid() {
@@ -234,20 +234,17 @@ class LGTV extends EventEmitter {
         if (this.connection.connected && !this.isPaired) {
             this.register();
         } else if (!this.connection.connected) {
-            const options = {
-                keepalive: true,
-                keepaliveInterval: 10000,
-                dropConnectionOnKeepaliveTimeout: true,
-                keepaliveGracePeriod: 5000
-            };
-            this.emit('message', 'Connecting to ' + this.url);
-            this.client.connect(this.url, options);
+            //this.emit('message', 'Connecting...');
+            this.connection = {};
+            this.client.connect(this.url);
         }
     };
 
     disconnect() {
+        if (this.connection && this.connection.close) {
+            this.connection.close();
+        }
         this.autoReconnect = false;
-        this.connection.close();
 
         Object.keys(this.specializedSockets).forEach(
             (k) => {
