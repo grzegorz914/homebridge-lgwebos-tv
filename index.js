@@ -124,17 +124,12 @@ class lgwebosTvDevice {
 		//setup variables
 		this.connectedToDevice = false;
 		this.checkDeviceInfo = false;
-		this.pointerInputSocket = null;
+		this.inputSocketUrl = null;
 
-		this.inputsService = new Array();
 		this.inputsReference = new Array();
 		this.inputsName = new Array();
 		this.inputsType = new Array();
 		this.inputsMode = new Array();
-
-		this.buttonsService = new Array();
-		this.buttonsReference = new Array();
-		this.buttonsName = new Array();
 
 		this.powerState = false;
 		this.volume = 0;
@@ -168,7 +163,7 @@ class lgwebosTvDevice {
 		this.devInfoFile = prefDir + '/' + 'devInfo_' + this.host.split('.').join('');
 		this.inputsFile = prefDir + '/' + 'inputs_' + this.host.split('.').join('');
 		this.inputsNamesFile = prefDir + '/' + 'inputsNames_' + this.host.split('.').join('');
-		this.targetVisibilityInputsFile = prefDir + '/' + 'targetVisibilityInputs_' + this.host.split('.').join('');
+		this.inputsTargetVisibilityFile = prefDir + '/' + 'inputsTargetVisibility_' + this.host.split('.').join('');
 		this.channelsFile = prefDir + '/' + 'channels_' + this.host.split('.').join('');
 
 		//check if the directory exists, if not then create it
@@ -187,8 +182,8 @@ class lgwebosTvDevice {
 		if (fs.existsSync(this.inputsNamesFile) == false) {
 			fsPromises.writeFile(this.inputsNamesFile, '');
 		}
-		if (fs.existsSync(this.targetVisibilityInputsFile) == false) {
-			fsPromises.writeFile(this.targetVisibilityInputsFile, '');
+		if (fs.existsSync(this.inputsTargetVisibilityFile) == false) {
+			fsPromises.writeFile(this.inputsTargetVisibilityFile, '');
 		}
 		if (fs.existsSync(this.channelsFile) == false) {
 			fsPromises.writeFile(this.channelsFile, '');
@@ -213,7 +208,7 @@ class lgwebosTvDevice {
 	}
 
 	connectToTv() {
-		this.log.debug('Device: %s %s, connecting to TV', this.host, this.name);
+		this.log.debug('Device: %s %s, connecting to TV.', this.host, this.name);
 
 		const url = 'ws://' + this.host + ':' + WEBSOCKET_PORT || 'ws://lgwebostv:3000';
 		this.lgtv = new lgtv({
@@ -226,24 +221,24 @@ class lgwebosTvDevice {
 		this.lgtv.connect();
 
 		this.lgtv.on('connect', (message) => {
-			this.log('Device: %s %s, Message: %s', this.host, this.name, message);
+			this.log('Device: %s %s, %s', this.host, this.name, message);
 			this.connectToTvRcSocket();
 			this.connectedToDevice = true;
 			this.checkDeviceInfo = true;
 		});
 
 		this.lgtv.on('message', (message) => {
-			this.log('Device: %s %s, Message: %s', this.host, this.name, message);
+			this.log('Device: %s %s, %s', this.host, this.name, message);
 		});
 
 		this.lgtv.on('error', (error) => {
-			this.log.debug('Device: %s %s, connect error: %s', this.host, this.name, error);
+			this.log('Device: %s %s, connect error: %s', this.host, this.name, error);
 		});
 
 		this.lgtv.on('close', (message) => {
-			this.log('Device: %s %s, Message: %s', this.host, this.name, message);
+			this.log('Device: %s %s, %s', this.host, this.name, message);
 			this.connectedToDevice = false;
-			this.pointerInputSocket = null;
+			this.inputSocketUrl = null;
 			this.powerState = false;
 			this.checkDeviceInfo = false;
 			this.lgtv.disconnect();
@@ -251,13 +246,14 @@ class lgwebosTvDevice {
 	}
 
 	connectToTvRcSocket() {
-		this.log.debug('Device: %s %s, connecting to TV RC Socket', this.host, this.name);
+		this.log.debug('Device: %s %s, connecting to TV RC Socket.', this.host, this.name);
 		this.lgtv.getSocket((error, sock) => {
 			if (error) {
-				this.pointerInputSocket = null;
+				this.inputSocketUrl = null;
+				this.log('Device: %s %s, connect to TV RC Socket error: %s', this.host, this.name, error);
 			} else {
-				this.log.debug('Device: %s %s, RC Socket: %s.', this.host, this.name, sock);
-				this.pointerInputSocket = sock;
+				this.inputSocketUrl = sock;
+				this.log.debug('Device: %s %s, TV RC Socket Url: %s.', this.host, this.name, sock);
 			}
 		});
 	}
@@ -702,7 +698,7 @@ class lgwebosTvDevice {
 							command = this.switchInfoMenu ? 'MENU' : 'INFO';
 							break;
 					}
-					this.pointerInputSocket.send('button', {
+					this.inputSocketUrl.send('button', {
 						name: command
 					});
 					if (!this.disableLogInfo) {
@@ -870,7 +866,7 @@ class lgwebosTvDevice {
 					if (!this.disableLogInfo) {
 						this.log('Device: %s %s, set Power Mode Selection successful, command: %s', this.host, accessoryName, command);
 					}
-					this.pointerInputSocket.send('button', {
+					this.inputSocketUrl.send('button', {
 						name: command
 					});
 				}
@@ -886,7 +882,7 @@ class lgwebosTvDevice {
 			.setCharacteristic(Characteristic.VolumeControlType, Characteristic.VolumeControlType.ABSOLUTE);
 		this.speakerService.getCharacteristic(Characteristic.VolumeSelector)
 			.onSet(async (command) => {
-				if (this.powerState && this.pointerInputSocket) {
+				if (this.powerState && this.inputSocketUrl) {
 					switch (command) {
 						case Characteristic.VolumeSelector.INCREMENT:
 							command = 'VOLUMEUP';
@@ -898,7 +894,7 @@ class lgwebosTvDevice {
 					if (!this.disableLogInfo) {
 						this.log('Device: %s %s, set Volume Selector successful, command: %s', this.host, accessoryName, command);
 					}
-					this.pointerInputSocket.send('button', {
+					this.inputSocketUrl.send('button', {
 						name: command
 					});
 				}
@@ -1000,7 +996,7 @@ class lgwebosTvDevice {
 		const savedInputsNames = ((fs.readFileSync(this.inputsNamesFile)).length > 0) ? JSON.parse(fs.readFileSync(this.inputsNamesFile)) : {};
 		this.log.debug('Device: %s %s, read saved custom Inputs Names successful, names: %s', this.host, accessoryName, savedInputsNames)
 
-		const savedTargetVisibility = ((fs.readFileSync(this.targetVisibilityInputsFile)).length > 0) ? JSON.parse(fs.readFileSync(this.targetVisibilityInputsFile)) : {};
+		const savedTargetVisibility = ((fs.readFileSync(this.inputsTargetVisibilityFile)).length > 0) ? JSON.parse(fs.readFileSync(this.inputsTargetVisibilityFile)) : {};
 		this.log.debug('Device: %s %s, read saved Target Visibility successful, states %s', this.host, accessoryName, savedTargetVisibility);
 
 		//check available inputs and filter custom unnecessary inputs
@@ -1081,7 +1077,7 @@ class lgwebosTvDevice {
 						let newState = savedTargetVisibility;
 						newState[targetVisibilityIdentifier] = state;
 						const newTargetVisibility = JSON.stringify(newState);
-						const writeNewTargetVisibility = (targetVisibilityIdentifier != false) ? await fsPromises.writeFile(this.targetVisibilityInputsFile, newTargetVisibility) : false;
+						const writeNewTargetVisibility = (targetVisibilityIdentifier != false) ? await fsPromises.writeFile(this.inputsTargetVisibilityFile, newTargetVisibility) : false;
 						this.log.debug('Device: %s %s, Input: %s, saved target visibility state: %s', this.host, accessoryName, inputName, newTargetVisibility);
 						if (!this.disableLogInfo) {
 							this.log('Device: %s %s, Input: %s, saved target visibility state: %s', this.host, accessoryName, inputName, state ? 'HIDEN' : 'SHOWN');
@@ -1098,9 +1094,8 @@ class lgwebosTvDevice {
 			this.inputsType.push(inputType);
 			this.inputsMode.push(inputMode);
 
-			this.inputsService.push(inputService);
-			this.televisionService.addLinkedService(this.inputsService[j]);
-			accessory.addService(this.inputsService[j]);
+			this.televisionService.addLinkedService(inputService);
+			accessory.addService(inputService);
 		}
 
 		//Prepare inputs button services
@@ -1142,11 +1137,8 @@ class lgwebosTvDevice {
 						buttonService.updateCharacteristic(Characteristic.On, false);
 					}, 250);
 				});
-			this.buttonsReference.push(buttonReference);
-			this.buttonsName.push(buttonName);
 
-			this.buttonsService.push(buttonService);
-			accessory.addService(this.buttonsService[i]);
+			accessory.addService(buttonService);
 		}
 
 		this.log.debug('Device: %s %s, publishExternalAccessories.', this.host, accessoryName);

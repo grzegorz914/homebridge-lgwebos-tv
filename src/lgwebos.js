@@ -80,7 +80,7 @@ class LGTV extends EventEmitter {
             this.connection.on('message', (message) => {
                 if (message.type === 'utf8') {
                     const messageUtf8Data = message.utf8Data;
-                    const parsedMessage = messageUtf8Data ? JSON.parse(messageUtf8Data) : this.emit('message', 'JSON parse error ' + messageUtf8Data);
+                    const parsedMessage = messageUtf8Data ? JSON.parse(messageUtf8Data) : this.emit('message', 'JSON Parse Error: ' + messageUtf8Data);
 
                     if (parsedMessage && this.callbacks[parsedMessage.id]) {
                         if (parsedMessage.payload && parsedMessage.payload.subscribed) {
@@ -90,7 +90,7 @@ class LGTV extends EventEmitter {
                         this.callbacks[parsedMessage.id](null, parsedMessage.payload);
                     }
                 } else {
-                    this.emit('message', 'Received non utf8 message ' + message.toString());
+                    this.emit('message', 'Received Non utf8 Message: ' + message.toString());
                 }
             });
 
@@ -112,7 +112,7 @@ class LGTV extends EventEmitter {
                     this.isPaired = true;
                     this.emit('connect', 'Connected.');
                 } else {
-                    this.emit('message', 'Waiting on TV confirmation...');
+                    this.emit('message', 'Waiting on Aithorization Accept...');
                 }
             } else {
                 this.emit('error', err);
@@ -120,8 +120,8 @@ class LGTV extends EventEmitter {
         });
     };
 
-    saveKey(key, response) {
-        fs.writeFile(this.keyFile, key, response);
+    saveKey(key, cb) {
+        fs.writeFile(this.keyFile, key, cb);
     };
 
     request(uri, payload, cb) {
@@ -191,16 +191,16 @@ class LGTV extends EventEmitter {
         return cidPrefix + ('000' + (cidCount++).toString(16)).slice(-4);
     }
 
-    getSocket(response) {
+    getSocket(cb) {
         if (this.specializedSockets[SOCKET_URL]) {
-            response(null, this.specializedSockets[SOCKET_URL]);
+            cb(null, this.specializedSockets[SOCKET_URL]);
             return;
         }
 
         this.request(SOCKET_URL, (err, data) => {
             if (err) {
                 this.emit('error', err);
-                response(err);
+                cb(err);
                 return;
             }
 
@@ -217,7 +217,7 @@ class LGTV extends EventEmitter {
                         });
 
                     this.specializedSockets[SOCKET_URL] = new SpecializedSocket(connection);
-                    response(null, this.specializedSockets[SOCKET_URL]);
+                    cb(null, this.specializedSockets[SOCKET_URL]);
                     this.emit('message', 'Specjalized Socket Connected.');
                 })
                 .on('connectFailed', (error) => {
