@@ -114,7 +114,12 @@ Install and use [Homebridge Config UI X](https://github.com/oznu/homebridge-conf
                     "type": "APPLICATION",
                     "mode": 0
                 }
-            ],
+           ],
+           "buttons": [{
+                    "name": "HDMI 3",
+                    "reference": "com.webos.app.hdmi3"
+               }
+          ],
           "manufacturer": "Manufacturer",
           "modelName": "Model",
           "serialNumber": "Serial Number",
