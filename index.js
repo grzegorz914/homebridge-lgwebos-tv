@@ -125,6 +125,7 @@ class lgwebosTvDevice {
 		this.connectedToDevice = false;
 		this.checkDeviceInfo = false;
 		this.inputSocketUrl = null;
+		this.autoReconnect = false;
 
 		this.inputsReference = new Array();
 		this.inputsName = new Array();
@@ -189,36 +190,13 @@ class lgwebosTvDevice {
 			fsPromises.writeFile(this.channelsFile, '');
 		}
 
-		//Check device state
-		setInterval(function () {
-			if (!this.connectedToDevice) {
-				tcpp.probe(this.host, WEBSOCKET_PORT, (err, online) => {
-					if (online) {
-						this.connectToTv();
-					}
-				});
-			} else
-			if (this.checkDeviceInfo) {
-				this.getDeviceInfo();
-				this.getAndSaveInputs();
-			}
-		}.bind(this), this.refreshInterval * 1000);
-		//start prepare accessory
-		this.prepareAccessory();
-	}
-
-	connectToTv() {
-		this.log.debug('Device: %s %s, connecting to TV.', this.host, this.name);
-
 		const url = 'ws://' + this.host + ':' + WEBSOCKET_PORT || 'ws://lgwebostv:3000';
 		this.lgtv = new lgtv({
 			url: url,
-			timeout: 5000,
-			reconnect: 5000,
+			timeout: 2500,
+			reconnect: 2500,
 			keyFile: this.keyFile
 		});
-
-		this.lgtv.connect();
 
 		this.lgtv.on('connect', (message) => {
 			this.log('Device: %s %s, %s', this.host, this.name, message);
@@ -232,17 +210,36 @@ class lgwebosTvDevice {
 		});
 
 		this.lgtv.on('error', (error) => {
-			this.log('Device: %s %s, connect error: %s', this.host, this.name, error);
+			this.log('Device: %s %s, %s', this.host, this.name, error);
 		});
 
 		this.lgtv.on('close', (message) => {
 			this.log('Device: %s %s, %s', this.host, this.name, message);
+			this.lgtv.disconnect();
 			this.connectedToDevice = false;
 			this.inputSocketUrl = null;
 			this.powerState = false;
 			this.checkDeviceInfo = false;
-			this.lgtv.disconnect();
 		});
+
+		//Check device state
+		setInterval(function () {
+			if (!this.connectedToDevice) {
+				tcpp.probe(this.host, WEBSOCKET_PORT, (err, online) => {
+					if (online) {
+						this.lgtv.connect();
+					}
+				});
+			} else {
+				if (this.checkDeviceInfo) {
+					this.getDeviceInfo();
+					this.getAndSaveInputs();
+				}
+			}
+		}.bind(this), this.refreshInterval * 1000);
+
+		//start prepare accessory
+		this.prepareAccessory();
 	}
 
 	connectToTvRcSocket() {

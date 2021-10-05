@@ -27,12 +27,13 @@ class LGTV extends EventEmitter {
         this.timeout = config.timeout;
         this.reconnect = config.reconnect;
         this.keyFile = config.keyFile;
+        this.autoReconnect = false;
 
         const options = {
             keepalive: true,
-            keepaliveInterval: 10000,
+            keepaliveInterval: 5000,
             dropConnectionOnKeepaliveTimeout: true,
-            keepaliveGracePeriod: 5000
+            keepaliveGracePeriod: 2500
         };
         this.client = new WebSocketClient(options);
 
@@ -40,19 +41,15 @@ class LGTV extends EventEmitter {
         this.specializedSockets = {};
         this.callbacks = {};
         this.isPaired = false;
-        this.autoReconnect = config.reconnect;
-
-        let lastError;
 
         this.client.on('connectFailed', (error) => {
-            if (lastError !== error.toString()) {
-                this.emit('error', error);
+            if (error) {
+                //this.emit('error', 'Connect to TV Failed: ' + error);
             }
-            lastError = error.toString();
 
-            if (this.reconnect) {
+            if (this.autoReconnect) {
                 setTimeout(() => {
-                    const autoReconnect = this.autoReconnect ? this.connect() : false;
+                    const connect = this.autoReconnect ? this.connect() : false;
                 }, this.reconnect);
             }
         });
@@ -61,7 +58,7 @@ class LGTV extends EventEmitter {
             this.connection = connection;
 
             this.connection.on('error', (error) => {
-                this.emit('error', error);
+                this.emit('error', 'Connect to TV Error: ' + error);
             });
 
             this.connection.on('close', () => {
@@ -70,9 +67,10 @@ class LGTV extends EventEmitter {
                     delete this.callbacks[cid];
                 });
                 this.emit('message', 'Disconnected.');
-                if (this.reconnect) {
+
+                if (this.autoReconnect) {
                     setTimeout(() => {
-                        const autoReconnect = this.autoReconnect ? this.connect() : false;
+                        const connect = this.autoReconnect ? this.connect() : false;
                     }, this.reconnect);
                 }
             });
@@ -94,28 +92,33 @@ class LGTV extends EventEmitter {
                 }
             });
 
-            this.isPaired = false;
             this.register();
         });
+
+        setTimeout(() => {
+            const connect = this.autoReconnect ? this.connect() : false;
+        }, 50);
     };
 
     register() {
         const pairingKey = (fs.readFileSync(this.keyFile).toString() != undefined) ? fs.readFileSync(this.keyFile).toString() : undefined;
         pairing['client-key'] = pairingKey;
 
-        this.send('register', undefined, pairing, (err, res) => {
-            if (!err && res) {
+        this.send('register', undefined, pairing, (error, res) => {
+            if (!error && res) {
                 if (res['client-key']) {
-                    this.saveKey(res['client-key'], (err) => {
-                        const emitMessage = err ? this.emit('error', err) : this.emit('info', 'Pairing Key Saved.');
-                    });
+                    if (pairingKey !== res['client-key']) {
+                        this.saveKey(res['client-key'], (error) => {
+                            const emitMessage = error ? this.emit('error', error) : this.emit('message', 'Pairing Key Saved.');
+                        });
+                    }
                     this.isPaired = true;
                     this.emit('connect', 'Connected.');
                 } else {
                     this.emit('message', 'Waiting on Aithorization Accept...');
                 }
             } else {
-                this.emit('error', err);
+                this.emit('error', error);
             }
         });
     };
@@ -209,7 +212,7 @@ class LGTV extends EventEmitter {
                 .on('connect', (connection) => {
                     connection
                         .on('error', (error) => {
-                            this.emit('error', error);
+                            this.emit('error', 'Specjalized Socket Connection Error: ' + error);
                         })
                         .on('close', () => {
                             delete this.specializedSockets[SOCKET_URL];
@@ -221,7 +224,7 @@ class LGTV extends EventEmitter {
                     this.emit('message', 'Specjalized Socket Connected.');
                 })
                 .on('connectFailed', (error) => {
-                    this.emit('error', error);
+                    this.emit('error', 'Specjalized Socket Connect Error: ' + error);
                 });
 
             const socketPath = data.socketPath;
@@ -234,17 +237,16 @@ class LGTV extends EventEmitter {
         if (this.connection.connected && !this.isPaired) {
             this.register();
         } else if (!this.connection.connected) {
-            //this.emit('message', 'Connecting...');
             this.connection = {};
             this.client.connect(this.url);
         }
     };
 
     disconnect() {
-        if (this.connection && this.connection.close) {
+        this.autoReconnect = false;
+        if (this.connection) {
             this.connection.close();
         }
-        this.autoReconnect = false;
 
         Object.keys(this.specializedSockets).forEach(
             (k) => {
