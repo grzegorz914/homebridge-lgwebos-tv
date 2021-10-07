@@ -936,7 +936,6 @@ class lgwebosTvDevice {
 				}
 			});
 
-		this.televisionService.addLinkedService(this.speakerService);
 		accessory.addService(this.speakerService);
 
 		//Prepare volume service
@@ -960,8 +959,10 @@ class lgwebosTvDevice {
 					.onSet(async (state) => {
 						this.speakerService.setCharacteristic(Characteristic.Mute, !state);
 					});
+
 				accessory.addService(this.volumeService);
 			}
+
 			if (this.volumeControl == 2) {
 				this.volumeServiceFan = new Service.Fan(accessoryName + ' Volume', 'Volume');
 				this.volumeServiceFan.getCharacteristic(Characteristic.RotationSpeed)
@@ -980,6 +981,7 @@ class lgwebosTvDevice {
 					.onSet(async (state) => {
 						this.speakerService.setCharacteristic(Characteristic.Mute, !state);
 					});
+
 				accessory.addService(this.volumeServiceFan);
 			}
 		}
