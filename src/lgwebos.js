@@ -216,15 +216,15 @@ class LGTV extends EventEmitter {
                         })
                         .on('close', () => {
                             delete this.specializedSockets[SOCKET_URL];
-                            this.emit('message', 'Specjalized Socket Disconnected.');
+                            this.emit('message', 'Specialized Socket Disconnected.');
                         });
 
                     this.specializedSockets[SOCKET_URL] = new SpecializedSocket(connection);
                     cb(null, this.specializedSockets[SOCKET_URL]);
-                    this.emit('message', 'Specjalized Socket Connected.');
+                    this.emit('message', 'Specialized Socket Connected.');
                 })
                 .on('connectFailed', (error) => {
-                    this.emit('error', 'Specjalized Socket Connect Error: ' + error);
+                    this.emit('error', 'Specialized Socket Connect Error: ' + error);
                 });
 
             const socketPath = data.socketPath;
