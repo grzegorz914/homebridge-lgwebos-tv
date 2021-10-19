@@ -1,15 +1,14 @@
 {
   "name": "homebridge-lgwebos-tv",
-  "version": "1.9.18",
+  "version": "1.9.23",
   "lockfileVersion": 2,
   "requires": true,
   "packages": {
     "": {
-      "version": "1.9.18",
+      "version": "1.9.23",
       "license": "MIT",
       "dependencies": {
         "@mi-sec/wol": "^1.0.13",
-        "tcp-ping": "^0.1.1",
         "websocket": "^1.0.34"
       },
       "engines": {
@@ -126,12 +125,6 @@
         "node-gyp-build-optional": "optional.js",
         "node-gyp-build-test": "build-test.js"
       }
-    },
-    "node_modules/tcp-ping": {
-      "version": "0.1.1",
-      "resolved": "https://registry.npmjs.org/tcp-ping/-/tcp-ping-0.1.1.tgz",
-      "integrity": "sha1-At1/QrW/fXy3jVt6rO+hVf2PfAw=",
-      "license": "MIT"
     },
     "node_modules/type": {
       "version": "1.2.0",
@@ -283,11 +276,6 @@
       "version": "4.2.3",
       "resolved": "https://registry.npmjs.org/node-gyp-build/-/node-gyp-build-4.2.3.tgz",
       "integrity": "sha512-MN6ZpzmfNCRM+3t57PTJHgHyw/h4OWnZ6mR8P5j/uZtqQr46RRuDE/P+g3n0YR/AiYXeWixZZzaip77gdICfRg=="
-    },
-    "tcp-ping": {
-      "version": "0.1.1",
-      "resolved": "https://registry.npmjs.org/tcp-ping/-/tcp-ping-0.1.1.tgz",
-      "integrity": "sha1-At1/QrW/fXy3jVt6rO+hVf2PfAw="
     },
     "type": {
       "version": "1.2.0",

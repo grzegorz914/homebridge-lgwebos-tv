@@ -57,18 +57,21 @@ Install and use [Homebridge Config UI X](https://github.com/oznu/homebridge-conf
 | `name` | Here set the accessory *Name* to be displayed in *Homebridge/HomeKit*. | Required |
 | `host` | Here set the *Hsostname or Address IP* of TV. | Required |
 | `mac` | Here set the *Mac Address* of TV. | Required |
-| `refreshInterval` | Set the data refresh time in seconds, default is every 5 seconds. | Required |
-| `disableLogInfo` | If enabled, disable log info, all values and state will not be displayed in Homebridge log console. | Required |
+| `refreshInterval` | Here set the reconnect time to device in (ms), default is every 2500ms. | Required |
+| `disableLogInfo` | If enabled, disable log info, all values and state will not be displayed in Homebridge log console. | Optional |
 | `volumeControl` | Here choice what a additional volume control mode You want to use (None, Slider, Fan). | Optional |
 | `switchInfoMenu` | If enabled, `I` button change its behaviour in RC app between Menu and INFO. | Optional |
-| `getInputsFromDevice` | If `true` then the inputs and apps wil be get direct from device. | Optional |
-| `inputs.name` | Here set *Channel Name* which You want expose to the *Homebridge/HomeKit*. | Required |
-| `inputs.reference` | Here set *Input Reference*. All can be found in `homebridge_directory/lgwebosTv/inputs_xxxxxx`, where `name == title` and `reference == id`, `Live TV`, `HDMI 1`, `HDMI 2` inputs are created by default. |  Required |
-| `inputs.type` | select source input type. | Optional |
-| `inputs.mode` | select what a input mode You defined, select `Apps` if You defined some input reference, select `Live TV` if You defined channel reference. | Required |
-| `buttons.name` | Here set *Button Name* which You want expose to the *Homebridge/HomeKit*. |  Optional |
-| `buttons.reference` | Here set *Input Reference*. All can be found in `homebridge_directory/lgwebosTv/inputs_xxxxxx`, where `name == title` and `reference == id`. |  Optional |
+| `getInputsFromDevice` | If `true` then the inputs and apps wil be loaded direct from device. | Optional |
+| `filterSystemApps` | If `true` then the sysem apps wil be filtered, only if `getInputsFromDevice` is `true`. | Optional |
+| `inputs.name` | Here set own *Name* which You want expose to the *Homebridge/HomeKit*. | Required |
+| `inputs.reference` | Here set *Reference*. `Live TV`, `HDMI 1`, `HDMI 2` inputs are created by default. |  Required |
+| `inputs.type` | Here select source input type. | Required |
+| `inputs.mode` | Here select Input mode, select `Input/App` if You defined some Input/App reference, select `Live TV Channel` if You defined channel reference. | Required |
+| `buttons.name` | Here set own *Name* which You want expose to the *Homebridge/HomeKit*. |  Required |
+| `buttons.reference` | Here set *Reference*. |  Required |
+| `buttons.mode` | Here select Button mode, select `Input/App` if You defined Input/App reference, select `Live TV Channel` if You defined channel reference. | Required |
 | `manufacturer`, `modelName`, `serialNumber`, `firmwareRevision` | Free-form informational data that will be displayed in the Home.app. | Optional |
+| `reference` | All can be found in `homebridge_directory/lgwebosTv`, `inputs_xxx` file, where `reference == id`, or `channels_xxx` file, where `reference == channelId`. | Info |
 
 ```json
 {
@@ -83,6 +86,7 @@ Install and use [Homebridge Config UI X](https://github.com/oznu/homebridge-conf
             "volumeControl": 0,
             "switchInfoMenu": false,
             "getInputsFromDevice": false,
+            "filterSystemApps": false,
             "inputs": [
                 {
                     "name": "HDMI 3",
@@ -117,7 +121,8 @@ Install and use [Homebridge Config UI X](https://github.com/oznu/homebridge-conf
            ],
            "buttons": [{
                     "name": "HDMI 3",
-                    "reference": "com.webos.app.hdmi3"
+                    "reference": "com.webos.app.hdmi3",
+                    "mode": 0
                }
           ],
           "manufacturer": "Manufacturer",

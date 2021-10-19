@@ -1,9 +1,16 @@
 const fs = require('fs');
+const fsPromises = fs.promises;
 const EventEmitter = require('events').EventEmitter;
 const WebSocketClient = require('websocket').client;
 const pairing = require('./pairing.json');
 
 const SOCKET_URL = 'ssap://com.webos.service.networkinput/getPointerInputSocket';
+const SOCKET_OPTIONS = {
+    keepalive: true,
+    keepaliveInterval: 5000,
+    keepaliveGracePeriod: 3000,
+    dropConnectionOnKeepaliveTimeout: true
+};
 
 class SpecializedSocket {
     constructor(ws) {
@@ -27,15 +34,8 @@ class LGTV extends EventEmitter {
         this.timeout = config.timeout;
         this.reconnect = config.reconnect;
         this.keyFile = config.keyFile;
-        this.autoReconnect = false;
 
-        const options = {
-            keepalive: true,
-            keepaliveInterval: 5000,
-            dropConnectionOnKeepaliveTimeout: true,
-            keepaliveGracePeriod: 2500
-        };
-        this.client = new WebSocketClient(options);
+        this.client = new WebSocketClient(SOCKET_OPTIONS);
 
         this.connection = {};
         this.specializedSockets = {};
@@ -44,21 +44,19 @@ class LGTV extends EventEmitter {
 
         this.client.on('connectFailed', (error) => {
             if (error) {
-                //this.emit('error', 'Connect to TV Failed: ' + error);
+                //this.emit('error', 'Connect to TV Failed: ${error}`);
             }
 
-            if (this.autoReconnect) {
-                setTimeout(() => {
-                    const connect = this.autoReconnect ? this.connect() : false;
-                }, this.reconnect);
-            }
+            setTimeout(() => {
+                this.connect();
+            }, this.reconnect);
         });
 
         this.client.on('connect', (connection) => {
             this.connection = connection;
 
             this.connection.on('error', (error) => {
-                this.emit('error', 'Connect to TV Error: ' + error);
+                this.emit('error', `Connect to TV Error: ${error}`);
             });
 
             this.connection.on('close', () => {
@@ -68,54 +66,54 @@ class LGTV extends EventEmitter {
                 });
                 this.emit('message', 'Disconnected.');
 
-                if (this.autoReconnect) {
-                    setTimeout(() => {
-                        const connect = this.autoReconnect ? this.connect() : false;
-                    }, this.reconnect);
-                }
+                setTimeout(() => {
+                    this.connect();
+                }, this.reconnect);
             });
 
             this.connection.on('message', (message) => {
                 if (message.type === 'utf8') {
                     const messageUtf8Data = message.utf8Data;
-                    const parsedMessage = messageUtf8Data ? JSON.parse(messageUtf8Data) : this.emit('message', 'JSON Parse Error: ' + messageUtf8Data);
+                    const parsedMessage = messageUtf8Data ? JSON.parse(messageUtf8Data) : this.emit('message', `Not received UTF-8 Data: ${messageUtf8Data}`);
 
                     if (parsedMessage && this.callbacks[parsedMessage.id]) {
                         if (parsedMessage.payload && parsedMessage.payload.subscribed) {
-                            const pushMuteMessage = (typeof parsedMessage.payload.muted !== 'undefined' && parsedMessage.payload.changed) ? parsedMessage.payload.changed.push('muted') : parsedMessage.payload.changed = ['muted'];
-                            const pushVolumeMessage = (typeof parsedMessage.payload.volume !== 'undefined' && parsedMessage.payload.changed) ? parsedMessage.payload.changed.push('volume') : parsedMessage.payload.changed = ['volume'];
+                            const pushMute = (typeof parsedMessage.payload.muted !== 'undefined') ? parsedMessage.payload.changed ? parsedMessage.payload.changed.push('muted') : parsedMessage.payload.changed = ['muted'] : false;
+                            const pushVolume = (typeof parsedMessage.payload.volume !== 'undefined') ? parsedMessage.payload.changed ? parsedMessage.payload.changed.push('volume') : parsedMessage.payload.changed = ['volume'] : false;
                         }
                         this.callbacks[parsedMessage.id](null, parsedMessage.payload);
                     }
                 } else {
-                    this.emit('message', 'Received Non utf8 Message: ' + message.toString());
+                    this.emit('message', `Received non UTF-8 Data: ${message}`);
                 }
             });
 
             this.register();
         });
 
-        setTimeout(() => {
-            const connect = this.autoReconnect ? this.connect() : false;
-        }, 50);
+        this.connect();
     };
 
     register() {
-        const pairingKey = (fs.readFileSync(this.keyFile).toString() != undefined) ? fs.readFileSync(this.keyFile).toString() : undefined;
-        pairing['client-key'] = pairingKey;
+        const savedPairingKey = (fs.readFileSync(this.keyFile).toString() != undefined) ? fs.readFileSync(this.keyFile).toString() : undefined;
+        pairing['client-key'] = savedPairingKey;
 
         this.send('register', undefined, pairing, (error, res) => {
             if (!error && res) {
-                if (res['client-key']) {
-                    if (pairingKey !== res['client-key']) {
-                        this.saveKey(res['client-key'], (error) => {
-                            const emitMessage = error ? this.emit('error', error) : this.emit('message', 'Pairing Key Saved.');
-                        });
+                const pairingKey = res['client-key'];
+                if (pairingKey) {
+                    if (savedPairingKey !== pairingKey) {
+                        try {
+                            const writeKey = fsPromises.writeFile(this.keyFile, pairingKey);
+                            this.emit('message', 'Pairing Key Saved.')
+                        } catch (error) {
+                            this.emit('error', error)
+                        }
                     }
                     this.isPaired = true;
                     this.emit('connect', 'Connected.');
                 } else {
-                    this.emit('message', 'Waiting on Aithorization Accept...');
+                    this.emit('message', 'Waiting on Authorization Accept...');
                 }
             } else {
                 this.emit('error', error);
@@ -123,16 +121,42 @@ class LGTV extends EventEmitter {
         });
     };
 
-    saveKey(key, cb) {
-        fs.writeFile(this.keyFile, key, cb);
-    };
+    getSocket(cb) {
+        if (this.specializedSockets[SOCKET_URL]) {
+            cb(null, this.specializedSockets[SOCKET_URL]);
+            return;
+        }
 
-    request(uri, payload, cb) {
-        this.send('request', uri, payload, cb);
-    };
+        this.send('request', SOCKET_URL, (err, data) => {
+            if (err) {
+                this.emit('error', err);
+                cb(err);
+                return;
+            }
 
-    subscribe(uri, payload, cb) {
-        this.send('subscribe', uri, payload, cb);
+            const specialClient = new WebSocketClient(SOCKET_OPTIONS);
+            specialClient
+                .on('connect', (connection) => {
+                    connection
+                        .on('error', (error) => {
+                            this.emit('error', `Specialized Socket Connect Error: ${error}`);
+                        })
+                        .on('close', () => {
+                            delete this.specializedSockets[SOCKET_URL];
+                            this.emit('message', 'Specialized Socket Disconnected.');
+                        });
+
+                    this.specializedSockets[SOCKET_URL] = new SpecializedSocket(connection);
+                    cb(null, this.specializedSockets[SOCKET_URL]);
+                    this.emit('message', 'Specialized Socket Connected.');
+                })
+                .on('connectFailed', (error) => {
+                    this.emit('error', `Specialized Socket Connect Failed: ${error}`);
+                });
+
+            const socketPath = data.socketPath;
+            specialClient.connect(socketPath);
+        });
     };
 
     send(type, uri, payload, cb) {
@@ -194,46 +218,7 @@ class LGTV extends EventEmitter {
         return cidPrefix + ('000' + (cidCount++).toString(16)).slice(-4);
     }
 
-    getSocket(cb) {
-        if (this.specializedSockets[SOCKET_URL]) {
-            cb(null, this.specializedSockets[SOCKET_URL]);
-            return;
-        }
-
-        this.request(SOCKET_URL, (err, data) => {
-            if (err) {
-                this.emit('error', err);
-                cb(err);
-                return;
-            }
-
-            const specialClient = new WebSocketClient();
-            specialClient
-                .on('connect', (connection) => {
-                    connection
-                        .on('error', (error) => {
-                            this.emit('error', 'Specjalized Socket Connection Error: ' + error);
-                        })
-                        .on('close', () => {
-                            delete this.specializedSockets[SOCKET_URL];
-                            this.emit('message', 'Specialized Socket Disconnected.');
-                        });
-
-                    this.specializedSockets[SOCKET_URL] = new SpecializedSocket(connection);
-                    cb(null, this.specializedSockets[SOCKET_URL]);
-                    this.emit('message', 'Specialized Socket Connected.');
-                })
-                .on('connectFailed', (error) => {
-                    this.emit('error', 'Specialized Socket Connect Error: ' + error);
-                });
-
-            const socketPath = data.socketPath;
-            specialClient.connect(socketPath);
-        });
-    };
-
     connect() {
-        this.autoReconnect = true;
         if (this.connection.connected && !this.isPaired) {
             this.register();
         } else if (!this.connection.connected) {
@@ -243,7 +228,6 @@ class LGTV extends EventEmitter {
     };
 
     disconnect() {
-        this.autoReconnect = false;
         if (this.connection) {
             this.connection.close();
         }
