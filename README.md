@@ -67,10 +67,10 @@ Install and use [Homebridge Config UI X](https://github.com/oznu/homebridge-conf
 | `inputs.name` | Here set own *Name* which You want expose to the *Homebridge/HomeKit*. | Required |
 | `inputs.reference` | Here set *Reference*. `Live TV`, `HDMI 1`, `HDMI 2` inputs are created by default. |  Required |
 | `inputs.type` | Here select source input type. | Required |
-| `inputs.mode` | Here select Input mode, select `Input/App` if You defined Input/App reference, `Live TV Channel` if You defined channel reference. | Required |
+| `inputs.mode` | Here select `Input/App` if You defined Input/App reference, `Live TV Channel` if You defined channel reference. | Required |
 | `buttons.name` | Here set own *Name* which You want expose to the *Homebridge/HomeKit*. |  Required |
 | `buttons.reference` | Here set *Reference*. |  Required |
-| `buttons.mode` | Here select Button mode, select `Input/App` if You defined Input/App reference, `Live TV Channel` if You defined channel reference. | Required |
+| `buttons.mode` | Here select `Input/App` if You defined Input/App reference, `Live TV Channel` if You defined channel reference. | Required |
 | `manufacturer`, `modelName`, `serialNumber`, `firmwareRevision` | Free-form informational data that will be displayed in the Home.app. | Optional |
 | `reference` | All can be found in `homebridge_directory/lgwebosTv`, `inputs_xxx` file, where `reference == id`, or `channels_xxx` file, where `reference == channelId`. | Info |
 
