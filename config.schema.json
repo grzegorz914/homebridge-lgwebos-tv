@@ -33,7 +33,7 @@
               "required": true
             },
             "refreshInterval": {
-              "title": "Reconnect time (sec)",
+              "title": "Reconnect time",
               "type": "integer",
               "default": 2500,
               "minimum": 0,
@@ -49,7 +49,7 @@
               "required": false
             },
             "volumeControl": {
-              "title": "Volume control mode",
+              "title": "Volume control",
               "type": "integer",
               "minimum": 0,
               "maximum": 2,
