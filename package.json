@@ -37,12 +37,9 @@
   },
   "keywords": [
     "homebridge",
-    "homebridge-plugin",
-    "HomeKit",
-    "homebridge-lgwebos-tv",
-    "webOS",
-    "LGwebOS",
-    "LG"
+    "homekit",
+    "webos",
+    "lg"
   ],
   "contributors": [],
   "scripts": {
