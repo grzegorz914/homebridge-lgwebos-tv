@@ -107,22 +107,20 @@ Install and use [Homebridge Config UI X](https://github.com/oznu/homebridge-conf
                     "mode": 0
                 },
                 {
-                    "name": "YouTube",
-                    "reference": "youtube.leanback.v4",
-                    "type": "APPLICATION",
-                    "mode": 0
-                },
-                {
-                    "name": "LG Store",
-                    "reference": "com.webos.app.discovery",
-                    "type": "APPLICATION",
-                    "mode": 0
+                    "name": "BBC ONE HD",
+                    "reference": "1_45_101_101_16521_17540_9018",
+                    "mode": 1
                 }
            ],
            "buttons": [{
                     "name": "HDMI 3",
                     "reference": "com.webos.app.hdmi3",
                     "mode": 0
+               },
+               {
+                    "name": "BBC ONE HD",
+                    "reference": "1_45_101_101_16521_17540_9018",
+                    "mode": 1
                }
           ],
           "manufacturer": "Manufacturer",
