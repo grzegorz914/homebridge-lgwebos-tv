@@ -162,7 +162,7 @@ class lgwebosTvDevice {
 
 		//setup variables
 		this.connectedToDevice = false;
-		this.inputSocketUrl = null;
+		this.inputSocket = null;
 
 		this.inputsReference = new Array();
 		this.inputsName = new Array();
@@ -203,14 +203,28 @@ class lgwebosTvDevice {
 		this.inputsTargetVisibilityFile = prefDir + '/' + 'inputsTargetVisibility_' + this.host.split('.').join('');
 		this.channelsFile = prefDir + '/' + 'channels_' + this.host.split('.').join('');
 
-		//check required directory and files
-		const dir = fs.existsSync(prefDir) ? false : fsPromises.mkdir(prefDir)
-		const keyFile = fs.existsSync(this.keyFile) ? false : fsPromises.mkdir(this.keyFile, '')
-		const devInfoFile = fs.existsSync(this.devInfoFile) ? false : fsPromises.mkdir(this.devInfoFile, '')
-		const inputsFile = fs.existsSync(this.inputsFile) ? false : fsPromises.mkdir(this.inputsFile, '')
-		const inputsNamesFile = fs.existsSync(this.inputsNamesFile) ? false : fsPromises.mkdir(this.inputsNamesFile, '')
-		const inputsTargetVisibilityFile = fs.existsSync(this.inputsTargetVisibilityFile) ? false : fsPromises.mkdir(this.inputsTargetVisibilityFile, '')
-		const channelsFile = fs.existsSync(this.channelsFile) ? false : fsPromises.mkdir(this.channelsFile, '')
+		//check if the directory exists, if not then create it
+		if (fs.existsSync(prefDir) == false) {
+			fsPromises.mkdir(prefDir);
+		}
+		if (fs.existsSync(this.keyFile) == false) {
+			fsPromises.writeFile(this.keyFile, '');
+		}
+		if (fs.existsSync(this.devInfoFile) == false) {
+			fsPromises.writeFile(this.devInfoFile, '');
+		}
+		if (fs.existsSync(this.inputsFile) == false) {
+			fsPromises.writeFile(this.inputsFile, '');
+		}
+		if (fs.existsSync(this.inputsNamesFile) == false) {
+			fsPromises.writeFile(this.inputsNamesFile, '');
+		}
+		if (fs.existsSync(this.inputsTargetVisibilityFile) == false) {
+			fsPromises.writeFile(this.inputsTargetVisibilityFile, '');
+		}
+		if (fs.existsSync(this.channelsFile) == false) {
+			fsPromises.writeFile(this.channelsFile, '');
+		}
 
 		//prepare lgtv socket connection
 		const url = 'ws://' + this.host + ':' + WEBSOCKET_PORT || API_URL.WsUrl;
@@ -221,21 +235,21 @@ class lgwebosTvDevice {
 			keyFile: this.keyFile
 		});
 
-		this.lgtv.on('connect', (message) => {
+		this.lgtv.on('connect', async (message) => {
 			this.log('Device: %s %s, %s', this.host, this.name, message);
-			this.lgtv.getSocket((error, sock) => {
-				if (error) {
-					this.inputSocketUrl = null;
-				} else {
-					this.log.debug('Device: %s %s, TV RC Socket Url: %s.', this.host, this.name, sock);
-					this.connectedToDevice = true;
-					this.inputSocketUrl = sock;
-					this.getDeviceInfo();
-					this.getAndSaveInputs();
-					this.getAndSaveChannels();
-					this.updateDeviceState();
-				}
-			});
+			this.connectedToDevice = true;
+			this.getDeviceInfo();
+			this.getAndSaveInputs();
+			this.getAndSaveChannels();
+			this.updateDeviceState();
+			try {
+				const socketData = await this.lgtv.getSocket();
+				this.inputSocket = socketData;
+				this.log.debug('Device: %s %s, debug socketData: %s.', this.host, this.name, socketData);
+			} catch (error) {
+				this.log.debug('Device: %s %s, socketData error: %s', this.host, this.name, error);
+				this.inputSocket = null;
+			};
 		});
 
 		this.lgtv.on('message', (message) => {
@@ -250,7 +264,7 @@ class lgwebosTvDevice {
 		this.lgtv.on('close', (message) => {
 			this.log('Device: %s %s, %s', this.host, this.name, message);
 			this.connectedToDevice = false;
-			this.inputSocketUrl = null;
+			this.inputSocket = null;
 			this.powerState = false;
 		});
 
@@ -456,16 +470,14 @@ class lgwebosTvDevice {
 
 					const currentInputIdentifier = (this.inputsReference.indexOf(inputReference) >= 0) ? this.inputsReference.indexOf(inputReference) : this.inputIdentifier;
 					const inputIdentifier = this.setStartInput ? this.setStartInputIdentifier : currentInputIdentifier;
-					const inputMode = this.inputsMode[inputIdentifier];
 
-					if (this.televisionService && inputMode == 0) {
+					if (this.televisionService) {
 						const setUpdateCharacteristic = this.setStartInput ? this.televisionService.setCharacteristic(Characteristic.ActiveIdentifier, inputIdentifier) :
 							this.televisionService.updateCharacteristic(Characteristic.ActiveIdentifier, inputIdentifier);
 
 						this.setStartInput = (currentInputIdentifier == inputIdentifier) ? false : true;
 						this.inputReference = inputReference;
 						this.inputIdentifier = inputIdentifier;
-						this.inputMode = inputMode;
 					}
 				}
 			});
@@ -477,23 +489,21 @@ class lgwebosTvDevice {
 					this.log.debug('Device: %s %s, debug current Channel response: %s', this.host, this.name, response);
 
 					const channelName = response.channelName;
-					const channelReference = response.channelId;
 					const channelNumber = response.channelNumber;
+					const channelReference = response.channelId;
 
 					const currentInputIdentifier = (this.inputsReference.indexOf(channelReference) >= 0) ? this.inputsReference.indexOf(channelReference) : this.inputIdentifier;
 					const inputIdentifier = this.setStartInput ? this.setStartInputIdentifier : currentInputIdentifier;
-					const inputMode = this.inputsMode[inputIdentifier];
 
-					if (this.televisionService && inputMode == 1) {
+					if (this.televisionService) {
 						const setUpdateCharacteristic = this.setStartInput ? this.televisionService.setCharacteristic(Characteristic.ActiveIdentifier, inputIdentifier) :
 							this.televisionService.updateCharacteristic(Characteristic.ActiveIdentifier, inputIdentifier);
 
 						this.setStartInput = (currentInputIdentifier == inputIdentifier) ? false : true;
 						this.channelName = channelName;
-						this.inputReference = channelReference;
 						this.channelNumber = channelNumber;
+						this.inputReference = channelReference;
 						this.inputIdentifier = inputIdentifier;
-						this.inputMode = inputMode;
 					}
 				}
 			});
@@ -624,21 +634,17 @@ class lgwebosTvDevice {
 
 		//Prepare television service 
 		this.log.debug('prepareTelevisionService');
-		this.televisionService = new Service.Television(accessoryName, 'Television');
+		this.televisionService = new Service.Television(`${accessoryName} Television`, 'Television');
 		this.televisionService.setCharacteristic(Characteristic.ConfiguredName, accessoryName);
 		this.televisionService.setCharacteristic(Characteristic.SleepDiscoveryMode, Characteristic.SleepDiscoveryMode.ALWAYS_DISCOVERABLE);
 
 		this.televisionService.getCharacteristic(Characteristic.Active)
 			.onGet(async () => {
-				try {
-					const state = this.powerState;
-					if (!this.disableLogInfo) {
-						this.log('Device: %s %s, get Power state successfull, state: %s', this.host, accessoryName, state ? 'ON' : 'OFF');
-					}
-					return state;
-				} catch (error) {
-					this.log.error('Device: %s %s, get Power state error: %s', this.host, accessoryName, error);
-				};
+				const state = this.powerState;
+				if (!this.disableLogInfo) {
+					this.log('Device: %s %s, get Power state successfull, state: %s', this.host, accessoryName, state ? 'ON' : 'OFF');
+				}
+				return state;
 			})
 			.onSet(async (state) => {
 				try {
@@ -659,10 +665,10 @@ class lgwebosTvDevice {
 
 		this.televisionService.getCharacteristic(Characteristic.ActiveIdentifier)
 			.onGet(async () => {
-				const inputName = this.inputName;
-				const inputReference = this.inputReference;
-				const inputMode = this.inputMode;
 				const inputIdentifier = this.inputIdentifier;
+				const inputName = this.inputsName[inputIdentifier];
+				const inputReference = this.inputsReference[inputIdentifier];
+				const inputMode = this.inputsMode[inputIdentifier];
 				if (!this.disableLogInfo) {
 					this.log('Device: %s %s, get %s successful, name: %s, reference %s', this.host, accessoryName, inputMode == 0 ? 'Input' : 'Channel', inputName, inputReference);
 				}
@@ -694,55 +700,53 @@ class lgwebosTvDevice {
 
 		this.televisionService.getCharacteristic(Characteristic.RemoteKey)
 			.onSet(async (command) => {
-				if (this.powerState) {
-					switch (command) {
-						case Characteristic.RemoteKey.REWIND:
-							command = 'REWIND';
-							break;
-						case Characteristic.RemoteKey.FAST_FORWARD:
-							command = 'FASTFORWARD';
-							break;
-						case Characteristic.RemoteKey.NEXT_TRACK:
-							command = 'MENU';
-							break;
-						case Characteristic.RemoteKey.PREVIOUS_TRACK:
-							command = 'MENU';
-							break;
-						case Characteristic.RemoteKey.ARROW_UP:
-							command = 'UP';
-							break;
-						case Characteristic.RemoteKey.ARROW_DOWN:
-							command = 'DOWN';
-							break;
-						case Characteristic.RemoteKey.ARROW_LEFT:
-							command = 'LEFT';
-							break;
-						case Characteristic.RemoteKey.ARROW_RIGHT:
-							command = 'RIGHT';
-							break;
-						case Characteristic.RemoteKey.SELECT:
-							command = 'ENTER';
-							break;
-						case Characteristic.RemoteKey.BACK:
-							command = 'BACK';
-							break;
-						case Characteristic.RemoteKey.EXIT:
-							command = 'EXIT';
-							break;
-						case Characteristic.RemoteKey.PLAY_PAUSE:
-							command = this.mediaState ? 'PLAY' : 'PAUSE';
-							this.mediaState = !this.mediaState;
-						case Characteristic.RemoteKey.INFORMATION:
-							command = this.switchInfoMenu ? 'MENU' : 'INFO';
-							break;
-					}
-					const payload = {
-						name: command
-					}
-					this.inputSocketUrl.send('button', payload);
-					if (!this.disableLogInfo) {
-						this.log('Device: %s %s, set Remote Key successful, command: %s', this.host, accessoryName, command);
-					}
+				switch (command) {
+					case Characteristic.RemoteKey.REWIND:
+						command = 'REWIND';
+						break;
+					case Characteristic.RemoteKey.FAST_FORWARD:
+						command = 'FASTFORWARD';
+						break;
+					case Characteristic.RemoteKey.NEXT_TRACK:
+						command = 'MENU';
+						break;
+					case Characteristic.RemoteKey.PREVIOUS_TRACK:
+						command = 'MENU';
+						break;
+					case Characteristic.RemoteKey.ARROW_UP:
+						command = 'UP';
+						break;
+					case Characteristic.RemoteKey.ARROW_DOWN:
+						command = 'DOWN';
+						break;
+					case Characteristic.RemoteKey.ARROW_LEFT:
+						command = 'LEFT';
+						break;
+					case Characteristic.RemoteKey.ARROW_RIGHT:
+						command = 'RIGHT';
+						break;
+					case Characteristic.RemoteKey.SELECT:
+						command = 'ENTER';
+						break;
+					case Characteristic.RemoteKey.BACK:
+						command = 'BACK';
+						break;
+					case Characteristic.RemoteKey.EXIT:
+						command = 'EXIT';
+						break;
+					case Characteristic.RemoteKey.PLAY_PAUSE:
+						command = this.mediaState ? 'PLAY' : 'PAUSE';
+						this.mediaState = !this.mediaState;
+					case Characteristic.RemoteKey.INFORMATION:
+						command = this.switchInfoMenu ? 'MENU' : 'INFO';
+						break;
+				}
+				const payload = {
+					name: command
+				}
+				const setCommand = (this.powerState && this.inputSocket) ? this.inputSocket.send('button', payload) : false;
+				if (!this.disableLogInfo) {
+					this.log('Device: %s %s, set Remote Key successful, command: %s', this.host, accessoryName, command);
 				}
 			});
 
@@ -793,7 +797,7 @@ class lgwebosTvDevice {
 				//0 - PLAY, 1 - PAUSE, 2 - STOP
 				const value = 2;
 				if (!this.disableLogInfo) {
-					this.log('Device: %s %s, get target Media state successful: %s', this.host, accessoryName, value);
+					this.log('Device: %s %s, get Target Media state successful: %s', this.host, accessoryName, value);
 				}
 				return value;
 			})
@@ -864,22 +868,20 @@ class lgwebosTvDevice {
 
 		this.televisionService.getCharacteristic(Characteristic.PowerModeSelection)
 			.onSet(async (command) => {
-				if (this.powerState) {
-					switch (command) {
-						case Characteristic.PowerModeSelection.SHOW:
-							command = this.switchInfoMenu ? 'MENU' : 'INFO';
-							break;
-						case Characteristic.PowerModeSelection.HIDE:
-							command = 'BACK';
-							break;
-					}
-					const payload = {
-						name: command
-					}
-					this.inputSocketUrl.send('button', payload);
-					if (!this.disableLogInfo) {
-						this.log('Device: %s %s, set Power Mode Selection successful, command: %s', this.host, accessoryName, command);
-					}
+				switch (command) {
+					case Characteristic.PowerModeSelection.SHOW:
+						command = this.switchInfoMenu ? 'MENU' : 'INFO';
+						break;
+					case Characteristic.PowerModeSelection.HIDE:
+						command = 'BACK';
+						break;
+				}
+				const payload = {
+					name: command
+				}
+				const setCommand = (this.powerState && this.inputSocket) ? this.inputSocket.send('button', payload) : false;
+				if (!this.disableLogInfo) {
+					this.log('Device: %s %s, set Power Mode Selection successful, command: %s', this.host, accessoryName, command);
 				}
 			});
 
@@ -887,28 +889,26 @@ class lgwebosTvDevice {
 
 		//Prepare speaker service
 		this.log.debug('prepareSpeakerService');
-		this.speakerService = new Service.TelevisionSpeaker(accessoryName, 'Speaker');
+		this.speakerService = new Service.TelevisionSpeaker(`${accessoryName} Speaker`, 'Speaker');
 		this.speakerService
 			.setCharacteristic(Characteristic.Active, Characteristic.Active.ACTIVE)
 			.setCharacteristic(Characteristic.VolumeControlType, Characteristic.VolumeControlType.ABSOLUTE);
 		this.speakerService.getCharacteristic(Characteristic.VolumeSelector)
 			.onSet(async (command) => {
-				if (this.powerState && this.inputSocketUrl) {
-					switch (command) {
-						case Characteristic.VolumeSelector.INCREMENT:
-							command = 'VOLUMEUP';
-							break;
-						case Characteristic.VolumeSelector.DECREMENT:
-							command = 'VOLUMEDOWN';
-							break;
-					}
-					const payload = {
-						name: command
-					}
-					this.inputSocketUrl.send('button', payload);
-					if (!this.disableLogInfo) {
-						this.log('Device: %s %s, set Volume Selector successful, command: %s', this.host, accessoryName, command);
-					}
+				switch (command) {
+					case Characteristic.VolumeSelector.INCREMENT:
+						command = 'VOLUMEUP';
+						break;
+					case Characteristic.VolumeSelector.DECREMENT:
+						command = 'VOLUMEDOWN';
+						break;
+				}
+				const payload = {
+					name: command
+				}
+				const setCommand = (this.powerState && this.inputSocket) ? this.inputSocket.send('button', payload) : false;
+				if (!this.disableLogInfo) {
+					this.log('Device: %s %s, set Volume Selector successful, command: %s', this.host, accessoryName, command);
 				}
 			});
 
@@ -916,7 +916,7 @@ class lgwebosTvDevice {
 			.onGet(async () => {
 				const volume = this.volume;
 				if (!this.disableLogInfo) {
-					this.log('Device: %s %s, get current Volume level successful: %s', this.host, accessoryName, volume);
+					this.log('Device: %s %s, get Volume level successful: %s', this.host, accessoryName, volume);
 				}
 				return volume;
 			})
@@ -929,7 +929,7 @@ class lgwebosTvDevice {
 				}
 				this.lgtv.send('request', API_URL.SetVolume, payload);
 				if (!this.disableLogInfo) {
-					this.log('Device: %s %s, set new Volume level successful: %s', this.host, accessoryName, volume);
+					this.log('Device: %s %s, set Volume level successful: %s', this.host, accessoryName, volume);
 				}
 			});
 
@@ -937,7 +937,7 @@ class lgwebosTvDevice {
 			.onGet(async () => {
 				const state = this.powerState ? this.muteState : true;
 				if (!this.disableLogInfo) {
-					this.log('Device: %s %s, get current Mute state successful: %s', this.host, accessoryName, state ? 'ON' : 'OFF');
+					this.log('Device: %s %s, get Mute state successful: %s', this.host, accessoryName, state ? 'ON' : 'OFF');
 				}
 				return state;
 			})
@@ -948,7 +948,7 @@ class lgwebosTvDevice {
 					}
 					this.lgtv.send('request', API_URL.SetMute, payload);
 					if (!this.disableLogInfo) {
-						this.log('Device: %s %s, set new Mute state successful: %s', this.host, accessoryName, state ? 'ON' : 'OFF');
+						this.log('Device: %s %s, set Mute state successful: %s', this.host, accessoryName, state ? 'ON' : 'OFF');
 					}
 				}
 			});
@@ -959,7 +959,7 @@ class lgwebosTvDevice {
 		if (this.volumeControl >= 1) {
 			this.log.debug('prepareVolumeService');
 			if (this.volumeControl == 1) {
-				this.volumeService = new Service.Lightbulb(accessoryName + ' Volume', 'Volume');
+				this.volumeService = new Service.Lightbulb(`${accessoryName} Volume`, 'Volume');
 				this.volumeService.getCharacteristic(Characteristic.Brightness)
 					.onGet(async () => {
 						const volume = this.volume;
@@ -981,7 +981,7 @@ class lgwebosTvDevice {
 			}
 
 			if (this.volumeControl == 2) {
-				this.volumeServiceFan = new Service.Fan(accessoryName + ' Volume', 'Volume');
+				this.volumeServiceFan = new Service.Fan(`${accessoryName} Volume`, 'Volume');
 				this.volumeServiceFan.getCharacteristic(Characteristic.RotationSpeed)
 					.onGet(async () => {
 						const volume = this.volume;
@@ -1007,7 +1007,7 @@ class lgwebosTvDevice {
 			//Backlight
 			if (this.backlightControl) {
 				this.log.debug('prepareBacklightService');
-				this.backlightService = new Service.Lightbulb(accessoryName + ' Backlight', 'Backlight');
+				this.backlightService = new Service.Lightbulb(`${accessoryName} Backlight`, 'Backlight');
 				this.backlightService.getCharacteristic(Characteristic.Brightness)
 					.onGet(async () => {
 						const value = this.backlight;
@@ -1041,7 +1041,7 @@ class lgwebosTvDevice {
 			//Brightness
 			if (this.brightnessControl) {
 				this.log.debug('prepareBrightnessService');
-				this.brightnessService = new Service.Lightbulb(accessoryName + ' Brightness', 'Brightness');
+				this.brightnessService = new Service.Lightbulb(`${accessoryName} Brightness`, 'Brightness');
 				this.brightnessService.getCharacteristic(Characteristic.Brightness)
 					.onGet(async () => {
 						const value = this.brightness;
@@ -1075,7 +1075,7 @@ class lgwebosTvDevice {
 			//Contrast
 			if (this.contrastControl) {
 				this.log.debug('prepareContrastService');
-				this.contrastService = new Service.Lightbulb(accessoryName + ' Contrast', 'Contrast');
+				this.contrastService = new Service.Lightbulb(`${accessoryName} Contrast`, 'Contrast');
 				this.contrastService.getCharacteristic(Characteristic.Brightness)
 					.onGet(async () => {
 						const value = this.contrast;
@@ -1109,7 +1109,7 @@ class lgwebosTvDevice {
 			//Color
 			if (this.colorControl) {
 				this.log.debug('prepareColorService');
-				this.colorService = new Service.Lightbulb(accessoryName + ' Color', 'Color');
+				this.colorService = new Service.Lightbulb(`${accessoryName} Color`, 'Color');
 				this.colorService.getCharacteristic(Characteristic.Brightness)
 					.onGet(async () => {
 						const value = this.color;
@@ -1149,7 +1149,7 @@ class lgwebosTvDevice {
 					const pictureModeName = pictureModes[i].name;
 					const pictureModeReference = pictureModes[i].reference;
 
-					this.pictureModeService = new Service.Switch(accessoryName + ' ' + pictureModeName, 'Picture Mode' + i);
+					this.pictureModeService = new Service.Switch(`${accessoryName} ${pictureModeName}`, 'Picture Mode' + i);
 					this.pictureModeService.getCharacteristic(Characteristic.On)
 						.onGet(async () => {
 							const state = false;
@@ -1217,7 +1217,7 @@ class lgwebosTvDevice {
 			const filterApp6 = reference != 'com.webos.app.softwareupdate';
 			const filterApp7 = reference != 'google.assistant';
 
-			const push = this.filterSystemApps ? (filterApp && filterApp1 && filterApp2 && filterApp3 && filterApp4 && filterApp5 && filterApp6 && filterApp7) ? inputsArr.push(allInputs[i]) : false : inputsArr.push(allInputs[i]);
+			const push = (this.getInputsFromDevice && this.filterSystemApps) ? (filterApp && filterApp1 && filterApp2 && filterApp3 && filterApp4 && filterApp5 && filterApp6 && filterApp7) ? inputsArr.push(allInputs[i]) : false : inputsArr.push(allInputs[i]);
 		}
 
 		//check available inputs and possible inputs count (max 94)
@@ -1245,7 +1245,7 @@ class lgwebosTvDevice {
 			const currentVisibility = (savedTargetVisibility[inputReference] != undefined) ? savedTargetVisibility[inputReference] : 0;
 			const targetVisibility = currentVisibility;
 
-			const inputService = new Service.InputSource(accessoryName, 'Input ' + j);
+			const inputService = new Service.InputSource(inputName, 'Input ' + j);
 			inputService
 				.setCharacteristic(Characteristic.Identifier, j)
 				.setCharacteristic(Characteristic.ConfiguredName, inputName)
@@ -1318,7 +1318,7 @@ class lgwebosTvDevice {
 			//get button mode
 			const buttonMode = buttons[i].mode;
 
-			const buttonService = new Service.Switch(accessoryName + ' ' + buttonName, 'Button ' + i);
+			const buttonService = new Service.Switch(`${accessoryName} ${buttonName}`, 'Button ' + i);
 			buttonService.getCharacteristic(Characteristic.On)
 				.onGet(async () => {
 					const state = false;

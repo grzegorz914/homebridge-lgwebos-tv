@@ -42,54 +42,49 @@ class LGTV extends EventEmitter {
         this.callbacks = {};
         this.isPaired = false;
 
-        this.client.on('connectFailed', (error) => {
-            if (error) {
-                //this.emit('error', 'Connect to TV Failed: ${error}`);
-            }
-
-            setTimeout(() => {
-                this.connect();
-            }, this.reconnect);
-        });
-
         this.client.on('connect', (connection) => {
-            this.connection = connection;
+                this.connection = connection;
 
-            this.connection.on('error', (error) => {
-                this.emit('error', `Connect to TV Error: ${error}`);
-            });
+                this.connection.on('error', (error) => {
+                        this.emit('error', `Connect to TV Error: ${error}`);
+                    })
+                    .on('close', () => {
+                        this.connection = {};
+                        Object.keys(this.callbacks).forEach((cid) => {
+                            delete this.callbacks[cid];
+                        });
+                        this.emit('message', 'Disconnected.');
 
-            this.connection.on('close', () => {
-                this.connection = {};
-                Object.keys(this.callbacks).forEach((cid) => {
-                    delete this.callbacks[cid];
-                });
-                this.emit('message', 'Disconnected.');
+                        setTimeout(() => {
+                            this.connect();
+                        }, this.reconnect);
+                    })
+                    .on('message', (message) => {
+                        if (message.type === 'utf8') {
+                            const messageUtf8Data = message.utf8Data;
+                            const parsedMessage = messageUtf8Data ? JSON.parse(messageUtf8Data) : this.emit('message', `Not received UTF-8 Data: ${messageUtf8Data}`);
+
+                            if (parsedMessage && this.callbacks[parsedMessage.id]) {
+                                if (parsedMessage.payload && parsedMessage.payload.subscribed) {
+                                    const pushMute = (typeof parsedMessage.payload.muted !== 'undefined') ? parsedMessage.payload.changed ? parsedMessage.payload.changed.push('muted') : parsedMessage.payload.changed = ['muted'] : false;
+                                    const pushVolume = (typeof parsedMessage.payload.volume !== 'undefined') ? parsedMessage.payload.changed ? parsedMessage.payload.changed.push('volume') : parsedMessage.payload.changed = ['volume'] : false;
+                                }
+                                this.callbacks[parsedMessage.id](null, parsedMessage.payload);
+                            }
+                        } else {
+                            this.emit('message', `Received non UTF-8 Data: ${message}`);
+                        }
+                    });
+
+                this.register();
+            })
+            .on('connectFailed', (error) => {
+                //this.emit('error', 'Connect to TV Failed: ${error}`);
 
                 setTimeout(() => {
                     this.connect();
                 }, this.reconnect);
             });
-
-            this.connection.on('message', (message) => {
-                if (message.type === 'utf8') {
-                    const messageUtf8Data = message.utf8Data;
-                    const parsedMessage = messageUtf8Data ? JSON.parse(messageUtf8Data) : this.emit('message', `Not received UTF-8 Data: ${messageUtf8Data}`);
-
-                    if (parsedMessage && this.callbacks[parsedMessage.id]) {
-                        if (parsedMessage.payload && parsedMessage.payload.subscribed) {
-                            const pushMute = (typeof parsedMessage.payload.muted !== 'undefined') ? parsedMessage.payload.changed ? parsedMessage.payload.changed.push('muted') : parsedMessage.payload.changed = ['muted'] : false;
-                            const pushVolume = (typeof parsedMessage.payload.volume !== 'undefined') ? parsedMessage.payload.changed ? parsedMessage.payload.changed.push('volume') : parsedMessage.payload.changed = ['volume'] : false;
-                        }
-                        this.callbacks[parsedMessage.id](null, parsedMessage.payload);
-                    }
-                } else {
-                    this.emit('message', `Received non UTF-8 Data: ${message}`);
-                }
-            });
-
-            this.register();
-        });
 
         this.connect();
     };
@@ -116,46 +111,51 @@ class LGTV extends EventEmitter {
                     this.emit('message', 'Waiting on Authorization Accept...');
                 }
             } else {
-                this.emit('error', error);
+                this.emit('error', `Register Error: ${error}`);
             }
         });
     };
 
-    getSocket(cb) {
-        if (this.specializedSockets[SOCKET_URL]) {
-            cb(null, this.specializedSockets[SOCKET_URL]);
-            return;
-        }
-
-        this.send('request', SOCKET_URL, (err, data) => {
-            if (err) {
-                this.emit('error', err);
-                cb(err);
-                return;
+    getSocket() {
+        return new Promise((resolve, reject) => {
+            if (this.specializedSockets[SOCKET_URL]) {
+                resolve(this.specializedSockets[SOCKET_URL]);
             }
 
-            const specialClient = new WebSocketClient(SOCKET_OPTIONS);
-            specialClient
-                .on('connect', (connection) => {
-                    connection
-                        .on('error', (error) => {
-                            this.emit('error', `Specialized Socket Connect Error: ${error}`);
-                        })
-                        .on('close', () => {
-                            delete this.specializedSockets[SOCKET_URL];
-                            this.emit('message', 'Specialized Socket Disconnected.');
-                        });
+            this.send('request', SOCKET_URL, (err, data) => {
+                if (err) {
+                    this.emit('error', `Send Request Error: ${err}`);
+                    reject(err);
+                    return;
+                }
 
-                    this.specializedSockets[SOCKET_URL] = new SpecializedSocket(connection);
-                    cb(null, this.specializedSockets[SOCKET_URL]);
-                    this.emit('message', 'Specialized Socket Connected.');
-                })
-                .on('connectFailed', (error) => {
-                    this.emit('error', `Specialized Socket Connect Failed: ${error}`);
-                });
+                const specialClient = new WebSocketClient(SOCKET_OPTIONS);
+                specialClient
+                    .on('connect', (connection) => {
+                        connection
+                            .on('error', (error) => {
+                                this.emit('error', `Specialized Socket Connect Error: ${error}`);
+                            })
+                            .on('close', () => {
+                                delete this.specializedSockets[SOCKET_URL];
+                                this.emit('message', 'Specialized Socket Disconnected.');
+                            });
 
-            const socketPath = data.socketPath;
-            specialClient.connect(socketPath);
+                        this.specializedSockets[SOCKET_URL] = new SpecializedSocket(connection);
+                        resolve(this.specializedSockets[SOCKET_URL]);
+                        this.emit('message', 'Specialized Socket Connected.');
+                    })
+                    .on('connectFailed', (error) => {
+                        this.emit('error', `Specialized Socket Connect Failed: ${error}`);
+
+                        setTimeout(() => {
+                            this.reconnectSocket();
+                        }, this.reconnect);
+                    });
+
+                const socketPath = data.socketPath;
+                specialClient.connect(socketPath);
+            });
         });
     };
 
@@ -224,6 +224,12 @@ class LGTV extends EventEmitter {
         } else if (!this.connection.connected) {
             this.connection = {};
             this.client.connect(this.url);
+        }
+    };
+
+    reconnectSocket() {
+        if (this.connection.connected && !this.specializedSockets[SOCKET_URL]) {
+            this.getSocket();
         }
     };
 
