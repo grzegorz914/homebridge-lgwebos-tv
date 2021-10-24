@@ -16,9 +16,13 @@ class SpecializedSocket {
     constructor(ws) {
         this.send = (type, payload) => {
             payload = payload || {};
-            const message = Object.keys(payload).reduce((acc, k) => {
-                return acc.concat([k + ':' + payload[k]]);
-            }, ['type:' + type]).join('\n') + '\n\n';
+            const message = `${Object.keys(payload).reduce((acc, k) => {
+                return acc.concat([`${k}:${payload[k]}`]);
+            }, [`
+            type: $ {
+                type
+            }
+            `]).join('\n')}\n\n`;
             ws.send(message);
         };
         this.close = () => {
@@ -102,7 +106,7 @@ class LGTV extends EventEmitter {
                             const writeKey = fsPromises.writeFile(this.keyFile, pairingKey);
                             this.emit('message', 'Pairing Key Saved.')
                         } catch (error) {
-                            this.emit('error', error)
+                            this.emit('error', `Pairing Key Saved Error: ${error}`)
                         }
                     }
                     this.isPaired = true;
@@ -167,7 +171,7 @@ class LGTV extends EventEmitter {
 
         if (!this.connection.connected) {
             if (typeof cb === 'function') {
-                cb(new Error('not connected'));
+                cb(new Error('TV not connected'));
             }
             return;
         }
@@ -188,10 +192,9 @@ class LGTV extends EventEmitter {
                         cb(err, res);
                     };
 
-                    // Set callback timeout
                     setTimeout(() => {
                         if (this.callbacks[cid]) {
-                            cb(new Error('timeout'));
+                            cb(new Error('Callback timeout'));
                         }
                         delete this.callbacks[cid];
                     }, this.timeout);
@@ -206,7 +209,7 @@ class LGTV extends EventEmitter {
                     break;
 
                 default:
-                    throw new Error('unknown type');
+                    throw new Error('Unknown send type');
             }
         }
         this.connection.send(json);
@@ -214,8 +217,8 @@ class LGTV extends EventEmitter {
 
     getCid() {
         let cidCount = 0;
-        let cidPrefix = ('0000000' + (Math.floor(Math.random() * 0xFFFFFFFF).toString(16))).slice(-8);
-        return cidPrefix + ('000' + (cidCount++).toString(16)).slice(-4);
+        let cidPrefix = (`0000000${Math.floor(Math.random() * 0xFFFFFFFF).toString(16)}`).slice(-8);
+        return cidPrefix + (`000${(cidCount++).toString(16)}`).slice(-4);
     }
 
     connect() {

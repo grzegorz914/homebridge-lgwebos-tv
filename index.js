@@ -172,7 +172,7 @@ class lgwebosTvDevice {
 		this.powerState = false;
 		this.volume = 0;
 		this.muteState = false;
-		this.mediaState = false;
+		this.invertMediaState = false;
 		this.screenPixelRefresh = false;
 
 		this.setStartInput = false;
@@ -196,12 +196,12 @@ class lgwebosTvDevice {
 		this.pictureMode = '';
 
 		const prefDir = path.join(api.user.storagePath(), 'lgwebosTv');
-		this.keyFile = prefDir + '/' + 'key_' + this.host.split('.').join('');
-		this.devInfoFile = prefDir + '/' + 'devInfo_' + this.host.split('.').join('');
-		this.inputsFile = prefDir + '/' + 'inputs_' + this.host.split('.').join('');
-		this.inputsNamesFile = prefDir + '/' + 'inputsNames_' + this.host.split('.').join('');
-		this.inputsTargetVisibilityFile = prefDir + '/' + 'inputsTargetVisibility_' + this.host.split('.').join('');
-		this.channelsFile = prefDir + '/' + 'channels_' + this.host.split('.').join('');
+		this.keyFile = `${prefDir}/key_${this.host.split('.').join('')}`;
+		this.devInfoFile = `${prefDir}/devInfo_${this.host.split('.').join('')}`;
+		this.inputsFile = `${prefDir}/inputs_${this.host.split('.').join('')}`;
+		this.inputsNamesFile = `${prefDir}/inputsNames_${this.host.split('.').join('')}`;
+		this.inputsTargetVisibilityFile = `${prefDir}/inputsTargetVisibility_${this.host.split('.').join('')}`;
+		this.channelsFile = `${prefDir}/channels_${this.host.split('.').join('')}`;
 
 		//check if the directory exists, if not then create it
 		if (fs.existsSync(prefDir) == false) {
@@ -227,7 +227,7 @@ class lgwebosTvDevice {
 		}
 
 		//prepare lgtv socket connection
-		const url = 'ws://' + this.host + ':' + WEBSOCKET_PORT || API_URL.WsUrl;
+		const url = `ws://${this.host}:${WEBSOCKET_PORT}`;
 		this.lgtv = new lgtv({
 			url: url,
 			timeout: 2500,
@@ -288,7 +288,7 @@ class lgwebosTvDevice {
 						this.log.debug('Device: %s %s, debug Software info response1: %s', this.host, this.name, response1);
 						const productName = response1.product_name;
 						const serialNumber = response1.device_id;
-						const firmwareRevision = response1.major_ver + '.' + response1.minor_ver;
+						const firmwareRevision = `${response1.major_ver}.${response1.minor_ver}`;
 
 						const obj = Object.assign(response, response1);
 						const devInfo = JSON.stringify(obj, null, 2);
@@ -346,7 +346,7 @@ class lgwebosTvDevice {
 					}
 					const obj = JSON.stringify(inputsArr, null, 2);
 					const writeInputs = fsPromises.writeFile(this.inputsFile, obj);
-					this.log.debug('Device: %s %s, write inputs/apps list: %s', this.host, this.name, obj);
+					this.log.debug('Device: %s %s, saved inputs/apps list: %s', this.host, this.name, obj);
 				}
 			}
 		});
@@ -615,7 +615,7 @@ class lgwebosTvDevice {
 			const manufacturer = this.manufacturer;
 			const modelName = devInfo.modelName;
 			const serialNumber = devInfo.device_id;
-			const firmwareRevision = devInfo.major_ver + '.' + devInfo.minor_ver;
+			const firmwareRevision = `${devInfo.major_ver}.${devInfo.minor_ver}`;
 			const webOS = devInfo.product_name.slice(8, -2);
 
 			accessory.removeService(accessory.getService(Service.AccessoryInformation));
@@ -683,11 +683,11 @@ class lgwebosTvDevice {
 					const payload = {
 						id: inputId
 					}
-					const setInput = (inputReference != undefined) ? this.lgtv.send('request', API_URL.LaunchApp, payload) : false;
+					const setInput = (this.powerState && inputReference != undefined) ? this.lgtv.send('request', API_URL.LaunchApp, payload) : false;
 					const payload1 = {
 						channelId: inputReference
 					}
-					const setChannel = (inputReference != undefined && inputMode == 1) ? this.lgtv.send('request', API_URL.OpenChannel, payload1) : false;
+					const setChannel = (this.powerState && inputReference != undefined && inputMode == 1) ? this.lgtv.send('request', API_URL.OpenChannel, payload1) : false;
 					if (!this.disableLogInfo) {
 						this.log('Device: %s %s, set %s successful, name: %s, reference: %s', this.host, accessoryName, inputMode == 0 ? 'Input' : 'Channel', inputName, inputReference);
 					}
@@ -696,6 +696,7 @@ class lgwebosTvDevice {
 				};
 				this.setStartInputIdentifier = inputIdentifier;
 				this.setStartInput = this.powerState ? false : true;
+				this.inputIdentifier = inputIdentifier;
 			});
 
 		this.televisionService.getCharacteristic(Characteristic.RemoteKey)
@@ -735,8 +736,8 @@ class lgwebosTvDevice {
 						command = 'EXIT';
 						break;
 					case Characteristic.RemoteKey.PLAY_PAUSE:
-						command = this.mediaState ? 'PLAY' : 'PAUSE';
-						this.mediaState = !this.mediaState;
+						command = this.invertMediaState ? 'PLAY' : 'PAUSE';
+						this.invertMediaState = !this.invertMediaState;
 					case Characteristic.RemoteKey.INFORMATION:
 						command = this.switchInfoMenu ? 'MENU' : 'INFO';
 						break;
@@ -787,7 +788,7 @@ class lgwebosTvDevice {
 				//0 - PLAY, 1 - PAUSE, 2 - STOP, 3 - LOADING, 4 - INTERRUPTED
 				const value = 2;
 				if (!this.disableLogInfo) {
-					this.log('Device: %s %s, get Media state successful: %s', this.host, accessoryName, value);
+					this.log('Device: %s %s, get Media state successful: %s', this.host, accessoryName, ['PLAY', 'PAUSE', 'STOP', 'LOADING', 'INTERRUPTED'][value]);
 				}
 				return value;
 			});
@@ -797,7 +798,7 @@ class lgwebosTvDevice {
 				//0 - PLAY, 1 - PAUSE, 2 - STOP
 				const value = 2;
 				if (!this.disableLogInfo) {
-					this.log('Device: %s %s, get Target Media state successful: %s', this.host, accessoryName, value);
+					this.log('Device: %s %s, get Target Media state successful: %s', this.host, accessoryName, ['PLAY', 'PAUSE', 'STOP', 'LOADING', 'INTERRUPTED'][value]);
 				}
 				return value;
 			})
@@ -806,7 +807,7 @@ class lgwebosTvDevice {
 					const newMediaState = [API_URL.SetMediaPlay, API_URL.SetMediaPause, API_URL.SetMediaStop][value]
 					this.lgtv.send('request', newMediaState);
 					if (!this.disableLogInfo) {
-						this.log('Device: %s %s, set Media state successful, state: %s', this.host, accessoryName, ['PLAY', 'PAUSE', 'STOP'][value]);
+						this.log('Device: %s %s, set Media state successful, state: %s', this.host, accessoryName, ['PLAY', 'PAUSE', 'STOP', 'LOADING', 'INTERRUPTED'][value]);
 					}
 				} catch (error) {
 					this.log.error('Device: %s %s %s, set Media state error: %s', this.host, accessoryName, error);
@@ -1149,7 +1150,7 @@ class lgwebosTvDevice {
 					const pictureModeName = pictureModes[i].name;
 					const pictureModeReference = pictureModes[i].reference;
 
-					this.pictureModeService = new Service.Switch(`${accessoryName} ${pictureModeName}`, 'Picture Mode' + i);
+					this.pictureModeService = new Service.Switch(`${accessoryName} ${pictureModeName}`, `Picture Mode ${i}`);
 					this.pictureModeService.getCharacteristic(Characteristic.On)
 						.onGet(async () => {
 							const state = false;
@@ -1245,7 +1246,7 @@ class lgwebosTvDevice {
 			const currentVisibility = (savedTargetVisibility[inputReference] != undefined) ? savedTargetVisibility[inputReference] : 0;
 			const targetVisibility = currentVisibility;
 
-			const inputService = new Service.InputSource(inputName, 'Input ' + j);
+			const inputService = new Service.InputSource(inputName, `Input ${j}`);
 			inputService
 				.setCharacteristic(Characteristic.Identifier, j)
 				.setCharacteristic(Characteristic.ConfiguredName, inputName)
@@ -1263,9 +1264,8 @@ class lgwebosTvDevice {
 						newName[nameIdentifier] = name;
 						const newCustomName = JSON.stringify(newName);
 						const writeNewCustomName = (nameIdentifier != false) ? await fsPromises.writeFile(this.inputsNamesFile, newCustomName) : false;
-						this.log.debug('Device: %s %s, saved new %s successful, savedInputsNames: %s', this.host, accessoryName, inputMode == 0 ? 'Input' : 'Channel', newCustomName);
 						if (!this.disableLogInfo) {
-							this.log('Device: %s %s, new %s name saved successful, name: %s reference: %s', this.host, accessoryName, inputMode == 0 ? 'Input' : 'Channel', name, inputReference);
+							this.log('Device: %s %s, new %s name saved successful, name: %s reference: %s', this.host, accessoryName, inputMode == 0 ? 'Input' : 'Channel', newCustomName, inputReference);
 						}
 					} catch (error) {
 						this.log.error('Device: %s %s, save new %s name error: %s', this.host, accessoryName, inputMode == 0 ? 'Input' : 'Channel', error);
@@ -1281,13 +1281,12 @@ class lgwebosTvDevice {
 						newState[targetVisibilityIdentifier] = state;
 						const newTargetVisibility = JSON.stringify(newState);
 						const writeNewTargetVisibility = (targetVisibilityIdentifier != false) ? await fsPromises.writeFile(this.inputsTargetVisibilityFile, newTargetVisibility) : false;
-						this.log.debug('Device: %s %s, %s: %s, saved target visibility state: %s', this.host, accessoryName, inputMode == 0 ? 'Input' : 'Channel', inputName, newTargetVisibility);
 						if (!this.disableLogInfo) {
-							this.log('Device: %s %s, %s: %s, saved target visibility state: %s', this.host, accessoryName, inputMode == 0 ? 'Input' : 'Channel', inputName, state ? 'HIDEN' : 'SHOWN');
+							this.log('Device: %s %s, %s: %s, saved Target Visibility state: %s', this.host, accessoryName, inputMode == 0 ? 'Input' : 'Channel', inputName, state ? 'HIDEN' : 'SHOWN');
 						}
 						inputService.setCharacteristic(Characteristic.CurrentVisibilityState, state);
 					} catch (error) {
-						this.log.error('Device: %s %s, save new %s target visibility error: %s', this.host, accessoryName, inputMode == 0 ? 'Input' : 'Channel', error);
+						this.log.error('Device: %s %s, save new %s Target Visibility error: %s', this.host, accessoryName, inputMode == 0 ? 'Input' : 'Channel', error);
 					}
 				});
 
@@ -1318,7 +1317,7 @@ class lgwebosTvDevice {
 			//get button mode
 			const buttonMode = buttons[i].mode;
 
-			const buttonService = new Service.Switch(`${accessoryName} ${buttonName}`, 'Button ' + i);
+			const buttonService = new Service.Switch(`${accessoryName} ${buttonName}`, `Button ${i}`);
 			buttonService.getCharacteristic(Characteristic.On)
 				.onGet(async () => {
 					const state = false;
