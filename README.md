@@ -40,8 +40,9 @@ Tested with OLED65G6V, 32LM6300PLA, 49SK8500, OLED65C7T, 55SK800PLB, OLED48CX.
 
 
 <p align="left">
-  <a href="https://github.com/grzegorz914/homebridge-lgwebos-tv"><img src="https://raw.githubusercontent.com/grzegorz914/homebridge-lgwebos-tv/master/graphics/homekit.png" width="480"></a> 
-  <a href="https://github.com/grzegorz914/homebridge-lgwebos-tv"><img src="https://raw.githubusercontent.com/grzegorz914/homebridge-lgwebos-tv/master/graphics/inputs.png" width="115"></a>  <a href="https://github.com/grzegorz914/homebridge-lgwebos-tv"><img src="https://raw.githubusercontent.com/grzegorz914/homebridge-lgwebos-tv/master/graphics/RC.png" width="115"></a>  <a href="https://github.com/grzegorz914/homebridge-lgwebos-tv"><img src="https://raw.githubusercontent.com/grzegorz914/homebridge-lgwebos-tv/master/graphics/rc1.png" width="115"></a>
+  <a href="https://github.com/grzegorz914/homebridge-lgwebos-tv"><img src="https://raw.githubusercontent.com/grzegorz914/homebridge-lgwebos-tv/master/graphics/homekit.png" width="382"></a> 
+  <a href="https://github.com/grzegorz914/homebridge-lgwebos-tv"><img src="https://raw.githubusercontent.com/grzegorz914/homebridge-lgwebos-tv/master/graphics/inputs.png" width="135"></a> <a href="https://github.com/grzegorz914/homebridge-lgwebos-tv"><img src="https://raw.githubusercontent.com/grzegorz914/homebridge-lgwebos-tv/master/graphics/rc1.png" width="135"></a>
+  <a href="https://github.com/grzegorz914/homebridge-lgwebos-tv"><img src="https://raw.githubusercontent.com/grzegorz914/homebridge-lgwebos-tv/master/graphics/RC.png" width="135"></a>
 </p>
 
 ## Configuration
@@ -53,25 +54,25 @@ Install and use [Homebridge Config UI X](https://github.com/oznu/homebridge-conf
   <a href="https://github.com/grzegorz914/homebridge-lgwebos-tv"><img src="https://raw.githubusercontent.com/grzegorz914/homebridge-lgwebos-tv/master/graphics/ustawienia.png" width="840"></a>
 </p>
 
-| Key | Description | Required |
-| --- | --- | --- |
-| `name` | Here set the accessory *Name* to be displayed in *Homebridge/HomeKit*. | Required |
-| `host` | Here set the *Hsostname or Address IP* of TV. | Required |
-| `mac` | Here set the *Mac Address* of TV. | Required |
-| `refreshInterval` | Here set the reconnect time to device in (ms), default is every 2500ms. | Required |
-| `disableLogInfo` | If enabled, disable log info, all values and state will not be displayed in Homebridge log console. | Optional |
-| `volumeControl` | Here choice what a additional volume control mode You want to use (None, Slider, Fan). | Optional |
-| `switchInfoMenu` | If enabled, `I` button change its behaviour in RC app between Menu and INFO. | Optional |
-| `getInputsFromDevice` | If `true` then the inputs and apps wil be loaded direct from device. | Optional |
-| `filterSystemApps` | If `true` then the sysem apps wil be filtered, only if `getInputsFromDevice` is `true`. | Optional |
-| `inputs.name` | Here set own *Name* which You want expose to the *Homebridge/HomeKit*. | Required |
-| `inputs.reference` | Here set *Reference*. `Live TV`, `HDMI 1`, `HDMI 2` inputs are created by default. |  Required |
-| `inputs.type` | Here select source input type. | Required |
-| `inputs.mode` | Here select `Input/App` if You defined Input/App reference, `Live TV Channel` if You defined channel reference. | Required |
-| `buttons.name` | Here set own *Name* which You want expose to the *Homebridge/HomeKit*. |  Required |
-| `buttons.reference` | Here set *Reference*. |  Required |
-| `buttons.mode` | Here select `Input/App` if You defined Input/App reference, `Live TV Channel` if You defined channel reference. | Required |
-| `manufacturer`, `modelName`, `serialNumber`, `firmwareRevision` | Free-form informational data that will be displayed in the Home.app. | Optional |
+| Key | Description |
+| --- | --- |
+| `name` | Here set the accessory *Name* to be displayed in *Homebridge/HomeKit*. |
+| `host` | Here set the *Hsostname or Address IP* of TV. |
+| `mac` | Here set the *Mac Address* of TV. |
+| `refreshInterval` | Here set the reconnect time to device in (ms), default is every 2500ms. |
+| `disableLogInfo` | If enabled, disable log info, all values and state will not be displayed in Homebridge log console. |
+| `volumeControl` | Here choice what a additional volume control mode You want to use (None, Slider, Fan). |
+| `switchInfoMenu` | If enabled, `I` button change its behaviour in RC app between Menu and INFO. |
+| `getInputsFromDevice` | If `true` then the inputs and apps wil be loaded direct from device. |
+| `filterSystemApps` | If `true` then the sysem apps wil be filtered, only if `getInputsFromDevice` is `true`. |
+| `inputs.name` | Here set own *Name* which You want expose to the *Homebridge/HomeKit*. |
+| `inputs.reference` | Here set *Reference*. `Live TV`, `HDMI 1`, `HDMI 2` inputs are created by default. | 
+| `inputs.type` | Here select source input type. |
+| `inputs.mode` | Here select `Input/App` if You defined Input/App reference, `Live TV Channel` if You defined channel reference. |
+| `buttons.name` | Here set own *Name* which You want expose to the *Homebridge/HomeKit*. | 
+| `buttons.reference` | Here set *Reference*. | 
+| `buttons.mode` | Here select `Input/App` if You defined Input/App reference, `Live TV Channel` if You defined channel reference. |
+| `manufacturer`, `modelName`, `serialNumber`, `firmwareRevision` | Free-form informational data that will be displayed in the Home.app. |
 | `reference` | All can be found in `homebridge_directory/lgwebosTv`, `inputs_xxx` file, where `reference == id`, or `channels_xxx` file, where `reference == channelId`. | Info |
 
 ```json
@@ -136,10 +137,11 @@ Install and use [Homebridge Config UI X](https://github.com/oznu/homebridge-conf
 ## Adding to HomeKit
 Each accessory needs to be manually paired. 
 1. Open the Home <img src='https://user-images.githubusercontent.com/3979615/78010622-4ea1d380-738e-11ea-8a17-e6a465eeec35.png' width='16.42px'> app on your device. 
-2. Tap the Home tab, then tap <img src='https://user-images.githubusercontent.com/3979615/78010869-9aed1380-738e-11ea-9644-9f46b3633026.png' width='16.42px'>. 
-3. Tap *Add Accessory*, and select *I Don't Have a Code or Cannot Scan*. 
+2. Tap the <img src='https://user-images.githubusercontent.com/3979615/78010869-9aed1380-738e-11ea-9644-9f46b3633026.png' width='16.42px'>. 
+3. Tap *Add Accessory*, and select *I Don't Have a Code or Cannot Scan* or *More Options*. 
 4. Select Your accessory. 
-5. Enter the Homebridge PIN, this can be found under the QR code in Homebridge UI or your Homebridge logs, alternatively you can select *Use Camera* and scan the QR code again.
+5. Enter the Homebridge PIN or scan the QR code, this can be found in Homebridge UI or Homebridge logs.
+6. Complete the accessory setup.
 
 ## Limitations
 * That maximum Services for 1 accessory is 100. If Services > 100, accessory stop responding.
