@@ -16,13 +16,9 @@ class SpecializedSocket {
     constructor(ws) {
         this.send = (type, payload) => {
             payload = payload || {};
-            const message = `${Object.keys(payload).reduce((acc, k) => {
-                return acc.concat([`${k}:${payload[k]}`]);
-            }, [`
-            type: $ {
-                type
-            }
-            `]).join('\n')}\n\n`;
+            const message = Object.keys(payload).reduce((acc, k) => {
+                return acc.concat([k + ':' + payload[k]]);
+            }, ['type:' + type]).join('\n') + '\n\n';
             ws.send(message);
         };
         this.close = () => {
