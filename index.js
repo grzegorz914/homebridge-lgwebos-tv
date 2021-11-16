@@ -263,23 +263,30 @@ class lgwebosTvDevice {
 				this.log.debug('Device: %s %s, get System info error: %s', this.host, this.name, error);
 			} else {
 				this.log.debug('Device: %s %s, debug System info response: %s', this.host, this.name, response);
-				const modelName = response.modelName;
+				const manufacturer = this.manufacturer
+				const modelName = response.modelName || this.modelName;
 
 				this.lgtv.send('request', API_URL.GetSoftwareInfo, (error, response1) => {
 					if (error || response1.errorCode) {
 						this.log.debug('Device: %s %s, get Software info error: %s', this.host, this.name, error);
 					} else {
 						this.log.debug('Device: %s %s, debug Software info response1: %s', this.host, this.name, response1);
-						const productName = response1.product_name;
-						const serialNumber = response1.device_id;
-						const firmwareRevision = `${response1.major_ver}.${response1.minor_ver}`;
+						const productName = response1.product_name || this.productName;
+						const serialNumber = response1.device_id || this.serialNumber;
+						const firmwareRevision = `${response1.major_ver}.${response1.minor_ver}` || this.firmwareRevision;
+						const webOS = productName.slice(8, -2);
 
-						const obj = Object.assign(response, response1);
+						const obj = {
+							'manufacturer': this.manufacturer,
+							'modelName': modelName,
+							'serialNumber': serialNumber,
+							'firmwareRevision': firmwareRevision,
+							'response': response,
+							'response1': response1
+						};
 						const devInfo = JSON.stringify(obj, null, 2);
 						const writeDevInfo = fsPromises.writeFile(this.devInfoFile, devInfo);
 						this.log.debug('Device: %s %s, saved Device Info successful: %s', this.host, this.name, devInfo);
-
-						const manufacturer = this.manufacturer
 
 						if (!this.disableLogInfo) {
 							this.log('Device: %s %s, state: Online.', this.host, this.name);
@@ -297,6 +304,7 @@ class lgwebosTvDevice {
 						this.productName = productName;
 						this.serialNumber = serialNumber;
 						this.firmwareRevision = firmwareRevision;
+						this.webOS = webOS;
 					}
 				});
 			}
@@ -586,17 +594,16 @@ class lgwebosTvDevice {
 			const devInfo = (readDevInfo != undefined) ? JSON.parse(readDevInfo) : {
 				'manufacturer': this.manufacturer,
 				'modelName': this.modelName,
-				'device_id': this.serialNumber,
-				'major_ver': 'Firmware',
-				'minor_ver': 'Firmware'
+				'serialNumber': this.serialNumber,
+				'firmwareRevision': this.firmwareRevision,
 			};
 			this.log.debug('Device: %s %s, read devInfo: %s', this.host, accessoryName, devInfo)
 
-			const manufacturer = this.manufacturer;
+			const manufacturer = devInfo.manufacturer;
 			const modelName = devInfo.modelName;
-			const serialNumber = devInfo.device_id;
-			const firmwareRevision = `${devInfo.major_ver}.${devInfo.minor_ver}`;
-			const webOS = devInfo.product_name.slice(8, -2);
+			const serialNumber = devInfo.serialNumber;
+			const firmwareRevision = devInfo.firmwareRevision;
+			const webOS = devInfo.response1.product_name.slice(8, -2);
 
 			accessory.removeService(accessory.getService(Service.AccessoryInformation));
 			const informationService = new Service.AccessoryInformation(accessoryName)
