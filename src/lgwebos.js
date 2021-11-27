@@ -4,6 +4,46 @@ const EventEmitter = require('events').EventEmitter;
 const WebSocketClient = require('websocket').client;
 const pairing = require('./pairing.json');
 
+const API_URL = {
+    'WsUrl': 'ws://lgwebostv:3000',
+    'ApiGetServiceList': 'ssap://api/getServiceList',
+    'GetSystemInfo': 'ssap://system/getSystemInfo',
+    'GetSoftwareInfo': 'ssap://com.webos.service.update/getCurrentSWInformation',
+    'GetInstalledApps': 'ssap://com.webos.applicationManager/listApps',
+    'GetChannelList': 'ssap:/tv/getChannelList',
+    'GetPowerState': 'ssap://com.webos.service.tvpower/power/getPowerState',
+    'GetForegroundAppInfo': 'ssap://com.webos.applicationManager/getForegroundAppInfo',
+    'GetCurrentChannel': 'ssap://tv/getCurrentChannel',
+    'GetChannelProgramInfo': 'ssap://tv/getChannelProgramInfo',
+    'GetExternalInputList': 'ssap://tv/getExternalInputList',
+    'SwitchInput': 'ssap://tv/switchInput',
+    'GetAudioStatus': 'ssap://audio/getStatus',
+    'GetSystemSettings': 'ssap://settings/getSystemSettings',
+    'GetVolume': 'ssap://audio/getVolume',
+    'GetAppState': 'com.webos.service.appstatus/getAppStatus',
+    'TurnOff': 'ssap://system/turnOff',
+    'LaunchApp': 'ssap://system.launcher/launch',
+    'CloseApp': 'ssap://system.launcher/close',
+    'CloseMediaViewer': 'ssap://media.viewer/close',
+    'CloseWebApp': 'ssap://webapp/closeWebApp',
+    'OpenChannel': 'ssap://tv/openChannel',
+    'SetSystemSettings': 'luna://com.webos.settingsservice/setSystemSettings',
+    'SetVolume': 'ssap://audio/setVolume',
+    'SetVolumeUp': 'ssap://audio/volumeUp',
+    'SetVolumeDown': 'ssap://audio/volumeDown',
+    'SetMute': 'ssap://audio/setMute',
+    'Set3dOn': 'ssap://com.webos.service.tv.display/set3DOn',
+    'Set3dOff': 'ssap://com.webos.service.tv.display/set3DOff',
+    'SetMediaPlay': 'ssap://media.controls/play',
+    'SetMediaPause': 'ssap://media.controls/pause',
+    'SetMediaStop': 'ssap://media.controls/stop',
+    'SetMediaRewind': 'ssap://media.controls/rewind',
+    'SetMediaFastForward': 'ssap://media.controls/fastForward',
+    'SetTvChannelUp': 'ssap://tv/channelUp',
+    'SetTvChannelDown': 'ssap://tv/channelDown',
+    'SetToast': 'ssap://system.notifications/createToast'
+};
+
 const SOCKET_URL = 'ssap://com.webos.service.networkinput/getPointerInputSocket';
 const SOCKET_OPTIONS = {
     keepalive: true,
@@ -40,6 +80,7 @@ class LGTV extends EventEmitter {
         this.callbacks = {};
         this.isPaired = false;
         this.inputSocket = null;
+        this.webOS = 2;
 
         this.client = new WebSocketClient(SOCKET_OPTIONS);
         this.specialClient = new WebSocketClient(SOCKET_OPTIONS);
@@ -56,12 +97,12 @@ class LGTV extends EventEmitter {
             .on('connect', (connection) => {
                 this.connection = connection;
                 this.connection.on('error', (error) => {
-                        this.emit('error', `Connect to TV Error: ${error}`);
+                        this.emit('error', `Connect to TV error: ${error}`);
                     })
                     .on('message', (message) => {
                         if (message.type === 'utf8') {
                             const messageUtf8Data = message.utf8Data;
-                            const parsedMessage = messageUtf8Data ? JSON.parse(messageUtf8Data) : this.emit('message', `Not received UTF-8 Data: ${messageUtf8Data}`);
+                            const parsedMessage = messageUtf8Data ? JSON.parse(messageUtf8Data) : this.emit('message', `Not received UTF-8 data: ${messageUtf8Data}`);
 
                             if (parsedMessage && this.callbacks[parsedMessage.id]) {
                                 if (parsedMessage.payload && parsedMessage.payload.subscribed && parsedMessage.payload.changed) {
@@ -71,7 +112,7 @@ class LGTV extends EventEmitter {
                                 this.callbacks[parsedMessage.id](null, parsedMessage.payload);
                             };
                         } else {
-                            this.emit('message', `Received non UTF-8 Data: ${message}`);
+                            this.emit('message', `Received non UTF-8 data: ${message}`);
                         };
                     })
                     .on('close', () => {
@@ -103,19 +144,24 @@ class LGTV extends EventEmitter {
                     if (savedPairingKey !== pairingKey) {
                         try {
                             const writeKey = await fsPromises.writeFile(this.keyFile, pairingKey);
-                            this.emit('message', 'Pairing Key Saved.')
+                            this.emit('message', 'Pairing key saved.')
                         } catch (error) {
-                            this.emit('error', `Pairing Key Saved Error: ${error}`)
+                            this.emit('error', `Pairing key saved error: ${error}`)
                         };
                     };
                     this.isPaired = true;
-                    this.getSocket();
                     this.emit('connect', 'Connected.');
+                    this.getSocket();
+                    try {
+                        await this.subscribeData();
+                    } catch (error) {
+                        this.emit('error', `Subscribe data error: ${error}`)
+                    };
                 } else {
-                    this.emit('message', 'Waiting on Authorization Accept...');
+                    this.emit('message', 'Waiting on authorization accept...');
                 };
             } else {
-                this.emit('error', `Register Error: ${error}`);
+                this.emit('error', `Register error: ${error}`);
             };
         });
     };
@@ -127,12 +173,12 @@ class LGTV extends EventEmitter {
 
         this.send('request', SOCKET_URL, (err, data) => {
             if (err) {
-                this.emit('error', `Send Request Error: ${err}`);
+                this.emit('error', `Send request error: ${err}`);
                 return;
             };
 
             this.specialClient.on('connectFailed', (error) => {
-                    this.emit('error', `Specialized Socket Connect Failed: ${error}`);
+                    this.emit('error', `Specialized socket connect failed: ${error}`);
 
                     setTimeout(() => {
                         this.reconnectSocket();
@@ -141,21 +187,100 @@ class LGTV extends EventEmitter {
                 .on('connect', (connection) => {
                     connection
                         .on('error', (error) => {
-                            this.emit('error', `Specialized Socket Connect Error: ${error}`);
+                            this.emit('error', `Specialized socket connect error: ${error}`);
                         })
                         .on('close', () => {
                             delete this.specializedSockets[SOCKET_URL];
                             this.inputSocket = null;
-                            this.emit('message', 'Specialized Socket Disconnected.');
+                            this.emit('message', 'Specialized socket disconnected.');
                         });
 
                     this.specializedSockets[SOCKET_URL] = new SpecializedSocket(connection);
                     this.inputSocket = this.specializedSockets[SOCKET_URL];
-                    this.emit('message', 'Specialized Socket Connected.');
+                    this.emit('message', 'Specialized socket connected.');
                 });
 
             const socketPath = data.socketPath;
             this.specialClient.connect(socketPath);
+        });
+    };
+
+    subscribeData() {
+        return new Promise((resolve, reject) => {
+            this.send('request', API_URL.GetSystemInfo, (error, response) => {
+                if (error || response.errorCode) {
+                    this.emit('error', `System info error: ${error}`);
+                } else {
+                    this.send('request', API_URL.GetSoftwareInfo, (error, response1) => {
+                        if (error || response.errorCode) {
+                            this.emit('error', `Software info error: ${error}`);
+                        } else {
+                            const webOS = response1.product_name.slice(8, -2);
+                            this.emit('devInfoData', response, response1, webOS);
+
+                            this.send('subscribe', API_URL.GetInstalledApps, (error, response) => {
+                                if (error || response.errorCode) {
+                                    this.emit('error', `Inputs apps error: ${error}`);
+                                } else {
+                                    this.emit('inputsAppsData', response);
+                                };
+                            });
+                            this.send('subscribe', API_URL.GetChannelList, (error, response) => {
+                                if (error || response.errorCode) {
+                                    this.emit('error', `Channel list error: ${error}`);
+                                } else {
+                                    this.emit('channelListData', response);
+                                };
+                            });
+                            this.send('subscribe', API_URL.GetPowerState, (error, response) => {
+                                if (error || response.errorCode) {
+                                    this.emit('error', `Power state error: ${error}`);
+                                } else {
+                                    this.emit('powerStateData', response);
+                                };
+                            });
+                            this.send('subscribe', API_URL.GetForegroundAppInfo, (error, response) => {
+                                if (error || response.errorCode) {
+                                    this.emit('error', `Foreground app error: ${error}`);
+                                } else {
+                                    this.emit('foregroundAppData', response);
+                                };
+                            });
+                            this.send('subscribe', API_URL.GetCurrentChannel, (error, response) => {
+                                if (error || response.errorCode) {
+                                    this.emit('error', `Current channel error: ${error}`);
+                                } else {
+                                    this.emit('currentChannelData', response);
+                                };
+                            });
+                            this.send('subscribe', API_URL.GetAudioStatus, (error, response) => {
+                                if (error || response.errorCode) {
+                                    this.emit('error', `Audio status error: ${error}`);
+                                } else {
+                                    this.emit('audioStatusData', response);
+                                };
+                            });
+                            if (webOS >= 4) {
+                                const payload = {
+                                    category: 'picture',
+                                    keys: ['brightness', 'backlight', 'contrast', 'color']
+                                }
+                                this.send('subscribe', API_URL.GetSystemSettings, payload, (error, response) => {
+                                    if (error || response.errorCode) {
+                                        this.emit('error', `System settings error: ${error}`);
+                                    } else {
+                                        this.emit('systemSettingsData', response);
+                                    };
+                                });
+                            };
+                        };
+                    });
+                };
+            });
+
+            setTimeout(() => {
+                resolve(true);
+            }, 500);
         });
     };
 
@@ -167,7 +292,7 @@ class LGTV extends EventEmitter {
 
         if (!this.isConnected) {
             if (typeof cb === 'function') {
-                cb(new Error('TV Not Connected'));
+                cb(new Error('TV not connected'));
             };
             return;
         };
