@@ -24,8 +24,8 @@ class SpecializedSocket {
         this.close = () => {
             ws.close();
         };
-    }
-}
+    };
+};
 
 class LGTV extends EventEmitter {
     constructor(config) {
@@ -42,6 +42,8 @@ class LGTV extends EventEmitter {
         this.inputSocket = null;
 
         this.client = new WebSocketClient(SOCKET_OPTIONS);
+        this.specialClient = new WebSocketClient(SOCKET_OPTIONS);
+
         this.client.on('connectFailed', (error) => {
                 this.isConnected = false;
                 this.connection = {};
@@ -56,6 +58,22 @@ class LGTV extends EventEmitter {
                 this.connection.on('error', (error) => {
                         this.emit('error', `Connect to TV Error: ${error}`);
                     })
+                    .on('message', (message) => {
+                        if (message.type === 'utf8') {
+                            const messageUtf8Data = message.utf8Data;
+                            const parsedMessage = messageUtf8Data ? JSON.parse(messageUtf8Data) : this.emit('message', `Not received UTF-8 Data: ${messageUtf8Data}`);
+
+                            if (parsedMessage && this.callbacks[parsedMessage.id]) {
+                                if (parsedMessage.payload && parsedMessage.payload.subscribed && parsedMessage.payload.changed) {
+                                    const mute = (typeof parsedMessage.payload.muted !== 'undefined') ? parsedMessage.payload.changed.push('muted') : parsedMessage.payload.changed = ['muted'];
+                                    const volume = (typeof parsedMessage.payload.volume !== 'undefined') ? parsedMessage.payload.changed.push('volume') : parsedMessage.payload.changed = ['volume'];
+                                }
+                                this.callbacks[parsedMessage.id](null, parsedMessage.payload);
+                            };
+                        } else {
+                            this.emit('message', `Received non UTF-8 Data: ${message}`);
+                        };
+                    })
                     .on('close', () => {
                         this.connection = {};
                         this.isConnected = false;
@@ -67,28 +85,10 @@ class LGTV extends EventEmitter {
                         setTimeout(() => {
                             this.connect();
                         }, this.reconnect);
-                    })
-                    .on('message', (message) => {
-                        if (message.type === 'utf8') {
-                            const messageUtf8Data = message.utf8Data;
-                            const parsedMessage = messageUtf8Data ? JSON.parse(messageUtf8Data) : this.emit('message', `Not received UTF-8 Data: ${messageUtf8Data}`);
-
-                            if (parsedMessage && this.callbacks[parsedMessage.id]) {
-                                if (parsedMessage.payload && parsedMessage.payload.subscribed) {
-                                    const pushMute = (typeof parsedMessage.payload.muted !== 'undefined') ? parsedMessage.payload.changed ? parsedMessage.payload.changed.push('muted') : parsedMessage.payload.changed = ['muted'] : false;
-                                    const pushVolume = (typeof parsedMessage.payload.volume !== 'undefined') ? parsedMessage.payload.changed ? parsedMessage.payload.changed.push('volume') : parsedMessage.payload.changed = ['volume'] : false;
-                                }
-                                this.callbacks[parsedMessage.id](null, parsedMessage.payload);
-                            }
-                        } else {
-                            this.emit('message', `Received non UTF-8 Data: ${message}`);
-                        }
                     });
-
                 this.isConnected = true;
                 this.register();
             });
-
         this.connect();
     };
 
@@ -106,34 +106,32 @@ class LGTV extends EventEmitter {
                             this.emit('message', 'Pairing Key Saved.')
                         } catch (error) {
                             this.emit('error', `Pairing Key Saved Error: ${error}`)
-                        }
-                    }
+                        };
+                    };
                     this.isPaired = true;
                     this.getSocket();
                     this.emit('connect', 'Connected.');
                 } else {
                     this.emit('message', 'Waiting on Authorization Accept...');
-                }
+                };
             } else {
                 this.emit('error', `Register Error: ${error}`);
-            }
+            };
         });
     };
 
     getSocket() {
         if (this.specializedSockets[SOCKET_URL]) {
             this.inputSocket = this.specializedSockets[SOCKET_URL];
-        }
+        };
 
         this.send('request', SOCKET_URL, (err, data) => {
             if (err) {
                 this.emit('error', `Send Request Error: ${err}`);
                 return;
-            }
+            };
 
-            const specialClient = new WebSocketClient(SOCKET_OPTIONS);
-            specialClient
-                .on('connectFailed', (error) => {
+            this.specialClient.on('connectFailed', (error) => {
                     this.emit('error', `Specialized Socket Connect Failed: ${error}`);
 
                     setTimeout(() => {
@@ -157,7 +155,7 @@ class LGTV extends EventEmitter {
                 });
 
             const socketPath = data.socketPath;
-            specialClient.connect(socketPath);
+            this.specialClient.connect(socketPath);
         });
     };
 
@@ -165,14 +163,14 @@ class LGTV extends EventEmitter {
         if (typeof payload === 'function') {
             cb = payload;
             payload = {};
-        }
+        };
 
         if (!this.isConnected) {
             if (typeof cb === 'function') {
                 cb(new Error('TV Not Connected'));
-            }
+            };
             return;
-        }
+        };
 
         const cid = this.getCid();
         const json = JSON.stringify({
@@ -193,7 +191,7 @@ class LGTV extends EventEmitter {
                     setTimeout(() => {
                         if (this.callbacks[cid]) {
                             cb(new Error('Callback timeout'));
-                        }
+                        };
                         delete this.callbacks[cid];
                     }, 2500);
                     break;
@@ -217,20 +215,20 @@ class LGTV extends EventEmitter {
         let cidCount = 0;
         let cidPrefix = (`0000000${Math.floor(Math.random() * 0xFFFFFFFF).toString(16)}`).slice(-8);
         return cidPrefix + (`000${(cidCount++).toString(16)}`).slice(-4);
-    }
+    };
 
     connect() {
         if (this.isConnected && !this.isPaired) {
             this.register();
         } else if (!this.isConnected) {
             this.client.connect(this.url);
-        }
+        };
     };
 
     reconnectSocket() {
         if (this.isConnected && !this.inputSocket) {
             this.getSocket();
-        }
+        };
     };
-}
+};
 module.exports = LGTV;

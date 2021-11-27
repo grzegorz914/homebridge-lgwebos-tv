@@ -258,55 +258,50 @@ class lgwebosTvDevice {
 
 	getDeviceInfo() {
 		this.log.debug('Device: %s %s, requesting Device Info.', this.host, this.name);
-		this.lgtv.send('request', API_URL.GetSystemInfo, (error, response) => {
+		this.lgtv.send('subscribe', API_URL.GetSystemInfo, (error, response) => {
 			if (error || response.errorCode) {
 				this.log.debug('Device: %s %s, get System info error: %s', this.host, this.name, error);
 			} else {
 				this.log.debug('Device: %s %s, debug System info response: %s', this.host, this.name, response);
-				const manufacturer = this.manufacturer
-				const modelName = response.modelName || this.modelName;
+				this.modelName = response.modelName || this.modelName;
+			}
+		});
 
-				this.lgtv.send('request', API_URL.GetSoftwareInfo, (error, response1) => {
-					if (error || response1.errorCode) {
-						this.log.debug('Device: %s %s, get Software info error: %s', this.host, this.name, error);
-					} else {
-						this.log.debug('Device: %s %s, debug Software info response1: %s', this.host, this.name, response1);
-						const productName = response1.product_name || this.productName;
-						const serialNumber = response1.device_id || this.serialNumber;
-						const firmwareRevision = `${response1.major_ver}.${response1.minor_ver}` || this.firmwareRevision;
-						const webOS = productName.slice(8, -2);
+		this.lgtv.send('subscribe', API_URL.GetSoftwareInfo, (error, response1) => {
+			if (error || response1.errorCode) {
+				this.log.debug('Device: %s %s, get Software info error: %s', this.host, this.name, error);
+			} else {
+				this.log.debug('Device: %s %s, debug Software info response1: %s', this.host, this.name, response1);
+				const productName = response1.product_name || this.productName;
+				const serialNumber = response1.device_id || this.serialNumber;
+				const firmwareRevision = `${response1.major_ver}.${response1.minor_ver}` || this.firmwareRevision;
+				const webOS = productName.slice(8, -2);
 
-						const obj = {
-							'manufacturer': this.manufacturer,
-							'modelName': modelName,
-							'serialNumber': serialNumber,
-							'firmwareRevision': firmwareRevision,
-							'response': response,
-							'response1': response1
-						};
-						const devInfo = JSON.stringify(obj, null, 2);
-						const writeDevInfo = fsPromises.writeFile(this.devInfoFile, devInfo);
-						this.log.debug('Device: %s %s, saved Device Info successful: %s', this.host, this.name, devInfo);
+				const obj = {
+					'manufacturer': this.manufacturer,
+					'modelName': this.modelName,
+					'serialNumber': serialNumber,
+					'firmwareRevision': firmwareRevision
+				};
+				const devInfo = JSON.stringify(obj, null, 2);
+				const writeDevInfo = fsPromises.writeFile(this.devInfoFile, devInfo);
+				this.log.debug('Device: %s %s, saved Device Info successful: %s', this.host, this.name, devInfo);
 
-						if (!this.disableLogInfo) {
-							this.log('Device: %s %s, state: Online.', this.host, this.name);
-						}
-						this.log('-------- %s --------', this.name);
-						this.log('Manufacturer: %s', manufacturer);
-						this.log('Model: %s', modelName);
-						this.log('System: %s', productName);
-						this.log('Serialnr: %s', serialNumber);
-						this.log('Firmware: %s', firmwareRevision);
-						this.log('----------------------------------');
+				if (!this.disableLogInfo) {
+					this.log('Device: %s %s, state: Online.', this.host, this.name);
+				}
+				this.log('-------- %s --------', this.name);
+				this.log('Manufacturer: %s', this.manufacturer);
+				this.log('Model: %s', this.modelName);
+				this.log('System: %s', productName);
+				this.log('Serialnr: %s', serialNumber);
+				this.log('Firmware: %s', firmwareRevision);
+				this.log('----------------------------------');
 
-						this.manufacturer = manufacturer;
-						this.modelName = modelName;
-						this.productName = productName;
-						this.serialNumber = serialNumber;
-						this.firmwareRevision = firmwareRevision;
-						this.webOS = webOS;
-					}
-				});
+				this.productName = productName;
+				this.serialNumber = serialNumber;
+				this.firmwareRevision = firmwareRevision;
+				this.webOS = webOS;
 			}
 		});
 	}
