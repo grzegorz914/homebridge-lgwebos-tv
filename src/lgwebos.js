@@ -83,8 +83,6 @@ class LGTV extends EventEmitter {
         this.webOS = 2;
 
         this.client = new WebSocketClient(SOCKET_OPTIONS);
-        this.specialClient = new WebSocketClient(SOCKET_OPTIONS);
-
         this.client.on('connectFailed', (error) => {
                 this.isConnected = false;
                 this.connection = {};
@@ -151,12 +149,12 @@ class LGTV extends EventEmitter {
                     };
                     this.isPaired = true;
                     this.emit('connect', 'Connected.');
-                    this.getSocket();
                     try {
                         await this.subscribeData();
                     } catch (error) {
                         this.emit('error', `Subscribe data error: ${error}`)
                     };
+                    this.getSocket();
                 } else {
                     this.emit('message', 'Waiting on authorization accept...');
                 };
@@ -177,7 +175,8 @@ class LGTV extends EventEmitter {
                 return;
             };
 
-            this.specialClient.on('connectFailed', (error) => {
+            const specialClient = new WebSocketClient(SOCKET_OPTIONS);
+            specialClient.on('connectFailed', (error) => {
                     this.emit('error', `Specialized socket connect failed: ${error}`);
 
                     setTimeout(() => {
@@ -201,81 +200,46 @@ class LGTV extends EventEmitter {
                 });
 
             const socketPath = data.socketPath;
-            this.specialClient.connect(socketPath);
+            specialClient.connect(socketPath);
         });
     };
 
     subscribeData() {
         return new Promise((resolve, reject) => {
             this.send('request', API_URL.GetSystemInfo, (error, response) => {
-                if (error || response.errorCode) {
-                    this.emit('error', `System info error: ${error}`);
-                } else {
-                    this.send('request', API_URL.GetSoftwareInfo, (error, response1) => {
-                        if (error || response.errorCode) {
-                            this.emit('error', `Software info error: ${error}`);
-                        } else {
-                            const webOS = response1.product_name.slice(8, -2);
-                            this.emit('devInfoData', response, response1, webOS);
+                const emit = (error || response.errorCode) ? this.emit('error', `System info error: ${error}`) : false;
+                this.send('request', API_URL.GetSoftwareInfo, (error, response1) => {
+                    const webOS = (error || response.errorCode) ? 2 : response1.product_name.slice(8, -2);
+                    const emit = (error || response.errorCode) ? this.emit('error', `Software info error: ${error}`) : this.emit('devInfoData', response, response1, webOS);;
 
-                            this.send('subscribe', API_URL.GetInstalledApps, (error, response) => {
-                                if (error || response.errorCode) {
-                                    this.emit('error', `Inputs apps error: ${error}`);
-                                } else {
-                                    this.emit('inputsAppsData', response);
-                                };
-                            });
-                            this.send('subscribe', API_URL.GetChannelList, (error, response) => {
-                                if (error || response.errorCode) {
-                                    this.emit('error', `Channel list error: ${error}`);
-                                } else {
-                                    this.emit('channelListData', response);
-                                };
-                            });
-                            this.send('subscribe', API_URL.GetPowerState, (error, response) => {
-                                if (error || response.errorCode) {
-                                    this.emit('error', `Power state error: ${error}`);
-                                } else {
-                                    this.emit('powerStateData', response);
-                                };
-                            });
-                            this.send('subscribe', API_URL.GetForegroundAppInfo, (error, response) => {
-                                if (error || response.errorCode) {
-                                    this.emit('error', `Foreground app error: ${error}`);
-                                } else {
-                                    this.emit('foregroundAppData', response);
-                                };
-                            });
-                            this.send('subscribe', API_URL.GetCurrentChannel, (error, response) => {
-                                if (error || response.errorCode) {
-                                    this.emit('error', `Current channel error: ${error}`);
-                                } else {
-                                    this.emit('currentChannelData', response);
-                                };
-                            });
-                            this.send('subscribe', API_URL.GetAudioStatus, (error, response) => {
-                                if (error || response.errorCode) {
-                                    this.emit('error', `Audio status error: ${error}`);
-                                } else {
-                                    this.emit('audioStatusData', response);
-                                };
-                            });
-                            if (webOS >= 4) {
-                                const payload = {
-                                    category: 'picture',
-                                    keys: ['brightness', 'backlight', 'contrast', 'color']
-                                }
-                                this.send('subscribe', API_URL.GetSystemSettings, payload, (error, response) => {
-                                    if (error || response.errorCode) {
-                                        this.emit('error', `System settings error: ${error}`);
-                                    } else {
-                                        this.emit('systemSettingsData', response);
-                                    };
-                                });
-                            };
-                        };
+                    this.send('subscribe', API_URL.GetInstalledApps, (error, response) => {
+                        const emit = (error || response.errorCode) ? this.emit('error', `Installed apps error: ${error}`) : this.emit('inputsAppsData', response);
                     });
-                };
+                    this.send('subscribe', API_URL.GetChannelList, (error, response) => {
+                        const emit = (error || response.errorCode) ? this.emit('error', `Channel list error: ${error}`) : this.emit('channelListData', response);
+                    });
+                    this.send('subscribe', API_URL.GetPowerState, (error, response) => {
+                        const emit = (error || response.errorCode) ? this.emit('error', `Power state error: ${error}`) : this.emit('powerStateData', response);
+                    });
+                    this.send('subscribe', API_URL.GetForegroundAppInfo, (error, response) => {
+                        const emit = (error || response.errorCode) ? this.emit('error', `Foreground app error: ${error}`) : this.emit('foregroundAppData', response);
+                    });
+                    this.send('subscribe', API_URL.GetCurrentChannel, (error, response) => {
+                        const emit = (error || response.errorCode) ? this.emit('error', `Current channel error: ${error}`) : this.emit('currentChannelData', response);
+                    });
+                    this.send('subscribe', API_URL.GetAudioStatus, (error, response) => {
+                        const emit = (error || response.errorCode) ? this.emit('error', `Audio status error: ${error}`) : this.emit('audioStatusData', response);
+                    });
+                    if (webOS >= 4) {
+                        const payload = {
+                            category: 'picture',
+                            keys: ['brightness', 'backlight', 'contrast', 'color']
+                        }
+                        this.send('subscribe', API_URL.GetSystemSettings, payload, (error, response) => {
+                            const emit = (error || response.errorCode) ? this.emit('error', `Software info error: ${error}`) : this.emit('systemSettingsData', response);
+                        });
+                    };
+                });
             });
 
             setTimeout(() => {

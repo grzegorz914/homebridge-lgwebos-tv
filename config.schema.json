@@ -10,7 +10,7 @@
       "devices": {
         "type": "array",
         "items": {
-          "title": "Devices",
+          "title": "Device",
           "type": "object",
           "properties": {
             "name": {
@@ -100,10 +100,9 @@
               }
             },
             "inputs": {
-              "title": "Inputs",
-              "buttonText": "Add input",
               "type": "array",
               "items": {
+                "title": "Input",
                 "type": "object",
                 "properties": {
                   "name": {
@@ -217,10 +216,9 @@
               }
             },
             "buttons": {
-              "title": "Buttons",
-              "buttonText": "Add button",
               "type": "array",
               "items": {
+                "title": "Button",
                 "type": "object",
                 "properties": {
                   "name": {
@@ -518,9 +516,8 @@
           "devices[].filterSystemApps",
           {
             "key": "devices[].inputs",
-            "type": "array",
-            "orderable": false,
-            "buttonText": "Add input",
+            "type": "tabarray",
+            "title": "{{ value.name || 'new input' }}",
             "items": [
               "devices[].inputs[].name",
               "devices[].inputs[].reference",
@@ -541,9 +538,8 @@
         "expanded": false,
         "items": [{
           "key": "devices[].buttons",
-          "type": "array",
-          "orderable": false,
-          "buttonText": "Add button",
+          "type": "tabarray",
+          "title": "{{ value.name || 'new button' }}",
           "items": [
             "devices[].buttons[].name",
             "devices[].buttons[].reference",
