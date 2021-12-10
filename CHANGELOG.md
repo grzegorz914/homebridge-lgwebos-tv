@@ -2,6 +2,11 @@
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
+## [1.9.37] - (10.12.2021)
+## Changes
+- code rebuild
+- stability and performance improvements
+
 ## [1.9.36] - (28.11.2021)
 ## Changes
 - code rebuild
