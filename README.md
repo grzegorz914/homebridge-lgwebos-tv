@@ -26,7 +26,6 @@ Tested with OLED65G6V, 32LM6300PLA, 49SK8500, OLED65C7T, 55SK800PLB, OLED48CX.
 
 ## Know issues
 * If use with Hoobs possible config incompatibilty.
-* webOS 2.0 may be not working correct.
 
 ## Features and How To Use Them
 * Power ON/OFF short press tile in HomeKit app.
