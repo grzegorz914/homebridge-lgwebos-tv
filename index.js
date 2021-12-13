@@ -252,9 +252,9 @@ class lgwebosTvDevice {
 				const devInfo = JSON.stringify(obj, null, 2);
 				try {
 					const writeDevInfo = await fsPromises.writeFile(this.devInfoFile, devInfo);
-					this.log.debug('Device: %s %s, saved Device Info successful: %s', this.host, this.name, devInfo);
+					const debug = this.enableDebugMode ? this.log('Device: %s %s, saved Device Info successful: %s', this.host, this.name, devInfo) : false;
 				} catch (error) {
-					this.log.debug('Device: %s %s, save Device Info error: %s', this.host, accessoryName, error);
+					this.log.error('Device: %s %s, save Device Info error: %s', this.host, accessoryName, error);
 				};
 
 				this.modelName = modelName;
@@ -287,9 +287,9 @@ class lgwebosTvDevice {
 					try {
 						const obj = JSON.stringify(inputsArr, null, 2);
 						const writeInputs = await fsPromises.writeFile(this.inputsFile, obj);
-						this.log.debug('Device: %s %s, saved inputs/apps list: %s', this.host, this.name, obj);
+						const debug = this.enableDebugMode ? this.log('Device: %s %s, saved inputs/apps list: %s', this.host, this.name, obj) : false;
 					} catch (error) {
-						this.log.debug('Device: %s %s, save inputs/apps error: %s', this.host, accessoryName, error);
+						this.log.error('Device: %s %s, save inputs/apps error: %s', this.host, accessoryName, error);
 					};
 				};
 			})
@@ -319,14 +319,14 @@ class lgwebosTvDevice {
 					try {
 						const obj = JSON.stringify(channelsArr, null, 2);
 						const writeChannels = await fsPromises.writeFile(this.channelsFile, obj);
-						this.log.debug('Device: %s %s, write channels list: %s', this.host, this.name, obj);
+						const debug = this.enableDebugMode ? this.log('Device: %s %s, write channels list: %s', this.host, this.name, obj) : false;
 					} catch (error) {
-						this.log.debug('Device: %s %s, save inputs/apps error: %s', this.host, accessoryName, error);
+						this.log.error('Device: %s %s, save inputs/apps error: %s', this.host, accessoryName, error);
 					};
 				}
 			})
 			.on('powerStateData', (data) => {
-				this.log.debug('Device: %s %s, debug current Power state powerStateData: %s', this.host, this.name, data);
+				const debug = this.enableDebugMode ? this.log('Device: %s %s, debug current Power state powerStateData: %s', this.host, this.name, data) : false;
 				const powerStateData = data;
 
 				//screen On
@@ -392,7 +392,7 @@ class lgwebosTvDevice {
 				this.screenPixelRefresh = pixelRefresh;
 			})
 			.on('foregroundAppData', (data) => {
-				this.log.debug('Device: %s %s, debug current App foregroundAppData: %s', this.host, this.name, data);
+				const debug = this.enableDebugMode ? this.log('Device: %s %s, debug current App foregroundAppData: %s', this.host, this.name, data) : false;
 				const foregroundAppData = data;
 
 				const inputReference = foregroundAppData.appId;
@@ -409,7 +409,7 @@ class lgwebosTvDevice {
 				this.inputIdentifier = inputIdentifier;
 			})
 			.on('currentChannelData', (data) => {
-				this.log.debug('Device: %s %s, debug current Channel currentChannelData: %s', this.host, this.name, data);
+				const debug = this.enableDebugMode ? this.log('Device: %s %s, debug current Channel currentChannelData: %s', this.host, this.name, data) : false;
 				const currentChannelData = data;
 
 				const channelName = currentChannelData.channelName;
@@ -431,7 +431,7 @@ class lgwebosTvDevice {
 				this.inputIdentifier = channelIdentifier;
 			})
 			.on('audioStatusData', (data) => {
-				this.log.debug('Device: %s %s, get current Audio state audioStatusData: %s', this.host, this.name, data);
+				const debug = this.enableDebugMode ? this.log('Device: %s %s, get current Audio state audioStatusData: %s', this.host, this.name, data) : false;
 				const audioStatusData = data;
 
 				const volume = audioStatusData.volume;
@@ -457,7 +457,7 @@ class lgwebosTvDevice {
 				this.muteState = muteState;
 			})
 			.on('systemSettingsData', (data) => {
-				this.log.debug('Device: %s %s, debug system settings systemSettingsData: %s', this.host, this.name, data.settings);
+				const debug = this.enableDebugMode ? this.log('Device: %s %s, debug system settings systemSettingsData: %s', this.host, this.name, data.settings) : false;
 				const systemSettingsData = data;
 
 				//check picture settings supported ab webOS 4.0
@@ -508,7 +508,7 @@ class lgwebosTvDevice {
 	};
 
 	async prepareDirectoryAndFiles() {
-		this.log.debug('Device: %s %s, prepare directory and files.', this.host, this.name);
+		const debug = this.enableDebugMode ? this.log('Device: %s %s, prepare directory and files.', this.host, this.name) : false;
 
 		try {
 			//check if the directory exists, if not then create it
@@ -559,7 +559,7 @@ class lgwebosTvDevice {
 				'firmwareRevision': this.firmwareRevision,
 				'webOS': 2
 			};
-			this.log.debug('Device: %s %s, read devInfo: %s', this.host, accessoryName, devInfo)
+			const debug = this.enableDebugMode ? this.log('Device: %s %s, read devInfo: %s', this.host, accessoryName, devInfo) : false;
 
 			const manufacturer = devInfo.manufacturer;
 			const modelName = devInfo.modelName;
@@ -578,7 +578,7 @@ class lgwebosTvDevice {
 
 			this.webOS = webOS;
 		} catch (error) {
-			this.log.debug('Device: %s %s, prepareInformationService error: %s', this.host, accessoryName, error);
+			this.log.error('Device: %s %s, prepareInformationService error: %s', this.host, accessoryName, error);
 		};
 
 		//Prepare television service 
@@ -614,9 +614,7 @@ class lgwebosTvDevice {
 				const inputName = this.inputsName[inputIdentifier];
 				const inputReference = this.inputsReference[inputIdentifier];
 				const inputMode = this.inputsMode[inputIdentifier];
-				if (!this.disableLogInfo && this.powerState) {
-					this.log('Device: %s %s, get %s successful, name: %s, reference %s', this.host, accessoryName, inputMode == 0 ? 'Input' : 'Channel', inputName, inputReference);
-				}
+				const logInfo = this.disableLogInfo ? false : this.log('Device: %s %s, get %s successful, name: %s, reference %s', this.host, accessoryName, inputMode == 0 ? 'Input' : 'Channel', inputName, inputReference);
 				return inputIdentifier;
 			})
 			.onSet(async (inputIdentifier) => {
@@ -850,9 +848,7 @@ class lgwebosTvDevice {
 		this.speakerService.getCharacteristic(Characteristic.Volume)
 			.onGet(async () => {
 				const volume = this.volume;
-				if (!this.disableLogInfo && this.powerState) {
-					this.log('Device: %s %s, get Volume level successful: %s', this.host, accessoryName, volume);
-				}
+				const logInfo = this.disableLogInfo ? false : this.log('Device: %s %s, get Volume level successful: %s', this.host, accessoryName, volume);
 				return volume;
 			})
 			.onSet(async (volume) => {
@@ -1115,16 +1111,16 @@ class lgwebosTvDevice {
 		this.log.debug('prepareInputsService');
 
 		const savedInputs = ((fs.readFileSync(this.inputsFile)).length > 0) ? JSON.parse(fs.readFileSync(this.inputsFile)) : [];
-		this.log.debug('Device: %s %s, read saved Inputs successful, inpits: %s', this.host, accessoryName, savedInputs)
+		const debug = this.enableDebugMode ? this.log('Device: %s %s, read saved Inputs successful, inpits: %s', this.host, accessoryName, savedInputs) : false;
 
 		const savedInputsNames = ((fs.readFileSync(this.inputsNamesFile)).length > 0) ? JSON.parse(fs.readFileSync(this.inputsNamesFile)) : {};
-		this.log.debug('Device: %s %s, read saved custom Inputs Names successful, names: %s', this.host, accessoryName, savedInputsNames)
+		const debug1 = this.enableDebugMode ? this.log('Device: %s %s, read saved custom Inputs Names successful, names: %s', this.host, accessoryName, savedInputsNames) : false;
 
 		const savedTargetVisibility = ((fs.readFileSync(this.inputsTargetVisibilityFile)).length > 0) ? JSON.parse(fs.readFileSync(this.inputsTargetVisibilityFile)) : {};
-		this.log.debug('Device: %s %s, read saved Target Visibility successful, states %s', this.host, accessoryName, savedTargetVisibility);
+		const debug2 = this.enableDebugMode ? this.log('Device: %s %s, read saved Target Visibility successful, states %s', this.host, accessoryName, savedTargetVisibility) : false;
 
 		const savedChannels = ((fs.readFileSync(this.channelsFile)).length > 0) ? JSON.parse(fs.readFileSync(this.channelsFile)) : [];
-		this.log.debug('Device: %s %s, read saved Channels successful, channels: %s', this.host, accessoryName, savedChannels)
+		const debug3 = this.enableDebugMode ? this.log('Device: %s %s, read saved Channels successful, channels: %s', this.host, accessoryName, savedChannels) : false;
 
 		//check available inputs and filter custom unnecessary inputs
 		const allInputs = (this.getInputsFromDevice && savedInputs.length > 0) ? savedInputs : this.inputs;
@@ -1266,7 +1262,7 @@ class lgwebosTvDevice {
 			accessory.addService(buttonService);
 		}
 
-		this.log.debug('Device: %s %s, publishExternalAccessories.', this.host, accessoryName);
+		const debug4 = this.enableDebugMode ? this.log('Device: %s %s, publishExternalAccessories.', this.host, accessoryName) : false;
 		this.api.publishExternalAccessories(PLUGIN_NAME, [accessory]);
 	}
 };
