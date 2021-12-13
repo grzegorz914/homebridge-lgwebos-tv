@@ -48,6 +48,13 @@
               "description": "This disable log info, all values and state will not be displayed in Homebridge log console.",
               "required": false
             },
+            "enableDebugMode": {
+							"title": "Enable Debug Mode",
+							"type": "boolean",
+							"default": false,
+							"description": "This enable debug mode.",
+							"required": false
+						},
             "volumeControl": {
               "title": "Volume control",
               "type": "integer",
@@ -582,6 +589,7 @@
         "expandable": true,
         "expanded": false,
         "items": [
+          "devices[].enableDebugMode",
           "devices[].disableLogInfo",
           "devices[].switchInfoMenu",
           "devices[].refreshInterval",

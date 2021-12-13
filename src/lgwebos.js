@@ -86,7 +86,7 @@ class LGTV extends EventEmitter {
         this.client.on('connectFailed', (error) => {
                 this.isConnected = false;
                 this.connection = {};
-                //this.emit('error', 'Connect to TV Failed: ${error}`);
+                this.emit('debug', `Connect to TV Failed: ${error}`);
 
                 setTimeout(() => {
                     this.connect();
@@ -108,9 +108,10 @@ class LGTV extends EventEmitter {
                                     const volume = (typeof parsedMessage.payload.volume !== 'undefined') ? parsedMessage.payload.changed.push('volume') : parsedMessage.payload.changed = ['volume'];
                                 }
                                 this.callbacks[parsedMessage.id](null, parsedMessage.payload);
+                                this.emit('debug', `Message: ${this.callbacks[parsedMessage.id]}`);
                             };
                         } else {
-                            this.emit('message', `Received non UTF-8 data: ${message}`);
+                            this.emit('debug', `Received non UTF-8 data: ${message}`);
                         };
                     })
                     .on('close', () => {
@@ -119,7 +120,10 @@ class LGTV extends EventEmitter {
                         Object.keys(this.callbacks).forEach((cid) => {
                             delete this.callbacks[cid];
                         });
-                        this.emit('message', 'Disconnected.');
+                        this.emit('disconnect', 'Disconnected.');
+                        this.emit('powerStateData', {
+                            state: 'Suspend'
+                        });
 
                         setTimeout(() => {
                             this.connect();
@@ -191,12 +195,12 @@ class LGTV extends EventEmitter {
                         .on('close', () => {
                             delete this.specializedSockets[SOCKET_URL];
                             this.inputSocket = null;
-                            this.emit('message', 'Specialized socket disconnected.');
+                            this.emit('socketDisconnect', 'Specialized socket disconnected.');
                         });
 
                     this.specializedSockets[SOCKET_URL] = new SpecializedSocket(connection);
                     this.inputSocket = this.specializedSockets[SOCKET_URL];
-                    this.emit('message', 'Specialized socket connected.');
+                    this.emit('socketConnect', 'Specialized socket connected.');
                 });
 
             const socketPath = data.socketPath;

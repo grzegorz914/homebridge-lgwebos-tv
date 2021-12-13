@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
+
+## [1.9.39] - (13.12.2021)
+## Changes
+- fixed wrong power state if tv lose connection to net
+- added debug mode
+
 ## [1.9.37] - (10.12.2021)
 ## Changes
 - code rebuild
