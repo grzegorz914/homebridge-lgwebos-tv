@@ -2,6 +2,9 @@
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
+## [1.9.41] - (14.12.2021)
+## Changes
+- removed refreshInterval 
 
 ## [1.9.39] - (13.12.2021)
 ## Changes

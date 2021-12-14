@@ -1,6 +1,6 @@
 const fs = require('fs');
 const fsPromises = fs.promises;
-const EventEmitter = require('events').EventEmitter;
+const EventEmitter = require('events');
 const WebSocketClient = require('websocket').client;
 const pairing = require('./pairing.json');
 
@@ -123,6 +123,10 @@ class LGTV extends EventEmitter {
                         this.emit('disconnect', 'Disconnected.');
                         this.emit('powerStateData', {
                             state: 'Suspend'
+                        });
+                        this.emit('audioStatusData', {
+                            volume: 0,
+                            mute: true
                         });
 
                         setTimeout(() => {

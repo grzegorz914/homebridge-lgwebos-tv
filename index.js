@@ -171,7 +171,7 @@ class lgwebosTvDevice {
 
 		this.powerState = false;
 		this.volume = 0;
-		this.muteState = false;
+		this.muteState = true;
 		this.invertMediaState = false;
 		this.screenPixelRefresh = false;
 
@@ -325,7 +325,7 @@ class lgwebosTvDevice {
 					};
 				}
 			})
-			.on('powerStateData', (data) => {
+			.on('powerStateData', (powerStateData) => {
 				const debug = this.enableDebugMode ? this.log('Device: %s %s, debug current Power state powerStateData: %s', this.host, this.name, data) : false;
 				const powerStateData = data;
 
@@ -358,19 +358,6 @@ class lgwebosTvDevice {
 				if (this.televisionService) {
 					this.televisionService
 						.updateCharacteristic(Characteristic.Active, powerState);
-					if (this.speakerService) {
-						this.speakerService
-							.updateCharacteristic(Characteristic.Mute, !powerState);
-						if (this.volumeService && this.volumeControl == 1) {
-							this.volumeService
-								.updateCharacteristic(Characteristic.On, powerState);
-						}
-						if (this.volumeServiceFan && this.volumeControl == 2) {
-							this.volumeServiceFan
-								.updateCharacteristic(Characteristic.On, powerState);
-						}
-						this.muteState = !powerState;
-					}
 					if (this.brightnessService) {
 						this.brightnessService
 							.updateCharacteristic(Characteristic.On, powerState);
@@ -435,7 +422,7 @@ class lgwebosTvDevice {
 				const audioStatusData = data;
 
 				const volume = audioStatusData.volume;
-				const muteState = this.powerState ? (audioStatusData.mute == true) : true;
+				const muteState = (audioStatusData.mute == true);
 
 				if (this.speakerService) {
 					this.speakerService
@@ -496,8 +483,6 @@ class lgwebosTvDevice {
 			})
 			.on('disconnect', (message) => {
 				this.log('Device: %s %s, %s', this.host, this.name, message);
-				this.powerState = false;
-				this.muteState = true;
 			})
 			.on('socketDisconnect', (message) => {
 				this.log('Device: %s %s, %s', this.host, this.name, message);
@@ -714,11 +699,11 @@ class lgwebosTvDevice {
 		//		const length = 0x01;
 		//		const value = 0x01;
 		//		const data = [tag, length, value];
-		//			const logInfo = this.disableLogInfo ? false : this.log('Device: %s %s, get display order successful: %s %', this.host, accessoryName, data);
+		//		const logInfo = this.disableLogInfo ? false : this.log('Device: %s %s, get display order successful: %s %', this.host, accessoryName, data);
 		//		return data;
 		//	})
 		//	.onSet(async (data) => {
-		//			const logInfo = this.disableLogInfo ? false : this.log('Device: %s %s, set display order successful: %s.', this.host, accessoryName, data);
+		//		const logInfo = this.disableLogInfo ? false : this.log('Device: %s %s, set display order successful: %s.', this.host, accessoryName, data);
 		//	});
 
 		this.televisionService.getCharacteristic(Characteristic.CurrentMediaState)
@@ -868,22 +853,20 @@ class lgwebosTvDevice {
 
 		this.speakerService.getCharacteristic(Characteristic.Mute)
 			.onGet(async () => {
-				const state = this.powerState ? this.muteState : true;
+				const state = this.muteState;
 				const logInfo = this.disableLogInfo ? false : this.log('Device: %s %s, get Mute state successful: %s', this.host, accessoryName, state ? 'ON' : 'OFF');
 				return state;
 			})
 			.onSet(async (state) => {
-				if (state != this.muteState) {
-					const payload = {
-						muteState: state
-					}
-					try {
-						const setMute = this.powerState ? this.lgtv.send('request', API_URL.SetMute, payload) : false;
-						const logInfo = this.disableLogInfo ? false : this.log('Device: %s %s, set Mute state successful: %s', this.host, accessoryName, state ? 'ON' : 'OFF');
-					} catch (error) {
-						this.log.error('Device: %s %s %s, set Mute error: %s', this.host, accessoryName, error);
-					};
+				const payload = {
+					muteState: state
 				}
+				try {
+					const toggleMute = (this.powerState && state != this.muteState) ? this.lgtv.send('request', API_URL.SetMute, payload) : false;
+					const logInfo = this.disableLogInfo ? false : this.log('Device: %s %s, set Mute state successful: %s', this.host, accessoryName, state ? 'ON' : 'OFF');
+				} catch (error) {
+					this.log.error('Device: %s %s %s, set Mute error: %s', this.host, accessoryName, error);
+				};
 			});
 
 		accessory.addService(this.speakerService);
@@ -899,15 +882,15 @@ class lgwebosTvDevice {
 						return volume;
 					})
 					.onSet(async (volume) => {
-						const setVolume = this.powerState ? this.speakerService.setCharacteristic(Characteristic.Volume, volume) : false;
+						this.speakerService.setCharacteristic(Characteristic.Volume, volume);
 					});
 				this.volumeService.getCharacteristic(Characteristic.On)
 					.onGet(async () => {
-						const state = this.powerState ? this.muteState : true;
-						return !state;
+						const state = !this.muteState;
+						return state;
 					})
 					.onSet(async (state) => {
-						const setMute = this.powerState ? this.speakerService.setCharacteristic(Characteristic.Mute, !state) : false;
+						this.speakerService.setCharacteristic(Characteristic.Mute, !state);
 					});
 
 				accessory.addService(this.volumeService);
@@ -921,15 +904,15 @@ class lgwebosTvDevice {
 						return volume;
 					})
 					.onSet(async (volume) => {
-						const setVolume = this.powerState ? this.speakerService.setCharacteristic(Characteristic.Volume, volume) : false;
+						this.speakerService.setCharacteristic(Characteristic.Volume, volume);
 					});
 				this.volumeServiceFan.getCharacteristic(Characteristic.On)
 					.onGet(async () => {
-						const state = this.powerState ? !this.muteState : false;
+						const state = !this.muteState;
 						return state;
 					})
 					.onSet(async (state) => {
-						const setMute = this.powerState ? this.speakerService.setCharacteristic(Characteristic.Mute, !state) : false;
+						this.speakerService.setCharacteristic(Characteristic.Mute, !state);
 					});
 
 				accessory.addService(this.volumeServiceFan);
@@ -1136,7 +1119,6 @@ class lgwebosTvDevice {
 			const filterApp5 = reference.substr(0, 26) != 'com.webos.app.twinlivezoom';
 			const filterApp6 = reference != 'com.webos.app.softwareupdate';
 			const filterApp7 = reference != 'google.assistant';
-
 			const push = (this.getInputsFromDevice && this.filterSystemApps) ? (filterApp && filterApp1 && filterApp2 && filterApp3 && filterApp4 && filterApp5 && filterApp6 && filterApp7) ? inputsArr.push(allInputs[i]) : false : inputsArr.push(allInputs[i]);
 		}
 
