@@ -325,7 +325,7 @@ class lgwebosTvDevice {
 					};
 				}
 			})
-			.on('powerStateData', (powerStateData) => {
+			.on('powerStateData', (data) => {
 				const debug = this.enableDebugMode ? this.log('Device: %s %s, debug current Power state powerStateData: %s', this.host, this.name, data) : false;
 				const powerStateData = data;
 
