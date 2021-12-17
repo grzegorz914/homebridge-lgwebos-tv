@@ -101,13 +101,9 @@ class LGTV extends EventEmitter {
                             const messageUtf8Data = message.utf8Data;
                             const parsedMessage = messageUtf8Data ? JSON.parse(messageUtf8Data) : this.emit('message', `Not received UTF-8 data: ${messageUtf8Data}`);
 
-                            if (parsedMessage && this.callbacks[parsedMessage.id]) {
-                                if (parsedMessage.payload && parsedMessage.payload.subscribed && parsedMessage.payload.changed) {
-                                    const mute = (typeof parsedMessage.payload.muted !== 'undefined') ? parsedMessage.payload.changed.push('muted') : parsedMessage.payload.changed = ['muted'];
-                                    const volume = (typeof parsedMessage.payload.volume !== 'undefined') ? parsedMessage.payload.changed.push('volume') : parsedMessage.payload.changed = ['volume'];
-                                }
+                            if (parsedMessage.payload && this.callbacks[parsedMessage.id]) {
                                 this.callbacks[parsedMessage.id](null, parsedMessage.payload);
-                                this.emit('debug', `message: ${parsedMessage.payload}`);
+                                this.emit('debug', `message: ${JSON.stringify(parsedMessage.payload, null, 2)}`);
                             };
                         } else {
                             this.emit('debug', `Received non UTF-8 data: ${message}`);
@@ -227,6 +223,7 @@ class LGTV extends EventEmitter {
                         //screen On
                         const prepareScreenOn = ((response.state == 'Suspend' && response.processing == 'Screen On') || (response.state == 'Screen Saver' && response.processing == 'Screen On') || (response.state == 'Active Standby' && response.processing == 'Screen On'));
                         const stillScreenOn = (response.state == 'Active' && response.processing == 'Screen On');
+                        const powerOnScreenOff = (response.state == 'Screen Off' || (response.state == 'Screen Off' && response.processing == 'Screen On'));
                         const screenOn = (response.state == 'Active');
 
                         //screen Saver
@@ -245,11 +242,10 @@ class LGTV extends EventEmitter {
 
                         //powerState
                         const pixelRefresh = (prepareScreenPixelRefresh || screenPixelRefresh);
-                        const powerOn = ((prepareScreenOn || stillScreenOn || screenOn || prepareScreenSaver || screenSaver) && !prepareScreenOff);
-                        const powerOff = ((prepareScreenOff || screenOff || pixelRefresh) && !prepareScreenOn);
+                        const powerOn = (prepareScreenOn || stillScreenOn || powerOnScreenOff || screenOn || prepareScreenSaver || screenSaver);
+                        const powerOff = (prepareScreenOff || screenOff || pixelRefresh);
 
                         const power = (webOS >= 3) ? (powerOn && !powerOff) : this.isConnected;
-                        this.emit('debug', `powerStateData: ${response}`);
                         this.emit('powerState', power, pixelRefresh);
                     });
                     this.send('subscribe', API_URL.GetForegroundAppInfo, (error, response) => {
@@ -257,7 +253,6 @@ class LGTV extends EventEmitter {
                             this.emit('error', `Foreground app error: ${error}`)
                         }
                         const reference = response.appId;
-                        this.emit('debug', `foregroundAppData: ${response}`);
                         this.emit('foregroundApp', reference);
                     });
                     this.send('subscribe', API_URL.GetCurrentChannel, (error, response) => {
@@ -267,7 +262,6 @@ class LGTV extends EventEmitter {
                         const channelName = response.channelName;
                         const channelNumber = response.channelNumber;
                         const channelReference = response.channelId;
-                        this.emit('debug', `currentChannelData: ${response}`);
                         this.emit('currentChannel', channelName, channelNumber, channelReference);
                     });
                     this.send('subscribe', API_URL.GetAudioStatus, (error, response) => {
@@ -276,8 +270,8 @@ class LGTV extends EventEmitter {
                         }
                         const volume = response.volume;
                         const mute = (response.mute == true);
-                        this.emit('debug', `audioStatusData: ${response}`);
-                        this.emit('audioStatus', volume, mute);
+                        const audioOutput = response.scenario;
+                        this.emit('audioStatus', volume, mute, audioOutput);
                     });
                     if (webOS >= 4) {
                         const payload = {
@@ -293,7 +287,6 @@ class LGTV extends EventEmitter {
                             const contrast = response.settings.contrast;
                             const color = response.settings.color;
                             const pictureMode = 3;
-                            this.emit('debug', `systemSettingsData: ${response}`);
                             this.emit('systemSettings', brightness, backlight, contrast, color, pictureMode);
                         });
                     };

@@ -172,6 +172,7 @@ class lgwebosTvDevice {
 		this.pixelRefresh = false;
 		this.volume = 0;
 		this.muteState = true;
+		this.audioOutput = '';
 		this.invertMediaState = false;
 		this.setStartInput = false;
 
@@ -371,7 +372,7 @@ class lgwebosTvDevice {
 				this.channelNumber = channelNumber;
 				this.inputIdentifier = channelIdentifier;
 			})
-			.on('audioStatus', (volume, mute) => {
+			.on('audioStatus', (volume, mute, audioOutput) => {
 
 				if (this.speakerService) {
 					this.speakerService
@@ -391,6 +392,7 @@ class lgwebosTvDevice {
 
 				this.volume = volume;
 				this.muteState = mute;
+				this.audioOutput = audioOutput;
 			})
 			.on('systemSettings', (brightness, backlight, contrast, color, pictureMode) => {
 
