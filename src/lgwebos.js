@@ -71,7 +71,6 @@ class LGTV extends EventEmitter {
     constructor(config) {
         super();
         this.url = config.url;
-        this.reconnect = config.reconnect;
         this.keyFile = config.keyFile;
 
         this.isConnected = false;
@@ -90,7 +89,7 @@ class LGTV extends EventEmitter {
 
                 setTimeout(() => {
                     this.connect();
-                }, this.reconnect);
+                }, 5000);
             })
             .on('connect', (connection) => {
                 this.connection = connection;
@@ -131,7 +130,7 @@ class LGTV extends EventEmitter {
 
                         setTimeout(() => {
                             this.connect();
-                        }, this.reconnect);
+                        }, 5000);
                     });
                 this.isConnected = true;
                 this.register();
@@ -189,7 +188,7 @@ class LGTV extends EventEmitter {
 
                     setTimeout(() => {
                         this.reconnectSocket();
-                    }, this.reconnect);
+                    }, 5000);
                 })
                 .on('connect', (connection) => {
                     connection
@@ -252,7 +251,7 @@ class LGTV extends EventEmitter {
 
             setTimeout(() => {
                 resolve(true);
-            }, 500);
+            }, 750);
         });
     };
 

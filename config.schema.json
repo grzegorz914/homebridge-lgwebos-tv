@@ -32,15 +32,6 @@
               "placeholder": "ab:cd:ef:fe:dc:ba",
               "required": true
             },
-            "refreshInterval": {
-              "title": "Reconnect time",
-              "type": "integer",
-              "default": 2500,
-              "minimum": 0,
-              "maximum": 60000,
-              "description": "Here set the reconnect time to device in (ms), default is every 2500ms.",
-              "required": true
-            },
             "disableLogInfo": {
               "title": "Disable log info",
               "type": "boolean",
@@ -592,7 +583,6 @@
           "devices[].enableDebugMode",
           "devices[].disableLogInfo",
           "devices[].switchInfoMenu",
-          "devices[].refreshInterval",
           "devices[].volumeControl"
         ]
       },

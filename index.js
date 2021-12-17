@@ -127,7 +127,6 @@ class lgwebosTvDevice {
 		this.name = config.name || 'LG TV';
 		this.host = config.host || '';
 		this.mac = config.mac || '';
-		this.refreshInterval = config.refreshInterval || 2500;
 		this.disableLogInfo = config.disableLogInfo || false;
 		this.volumeControl = config.volumeControl || 0;
 		this.switchInfoMenu = config.switchInfoMenu || false;
@@ -204,7 +203,6 @@ class lgwebosTvDevice {
 		const url = `ws://${this.host}:${WEBSOCKET_PORT}`;
 		this.lgtv = new lgtv({
 			url: url,
-			reconnect: this.refreshInterval,
 			keyFile: this.keyFile
 		});
 
