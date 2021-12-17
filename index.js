@@ -169,17 +169,14 @@ class lgwebosTvDevice {
 		this.inputsMode = new Array();
 
 		this.powerState = false;
+		this.pixelRefresh = false;
 		this.volume = 0;
 		this.muteState = true;
 		this.invertMediaState = false;
-		this.screenPixelRefresh = false;
-
 		this.setStartInput = false;
-		this.startInputIdentifier = 0;
 
 		this.inputIdentifier = 0;
 		this.inputMode = 0;
-
 		this.channelName = '';
 		this.channelNumber = 0;
 
@@ -323,134 +320,79 @@ class lgwebosTvDevice {
 					};
 				}
 			})
-			.on('powerStateData', (data) => {
-				const debug = this.enableDebugMode ? this.log('Device: %s %s, debug current Power state powerStateData: %s', this.host, this.name, data) : false;
-				const powerStateData = data;
-
-				//screen On
-				const prepareScreenOn = ((powerStateData.state == 'Suspend' && powerStateData.processing == 'Screen On') || (powerStateData.state == 'Screen Saver' && powerStateData.processing == 'Screen On') || (powerStateData.state == 'Active Standby' && powerStateData.processing == 'Screen On'));
-				const stillScreenOn = (powerStateData.state == 'Active' && powerStateData.processing == 'Screen On');
-				const screenOn = (powerStateData.state == 'Active');
-
-				//screen Saver
-				const prepareScreenSaver = (powerStateData.state == 'Active' && powerStateData.processing == 'Request Screen Saver');
-				const screenSaver = (powerStateData.state == 'Screen Saver');
-
-				//screen Off
-				const prepareScreenOff = ((powerStateData.state == 'Active' && powerStateData.processing == 'Request Power Off') || (powerStateData.state == 'Active' && powerStateData.processing == 'Request Suspend') || (powerStateData.state == 'Active' && powerStateData.processing == 'Prepare Suspend') ||
-						(powerStateData.state == 'Screen Saver' && powerStateData.processing == 'Request Power Off') || (powerStateData.state == 'Screen Saver' && powerStateData.processing == 'Request Suspend') || (powerStateData.state == 'Screen Saver' && powerStateData.processing == 'Prepare Suspend')) ||
-					(powerStateData.state == 'Active Standby' && powerStateData.processing == 'Request Power Off') || (powerStateData.state == 'Active Standby' && powerStateData.processing == 'Request Suspend') || (powerStateData.state == 'Active Standby' && powerStateData.processing == 'Prepare Suspend');
-				const screenOff = (powerStateData.state == 'Suspend');
-
-				//pixelRefresh
-				const prepareScreenPixelRefresh = ((powerStateData.state == 'Active' && powerStateData.processing == 'Request Active Standby') || (powerStateData.state == 'Screen Saver' && powerStateData.processing == 'Request Active Standby'));
-				const screenPixelRefresh = (powerStateData.state == 'Active Standby');
-
-				//powerState
-				const pixelRefresh = (prepareScreenPixelRefresh || screenPixelRefresh);
-				const powerOn = ((prepareScreenOn || stillScreenOn || screenOn || prepareScreenSaver || screenSaver) && !prepareScreenOff);
-				const powerOff = ((prepareScreenOff || screenOff || pixelRefresh) && !prepareScreenOn);
-
-				const powerState = (this.webOS >= 3) ? (powerOn && !powerOff) : this.lgtv.isConnected;
+			.on('powerState', (power, pixelRefresh) => {
 
 				if (this.televisionService) {
 					this.televisionService
-						.updateCharacteristic(Characteristic.Active, powerState);
+						.updateCharacteristic(Characteristic.Active, power);
 					if (this.brightnessService) {
 						this.brightnessService
-							.updateCharacteristic(Characteristic.On, powerState);
+							.updateCharacteristic(Characteristic.On, power);
 					}
 					if (this.backlightService) {
 						this.backlightService
-							.updateCharacteristic(Characteristic.On, powerState);
+							.updateCharacteristic(Characteristic.On, power);
 					}
 					if (this.contrastService) {
 						this.contrastService
-							.updateCharacteristic(Characteristic.On, powerState);
+							.updateCharacteristic(Characteristic.On, power);
 					}
 					if (this.colorService) {
 						this.colorService
-							.updateCharacteristic(Characteristic.On, powerState);
+							.updateCharacteristic(Characteristic.On, power);
 					}
 				};
-				this.powerState = powerState;
-				this.screenPixelRefresh = pixelRefresh;
+				this.powerState = power;
+				this.pixelRefresh = pixelRefresh;
 			})
-			.on('foregroundAppData', (data) => {
-				const debug = this.enableDebugMode ? this.log('Device: %s %s, debug current App foregroundAppData: %s', this.host, this.name, data) : false;
-				const foregroundAppData = data;
-
-				const inputReference = foregroundAppData.appId;
-				const currentInputIdentifier = (this.inputsReference.indexOf(inputReference) >= 0) ? this.inputsReference.indexOf(inputReference) : this.inputIdentifier;
-				const inputIdentifier = this.setStartInput ? this.startInputIdentifier : currentInputIdentifier;
+			.on('foregroundApp', (reference) => {
+				const inputIdentifier = (this.inputsReference.indexOf(reference) >= 0) ? this.inputsReference.indexOf(reference) : this.inputIdentifier;
 
 				if (this.televisionService) {
 					const setUpdateCharacteristic = this.setStartInput ? this.televisionService.setCharacteristic(Characteristic.ActiveIdentifier, inputIdentifier) :
 						this.televisionService.updateCharacteristic(Characteristic.ActiveIdentifier, inputIdentifier);
 
-					this.setStartInput = (currentInputIdentifier == inputIdentifier) ? false : true;
+					this.setStartInput = (this.inputIdentifier == inputIdentifier) ? false : true;
 				};
 
 				this.inputIdentifier = inputIdentifier;
 			})
-			.on('currentChannelData', (data) => {
-				const debug = this.enableDebugMode ? this.log('Device: %s %s, debug current Channel currentChannelData: %s', this.host, this.name, data) : false;
-				const currentChannelData = data;
-
-				const channelName = currentChannelData.channelName;
-				const channelNumber = currentChannelData.channelNumber;
-				const channelReference = currentChannelData.channelId;
-
-				const currentChannelIdentifier = (this.inputsReference.indexOf(channelReference) >= 0) ? this.inputsReference.indexOf(channelReference) : this.inputIdentifier;
-				const channelIdentifier = this.setStartInput ? this.startInputIdentifier : currentChannelIdentifier;
+			.on('currentChannel', (channelName, channelNumber, channelReference) => {
+				const channelIdentifier = (this.inputsReference.indexOf(channelReference) >= 0) ? this.inputsReference.indexOf(channelReference) : this.inputIdentifier;
 
 				if (this.televisionService) {
 					const setUpdateCharacteristic = this.setStartInput ? this.televisionService.setCharacteristic(Characteristic.ActiveIdentifier, channelIdentifier) :
 						this.televisionService.updateCharacteristic(Characteristic.ActiveIdentifier, channelIdentifier);
 
-					this.setStartInput = (currentChannelIdentifier == channelIdentifier) ? false : true;
+					this.setStartInput = (this.inputIdentifier == channelIdentifier) ? false : true;
 				};
 
 				this.channelName = channelName;
 				this.channelNumber = channelNumber;
 				this.inputIdentifier = channelIdentifier;
 			})
-			.on('audioStatusData', (data) => {
-				const debug = this.enableDebugMode ? this.log('Device: %s %s, get current Audio state audioStatusData: %s', this.host, this.name, data) : false;
-				const audioStatusData = data;
-
-				const volume = audioStatusData.volume;
-				const muteState = (audioStatusData.mute == true);
+			.on('audioStatus', (volume, mute) => {
 
 				if (this.speakerService) {
 					this.speakerService
 						.updateCharacteristic(Characteristic.Volume, volume)
-						.updateCharacteristic(Characteristic.Mute, muteState);
+						.updateCharacteristic(Characteristic.Mute, mute);
 					if (this.volumeService && this.volumeControl == 1) {
 						this.volumeService
 							.updateCharacteristic(Characteristic.Brightness, volume)
-							.updateCharacteristic(Characteristic.On, !muteState);
+							.updateCharacteristic(Characteristic.On, !mute);
 					}
 					if (this.volumeServiceFan && this.volumeControl == 2) {
 						this.volumeServiceFan
 							.updateCharacteristic(Characteristic.RotationSpeed, volume)
-							.updateCharacteristic(Characteristic.On, !muteState);
+							.updateCharacteristic(Characteristic.On, !mute);
 					}
 				};
 
 				this.volume = volume;
-				this.muteState = muteState;
+				this.muteState = mute;
 			})
-			.on('systemSettingsData', (data) => {
-				const debug = this.enableDebugMode ? this.log('Device: %s %s, debug system settings systemSettingsData: %s', this.host, this.name, data.settings) : false;
-				const systemSettingsData = data;
-
-				//check picture settings supported ab webOS 4.0
-				const brightness = systemSettingsData.settings.brightness;
-				const backlight = systemSettingsData.settings.backlight;
-				const contrast = systemSettingsData.settings.contrast;
-				const color = systemSettingsData.settings.color;
-				const pictureMode = 3;
+			.on('systemSettings', (brightness, backlight, contrast, color, pictureMode) => {
 
 				if (this.brightnessService) {
 					this.brightnessService
@@ -618,7 +560,7 @@ class lgwebosTvDevice {
 				} catch (error) {
 					this.log.error('Device: %s %s, set %s error: %s', this.host, accessoryName, inputMode == 0 ? 'Input' : 'Channel', error);
 				};
-				this.startInputIdentifier = inputIdentifier;
+				this.inputIdentifier = inputIdentifier;
 				this.setStartInput = this.powerState ? false : true;
 			});
 

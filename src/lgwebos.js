@@ -107,7 +107,7 @@ class LGTV extends EventEmitter {
                                     const volume = (typeof parsedMessage.payload.volume !== 'undefined') ? parsedMessage.payload.changed.push('volume') : parsedMessage.payload.changed = ['volume'];
                                 }
                                 this.callbacks[parsedMessage.id](null, parsedMessage.payload);
-                                this.emit('debug', `Message: ${this.callbacks[parsedMessage.id]}`);
+                                this.emit('debug', `message: ${parsedMessage.payload}`);
                             };
                         } else {
                             this.emit('debug', `Received non UTF-8 data: ${message}`);
@@ -119,14 +119,9 @@ class LGTV extends EventEmitter {
                         Object.keys(this.callbacks).forEach((cid) => {
                             delete this.callbacks[cid];
                         });
+                        this.emit('powerState', false, false);
+                        this.emit('audioStatus', 0, true);
                         this.emit('disconnect', 'Disconnected.');
-                        this.emit('powerStateData', {
-                            state: 'Suspend'
-                        });
-                        this.emit('audioStatusData', {
-                            volume: 0,
-                            mute: true
-                        });
 
                         setTimeout(() => {
                             this.connect();
@@ -217,7 +212,7 @@ class LGTV extends EventEmitter {
                 const emit = (error || response.errorCode) ? this.emit('error', `System info error: ${error}`) : false;
                 this.send('request', API_URL.GetSoftwareInfo, (error, response1) => {
                     const webOS = (error || response.errorCode) ? 2 : response1.product_name.slice(8, -2);
-                    const emit = (error || response.errorCode) ? this.emit('error', `Software info error: ${error}`) : this.emit('devInfoData', response, response1, webOS);;
+                    const emit = (error || response.errorCode) ? this.emit('error', `Software info error: ${error}`) : this.emit('devInfoData', response, response1, webOS);
 
                     this.send('subscribe', API_URL.GetInstalledApps, (error, response) => {
                         const emit = (error || response.errorCode) ? this.emit('error', `Installed apps error: ${error}`) : this.emit('inputsAppsData', response);
@@ -226,16 +221,63 @@ class LGTV extends EventEmitter {
                         const emit = (error || response.errorCode) ? this.emit('error', `Channel list error: ${error}`) : this.emit('channelListData', response);
                     });
                     this.send('subscribe', API_URL.GetPowerState, (error, response) => {
-                        const emit = (error || response.errorCode) ? this.emit('error', `Power state error: ${error}`) : this.emit('powerStateData', response);
+                        if (error || response.errorCode) {
+                            this.emit('error', `Power state error: ${error}`)
+                        }
+                        //screen On
+                        const prepareScreenOn = ((response.state == 'Suspend' && response.processing == 'Screen On') || (response.state == 'Screen Saver' && response.processing == 'Screen On') || (response.state == 'Active Standby' && response.processing == 'Screen On'));
+                        const stillScreenOn = (response.state == 'Active' && response.processing == 'Screen On');
+                        const screenOn = (response.state == 'Active');
+
+                        //screen Saver
+                        const prepareScreenSaver = (response.state == 'Active' && response.processing == 'Request Screen Saver');
+                        const screenSaver = (response.state == 'Screen Saver');
+
+                        //screen Off
+                        const prepareScreenOff = ((response.state == 'Active' && response.processing == 'Request Power Off') || (response.state == 'Active' && response.processing == 'Request Suspend') || (response.state == 'Active' && response.processing == 'Prepare Suspend') ||
+                                (response.state == 'Screen Saver' && response.processing == 'Request Power Off') || (response.state == 'Screen Saver' && response.processing == 'Request Suspend') || (response.state == 'Screen Saver' && response.processing == 'Prepare Suspend')) ||
+                            (response.state == 'Active Standby' && response.processing == 'Request Power Off') || (response.state == 'Active Standby' && response.processing == 'Request Suspend') || (response.state == 'Active Standby' && response.processing == 'Prepare Suspend');
+                        const screenOff = (response.state == 'Suspend');
+
+                        //pixelRefresh
+                        const prepareScreenPixelRefresh = ((response.state == 'Active' && response.processing == 'Request Active Standby') || (response.state == 'Screen Saver' && response.processing == 'Request Active Standby'));
+                        const screenPixelRefresh = (response.state == 'Active Standby');
+
+                        //powerState
+                        const pixelRefresh = (prepareScreenPixelRefresh || screenPixelRefresh);
+                        const powerOn = ((prepareScreenOn || stillScreenOn || screenOn || prepareScreenSaver || screenSaver) && !prepareScreenOff);
+                        const powerOff = ((prepareScreenOff || screenOff || pixelRefresh) && !prepareScreenOn);
+
+                        const power = (webOS >= 3) ? (powerOn && !powerOff) : this.isConnected;
+                        this.emit('debug', `powerStateData: ${response}`);
+                        this.emit('powerState', power, pixelRefresh);
                     });
                     this.send('subscribe', API_URL.GetForegroundAppInfo, (error, response) => {
-                        const emit = (error || response.errorCode) ? this.emit('error', `Foreground app error: ${error}`) : this.emit('foregroundAppData', response);
+                        if (error || response.errorCode) {
+                            this.emit('error', `Foreground app error: ${error}`)
+                        }
+                        const reference = response.appId;
+                        this.emit('debug', `foregroundAppData: ${response}`);
+                        this.emit('foregroundApp', reference);
                     });
                     this.send('subscribe', API_URL.GetCurrentChannel, (error, response) => {
-                        const emit = (error || response.errorCode) ? this.emit('error', `Current channel error: ${error}`) : this.emit('currentChannelData', response);
+                        if (error || response.errorCode) {
+                            this.emit('error', `Current channel error: ${error}`)
+                        }
+                        const channelName = response.channelName;
+                        const channelNumber = response.channelNumber;
+                        const channelReference = response.channelId;
+                        this.emit('debug', `currentChannelData: ${response}`);
+                        this.emit('currentChannel', channelName, channelNumber, channelReference);
                     });
                     this.send('subscribe', API_URL.GetAudioStatus, (error, response) => {
-                        const emit = (error || response.errorCode) ? this.emit('error', `Audio status error: ${error}`) : this.emit('audioStatusData', response);
+                        if (error || response.errorCode) {
+                            this.emit('error', `Audio status error: ${error}`)
+                        }
+                        const volume = response.volume;
+                        const mute = (response.mute == true);
+                        this.emit('debug', `audioStatusData: ${response}`);
+                        this.emit('audioStatus', volume, mute);
                     });
                     if (webOS >= 4) {
                         const payload = {
@@ -243,7 +285,16 @@ class LGTV extends EventEmitter {
                             keys: ['brightness', 'backlight', 'contrast', 'color']
                         }
                         this.send('subscribe', API_URL.GetSystemSettings, payload, (error, response) => {
-                            const emit = (error || response.errorCode) ? this.emit('error', `Software info error: ${error}`) : this.emit('systemSettingsData', response);
+                            if (error || response.errorCode) {
+                                this.emit('error', `System settings error: ${error}`)
+                            }
+                            const brightness = response.settings.brightness;
+                            const backlight = response.settings.backlight;
+                            const contrast = response.settings.contrast;
+                            const color = response.settings.color;
+                            const pictureMode = 3;
+                            this.emit('debug', `systemSettingsData: ${response}`);
+                            this.emit('systemSettings', brightness, backlight, contrast, color, pictureMode);
                         });
                     };
                 });
@@ -251,7 +302,7 @@ class LGTV extends EventEmitter {
 
             setTimeout(() => {
                 resolve(true);
-            }, 750);
+            }, 1500);
         });
     };
 
