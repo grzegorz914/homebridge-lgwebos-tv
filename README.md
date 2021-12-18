@@ -29,12 +29,12 @@ Tested with OLED65G6V, 32LM6300PLA, 49SK8500, OLED65C7T, 55SK800PLB, OLED48CX.
 
 ## Features and How To Use Them
 * Power ON/OFF short press tile in HomeKit app.
-* RC/Media control is possible after you go to the RC app on iPhone/iPad.
-* Speaker control is possible after you go to RC app on iPhone/iPad `Speaker Service`.
+* RC/Media control is possible after you go to the RC app.
+* Speaker control is possible after you go to RC app `Speaker Service`.
 * Legacy Volume and Mute control is possible throught extra `lightbulb`/`fan` (slider).
-* Inputs can be changed after long press tile and select from the list or create separate tile in Buttons section.
-* Channels can be changed after long press tile and select from the list or create separate tile in Buttons section.
-* Siri control Power, Legacy Volume, Mute and switch Inputs/Apps/Channels using created Buttons.
+* Inputs can be changed after long press tile and select from the list.
+* Channels can be changed after long press tile and select from the list.
+* Siri can be used for all functions through created extra buttons.
 * Home automations and shortcuts can be used for all functions.
 
 
