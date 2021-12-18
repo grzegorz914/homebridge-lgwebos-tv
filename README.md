@@ -61,7 +61,7 @@ Install and use [Homebridge Config UI X](https://github.com/oznu/homebridge-conf
 | `enableDebugMode` | If enabled, deep log will be present in homebridge console. |
 | `disableLogInfo` | If enabled, disable log info, all values and state will not be displayed in Homebridge log console. |
 | `volumeControl` | Here choice what a additional volume control mode You want to use (None, Slider, Fan). |
-| `switchInfoMenu` | If enabled, `I` button change its behaviour in RC app between Menu and INFO. |
+| `switchInfoMenu` | If enabled, `I` button change its behaviour in RC app between Menu and Home. |
 | `getInputsFromDevice` | If `true` then the inputs and apps wil be loaded direct from device. |
 | `filterSystemApps` | If `true` then the sysem apps wil be filtered, only if `getInputsFromDevice` is `true`. |
 | `inputs.name` | Here set own *Name* which You want expose to the *Homebridge/HomeKit*. |

@@ -74,7 +74,7 @@
               "required": true
             },
             "switchInfoMenu": {
-              "title": "Switch Info/Menu",
+              "title": "Switch Home/Menu",
               "type": "boolean",
               "default": false,
               "description": "This toggle behaviour for *I* button in RC app and *PowerModeSelection* in settings.",
@@ -263,6 +263,12 @@
                     "title": "RC Command",
                     "type": "string",
                     "oneOf": [{
+                        "title": "Home",
+                        "enum": [
+                          "HOME"
+                        ]
+                      },
+                      {
                         "title": "Menu",
                         "enum": [
                           "MENU"
@@ -350,6 +356,126 @@
                         "title": "Volume Down",
                         "enum": [
                           "VOLUMEDOWN"
+                        ]
+                      },
+                      {
+                        "title": "Mute",
+                        "enum": [
+                          "MUTE"
+                        ]
+                      },
+                      {
+                        "title": "Power",
+                        "enum": [
+                          "POWER"
+                        ]
+                      },
+                      {
+                        "title": "Red",
+                        "enum": [
+                          "RED"
+                        ]
+                      },
+                      {
+                        "title": "Green",
+                        "enum": [
+                          "GREEN"
+                        ]
+                      },
+                      {
+                        "title": "Yellow",
+                        "enum": [
+                          "YELLOW"
+                        ]
+                      },
+                      {
+                        "title": "Blue",
+                        "enum": [
+                          "BLUE"
+                        ]
+                      },
+                      {
+                        "title": "Live Zoom",
+                        "enum": [
+                          "LIVE_ZOOM"
+                        ]
+                      },
+                      {
+                        "title": "Record",
+                        "enum": [
+                          "RECORD"
+                        ]
+                      },
+                      {
+                        "title": "3D Mode",
+                        "enum": [
+                          "3D_MODE"
+                        ]
+                      },
+                      {
+                        "title": "Channel Up",
+                        "enum": [
+                          "CHANNELUP"
+                        ]
+                      },
+                      {
+                        "title": "Channel Down",
+                        "enum": [
+                          "CHANNELDOWN"
+                        ]
+                      },
+                      {
+                        "title": "List",
+                        "enum": [
+                          "LIST"
+                        ]
+                      },
+                      {
+                        "title": "AD",
+                        "enum": [
+                          "AD"
+                        ]
+                      },
+                      {
+                        "title": "Dash",
+                        "enum": [
+                          "DASH"
+                        ]
+                      },
+                      {
+                        "title": "Favorites",
+                        "enum": [
+                          "FAVORITES"
+                        ]
+                      },
+                      {
+                        "title": "My Apps",
+                        "enum": [
+                          "MYAPPS"
+                        ]
+                      },
+                      {
+                        "title": "Aspect Ratio",
+                        "enum": [
+                          "ASPECT_RATIO"
+                        ]
+                      },
+                      {
+                        "title": "Recent",
+                        "enum": [
+                          "RECENT"
+                        ]
+                      },
+                      {
+                        "title": "SAP",
+                        "enum": [
+                          "SAP"
+                        ]
+                      },
+                      {
+                        "title": "CC",
+                        "enum": [
+                          "CC"
                         ]
                       }
                     ],

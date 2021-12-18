@@ -579,10 +579,10 @@ class lgwebosTvDevice {
 						command = 'FASTFORWARD';
 						break;
 					case Characteristic.RemoteKey.NEXT_TRACK:
-						command = 'MENU';
+						command = 'GOTONEXT';
 						break;
 					case Characteristic.RemoteKey.PREVIOUS_TRACK:
-						command = 'MENU';
+						command = 'GOTOPREV';
 						break;
 					case Characteristic.RemoteKey.ARROW_UP:
 						command = 'UP';
@@ -608,8 +608,9 @@ class lgwebosTvDevice {
 					case Characteristic.RemoteKey.PLAY_PAUSE:
 						command = this.invertMediaState ? 'PLAY' : 'PAUSE';
 						this.invertMediaState = !this.invertMediaState;
+						break;
 					case Characteristic.RemoteKey.INFORMATION:
-						command = this.switchInfoMenu ? 'MENU' : 'INFO';
+						command = this.switchInfoMenu ? 'MENU' : 'HOME';
 						break;
 				}
 				const payload = {
@@ -1149,18 +1150,17 @@ class lgwebosTvDevice {
 		const buttonsCount = buttons.length;
 		const maxButtonsCount = ((inputsCount + buttonsCount) < 94) ? buttonsCount : 94 - inputsCount;
 		for (let i = 0; i < maxButtonsCount; i++) {
+			//get button mode
+			const buttonMode = buttons[i].mode;
 
 			//get button reference
 			const buttonReference = buttons[i].reference;
 
-			//get button name
-			const buttonName = (buttons[i].name != undefined) ? buttons[i].name : buttons[i].reference;
-
-			//get button mode
-			const buttonMode = buttons[i].mode;
-
 			//get button command
 			const buttonCommand = buttons[i].command;
+
+			//get button name
+			const buttonName = (buttons[i].name != undefined) ? buttons[i].name : [buttonReference, buttonReference, buttonCommand][buttonMode];
 
 			const buttonService = new Service.Switch(`${accessoryName} ${buttonName}`, `Button ${i}`);
 			buttonService.getCharacteristic(Characteristic.On)
