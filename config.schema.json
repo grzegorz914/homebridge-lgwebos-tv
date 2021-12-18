@@ -263,6 +263,66 @@
                     "title": "RC Command",
                     "type": "string",
                     "oneOf": [{
+                        "title": "0",
+                        "enum": [
+                          "0"
+                        ]
+                      },
+                      {
+                        "title": "1",
+                        "enum": [
+                          "1"
+                        ]
+                      },
+                      {
+                        "title": "2",
+                        "enum": [
+                          "2"
+                        ]
+                      },
+                      {
+                        "title": "3",
+                        "enum": [
+                          "3"
+                        ]
+                      },
+                      {
+                        "title": "4",
+                        "enum": [
+                          "4"
+                        ]
+                      },
+                      {
+                        "title": "5",
+                        "enum": [
+                          "5"
+                        ]
+                      },
+                      {
+                        "title": "6",
+                        "enum": [
+                          "6"
+                        ]
+                      },
+                      {
+                        "title": "7",
+                        "enum": [
+                          "7"
+                        ]
+                      },
+                      {
+                        "title": "8",
+                        "enum": [
+                          "8"
+                        ]
+                      },
+                      {
+                        "title": "9",
+                        "enum": [
+                          "9"
+                        ]
+                      },
+                      {
                         "title": "Home",
                         "enum": [
                           "HOME"
@@ -325,13 +385,13 @@
                       {
                         "title": "Play",
                         "enum": [
-                          "PAUSE"
+                          "PLAY"
                         ]
                       },
                       {
                         "title": "Pause",
                         "enum": [
-                          "PLAY"
+                          "PAUSE"
                         ]
                       },
                       {
