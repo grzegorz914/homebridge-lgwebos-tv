@@ -129,7 +129,7 @@ class lgwebosTvDevice {
 		this.mac = config.mac || '';
 		this.disableLogInfo = config.disableLogInfo || false;
 		this.volumeControl = config.volumeControl || 0;
-		this.switchInfoMenu = config.switchInfoMenu || false;
+		this.switchMenuHome = config.switchInfoMenu || false;
 		this.getInputsFromDevice = config.getInputsFromDevice || false;
 		this.filterSystemApps = config.filterSystemApps || false;
 		this.inputs = config.inputs || [];
@@ -610,7 +610,7 @@ class lgwebosTvDevice {
 						this.invertMediaState = !this.invertMediaState;
 						break;
 					case Characteristic.RemoteKey.INFORMATION:
-						command = this.switchInfoMenu ? 'MENU' : 'HOME';
+						command = this.switchMenuHome ? 'MENU' : 'HOME';
 						break;
 				}
 				const payload = {
@@ -730,7 +730,7 @@ class lgwebosTvDevice {
 			.onSet(async (command) => {
 				switch (command) {
 					case Characteristic.PowerModeSelection.SHOW:
-						command = this.switchInfoMenu ? 'MENU' : 'INFO';
+						command = this.switchMenuHome ? 'MENU' : 'INFO';
 						break;
 					case Characteristic.PowerModeSelection.HIDE:
 						command = 'BACK';
