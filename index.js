@@ -730,7 +730,7 @@ class lgwebosTvDevice {
 			.onSet(async (command) => {
 				switch (command) {
 					case Characteristic.PowerModeSelection.SHOW:
-						command = this.switchMenuHome ? 'MENU' : 'INFO';
+						command = this.switchMenuHome ? 'MENU' : 'HOME';
 						break;
 					case Characteristic.PowerModeSelection.HIDE:
 						command = 'BACK';

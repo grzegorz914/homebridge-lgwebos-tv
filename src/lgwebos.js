@@ -208,6 +208,7 @@ class LGTV extends EventEmitter {
                 const emit = (error || response.errorCode) ? this.emit('error', `System info error: ${error}`) : false;
                 this.send('request', API_URL.GetSoftwareInfo, (error, response1) => {
                     const webOS = (error || response.errorCode) ? 2 : response1.product_name.slice(8, -2);
+                    this.webOS = webOS;
                     const emit = (error || response.errorCode) ? this.emit('error', `Software info error: ${error}`) : this.emit('devInfo', response, response1, webOS);
 
                     this.send('subscribe', API_URL.GetInstalledApps, (error, response) => {
