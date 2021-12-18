@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
+## [1.10.0] - (18.12.2021)
+## Changes
+- added RC and Volume control as a button
+- added correct power state report if screen is Off
+- stability and performance improvements
+
 ## [1.9.41] - (14.12.2021)
 ## Changes
 - removed refreshInterval 

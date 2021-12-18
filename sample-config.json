@@ -59,6 +59,11 @@
                      "name": "BBC ONE HD",
                      "reference": "1_45_101_101_16521_17540_9018",
                      "mode": 1
+                },
+                {
+                     "name": "Menu Up",
+                     "mode": 2,
+                     "command": "UP"
                 }
             ],
             "manufacturer": "Manufacturer",

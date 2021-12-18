@@ -40,12 +40,12 @@
               "required": false
             },
             "enableDebugMode": {
-							"title": "Enable Debug Mode",
-							"type": "boolean",
-							"default": false,
-							"description": "This enable debug mode.",
-							"required": false
-						},
+              "title": "Enable Debug Mode",
+              "type": "boolean",
+              "default": false,
+              "description": "This enable debug mode.",
+              "required": false
+            },
             "volumeControl": {
               "title": "Volume control",
               "type": "integer",
@@ -226,13 +226,6 @@
                     "description": "Here set Your own name.",
                     "required": false
                   },
-                  "reference": {
-                    "title": "Reference",
-                    "type": "string",
-                    "placeholder": "Input/App, Channel reference",
-                    "description": "Here set the Input/App, Channel reference.",
-                    "required": false
-                  },
                   "mode": {
                     "title": "Mode",
                     "type": "integer",
@@ -249,8 +242,118 @@
                         "enum": [
                           1
                         ]
+                      },
+                      {
+                        "title": "Remote Control",
+                        "enum": [
+                          2
+                        ]
                       }
                     ],
+                    "required": true
+                  },
+                  "reference": {
+                    "title": "Reference",
+                    "type": "string",
+                    "placeholder": "Input/App, Channel reference",
+                    "description": "Here set the Input/App or Channel reference.",
+                    "required": false
+                  },
+                  "command": {
+                    "title": "RC Command",
+                    "type": "string",
+                    "oneOf": [{
+                        "title": "Menu",
+                        "enum": [
+                          "MENU"
+                        ]
+                      },
+                      {
+                        "title": "Menu Up",
+                        "enum": [
+                          "UP"
+                        ]
+                      },
+                      {
+                        "title": "Menu Down",
+                        "enum": [
+                          "DOWN"
+                        ]
+                      },
+                      {
+                        "title": "Menu Left",
+                        "enum": [
+                          "LEFT"
+                        ]
+                      },
+                      {
+                        "title": "Menu Right",
+                        "enum": [
+                          "RIGHT"
+                        ]
+                      },
+                      {
+                        "title": "Menu OK",
+                        "enum": [
+                          "ENTER"
+                        ]
+                      },
+                      {
+                        "title": "Back",
+                        "enum": [
+                          "BACK"
+                        ]
+                      },
+                      {
+                        "title": "Exit",
+                        "enum": [
+                          "EXIT"
+                        ]
+                      },
+                      {
+                        "title": "Info",
+                        "enum": [
+                          "INFO"
+                        ]
+                      },
+                      {
+                        "title": "Play",
+                        "enum": [
+                          "PAUSE"
+                        ]
+                      },
+                      {
+                        "title": "Pause",
+                        "enum": [
+                          "PLAY"
+                        ]
+                      },
+                      {
+                        "title": "Fast Forward",
+                        "enum": [
+                          "FASTFORWARD"
+                        ]
+                      },
+                      {
+                        "title": "Rewind",
+                        "enum": [
+                          "REWIND"
+                        ]
+                      },
+                      {
+                        "title": "Volume Up",
+                        "enum": [
+                          "VOLUMEUP"
+                        ]
+                      },
+                      {
+                        "title": "Volume Down",
+                        "enum": [
+                          "VOLUMEDOWN"
+                        ]
+                      }
+                    ],
+                    "description": "Here select the remote control command.",
                     "required": true
                   }
                 }
@@ -540,8 +643,9 @@
           "title": "{{ value.name || 'new button' }}",
           "items": [
             "devices[].buttons[].name",
+            "devices[].buttons[].mode",
             "devices[].buttons[].reference",
-            "devices[].buttons[].mode"
+            "devices[].buttons[].command"
           ]
         }]
       },

@@ -67,10 +67,11 @@ Install and use [Homebridge Config UI X](https://github.com/oznu/homebridge-conf
 | `inputs.name` | Here set own *Name* which You want expose to the *Homebridge/HomeKit*. |
 | `inputs.reference` | Here set *Reference*. `Live TV`, `HDMI 1`, `HDMI 2` inputs are created by default. | 
 | `inputs.type` | Here select source input type. |
-| `inputs.mode` | Here select `Input/App` if You defined Input/App reference, `Live TV Channel` if You defined channel reference. |
+| `inputs.mode` | Here select `Input/App` if You defined Input/App reference, `Live TV Channel` if You defined channel reference, leave empty if select `Remote Control`. |
 | `buttons.name` | Here set own *Name* which You want expose to the *Homebridge/HomeKit*. | 
-| `buttons.reference` | Here set *Reference*. | 
-| `buttons.mode` | Here select `Input/App` if You defined Input/App reference, `Live TV Channel` if You defined channel reference. |
+| `buttons.mode` | Here select `Input/App`, `Live TV Channel` or `Remote Control`. |
+| `buttons.reference` | Here set *Reference*, only for `Input/App` or `Live TV Channel`, in other case leave empty. | 
+| `buttons.command` | Here select remote control command if You selected `Remote Control` mode. |
 | `manufacturer`, `modelName`, `serialNumber`, `firmwareRevision` | Free-form informational data that will be displayed in the Home.app. |
 | `reference` | All can be found in `homebridge_directory/lgwebosTv`, `inputs_xxx` file, where `reference == id`, or `channels_xxx` file, where `reference == channelId`. | Info |
 
@@ -122,6 +123,11 @@ Install and use [Homebridge Config UI X](https://github.com/oznu/homebridge-conf
                     "name": "BBC ONE HD",
                     "reference": "1_45_101_101_16521_17540_9018",
                     "mode": 1
+               },
+               {
+                    "name": "Menu Up",
+                    "mode": 2,
+                    "command": "UP"
                }
           ],
           "manufacturer": "Manufacturer",
