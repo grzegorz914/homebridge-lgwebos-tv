@@ -65,7 +65,7 @@ Install and use [Homebridge Config UI X](https://github.com/oznu/homebridge-conf
 | `getInputsFromDevice` | This enable load inputs and apps direct from device. |
 | `filterSystemApps` | This enable filter sysem apps, only if `getInputsFromDevice` is `true`. |
 | `turnScreenOnOff` | This enable possibility turn the screen ON/OFF, only for webOS >= 4.0. |
-| `inputs.name` | Here set own *Name* which You want expose to the *Homebridge/HomeKit*. |
+| `inputs.name` | Here set *Name* which You want expose to the *Homebridge/HomeKit*. |
 | `inputs.reference` | Here set *Reference*. `Live TV`, `HDMI 1`, `HDMI 2` are created by default. | 
 | `inputs.type` | Here select source input type. |
 | `inputs.mode` | Here select input mode, `Input/App`, `Live TV Channel`. |
