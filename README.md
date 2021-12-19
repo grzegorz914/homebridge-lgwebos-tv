@@ -60,7 +60,7 @@ Install and use [Homebridge Config UI X](https://github.com/oznu/homebridge-conf
 | `mac` | Here set the *Mac Address* of TV. |
 | `enableDebugMode` | This enable deep log in homebridge console. |
 | `disableLogInfo` | This disable log info, all values and state will not be displayed in Homebridge log console. |
-| `volumeControl` | Here choice what a additional volume control mode You want to use (None, Slider, Fan). |
+| `volumeControl` | Here select volume control mode `None`, `Slider`, `Fan`. |
 | `switchInfoMenu` | This switch the behaviour of `I` button in RC app between Menu and Home. |
 | `getInputsFromDevice` | This enable load inputs and apps direct from device. |
 | `filterSystemApps` | This enable filter sysem apps, only if `getInputsFromDevice` is `true`. |
