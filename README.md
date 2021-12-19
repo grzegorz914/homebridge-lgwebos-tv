@@ -58,13 +58,13 @@ Install and use [Homebridge Config UI X](https://github.com/oznu/homebridge-conf
 | `name` | Here set the accessory *Name* to be displayed in *Homebridge/HomeKit*. |
 | `host` | Here set the *Hsostname or Address IP* of TV. |
 | `mac` | Here set the *Mac Address* of TV. |
-| `enableDebugMode` | If enabled, deep log will be present in homebridge console. |
-| `disableLogInfo` | If enabled, disable log info, all values and state will not be displayed in Homebridge log console. |
+| `enableDebugMode` | This enable deep log in homebridge console. |
+| `disableLogInfo` | This disable log info, all values and state will not be displayed in Homebridge log console. |
 | `volumeControl` | Here choice what a additional volume control mode You want to use (None, Slider, Fan). |
-| `switchInfoMenu` | If enabled, `I` button change its behaviour in RC app between Menu and Home. |
-| `getInputsFromDevice` | If `true` then the inputs and apps wil be loaded direct from device. |
-| `filterSystemApps` | If `true` then the sysem apps wil be filtered, only if `getInputsFromDevice` is `true`. |
-| `turnScreenOnOff` | If `true` then turn ON/OFF the screen will be possible, only for webOS >= 4.0. |
+| `switchInfoMenu` | This switch the behaviour of `I` button in RC app between Menu and Home. |
+| `getInputsFromDevice` | This enable load inputs and apps direct from device. |
+| `filterSystemApps` | This enable filter sysem apps, only if `getInputsFromDevice` is `true`. |
+| `turnScreenOnOff` | This enable possibilirty turn the screen ON/OFF, only for webOS >= 4.0. |
 | `inputs.name` | Here set own *Name* which You want expose to the *Homebridge/HomeKit*. |
 | `inputs.reference` | Here set *Reference*. `Live TV`, `HDMI 1`, `HDMI 2` inputs are created by default. | 
 | `inputs.type` | Here select source input type. |
