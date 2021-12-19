@@ -26,6 +26,7 @@
             "getInputsFromDevice": false,
             "filterSystemApps": false,
             "enableDebugMode": false,
+            "turnScreenOnOff": false,
             "inputs": [{
                     "name": "HDMI 3",
                     "reference": "com.webos.app.hdmi3",

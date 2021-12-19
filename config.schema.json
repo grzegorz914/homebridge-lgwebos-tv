@@ -46,6 +46,13 @@
               "description": "This enable debug mode.",
               "required": false
             },
+            "turnScreenOnOff": {
+              "title": "Turn screen ON/OFF",
+              "type": "boolean",
+              "default": false,
+              "description": "This enable possibility turn ON/OFF screen, only for webOD >= 4.0.",
+              "required": false
+            },
             "volumeControl": {
               "title": "Volume control",
               "type": "integer",
@@ -933,6 +940,7 @@
           "devices[].enableDebugMode",
           "devices[].disableLogInfo",
           "devices[].switchInfoMenu",
+          "devices[].turnScreenOnOff",
           "devices[].volumeControl"
         ]
       },

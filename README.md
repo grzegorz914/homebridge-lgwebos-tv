@@ -64,6 +64,7 @@ Install and use [Homebridge Config UI X](https://github.com/oznu/homebridge-conf
 | `switchInfoMenu` | If enabled, `I` button change its behaviour in RC app between Menu and Home. |
 | `getInputsFromDevice` | If `true` then the inputs and apps wil be loaded direct from device. |
 | `filterSystemApps` | If `true` then the sysem apps wil be filtered, only if `getInputsFromDevice` is `true`. |
+| `turnScreenOnOff` | If `true` then turn ON/OFF the screen will be possible, only for webOS >= 4.0. |
 | `inputs.name` | Here set own *Name* which You want expose to the *Homebridge/HomeKit*. |
 | `inputs.reference` | Here set *Reference*. `Live TV`, `HDMI 1`, `HDMI 2` inputs are created by default. | 
 | `inputs.type` | Here select source input type. |
@@ -89,6 +90,7 @@ Install and use [Homebridge Config UI X](https://github.com/oznu/homebridge-conf
             "getInputsFromDevice": false,
             "filterSystemApps": false,
             "enableDebugMode": false,
+            "turnScreenOnOff": false,
             "inputs": [
                 {
                     "name": "HDMI 3",

@@ -3,48 +3,8 @@ const fsPromises = fs.promises;
 const EventEmitter = require('events');
 const WebSocketClient = require('websocket').client;
 const pairing = require('./pairing.json');
+const API_URL = require('./apiurl.json');
 
-const API_URL = {
-    'WsUrl': 'ws://lgwebostv:3000',
-    'ApiGetServiceList': 'ssap://api/getServiceList',
-    'GetSystemInfo': 'ssap://system/getSystemInfo',
-    'GetSoftwareInfo': 'ssap://com.webos.service.update/getCurrentSWInformation',
-    'GetInstalledApps': 'ssap://com.webos.applicationManager/listApps',
-    'GetChannelList': 'ssap:/tv/getChannelList',
-    'GetPowerState': 'ssap://com.webos.service.tvpower/power/getPowerState',
-    'GetForegroundAppInfo': 'ssap://com.webos.applicationManager/getForegroundAppInfo',
-    'GetCurrentChannel': 'ssap://tv/getCurrentChannel',
-    'GetChannelProgramInfo': 'ssap://tv/getChannelProgramInfo',
-    'GetExternalInputList': 'ssap://tv/getExternalInputList',
-    'SwitchInput': 'ssap://tv/switchInput',
-    'GetAudioStatus': 'ssap://audio/getStatus',
-    'GetSystemSettings': 'ssap://settings/getSystemSettings',
-    'GetVolume': 'ssap://audio/getVolume',
-    'GetAppState': 'com.webos.service.appstatus/getAppStatus',
-    'TurnOff': 'ssap://system/turnOff',
-    'LaunchApp': 'ssap://system.launcher/launch',
-    'CloseApp': 'ssap://system.launcher/close',
-    'CloseMediaViewer': 'ssap://media.viewer/close',
-    'CloseWebApp': 'ssap://webapp/closeWebApp',
-    'OpenChannel': 'ssap://tv/openChannel',
-    'SetSystemSettings': 'luna://com.webos.settingsservice/setSystemSettings',
-    'SetVolume': 'ssap://audio/setVolume',
-    'SetVolumeUp': 'ssap://audio/volumeUp',
-    'SetVolumeDown': 'ssap://audio/volumeDown',
-    'SetMute': 'ssap://audio/setMute',
-    'Set3dOn': 'ssap://com.webos.service.tv.display/set3DOn',
-    'Set3dOff': 'ssap://com.webos.service.tv.display/set3DOff',
-    'SetMediaPlay': 'ssap://media.controls/play',
-    'SetMediaPause': 'ssap://media.controls/pause',
-    'SetMediaStop': 'ssap://media.controls/stop',
-    'SetMediaRewind': 'ssap://media.controls/rewind',
-    'SetMediaFastForward': 'ssap://media.controls/fastForward',
-    'SetTvChannelUp': 'ssap://tv/channelUp',
-    'SetTvChannelDown': 'ssap://tv/channelDown',
-    'SetToast': 'ssap://system.notifications/createToast'
-};
-
-const SOCKET_URL = 'ssap://com.webos.service.networkinput/getPointerInputSocket';
 const SOCKET_OPTIONS = {
     keepalive: true,
     keepaliveInterval: 5000,
@@ -115,7 +75,7 @@ class LGTV extends EventEmitter {
                         Object.keys(this.callbacks).forEach((cid) => {
                             delete this.callbacks[cid];
                         });
-                        this.emit('powerState', false, false);
+                        this.emit('powerState', false, false, false);
                         this.emit('audioState', 0, true, '');
                         this.emit('disconnect', 'Disconnected.');
 
@@ -163,11 +123,11 @@ class LGTV extends EventEmitter {
     };
 
     getSocket() {
-        if (this.specializedSockets[SOCKET_URL]) {
-            this.inputSocket = this.specializedSockets[SOCKET_URL];
+        if (this.specializedSockets[API_URL.SocketUrl]) {
+            this.inputSocket = this.specializedSockets[API_URL.SocketUrl];
         };
 
-        this.send('request', SOCKET_URL, (err, data) => {
+        this.send('request', API_URL.SocketUrl, (err, data) => {
             if (err) {
                 this.emit('error', `Send request error: ${err}`);
                 return;
@@ -187,13 +147,13 @@ class LGTV extends EventEmitter {
                             this.emit('error', `Specialized socket connect error: ${error}`);
                         })
                         .on('close', () => {
-                            delete this.specializedSockets[SOCKET_URL];
+                            delete this.specializedSockets[API_URL.SocketUrl];
                             this.inputSocket = null;
                             this.emit('socketDisconnect', 'Specialized socket disconnected.');
                         });
 
-                    this.specializedSockets[SOCKET_URL] = new SpecializedSocket(connection);
-                    this.inputSocket = this.specializedSockets[SOCKET_URL];
+                    this.specializedSockets[API_URL.SocketUrl] = new SpecializedSocket(connection);
+                    this.inputSocket = this.specializedSockets[API_URL.SocketUrl];
                     this.emit('socketConnect', 'Specialized socket connected.');
                 });
 
@@ -247,8 +207,10 @@ class LGTV extends EventEmitter {
                         const powerOff = (prepareScreenOff || screenOff || pixelRefresh);
 
                         const power = (webOS >= 3) ? (powerOn && !powerOff) : this.isConnected;
-                        this.emit('powerState', power, pixelRefresh);
-                        const setMute = !power ? this.emit('audioState', 0, true, '') : false;
+                        const screenState = power ? !powerOnScreenOff : false;
+                        
+                        this.emit('powerState', power, pixelRefresh, screenState);
+                        const setAudioState = !power ? this.emit('audioState', 0, true, '') : false;
                     });
                     this.send('subscribe', API_URL.GetForegroundAppInfo, (error, response) => {
                         if (error || response.errorCode) {
@@ -268,7 +230,7 @@ class LGTV extends EventEmitter {
                     });
                     this.send('subscribe', API_URL.GetAudioStatus, (error, response) => {
                         if (error || response.errorCode) {
-                            this.emit('error', `Audio status error: ${error}`)
+                            this.emit('error', `Audio state error: ${error}`)
                         }
                         const volume = response.volume;
                         const mute = (response.mute == true);
@@ -292,6 +254,12 @@ class LGTV extends EventEmitter {
                             this.emit('pictureSettings', brightness, backlight, contrast, color, pictureMode);
                         });
                     };
+                    this.send('subscribe', API_URL.GetAppState, (error, response) => {
+                        if (error || response.errorCode) {
+                            this.emit('error', `App state error: ${error}`)
+                        };
+                        this.emit('appState');
+                    });
                 });
             });
 

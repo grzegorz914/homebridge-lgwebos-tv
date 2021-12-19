@@ -1,53 +1,15 @@
 'use strict';
 
+const wol = require('@mi-sec/wol');
 const path = require('path');
 const fs = require('fs');
 const fsPromises = fs.promises;
 const lgtv = require('./src/lgwebos');
-const wol = require('@mi-sec/wol');
+const API_URL = require('./src/apiurl.json');
 
 const PLUGIN_NAME = 'homebridge-lgwebos-tv';
 const PLATFORM_NAME = 'LgWebOsTv';
 
-const API_URL = {
-	'WsUrl': 'ws://lgwebostv:3000',
-	'ApiGetServiceList': 'ssap://api/getServiceList',
-	'GetSystemInfo': 'ssap://system/getSystemInfo',
-	'GetSoftwareInfo': 'ssap://com.webos.service.update/getCurrentSWInformation',
-	'GetInstalledApps': 'ssap://com.webos.applicationManager/listApps',
-	'GetChannelList': 'ssap:/tv/getChannelList',
-	'GetPowerState': 'ssap://com.webos.service.tvpower/power/getPowerState',
-	'GetForegroundAppInfo': 'ssap://com.webos.applicationManager/getForegroundAppInfo',
-	'GetCurrentChannel': 'ssap://tv/getCurrentChannel',
-	'GetChannelProgramInfo': 'ssap://tv/getChannelProgramInfo',
-	'GetExternalInputList': 'ssap://tv/getExternalInputList',
-	'SwitchInput': 'ssap://tv/switchInput',
-	'GetAudioStatus': 'ssap://audio/getStatus',
-	'GetSystemSettings': 'ssap://settings/getSystemSettings',
-	'GetVolume': 'ssap://audio/getVolume',
-	'GetAppState': 'com.webos.service.appstatus/getAppStatus',
-	'TurnOff': 'ssap://system/turnOff',
-	'LaunchApp': 'ssap://system.launcher/launch',
-	'CloseApp': 'ssap://system.launcher/close',
-	'CloseMediaViewer': 'ssap://media.viewer/close',
-	'CloseWebApp': 'ssap://webapp/closeWebApp',
-	'OpenChannel': 'ssap://tv/openChannel',
-	'SetSystemSettings': 'luna://com.webos.settingsservice/setSystemSettings',
-	'SetVolume': 'ssap://audio/setVolume',
-	'SetVolumeUp': 'ssap://audio/volumeUp',
-	'SetVolumeDown': 'ssap://audio/volumeDown',
-	'SetMute': 'ssap://audio/setMute',
-	'Set3dOn': 'ssap://com.webos.service.tv.display/set3DOn',
-	'Set3dOff': 'ssap://com.webos.service.tv.display/set3DOff',
-	'SetMediaPlay': 'ssap://media.controls/play',
-	'SetMediaPause': 'ssap://media.controls/pause',
-	'SetMediaStop': 'ssap://media.controls/stop',
-	'SetMediaRewind': 'ssap://media.controls/rewind',
-	'SetMediaFastForward': 'ssap://media.controls/fastForward',
-	'SetTvChannelUp': 'ssap://tv/channelUp',
-	'SetTvChannelDown': 'ssap://tv/channelDown',
-	'SetToast': 'ssap://system.notifications/createToast'
-};
 const WEBSOCKET_PORT = 3000;
 const DEFAULT_INPUTS = [{
 		'name': 'Live TV',
@@ -141,6 +103,7 @@ class lgwebosTvDevice {
 		this.pictureModeControl = config.pictureModeControl || false;
 		this.pictureModes = config.pictureModes || [];
 		this.enableDebugMode = config.enableDebugMode || false;
+		this.turnScreenOnOff = config.turnScreenOnOff || false;
 
 		//add configured inputs to the default inputs
 		const inputsArr = new Array();
@@ -170,6 +133,7 @@ class lgwebosTvDevice {
 
 		this.powerState = false;
 		this.pixelRefresh = false;
+		this.screenState = false;
 		this.volume = 0;
 		this.muteState = true;
 		this.audioOutput = '';
@@ -313,7 +277,7 @@ class lgwebosTvDevice {
 					};
 				}
 			})
-			.on('powerState', (power, pixelRefresh) => {
+			.on('powerState', (power, pixelRefresh, screenState) => {
 				if (this.televisionService) {
 					this.televisionService
 						.updateCharacteristic(Characteristic.Active, power);
@@ -333,10 +297,15 @@ class lgwebosTvDevice {
 						this.colorService
 							.updateCharacteristic(Characteristic.On, power);
 					}
+					if (this.turnScreenOnOffService) {
+						this.turnScreenOnOffService
+							.updateCharacteristic(Characteristic.On, screenState);
+					}
 				};
-				
+
 				this.powerState = power;
 				this.pixelRefresh = pixelRefresh;
+				this.screenState = screenState;
 			})
 			.on('currentApp', (reference) => {
 				const inputIdentifier = (this.inputsReference.indexOf(reference) >= 0) ? this.inputsReference.indexOf(reference) : this.inputIdentifier;
@@ -776,6 +745,7 @@ class lgwebosTvDevice {
 					volume = this.volume;
 				}
 				const payload = {
+					soundOutput: this.soundOutput,
 					volume: volume
 				}
 				try {
@@ -1023,6 +993,25 @@ class lgwebosTvDevice {
 					accessory.addService(this.pictureModeService);
 				}
 			}
+
+			if (this.turnScreenOnOff) {
+				this.turnScreenOnOffService = new Service.Switch(`${accessoryName} Screen On/Off`, 'Screen On/Off');
+				this.turnScreenOnOffService.getCharacteristic(Characteristic.On)
+					.onGet(async () => {
+						const state = this.screenState;
+						return state;
+					})
+					.onSet(async (state) => {
+						try {
+							const turnScreenOnOff = this.powerState ? state ? this.lgtv.send('request', API_URL.TurnOnScreen) : this.lgtv.send('request', API_URL.TurnOffScreen) : false;
+							const logInfo = this.disableLogInfo ? false : this.log('Device: %s %s, turn screen %s successful.', this.host, accessoryName, state ? 'ON' : 'OFF');
+						} catch (error) {
+							this.log.error('Device: %s %s, turn screen %s, error: %s', this.host, accessoryName, state ? 'ON' : 'OFF', error);
+						};
+					});
+
+				accessory.addService(this.turnScreenOnOffService);
+			};
 		}
 
 		//Prepare inputs service
