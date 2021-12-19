@@ -28,7 +28,7 @@ Tested with OLED65G6V, 32LM6300PLA, 49SK8500, OLED65C7T, 55SK800PLB, OLED48CX.
 * If use with Hoobs possible config incompatibilty.
 
 ## Features and How To Use Them
-* Power ON/OFF short press tile in HomeKit app.
+* Power and Screen ON/OFF short press tile in HomeKit app.
 * RC/Media control is possible after you go to the RC app.
 * Speaker control is possible after you go to RC app and use hardware buttons.
 * Legacy Volume and Mute control is possible throught extra `lightbulb`/`fan` (slider).
