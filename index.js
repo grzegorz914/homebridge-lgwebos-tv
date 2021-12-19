@@ -334,18 +334,7 @@ class lgwebosTvDevice {
 							.updateCharacteristic(Characteristic.On, power);
 					}
 				};
-				if (this.speakerService) {
-					this.speakerService
-						.updateCharacteristic(Characteristic.Mute, power);
-					if (this.volumeService && this.volumeControl == 1) {
-						this.volumeService
-							.updateCharacteristic(Characteristic.On, !power);
-					}
-					if (this.volumeServiceFan && this.volumeControl == 2) {
-						this.volumeServiceFan
-							.updateCharacteristic(Characteristic.On, !power);
-					}
-				};
+				
 				this.powerState = power;
 				this.pixelRefresh = pixelRefresh;
 			})
@@ -805,7 +794,7 @@ class lgwebosTvDevice {
 			})
 			.onSet(async (state) => {
 				const payload = {
-					muteState: state
+					mute: state
 				}
 				try {
 					const toggleMute = (this.powerState && state != this.muteState) ? this.lgtv.send('request', API_URL.SetMute, payload) : false;

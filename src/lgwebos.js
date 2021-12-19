@@ -248,6 +248,7 @@ class LGTV extends EventEmitter {
 
                         const power = (webOS >= 3) ? (powerOn && !powerOff) : this.isConnected;
                         this.emit('powerState', power, pixelRefresh);
+                        const setMute = !power ? this.emit('audioState', 0, true, '') : false;
                     });
                     this.send('subscribe', API_URL.GetForegroundAppInfo, (error, response) => {
                         if (error || response.errorCode) {

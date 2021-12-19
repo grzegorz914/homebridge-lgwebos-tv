@@ -323,6 +323,42 @@
                         ]
                       },
                       {
+                        "title": "Power",
+                        "enum": [
+                          "POWER"
+                        ]
+                      },
+                      {
+                        "title": "Volume Up",
+                        "enum": [
+                          "VOLUMEUP"
+                        ]
+                      },
+                      {
+                        "title": "Volume Down",
+                        "enum": [
+                          "VOLUMEDOWN"
+                        ]
+                      },
+                      {
+                        "title": "Mute",
+                        "enum": [
+                          "MUTE"
+                        ]
+                      },
+                      {
+                        "title": "Channel Up",
+                        "enum": [
+                          "CHANNELUP"
+                        ]
+                      },
+                      {
+                        "title": "Channel Down",
+                        "enum": [
+                          "CHANNELDOWN"
+                        ]
+                      },
+                      {
                         "title": "Home",
                         "enum": [
                           "HOME"
@@ -332,6 +368,12 @@
                         "title": "Menu",
                         "enum": [
                           "MENU"
+                        ]
+                      },
+                      {
+                        "title": "Q Menu",
+                        "enum": [
+                          "QMENU"
                         ]
                       },
                       {
@@ -377,6 +419,12 @@
                         ]
                       },
                       {
+                        "title": "Eject",
+                        "enum": [
+                          "EJECT"
+                        ]
+                      },
+                      {
                         "title": "Info",
                         "enum": [
                           "INFO"
@@ -395,6 +443,12 @@
                         ]
                       },
                       {
+                        "title": "Record",
+                        "enum": [
+                          "RECORD"
+                        ]
+                      },
+                      {
                         "title": "Fast Forward",
                         "enum": [
                           "FASTFORWARD"
@@ -404,30 +458,6 @@
                         "title": "Rewind",
                         "enum": [
                           "REWIND"
-                        ]
-                      },
-                      {
-                        "title": "Volume Up",
-                        "enum": [
-                          "VOLUMEUP"
-                        ]
-                      },
-                      {
-                        "title": "Volume Down",
-                        "enum": [
-                          "VOLUMEDOWN"
-                        ]
-                      },
-                      {
-                        "title": "Mute",
-                        "enum": [
-                          "MUTE"
-                        ]
-                      },
-                      {
-                        "title": "Power",
-                        "enum": [
-                          "POWER"
                         ]
                       },
                       {
@@ -461,27 +491,15 @@
                         ]
                       },
                       {
-                        "title": "Record",
+                        "title": "Magnifier Zoom",
                         "enum": [
-                          "RECORD"
+                          "MAGNIFIER_ZOOM"
                         ]
                       },
                       {
                         "title": "3D Mode",
                         "enum": [
                           "3D_MODE"
-                        ]
-                      },
-                      {
-                        "title": "Channel Up",
-                        "enum": [
-                          "CHANNELUP"
-                        ]
-                      },
-                      {
-                        "title": "Channel Down",
-                        "enum": [
-                          "CHANNELDOWN"
                         ]
                       },
                       {
@@ -509,6 +527,12 @@
                         ]
                       },
                       {
+                        "title": "Program",
+                        "enum": [
+                          "PROGRAM"
+                        ]
+                      },
+                      {
                         "title": "My Apps",
                         "enum": [
                           "MYAPPS"
@@ -518,6 +542,12 @@
                         "title": "Aspect Ratio",
                         "enum": [
                           "ASPECT_RATIO"
+                        ]
+                      },
+                      {
+                        "title": "Screen Remot",
+                        "enum": [
+                          "SCREEN_REMOT"
                         ]
                       },
                       {
@@ -536,6 +566,36 @@
                         "title": "CC",
                         "enum": [
                           "CC"
+                        ]
+                      },
+                      {
+                        "title": "Click",
+                        "enum": [
+                          "CLICK"
+                        ]
+                      },
+                      {
+                        "title": "Teletext",
+                        "enum": [
+                          "TELETEXT"
+                        ]
+                      },
+                      {
+                        "title": "Text Option",
+                        "enum": [
+                          "TEXTOPTION"
+                        ]
+                      },
+                      {
+                        "title": "BML Data",
+                        "enum": [
+                          "BML_DATA"
+                        ]
+                      },
+                      {
+                        "title": "3 Digital Input",
+                        "enum": [
+                          "3DIGIT_INPUT"
                         ]
                       }
                     ],
