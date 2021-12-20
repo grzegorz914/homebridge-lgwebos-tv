@@ -994,6 +994,7 @@ class lgwebosTvDevice {
 				}
 			}
 
+			//turn screen ON/OFF
 			if (this.turnScreenOnOff) {
 				this.turnScreenOnOffService = new Service.Switch(`${accessoryName} Screen On/Off`, 'Screen On/Off');
 				this.turnScreenOnOffService.getCharacteristic(Characteristic.On)
@@ -1161,7 +1162,7 @@ class lgwebosTvDevice {
 						const setInput = (state && this.powerState && buttonMode <= 1 && appId != this.appId) ? this.lgtv.send('request', API_URL.LaunchApp, payload) : false;
 						const setChannel = (state && this.powerState && buttonMode == 1) ? this.lgtv.send('request', API_URL.OpenChannel, payload1) : false;
 						const setCommand = (state && this.powerState && buttonMode == 2 && this.lgtv.inputSocket) ? this.lgtv.inputSocket.send('button', payload2) : false;
-						const logInfo = this.disableLogInfo ? false : this.log('Device: %s %s, set %s successful, name: %s, appId: %s', this.host, accessoryName, ['Input', 'Channel', 'Command'][buttonMode], buttonName, appId);
+						const logInfo = this.disableLogInfo ? false : this.log('Device: %s %s, set %s successful, name: %s, reference: %s', this.host, accessoryName, ['Input', 'Channel', 'Command'][buttonMode], buttonName, [buttonReference, buttonReference, buttonCommand][buttonMode]);
 						this.appId = appId;
 					} catch (error) {
 						this.log.error('Device: %s %s, set %s error: %s', this.host, accessoryName, ['Input', 'Channel', 'Command'][buttonMode], error);
