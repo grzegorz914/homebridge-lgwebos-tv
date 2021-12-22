@@ -139,17 +139,20 @@ class LGTV extends EventEmitter {
 
                     setTimeout(() => {
                         this.reconnectSocket();
-                    }, 5000);
+                    }, 6000);
                 })
                 .on('connect', (connection) => {
-                    connection
-                        .on('error', (error) => {
+                    connection.on('error', (error) => {
                             this.emit('error', `Specialized socket connect error: ${error}`);
                         })
                         .on('close', () => {
                             delete this.specializedSockets[API_URL.SocketUrl];
                             this.inputSocket = null;
                             this.emit('socketDisconnect', 'Specialized socket disconnected.');
+
+                            setTimeout(() => {
+                                this.reconnectSocket();
+                            }, 6000);
                         });
 
                     this.specializedSockets[API_URL.SocketUrl] = new SpecializedSocket(connection);

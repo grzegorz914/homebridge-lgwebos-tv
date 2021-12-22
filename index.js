@@ -311,27 +311,35 @@ class lgwebosTvDevice {
 				const inputIdentifier = (this.inputsReference.indexOf(reference) >= 0) ? this.inputsReference.indexOf(reference) : this.inputIdentifier;
 
 				if (this.televisionService) {
-					const setUpdateCharacteristic = this.setStartInput ? this.televisionService.setCharacteristic(Characteristic.ActiveIdentifier, inputIdentifier) :
+					if (this.setStartInput) {
+						setTimeout(() => {
+							this.televisionService.setCharacteristic(Characteristic.ActiveIdentifier, inputIdentifier)
+						}, 1200);
+					} else {
 						this.televisionService.updateCharacteristic(Characteristic.ActiveIdentifier, inputIdentifier);
-
+					}
 					this.setStartInput = (this.inputIdentifier == inputIdentifier) ? false : true;
 				};
 
 				this.inputIdentifier = inputIdentifier;
 			})
 			.on('currentChannel', (channelName, channelNumber, channelReference) => {
-				const channelIdentifier = (this.inputsReference.indexOf(channelReference) >= 0) ? this.inputsReference.indexOf(channelReference) : this.inputIdentifier;
+				const inputIdentifier = (this.inputsReference.indexOf(channelReference) >= 0) ? this.inputsReference.indexOf(channelReference) : this.inputIdentifier;
 
 				if (this.televisionService) {
-					const setUpdateCharacteristic = this.setStartInput ? this.televisionService.setCharacteristic(Characteristic.ActiveIdentifier, channelIdentifier) :
-						this.televisionService.updateCharacteristic(Characteristic.ActiveIdentifier, channelIdentifier);
-
-					this.setStartInput = (this.inputIdentifier == channelIdentifier) ? false : true;
+					if (this.setStartInput) {
+						setTimeout(() => {
+							this.televisionService.setCharacteristic(Characteristic.ActiveIdentifier, inputIdentifier)
+						}, 1200);
+					} else {
+						this.televisionService.updateCharacteristic(Characteristic.ActiveIdentifier, inputIdentifier);
+					}
+					this.setStartInput = (this.inputIdentifier == inputIdentifier) ? false : true;
 				};
 
 				this.channelName = channelName;
 				this.channelNumber = channelNumber;
-				this.inputIdentifier = channelIdentifier;
+				this.inputIdentifier = inputIdentifier;
 			})
 			.on('audioState', (volume, mute, audioOutput) => {
 
