@@ -608,7 +608,26 @@
                     ],
                     "description": "Here select the remote control command.",
                     "required": true
-                  }
+                  },
+									"displayType": {
+										"title": "Display Type",
+										"type": "integer",
+										"oneOf": [{
+												"title": "Button",
+												"enum": [
+													0
+												]
+											},
+											{
+												"title": "Switch",
+												"enum": [
+													1
+												]
+											}
+										],
+										"description": "Here select display type in Home app",
+										"required": true
+									}
                 }
               }
             },
@@ -870,7 +889,8 @@
             "devices[].buttons[].name",
             "devices[].buttons[].mode",
             "devices[].buttons[].reference",
-            "devices[].buttons[].command"
+            "devices[].buttons[].command",
+            "devices[].buttons[].displayType"
           ]
         }]
       },

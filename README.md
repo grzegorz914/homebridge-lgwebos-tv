@@ -73,6 +73,7 @@ Install and use [Homebridge Config UI X](https://github.com/oznu/homebridge-conf
 | `buttons.mode` | Here select button mode, `Input/App`, `Live TV Channel` or `Remote Control`. |
 | `buttons.reference` | Here set *Reference*, only for `Input/App` or `Live TV Channel` mode, in other case leave empty. | 
 | `buttons.command` | Here select `Remote Control` command which will be assigned to the button. |
+| `buttons.displayType` | Here select display type in Home app, possible `Switch`, `Button` - selectable in Home app as Light, Fan, Outlet.|
 | `manufacturer`, `modelName`, `serialNumber`, `firmwareRevision` | Free-form informational data that will be displayed in the Home.app. |
 | `reference` | All can be found in `homebridge_directory/lgwebosTv`, `inputs_xxx` file, where `reference == id`, or `channels_xxx` file, where `reference == channelId`. | Info |
 
@@ -119,17 +120,20 @@ Install and use [Homebridge Config UI X](https://github.com/oznu/homebridge-conf
            "buttons": [{
                     "name": "HDMI 3",
                     "reference": "com.webos.app.hdmi3",
-                    "mode": 0
+                    "mode": 0,
+                    "displayType": 0
                },
                {
                     "name": "BBC ONE HD",
                     "reference": "1_45_101_101_16521_17540_9018",
-                    "mode": 1
+                    "mode": 1,
+                    "displayType": 0
                },
                {
                     "name": "Menu Up",
                     "mode": 2,
-                    "command": "UP"
+                    "command": "UP",
+                    "displayType": 0
                }
           ]
         }

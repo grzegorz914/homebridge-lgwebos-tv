@@ -54,17 +54,20 @@
             "buttons": [{
                     "name": "HDMI 3",
                     "reference": "com.webos.app.hdmi3",
-                    "mode": 0
+                    "mode": 0,
+                    "displayType": 0
                 },
                 {
                      "name": "BBC ONE HD",
                      "reference": "1_45_101_101_16521_17540_9018",
-                     "mode": 1
+                     "mode": 1,
+                     "displayType": 0
                 },
                 {
                      "name": "Menu Up",
                      "mode": 2,
-                     "command": "UP"
+                     "command": "UP",
+                     "displayType": 0
                 }
             ]
         }]
