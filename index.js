@@ -118,10 +118,10 @@ class lgwebosTvDevice {
 		this.inputs = inputsArr;
 
 		//device info
-		this.manufacturer = config.manufacturer || 'LG Electronics';
-		this.modelName = config.modelName || 'Model Name';
-		this.serialNumber = config.serialNumber || 'Serial Number';
-		this.firmwareRevision = config.firmwareRevision || 'Firmware Revision';
+		this.manufacturer = 'LG Electronics';
+		this.modelName = 'Model Name';
+		this.serialNumber = 'Serial Number';
+		this.firmwareRevision = 'Firmware Revision';
 		this.productName = 'webOS';
 		this.webOS = 2;
 
@@ -184,11 +184,7 @@ class lgwebosTvDevice {
 			.on('message', (message) => {
 				const logInfo = this.disableLogInfo ? false : this.log('Device: %s %s, %s', this.host, this.name, message);
 			})
-			.on('devInfo', async (systemInfo, softwareInfo, webOS) => {
-				const modelName = systemInfo != undefined ? systemInfo.modelName : this.modelName;
-				const productName = softwareInfo != undefined ? softwareInfo.product_name : this.productName;
-				const serialNumber = softwareInfo != undefined ? softwareInfo.device_id : this.serialNumber;
-				const firmwareRevision = softwareInfo != undefined ? `${softwareInfo.major_ver}.${softwareInfo.minor_ver}` : this.firmwareRevision;
+			.on('devInfo', async (modelName, productName, serialNumber, firmwareRevision, webOS) => {
 
 				this.log('-------- %s --------', this.name);
 				this.log('Manufacturer: %s', this.manufacturer);
@@ -203,9 +199,7 @@ class lgwebosTvDevice {
 					'modelName': modelName,
 					'serialNumber': serialNumber,
 					'firmwareRevision': firmwareRevision,
-					'webOS': webOS,
-					'systemInfo': systemInfo,
-					'softwareInfo': softwareInfo
+					'webOS': webOS
 				};
 				const devInfo = JSON.stringify(obj, null, 2);
 				try {
@@ -343,6 +337,7 @@ class lgwebosTvDevice {
 			})
 			.on('audioState', (volume, mute, audioOutput) => {
 
+				volume = (volume != -1) ? volume : this.volume;
 				if (this.speakerService) {
 					this.speakerService
 						.updateCharacteristic(Characteristic.Volume, volume)
@@ -453,7 +448,7 @@ class lgwebosTvDevice {
 				'modelName': this.modelName,
 				'serialNumber': this.serialNumber,
 				'firmwareRevision': this.firmwareRevision,
-				'webOS': 2
+				'webOS': this.webOS
 			};
 			const debug = this.enableDebugMode ? this.log('Device: %s %s, read devInfo: %s', this.host, accessoryName, devInfo) : false;
 

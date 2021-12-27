@@ -39,7 +39,7 @@ class LGTV extends EventEmitter {
         this.callbacks = {};
         this.isPaired = false;
         this.inputSocket = null;
-        this.webOS = 2;
+        this.power = false;
 
         this.client = new WebSocketClient(SOCKET_OPTIONS);
         this.client.on('connectFailed', (error) => {
@@ -75,7 +75,7 @@ class LGTV extends EventEmitter {
                         Object.keys(this.callbacks).forEach((cid) => {
                             delete this.callbacks[cid];
                         });
-                        this.emit('powerState', false, false, false);
+                        this.emit('powerState', this.power, false, false);
                         this.emit('audioState', 0, true, '');
                         this.emit('disconnect', 'Disconnected.');
 
@@ -168,11 +168,19 @@ class LGTV extends EventEmitter {
     subscribeData() {
         return new Promise((resolve, reject) => {
             this.send('request', API_URL.GetSystemInfo, (error, response) => {
-                const emit = (error || response.errorCode) ? this.emit('error', `System info error: ${error}`) : false;
+                if (error || response.errorCode) {
+                    this.emit('error', `System info error: ${error}`)
+                }
                 this.send('request', API_URL.GetSoftwareInfo, (error, response1) => {
-                    const webOS = (error || response.errorCode) ? 2 : response1.product_name.slice(8, -2);
-                    this.webOS = webOS;
-                    const emit = (error || response.errorCode) ? this.emit('error', `Software info error: ${error}`) : this.emit('devInfo', response, response1, webOS);
+                    if (error || response.errorCode) {
+                        this.emit('error', `Software info error: ${error}`)
+                    }
+                    const modelName = response.modelName;
+                    const productName = response1.product_name;
+                    const serialNumber = response1.device_id;
+                    const firmwareRevision = `${response1.major_ver}.${response1.minor_ver}`;
+                    const webOS = response1.product_name.slice(8, -2);
+                    this.emit('devInfo', modelName, productName, serialNumber, firmwareRevision, webOS);
 
                     this.send('subscribe', API_URL.GetInstalledApps, (error, response) => {
                         const emit = (error || response.errorCode) ? this.emit('error', `Installed apps error: ${error}`) : this.emit('installedApps', response);
@@ -211,6 +219,8 @@ class LGTV extends EventEmitter {
 
                         const power = (webOS >= 3) ? (powerOn && !powerOff) : this.isConnected;
                         const screenState = power ? !powerOnScreenOff : false;
+
+                        this.power = power;
 
                         this.emit('powerState', power, pixelRefresh, screenState);
                         const setAudioState = !power ? this.emit('audioState', 0, true, '') : false;

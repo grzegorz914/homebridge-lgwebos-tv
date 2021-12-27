@@ -131,11 +131,7 @@ Install and use [Homebridge Config UI X](https://github.com/oznu/homebridge-conf
                     "mode": 2,
                     "command": "UP"
                }
-          ],
-          "manufacturer": "Manufacturer",
-          "modelName": "Model",
-          "serialNumber": "Serial Number",
-          "firmwareRevision": "Firmware Revision"
+          ]
         }
     ]
 }
