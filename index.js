@@ -59,8 +59,8 @@ class lgwebosTvPlatform {
 			this.log.debug('didFinishLaunching');
 			for (let i = 0; i < this.devices.length; i++) {
 				const device = this.devices[i];
-				if (!device.name) {
-					this.log.warn('Device Name Missing');
+				if (!device.name || !device.host || !device.mac) {
+					this.log.warn('Device Name, Host or Mac Missing');
 				} else {
 					new lgwebosTvDevice(this.log, device, this.api);
 				}
@@ -87,8 +87,8 @@ class lgwebosTvDevice {
 
 		//device configuration
 		this.name = config.name || 'LG TV';
-		this.host = config.host || '';
-		this.mac = config.mac || '';
+		this.host = config.host;
+		this.mac = config.mac;
 		this.disableLogInfo = config.disableLogInfo || false;
 		this.volumeControl = config.volumeControl || 0;
 		this.switchMenuHome = config.switchInfoMenu || false;
@@ -160,7 +160,33 @@ class lgwebosTvDevice {
 		this.inputsTargetVisibilityFile = `${this.prefDir}/inputsTargetVisibility_${this.host.split('.').join('')}`;
 		this.channelsFile = `${this.prefDir}/channels_${this.host.split('.').join('')}`;
 
-		this.prepareDirectoryAndFiles();
+		try {
+			//check if the directory exists, if not then create it
+			if (fs.existsSync(this.prefDir) == false) {
+				fs.mkdirSync(this.prefDir);
+			}
+			if (fs.existsSync(this.keyFile) == false) {
+				fs.writeFileSync(this.keyFile, '');
+			}
+			if (fs.existsSync(this.devInfoFile) == false) {
+				fs.writeFileSync(this.devInfoFile, '');
+			}
+			if (fs.existsSync(this.inputsFile) == false) {
+				fs.writeFileSync(this.inputsFile, '');
+			}
+			if (fs.existsSync(this.inputsNamesFile) == false) {
+				fs.writeFileSync(this.inputsNamesFile, '');
+			}
+			if (fs.existsSync(this.inputsTargetVisibilityFile) == false) {
+				fs.writeFileSync(this.inputsTargetVisibilityFile, '');
+			}
+			if (fs.existsSync(this.channelsFile) == false) {
+				fs.writeFileSync(this.channelsFile, '');
+			}
+
+		} catch (error) {
+			this.log.error('Device: %s %s, prepare directory and files error: %s', this.host, this.name, error);
+		};
 
 		//prepare lgtv socket connection
 		const url = `ws://${this.host}:${WEBSOCKET_PORT}`;
@@ -396,38 +422,6 @@ class lgwebosTvDevice {
 
 		//start prepare accessory
 		this.prepareAccessory();
-	};
-
-	async prepareDirectoryAndFiles() {
-		const debug = this.enableDebugMode ? this.log('Device: %s %s, prepare directory and files.', this.host, this.name) : false;
-
-		try {
-			//check if the directory exists, if not then create it
-			if (fs.existsSync(this.prefDir) == false) {
-				await fsPromises.mkdir(this.prefDir);
-			}
-			if (fs.existsSync(this.keyFile) == false) {
-				await fsPromises.writeFile(this.keyFile, '');
-			}
-			if (fs.existsSync(this.devInfoFile) == false) {
-				await fsPromises.writeFile(this.devInfoFile, '');
-			}
-			if (fs.existsSync(this.inputsFile) == false) {
-				await fsPromises.writeFile(this.inputsFile, '');
-			}
-			if (fs.existsSync(this.inputsNamesFile) == false) {
-				await fsPromises.writeFile(this.inputsNamesFile, '');
-			}
-			if (fs.existsSync(this.inputsTargetVisibilityFile) == false) {
-				await fsPromises.writeFile(this.inputsTargetVisibilityFile, '');
-			}
-			if (fs.existsSync(this.channelsFile) == false) {
-				await fsPromises.writeFile(this.channelsFile, '');
-			}
-
-		} catch (error) {
-			this.log.error('Device: %s %s, prepare directory and files error: %s', this.host, this.name, error);
-		};
 	};
 
 	//Prepare accessory

@@ -2,6 +2,10 @@
 All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+## [1.10.10] - (29.12.2021)
+- prevent load plugin if host or mac not set
+- prepare directory and files synchronously
+
 ## [1.10.9] - (28.12.2021)
 - update node minimum requirements
 
