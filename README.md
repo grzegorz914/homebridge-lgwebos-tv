@@ -58,8 +58,9 @@ Install and use [Homebridge Config UI X](https://github.com/oznu/homebridge-conf
 | `name` | Here set the accessory *Name* to be displayed in *Homebridge/HomeKit*. |
 | `host` | Here set the *Hsostname or Address IP* of TV. |
 | `mac` | Here set the *Mac Address* of TV. |
-| `enableDebugMode` | This enable deep log in homebridge console. |
 | `disableLogInfo` | This disable log info, all values and state will not be displayed in Homebridge log console. |
+| `disableLogDeviceInfo` | If enabled, add ability to disable log device info by every connections device to the network. |
+| `enableDebugMode` | This enable deep log in homebridge console. |
 | `volumeControl` | Here select volume control mode `None`, `Slider`, `Fan`. |
 | `switchInfoMenu` | This switch the behaviour of `I` button in RC app between Menu and Home. |
 | `getInputsFromDevice` | This enable load inputs and apps direct from device. |
@@ -86,11 +87,12 @@ Install and use [Homebridge Config UI X](https://github.com/oznu/homebridge-conf
             "host": "192.168.1.8",
             "mac": "ab:cd:ef:fe:dc:ba",
             "disableLogInfo": false,
+            "disableLogDeviceInfo": false,
+            "enableDebugMode": false,
             "volumeControl": 0,
             "switchInfoMenu": false,
             "getInputsFromDevice": false,
             "filterSystemApps": false,
-            "enableDebugMode": false,
             "turnScreenOnOff": false,
             "inputs": [
                 {

@@ -21,11 +21,12 @@
             "host": "192.168.1.8",
             "mac": "ab:cd:ef:fe:dc:ba",
             "disableLogInfo": false,
+            "disableLogDeviceInfo": false,
+            "enableDebugMode": false,
             "volumeControl": 0,
             "switchInfoMenu": false,
             "getInputsFromDevice": false,
             "filterSystemApps": false,
-            "enableDebugMode": false,
             "turnScreenOnOff": false,
             "inputs": [{
                     "name": "HDMI 3",

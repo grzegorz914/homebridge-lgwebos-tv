@@ -36,7 +36,14 @@
               "title": "Disable log info",
               "type": "boolean",
               "default": false,
-              "description": "This disable log info, all values and state will not be displayed in Homebridge log console.",
+              "description": "This disable logging values and states on every it change.",
+              "required": false
+            },
+            "disableLogDeviceInfo": {
+              "title": "Disable log device info",
+              "type": "boolean",
+              "default": false,
+              "description": "This disable log device info by every connections device to the network.",
               "required": false
             },
             "enableDebugMode": {
@@ -931,6 +938,7 @@
         "items": [
           "devices[].enableDebugMode",
           "devices[].disableLogInfo",
+          "devices[].disableLogDeviceInfo",
           "devices[].switchInfoMenu",
           "devices[].turnScreenOnOff",
           "devices[].volumeControl"

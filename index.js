@@ -89,9 +89,11 @@ class lgwebosTvDevice {
 		this.name = config.name || 'LG TV';
 		this.host = config.host;
 		this.mac = config.mac;
-		this.disableLogInfo = config.disableLogInfo || false;
 		this.volumeControl = config.volumeControl || 0;
 		this.switchMenuHome = config.switchInfoMenu || false;
+		this.disableLogInfo = config.disableLogInfo || false;
+		this.disableLogDeviceInfo = config.disableLogDeviceInfo || false;
+		this.enableDebugMode = config.enableDebugMode || false;
 		this.getInputsFromDevice = config.getInputsFromDevice || false;
 		this.filterSystemApps = config.filterSystemApps || false;
 		this.inputs = config.inputs || [];
@@ -102,7 +104,6 @@ class lgwebosTvDevice {
 		this.colorControl = config.colorControl || false;
 		this.pictureModeControl = config.pictureModeControl || false;
 		this.pictureModes = config.pictureModes || [];
-		this.enableDebugMode = config.enableDebugMode || false;
 		this.turnScreenOnOff = config.turnScreenOnOff || false;
 
 		//add configured inputs to the default inputs
@@ -211,14 +212,15 @@ class lgwebosTvDevice {
 				const logInfo = this.disableLogInfo ? false : this.log('Device: %s %s, %s', this.host, this.name, message);
 			})
 			.on('devInfo', async (modelName, productName, serialNumber, firmwareRevision, webOS) => {
-
-				this.log('-------- %s --------', this.name);
-				this.log('Manufacturer: %s', this.manufacturer);
-				this.log('Model: %s', modelName);
-				this.log('System: %s', productName);
-				this.log('Serialnr: %s', serialNumber);
-				this.log('Firmware: %s', firmwareRevision);
-				this.log('----------------------------------');
+				if (!this.disableLogDeviceInfo) {
+					this.log('-------- %s --------', this.name);
+					this.log('Manufacturer: %s', this.manufacturer);
+					this.log('Model: %s', modelName);
+					this.log('System: %s', productName);
+					this.log('Serialnr: %s', serialNumber);
+					this.log('Firmware: %s', firmwareRevision);
+					this.log('----------------------------------');
+				}
 
 				const obj = {
 					'manufacturer': this.manufacturer,
