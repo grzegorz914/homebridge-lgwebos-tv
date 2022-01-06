@@ -27,7 +27,7 @@ Tested with OLED65G6V, 32LM6300PLA, 49SK8500, OLED65C7T, 55SK800PLB, OLED48CX.
 ## Know issues
 * If use with Hoobs possible config incompatibilty.
 
-### Troubleshoot
+## Troubleshoot
 * If for some reason the device will not be displayed in Home app try this procedure:
    * Go to `./homebridge/persist`
    * Open the file `AccessoryInfo.xxx` one by one and remove only this one which contain Your device data, something like this: `{"displayName":"LG","category":34}`
