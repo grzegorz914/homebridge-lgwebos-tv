@@ -169,7 +169,15 @@ class lgwebosTvDevice {
 			fs.writeFileSync(this.keyFile, '');
 		}
 		if (fs.existsSync(this.devInfoFile) == false) {
-			fs.writeFileSync(this.devInfoFile, '');
+			const obj = {
+				'manufacturer': this.manufacturer,
+				'modelName': this.modelName,
+				'serialNumber': this.serialNumber,
+				'firmwareRevision': this.firmwareRevision,
+				'webOS': this.webOS
+			};
+			const devInfo = JSON.stringify(obj, null, 2);
+			fs.writeFileSync(this.devInfoFile, devInfo);
 		}
 		if (fs.existsSync(this.inputsFile) == false) {
 			fs.writeFileSync(this.inputsFile, '');
@@ -434,13 +442,7 @@ class lgwebosTvDevice {
 		this.log.debug('prepareInformationService');
 		try {
 			const readDevInfo = await fsPromises.readFile(this.devInfoFile);
-			const devInfo = (readDevInfo.modelName != undefined) ? JSON.parse(readDevInfo) : {
-				'manufacturer': this.manufacturer,
-				'modelName': this.modelName,
-				'serialNumber': this.serialNumber,
-				'firmwareRevision': this.firmwareRevision,
-				'webOS': this.webOS
-			};
+			const devInfo = JSON.parse(readDevInfo);
 			const debug = this.enableDebugMode ? this.log('Device: %s %s, read devInfo: %s', this.host, accessoryName, devInfo) : false;
 
 			const manufacturer = devInfo.manufacturer;
