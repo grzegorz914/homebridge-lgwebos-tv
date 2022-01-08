@@ -2,6 +2,10 @@
 All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+## [1.10.12/13] - (08.01.2022)
+### Changed
+-  rebuild device info read and write
+
 ## [1.10.11] - (03.01.2022)
 ### Added
 -  ability to disable log device info by every connections device to the network (Advanced Section)
