@@ -161,33 +161,28 @@ class lgwebosTvDevice {
 		this.inputsTargetVisibilityFile = `${this.prefDir}/inputsTargetVisibility_${this.host.split('.').join('')}`;
 		this.channelsFile = `${this.prefDir}/channels_${this.host.split('.').join('')}`;
 
-		try {
-			//check if the directory exists, if not then create it
-			if (fs.existsSync(this.prefDir) == false) {
-				fs.mkdirSync(this.prefDir);
-			}
-			if (fs.existsSync(this.keyFile) == false) {
-				fs.writeFileSync(this.keyFile, '');
-			}
-			if (fs.existsSync(this.devInfoFile) == false) {
-				fs.writeFileSync(this.devInfoFile, '');
-			}
-			if (fs.existsSync(this.inputsFile) == false) {
-				fs.writeFileSync(this.inputsFile, '');
-			}
-			if (fs.existsSync(this.inputsNamesFile) == false) {
-				fs.writeFileSync(this.inputsNamesFile, '');
-			}
-			if (fs.existsSync(this.inputsTargetVisibilityFile) == false) {
-				fs.writeFileSync(this.inputsTargetVisibilityFile, '');
-			}
-			if (fs.existsSync(this.channelsFile) == false) {
-				fs.writeFileSync(this.channelsFile, '');
-			}
-
-		} catch (error) {
-			this.log.error('Device: %s %s, prepare directory and files error: %s', this.host, this.name, error);
-		};
+		//check if the directory exists, if not then create it
+		if (fs.existsSync(this.prefDir) == false) {
+			fs.mkdirSync(this.prefDir);
+		}
+		if (fs.existsSync(this.keyFile) == false) {
+			fs.writeFileSync(this.keyFile, '');
+		}
+		if (fs.existsSync(this.devInfoFile) == false) {
+			fs.writeFileSync(this.devInfoFile, '');
+		}
+		if (fs.existsSync(this.inputsFile) == false) {
+			fs.writeFileSync(this.inputsFile, '');
+		}
+		if (fs.existsSync(this.inputsNamesFile) == false) {
+			fs.writeFileSync(this.inputsNamesFile, '');
+		}
+		if (fs.existsSync(this.inputsTargetVisibilityFile) == false) {
+			fs.writeFileSync(this.inputsTargetVisibilityFile, '');
+		}
+		if (fs.existsSync(this.channelsFile) == false) {
+			fs.writeFileSync(this.channelsFile, '');
+		}
 
 		//prepare lgtv socket connection
 		const url = `ws://${this.host}:${WEBSOCKET_PORT}`;
@@ -439,7 +434,7 @@ class lgwebosTvDevice {
 		this.log.debug('prepareInformationService');
 		try {
 			const readDevInfo = await fsPromises.readFile(this.devInfoFile);
-			const devInfo = (readDevInfo != undefined) ? JSON.parse(readDevInfo) : {
+			const devInfo = (readDevInfo.modelName != undefined) ? JSON.parse(readDevInfo) : {
 				'manufacturer': this.manufacturer,
 				'modelName': this.modelName,
 				'serialNumber': this.serialNumber,
