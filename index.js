@@ -264,8 +264,8 @@ class lgwebosTvDevice {
 						}
 						inputsArr.push(inputsObj);
 					};
+					const obj = JSON.stringify(inputsArr, null, 2);
 					try {
-						const obj = JSON.stringify(inputsArr, null, 2);
 						const writeInputs = await fsPromises.writeFile(this.inputsFile, obj);
 						const debug = this.enableDebugMode ? this.log('Device: %s %s, saved inputs/apps list: %s', this.host, this.name, obj) : false;
 					} catch (error) {
@@ -293,8 +293,8 @@ class lgwebosTvDevice {
 						}
 						channelsArr.push(channelsObj);
 					}
+					const obj = JSON.stringify(channelsArr, null, 2);
 					try {
-						const obj = JSON.stringify(channelsArr, null, 2);
 						const writeChannels = await fsPromises.writeFile(this.channelsFile, obj);
 						const debug = this.enableDebugMode ? this.log('Device: %s %s, write channels list: %s', this.host, this.name, obj) : false;
 					} catch (error) {
