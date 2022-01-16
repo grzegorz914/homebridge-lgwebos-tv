@@ -40,7 +40,7 @@ Tested with OLED65G6V, 32LM6300PLA, 49SK8500, OLED65C7T, 55SK800PLB, OLED48CX.
 * Speaker control is possible after you go to RC app on iPhone/iPad `Speaker Service`.
 * Legacy Volume and Mute control is possible throught extra `lightbulb`/`fan` (slider).
 * Inputs can be changed using Inputs selector in HomeKit.app, additionally can create separate tile.
-* Channels can be changed using Channels selector in HomeKit.app, additionally can create separate tile.
+* Channels can be changed using Channels selector in HomeKit app, additionally can create separate tile.
 * Siri can be used for all functions, some times need create legacy buttons/switches/sensors.
 * Automations can be used for all functions, some times need create legacy buttons/switches/sensors.
 
