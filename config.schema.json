@@ -632,7 +632,7 @@
 												]
 											}
 										],
-										"description": "Here select display type in Home app",
+										"description": "Here select display type in HomeKit app",
 										"required": true
 									}
                 }

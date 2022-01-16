@@ -139,10 +139,10 @@ class lgwebosTvDevice {
 		this.muteState = true;
 		this.audioOutput = '';
 		this.invertMediaState = false;
-		this.setStartInput = false;
 
+		this.setStartInput = false;
+		this.startInputIdentifier = 0;
 		this.inputIdentifier = 0;
-		this.inputMode = 0;
 		this.channelName = '';
 		this.channelNumber = 0;
 
@@ -214,7 +214,7 @@ class lgwebosTvDevice {
 			.on('message', (message) => {
 				const logInfo = this.disableLogInfo ? false : this.log('Device: %s %s, %s', this.host, this.name, message);
 			})
-			.on('devInfo', async (modelName, productName, serialNumber, firmwareRevision, webOS) => {
+			.on('deviceInfo', async (modelName, productName, serialNumber, firmwareRevision, webOS) => {
 				if (!this.disableLogDeviceInfo) {
 					this.log('-------- %s --------', this.name);
 					this.log('Manufacturer: %s', this.manufacturer);
@@ -336,15 +336,16 @@ class lgwebosTvDevice {
 				const inputIdentifier = (this.inputsReference.indexOf(reference) >= 0) ? this.inputsReference.indexOf(reference) : this.inputIdentifier;
 
 				if (this.televisionService) {
+					this.televisionService
+						.updateCharacteristic(Characteristic.ActiveIdentifier, inputIdentifier);
+
 					if (this.setStartInput) {
 						setTimeout(() => {
-							this.televisionService.setCharacteristic(Characteristic.ActiveIdentifier, inputIdentifier)
+							this.televisionService.setCharacteristic(Characteristic.ActiveIdentifier, this.startInputIdentifier);
+							this.setStartInput = false;
 						}, 1200);
-					} else {
-						this.televisionService.updateCharacteristic(Characteristic.ActiveIdentifier, inputIdentifier);
 					}
-					this.setStartInput = (this.inputIdentifier == inputIdentifier) ? false : true;
-				};
+				}
 
 				this.inputIdentifier = inputIdentifier;
 			})
@@ -352,15 +353,16 @@ class lgwebosTvDevice {
 				const inputIdentifier = (this.inputsReference.indexOf(channelReference) >= 0) ? this.inputsReference.indexOf(channelReference) : this.inputIdentifier;
 
 				if (this.televisionService) {
+					this.televisionService
+						.updateCharacteristic(Characteristic.ActiveIdentifier, inputIdentifier);
+
 					if (this.setStartInput) {
 						setTimeout(() => {
-							this.televisionService.setCharacteristic(Characteristic.ActiveIdentifier, inputIdentifier)
+							this.televisionService.setCharacteristic(Characteristic.ActiveIdentifier, this.startInputIdentifier);
+							this.setStartInput = false;
 						}, 1200);
-					} else {
-						this.televisionService.updateCharacteristic(Characteristic.ActiveIdentifier, inputIdentifier);
 					}
-					this.setStartInput = (this.inputIdentifier == inputIdentifier) ? false : true;
-				};
+				}
 
 				this.channelName = channelName;
 				this.channelNumber = channelNumber;
@@ -516,11 +518,12 @@ class lgwebosTvDevice {
 					}
 					const setChannel = (this.powerState && inputReference != undefined && inputMode == 1) ? this.lgtv.send('request', API_URL.OpenChannel, payload1) : false;
 					const logInfo = this.disableLogInfo ? false : this.log('Device: %s %s, set %s successful, name: %s, reference: %s', this.host, accessoryName, inputMode == 0 ? 'Input' : 'Channel', inputName, inputReference);
+					this.inputIdentifier = inputIdentifier;
 				} catch (error) {
 					this.log.error('Device: %s %s, set %s error: %s', this.host, accessoryName, inputMode == 0 ? 'Input' : 'Channel', error);
 				};
-				this.inputIdentifier = inputIdentifier;
-				this.setStartInput = this.powerState ? false : true;
+				this.setStartInput = !this.powerState;
+				this.startInputIdentifier = inputIdentifier;
 			});
 
 		this.televisionService.getCharacteristic(Characteristic.RemoteKey)
@@ -1120,10 +1123,11 @@ class lgwebosTvDevice {
 		//Prepare inputs button services
 		this.log.debug('prepareInputsButtonService');
 
-		//check available buttons and possible buttons count (max 96 - inputsCount)
+		//check available buttons and possible buttons count (max 94)
 		const buttons = this.buttons;
 		const buttonsCount = buttons.length;
-		const maxButtonsCount = ((inputsCount + buttonsCount) < 94) ? buttonsCount : 94 - inputsCount;
+		const availableButtonshCount = 94 - maxInputsCount;
+		const maxButtonsCount = (availableButtonshCount > 0) ? (availableButtonshCount > buttonsCount) ? buttonsCount : availableButtonshCount : 0;
 		for (let i = 0; i < maxButtonsCount; i++) {
 			//get button mode
 			const buttonMode = buttons[i].mode;

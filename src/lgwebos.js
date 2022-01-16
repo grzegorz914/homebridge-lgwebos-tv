@@ -180,7 +180,7 @@ class LGTV extends EventEmitter {
                     const serialNumber = response1.device_id;
                     const firmwareRevision = `${response1.major_ver}.${response1.minor_ver}`;
                     const webOS = response1.product_name.slice(8, -2);
-                    this.emit('devInfo', modelName, productName, serialNumber, firmwareRevision, webOS);
+                    this.emit('deviceInfo', modelName, productName, serialNumber, firmwareRevision, webOS);
 
                     this.send('subscribe', API_URL.GetInstalledApps, (error, response) => {
                         const emit = (error || response.errorCode) ? this.emit('error', `Installed apps error: ${error}`) : this.emit('installedApps', response);

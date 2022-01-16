@@ -32,17 +32,17 @@ Tested with OLED65G6V, 32LM6300PLA, 49SK8500, OLED65C7T, 55SK800PLB, OLED48CX.
    * Go to `./homebridge/persist`
    * Remove `AccessoryInfo.xxx` file which contain Your device data: `{"displayName":"LG TV"}`
    * Next remove `IdentifierCashe.xxx` file with same name as `AccessoryInfo.xxx`
-   * Restart Homebridge and try add it to the Home app again.
+   * Restart Homebridge and try add it to the HomeKit app again.
 
 ## Features and How To Use Them
 * Power and Screen ON/OFF short press tile in HomeKit app.
-* RC/Media control is possible after you go to the RC app.
-* Speaker control is possible after you go to RC app and use hardware buttons.
+* RC/Media control is possible after you go to the RC app on iPhone/iPad.
+* Speaker control is possible after you go to RC app on iPhone/iPad `Speaker Service`.
 * Legacy Volume and Mute control is possible throught extra `lightbulb`/`fan` (slider).
-* Inputs can be changed after long press tile and select from the list.
-* Channels can be changed after long press tile and select from the list.
-* Siri can be used for all functions through created extra buttons.
-* Home automations and shortcuts can be used for all functions.
+* Inputs can be changed using Inputs selector in HomeKit.app, additionally can create separate tile.
+* Channels can be changed using Channels selector in HomeKit.app, additionally can create separate tile.
+* Siri can be used for all functions, some times need create legacy buttons/switches/sensors.
+* Automations can be used for all functions, some times need create legacy buttons/switches/sensors.
 
 
 <p align="left">
@@ -81,7 +81,7 @@ Install and use [Homebridge Config UI X](https://github.com/oznu/homebridge-conf
 | `buttons.mode` | Here select button mode, `Input/App`, `Live TV Channel` or `Remote Control`. |
 | `buttons.reference` | Here set *Reference*, only for `Input/App` or `Live TV Channel` mode, in other case leave empty. | 
 | `buttons.command` | Here select `Remote Control` command which will be assigned to the button. |
-| `buttons.displayType` | Here select display type in Home app, possible `Switch`, `Button` - selectable in Home app as Light, Fan, Outlet.|
+| `buttons.displayType` | Here select display type in HomeKit app, possible `Switch`, `Button` - selectable in HomeKit app as Light, Fan, Outlet.|
 | `manufacturer`, `modelName`, `serialNumber`, `firmwareRevision` | Free-form informational data that will be displayed in the Home.app. |
 | `reference` | All can be found in `homebridge_directory/lgwebosTv`, `inputs_xxx` file, where `reference == id`, or `channels_xxx` file, where `reference == channelId`. | Info |
 
@@ -162,7 +162,7 @@ Each accessory needs to be manually paired.
 ## Limitations
 * That maximum Services for 1 accessory is 100. If Services > 100, accessory stop responding.
 * To solve this problem the plugin counts the number of Services and not allow add more as 100.
-* If You have configured more as 100 Services some inputs or buttons will not be available in the Home app.
+* If You have configured more as 100 Services some inputs or buttons will not be available in the HomeKit app.
 * The Services in this accessory are:
   * Information.
   * Speaker.
