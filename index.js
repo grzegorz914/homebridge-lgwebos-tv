@@ -302,25 +302,27 @@ class lgwebosTvDevice {
 					};
 				}
 			})
-			.on('powerState', (power, pixelRefresh, screenState) => {
+			.on('powerState', (isConnected, power, pixelRefresh, screenState) => {
+				const powerState = (isConnected && power);
+
 				if (this.televisionService) {
 					this.televisionService
-						.updateCharacteristic(Characteristic.Active, power);
+						.updateCharacteristic(Characteristic.Active, powerState);
 					if (this.brightnessService) {
 						this.brightnessService
-							.updateCharacteristic(Characteristic.On, power);
+							.updateCharacteristic(Characteristic.On, powerState);
 					}
 					if (this.backlightService) {
 						this.backlightService
-							.updateCharacteristic(Characteristic.On, power);
+							.updateCharacteristic(Characteristic.On, powerState);
 					}
 					if (this.contrastService) {
 						this.contrastService
-							.updateCharacteristic(Characteristic.On, power);
+							.updateCharacteristic(Characteristic.On, powerState);
 					}
 					if (this.colorService) {
 						this.colorService
-							.updateCharacteristic(Characteristic.On, power);
+							.updateCharacteristic(Characteristic.On, powerState);
 					}
 					if (this.turnScreenOnOffService) {
 						this.turnScreenOnOffService

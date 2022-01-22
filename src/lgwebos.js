@@ -75,7 +75,7 @@ class LGTV extends EventEmitter {
                         Object.keys(this.callbacks).forEach((cid) => {
                             delete this.callbacks[cid];
                         });
-                        this.emit('powerState', this.power, false, false);
+                        this.emit('powerState', this.isConnected, this.power, false, false);
                         this.emit('audioState', 0, true, '');
                         this.emit('disconnect', 'Disconnected.');
 
@@ -222,7 +222,7 @@ class LGTV extends EventEmitter {
 
                         this.power = power;
 
-                        this.emit('powerState', power, pixelRefresh, screenState);
+                        this.emit('powerState', this.isConnected, power, pixelRefresh, screenState);
                         const setAudioState = !power ? this.emit('audioState', 0, true, '') : false;
                     });
                     this.send('subscribe', API_URL.GetForegroundAppInfo, (error, response) => {
@@ -316,7 +316,7 @@ class LGTV extends EventEmitter {
                             cb(new Error('Callback timeout'));
                         };
                         delete this.callbacks[cid];
-                    }, 2500);
+                    }, 3500);
                     break;
 
                 case 'subscribe':
