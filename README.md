@@ -43,6 +43,7 @@ Tested with OLED65G6V, 32LM6300PLA, 49SK8500, OLED65C7T, 55SK800PLB, OLED48CX.
 * Channels can be changed using Channels selector in HomeKit app, additionally can create separate tile.
 * Siri can be used for all functions, some times need create legacy buttons/switches/sensors.
 * Automations can be used for all functions, some times need create legacy buttons/switches/sensors.
+* MQTT Client publisch all available data from device.
 
 
 <p align="left">
@@ -82,6 +83,13 @@ Install and use [Homebridge Config UI X](https://github.com/oznu/homebridge-conf
 | `buttons.reference` | Here set *Reference*, only for `Input/App` or `Live TV Channel` mode, in other case leave empty. | 
 | `buttons.command` | Here select `Remote Control` command which will be assigned to the button. |
 | `buttons.displayType` | Here select display type in HomeKit app, possible `Switch`, `Button` - selectable in HomeKit app as Light, Fan, Outlet.|
+| `enableMqtt` | If enabled, MQTT Broker will start automatically and publish all awailable PV installation data. |
+| `mqttHost` | Here set the *IP Address* or *Hostname* for MQTT Broker.) |
+| `mqttPort` | Here set the *Port* for MQTT Broker, default 1883.) |
+| `mqttPrefix` | Here set the *Prefix* for *Topic* or leave empty.) |
+| `mqttAuth` | If enabled, MQTT Broker will use authorization credentials. |
+| `mqttUser` | Here set the MQTT Broker user. |
+| `mqttPasswd` | Here set the MQTT Broker password. |
 | `manufacturer`, `modelName`, `serialNumber`, `firmwareRevision` | Free-form informational data that will be displayed in the Home.app. |
 | `reference` | All can be found in `homebridge_directory/lgwebosTv`, `inputs_xxx` file, where `reference == id`, or `channels_xxx` file, where `reference == channelId`. | Info |
 
@@ -144,7 +152,14 @@ Install and use [Homebridge Config UI X](https://github.com/oznu/homebridge-conf
                     "command": "UP",
                     "displayType": 0
                }
-          ]
+          ],
+            "enableMqtt": false,
+            "mqttHost": "192.168.1.33",
+            "mqttPort": 1883,
+            "mqttPrefix": "home/lg",
+            "mqttAuth": false,
+            "mqttUser": "user",
+            "mqttPass": "password"
         }
     ]
 }

@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+## [1.11.0] - (18.02.2022)
+## Added
+- MQTT Client, publish all device data
+
+## Changes
+- update dependencies
+- code refactor
+
 ## [1.10.14] - (16.01.2022)
 ### Fixed
 - wrog power state report if disconnected from net

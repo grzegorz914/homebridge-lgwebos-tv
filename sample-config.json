@@ -70,7 +70,14 @@
                      "command": "UP",
                      "displayType": 0
                 }
-            ]
+            ],
+            "enableMqtt": false,
+            "mqttHost": "192.168.1.33",
+            "mqttPort": 1883,
+            "mqttPrefix": "home/lg",
+            "mqttAuth": false,
+            "mqttUser": "user",
+            "mqttPass": "password"
         }]
     }]
 }

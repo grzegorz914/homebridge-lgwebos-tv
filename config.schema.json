@@ -632,10 +632,78 @@
 												]
 											}
 										],
-										"description": "Here select display type in HomeKit app",
+										"description": "Here select display type in HomeKit app.",
 										"required": true
 									}
                 }
+              }
+            },
+            "enableMqtt": {
+              "title": "Enable",
+              "type": "boolean",
+              "default": false,
+              "required": false,
+              "description": "This enable MQTT client."
+            },
+            "mqttHost": {
+              "title": "IP/Hostname",
+              "type": "string",
+              "placeholder": "ip or hostname",
+              "required": true,
+              "format": "hostname",
+              "description": "Here set the IP/Hostname of MQTT Broker.",
+              "condition": {
+                "functionBody": "return model.devices[arrayIndices].enableMqtt === true;"
+              }
+            },
+            "mqttPort": {
+              "title": "Port",
+              "type": "integer",
+              "placeholder": 1883,
+              "required": true,
+              "description": "Here set the port of MQTT Broker.",
+              "condition": {
+                "functionBody": "return model.devices[arrayIndices].enableMqtt === true;"
+              }
+            },
+            "mqttPrefix": {
+              "title": "Prefix",
+              "type": "string",
+              "placeholder": "home/lg",
+              "required": false,
+              "description": "Here set the prefix.",
+              "condition": {
+                "functionBody": "return model.devices[arrayIndices].enableMqtt === true;"
+              }
+            },
+            "mqttAuth": {
+              "title": "Authorization",
+              "type": "boolean",
+              "default": false,
+              "required": false,
+              "description": "This enable authorization for MQTT Broker.",
+              "condition": {
+                "functionBody": "return model.devices[arrayIndices].enableMqtt === true;"
+              }
+            },
+            "mqttUser": {
+              "title": "User",
+              "type": "string",
+              "placeholder": "user",
+              "required": false,
+              "description": "Here set the user of MQTT Broker.",
+              "condition": {
+                "functionBody": "return model.devices[arrayIndices].enableMqtt === true && model.devices[arrayIndices].mqttAuth === true;"
+              }
+            },
+            "mqttPasswd": {
+              "title": "Password",
+              "type": "string",
+              "placeholder": "password",
+              "required": false,
+              "description": "Here set the password of MQTT Broker.",
+              "condition": {
+                "functionBody": "return model.devices[arrayIndices].enableMqtt === true && model.devices[arrayIndices].mqttAuth === true;"
               }
             },
             "pictureModeControl": {
@@ -928,6 +996,22 @@
         "condition": {
           "functionBody": "return model.devices[arrayIndices].pictureModeControl === true;"
         }
+      },
+      {
+        "key": "devices[]",
+        "type": "section",
+        "title": "MQTT Client",
+        "expandable": true,
+        "expanded": false,
+        "items": [
+          "devices[].enableMqtt",
+          "devices[].mqttHost",
+          "devices[].mqttPort",
+          "devices[].mqttPrefix",
+          "devices[].mqttAuth",
+          "devices[].mqttUser",
+          "devices[].mqttPasswd"
+        ]
       },
       {
         "key": "devices[]",

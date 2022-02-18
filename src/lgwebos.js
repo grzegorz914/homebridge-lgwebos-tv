@@ -181,12 +181,40 @@ class LGTV extends EventEmitter {
                     const firmwareRevision = `${response1.major_ver}.${response1.minor_ver}`;
                     const webOS = response1.product_name.slice(8, -2);
                     this.emit('deviceInfo', modelName, productName, serialNumber, firmwareRevision, webOS);
+                    this.emit('mqtt', 'Info', JSON.stringify(response, null, 2));
+                    this.emit('mqtt', 'Info 1', JSON.stringify(response1, null, 2));
 
-                    this.send('subscribe', API_URL.GetInstalledApps, (error, response) => {
-                        const emit = (error || response.errorCode) ? this.emit('error', `Installed apps error: ${error}`) : this.emit('installedApps', response);
-                    });
                     this.send('subscribe', API_URL.GetChannelList, (error, response) => {
-                        const emit = (error || response.errorCode) ? this.emit('error', `Channel list error: ${error}`) : this.emit('channelList', response);
+                        if (error || response.errorCode) {
+                            this.emit('error', `Channel list error: ${error}`)
+                        }
+                        this.emit('channelList', response);
+                        this.emit('mqtt', 'Channel List', JSON.stringify(response, null, 2));
+                    });
+                    this.send('subscribe', API_URL.GetCurrentChannel, (error, response) => {
+                        if (error || response.errorCode) {
+                            this.emit('error', `Current channel error: ${error}`)
+                        }
+                        const channelName = response.channelName;
+                        const channelNumber = response.channelNumber;
+                        const channelReference = response.channelId;
+                        this.emit('currentChannel', channelName, channelNumber, channelReference);
+                        this.emit('mqtt', 'Current Channel', JSON.stringify(response, null, 2));
+                    });
+                    this.send('subscribe', API_URL.GetInstalledApps, (error, response) => {
+                        if (error || response.errorCode) {
+                            this.emit('error', `Installed apps error: ${error}`)
+                        }
+                        this.emit('installedApps', response);
+                        this.emit('mqtt', 'Apps List', JSON.stringify(response, null, 2));
+                    });
+                    this.send('subscribe', API_URL.GetForegroundAppInfo, (error, response) => {
+                        if (error || response.errorCode) {
+                            this.emit('error', `Foreground app error: ${error}`)
+                        }
+                        const reference = response.appId;
+                        this.emit('currentApp', reference);
+                        this.emit('mqtt', 'Current App', JSON.stringify(response, null, 2));
                     });
                     this.send('subscribe', API_URL.GetPowerState, (error, response) => {
                         if (error || response.errorCode) {
@@ -224,22 +252,7 @@ class LGTV extends EventEmitter {
 
                         this.emit('powerState', this.isConnected, power, pixelRefresh, screenState);
                         const setAudioState = !power ? this.emit('audioState', 0, true, '') : false;
-                    });
-                    this.send('subscribe', API_URL.GetForegroundAppInfo, (error, response) => {
-                        if (error || response.errorCode) {
-                            this.emit('error', `Foreground app error: ${error}`)
-                        }
-                        const reference = response.appId;
-                        this.emit('currentApp', reference);
-                    });
-                    this.send('subscribe', API_URL.GetCurrentChannel, (error, response) => {
-                        if (error || response.errorCode) {
-                            this.emit('error', `Current channel error: ${error}`)
-                        }
-                        const channelName = response.channelName;
-                        const channelNumber = response.channelNumber;
-                        const channelReference = response.channelId;
-                        this.emit('currentChannel', channelName, channelNumber, channelReference);
+                        this.emit('mqtt', 'Power State', JSON.stringify(response, null, 2));
                     });
                     this.send('subscribe', API_URL.GetAudioStatus, (error, response) => {
                         if (error || response.errorCode) {
@@ -249,6 +262,7 @@ class LGTV extends EventEmitter {
                         const mute = (response.mute == true);
                         const audioOutput = response.scenario;
                         this.emit('audioState', volume, mute, audioOutput);
+                        this.emit('mqtt', 'Audio State', JSON.stringify(response, null, 2));
                     });
                     if (webOS >= 4) {
                         const payload = {
@@ -265,6 +279,7 @@ class LGTV extends EventEmitter {
                             const color = response.settings.color;
                             const pictureMode = 3;
                             this.emit('pictureSettings', brightness, backlight, contrast, color, pictureMode);
+                            this.emit('mqtt', 'Picture Settings', JSON.stringify(response, null, 2));
                         });
                     };
                     this.send('subscribe', API_URL.GetAppState, (error, response) => {

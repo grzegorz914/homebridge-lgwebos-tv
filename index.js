@@ -5,6 +5,7 @@ const path = require('path');
 const fs = require('fs');
 const fsPromises = fs.promises;
 const lgtv = require('./src/lgwebos');
+const mqttClient = require('./src/mqtt.js');
 const API_URL = require('./src/apiurl.json');
 
 const PLUGIN_NAME = 'homebridge-lgwebos-tv';
@@ -94,6 +95,13 @@ class lgwebosTvDevice {
 		this.disableLogInfo = config.disableLogInfo || false;
 		this.disableLogDeviceInfo = config.disableLogDeviceInfo || false;
 		this.enableDebugMode = config.enableDebugMode || false;
+		this.enableMqtt = config.enableMqtt || false;
+		this.mqttHost = config.mqttHost;
+		this.mqttPort = config.mqttPort || 1883;
+		this.mqttPrefix = config.mqttPrefix;
+		this.mqttAuth = config.mqttAuth || false;
+		this.mqttUser = config.mqttUser;
+		this.mqttPasswd = config.mqttPasswd;
 		this.getInputsFromDevice = config.getInputsFromDevice || false;
 		this.filterSystemApps = config.filterSystemApps || false;
 		this.inputs = config.inputs || [];
@@ -140,8 +148,6 @@ class lgwebosTvDevice {
 		this.audioOutput = '';
 		this.invertMediaState = false;
 
-		this.setStartInput = false;
-		this.startInputIdentifier = 0;
 		this.inputIdentifier = 0;
 		this.channelName = '';
 		this.channelNumber = 0;
@@ -192,7 +198,35 @@ class lgwebosTvDevice {
 			fs.writeFileSync(this.channelsFile, '');
 		}
 
-		//prepare lgtv socket connection
+		//mqtt client
+		this.mqttClient = new mqttClient({
+			enabled: this.enableMqtt,
+			host: this.mqttHost,
+			port: this.mqttPort,
+			prefix: this.mqttPrefix,
+			topic: this.name,
+			auth: this.mqttAuth,
+			user: this.mqttUser,
+			passwd: this.mqttPasswd
+		});
+
+		this.mqttClient.on('connected', (message) => {
+				this.log('Device: %s %s, %s', this.host, this.name, message);
+			})
+			.on('error', (error) => {
+				this.log('Device: %s %s, %s', this.host, this.name, error);
+			})
+			.on('debug', (message) => {
+				const debug = this.enableDebugMode ? this.log('Device: %s %s, debug: %s', this.host, this.name, message) : false;
+			})
+			.on('message', (message) => {
+				const logInfo = this.disableLogInfo ? false : this.log('Device: %s %s, %s', this.host, this.name, message);
+			})
+			.on('disconnected', (message) => {
+				this.log('Device: %s %s, %s', this.host, this.name, message);
+			});
+
+		//lg tv client
 		const url = `ws://${this.host}:${WEBSOCKET_PORT}`;
 		this.lgtv = new lgtv({
 			url: url,
@@ -340,13 +374,6 @@ class lgwebosTvDevice {
 				if (this.televisionService) {
 					this.televisionService
 						.updateCharacteristic(Characteristic.ActiveIdentifier, inputIdentifier);
-
-					if (this.setStartInput) {
-						setTimeout(() => {
-							this.televisionService.setCharacteristic(Characteristic.ActiveIdentifier, this.startInputIdentifier);
-							this.setStartInput = false;
-						}, 1200);
-					}
 				}
 
 				this.inputIdentifier = inputIdentifier;
@@ -424,6 +451,9 @@ class lgwebosTvDevice {
 			})
 			.on('disconnect', (message) => {
 				this.log('Device: %s %s, %s', this.host, this.name, message);
+			})
+			.on('mqtt', (topic, message) => {
+				this.mqttClient.send(topic, message);
 			})
 			.on('socketDisconnect', (message) => {
 				this.log('Device: %s %s, %s', this.host, this.name, message);
@@ -509,23 +539,21 @@ class lgwebosTvDevice {
 				const inputName = this.inputsName[inputIdentifier];
 				const inputMode = this.inputsMode[inputIdentifier];
 				const inputReference = this.inputsReference[inputIdentifier];
-				const inputId = (inputMode == 0) ? this.inputsReference[inputIdentifier] : 'com.webos.app.livetv';
+				const inputId = (inputMode == 0) ? inputReference : 'com.webos.app.livetv';
 				const payload = {
 					id: inputId
 				}
+				const payload1 = {
+					channelId: inputReference
+				}
 				try {
-					const setInput = (this.powerState && inputReference != undefined) ? this.lgtv.send('request', API_URL.LaunchApp, payload) : false;
-					const payload1 = {
-						channelId: inputReference
-					}
+					const setInput = (this.powerState && inputReference != undefined) ? this.lgtv.send('request', API_URL.LaunchApp, payload) : false
 					const setChannel = (this.powerState && inputReference != undefined && inputMode == 1) ? this.lgtv.send('request', API_URL.OpenChannel, payload1) : false;
 					const logInfo = this.disableLogInfo ? false : this.log('Device: %s %s, set %s successful, name: %s, reference: %s', this.host, accessoryName, inputMode == 0 ? 'Input' : 'Channel', inputName, inputReference);
 					this.inputIdentifier = inputIdentifier;
 				} catch (error) {
 					this.log.error('Device: %s %s, set %s error: %s', this.host, accessoryName, inputMode == 0 ? 'Input' : 'Channel', error);
 				};
-				this.setStartInput = !this.powerState;
-				this.startInputIdentifier = inputIdentifier;
 			});
 
 		this.televisionService.getCharacteristic(Characteristic.RemoteKey)
@@ -1123,63 +1151,64 @@ class lgwebosTvDevice {
 		}
 
 		//Prepare inputs button services
-		this.log.debug('prepareInputsButtonService');
-
 		//check available buttons and possible buttons count (max 94)
 		const buttons = this.buttons;
 		const buttonsCount = buttons.length;
 		const availableButtonshCount = 94 - maxInputsCount;
 		const maxButtonsCount = (availableButtonshCount > 0) ? (availableButtonshCount > buttonsCount) ? buttonsCount : availableButtonshCount : 0;
-		for (let i = 0; i < maxButtonsCount; i++) {
-			//get button mode
-			const buttonMode = buttons[i].mode;
+		if (maxButtonsCount > 0) {
+			this.log.debug('prepareInputsButtonService');
+			for (let i = 0; i < maxButtonsCount; i++) {
+				//get button mode
+				const buttonMode = buttons[i].mode;
 
-			//get button reference
-			const buttonReference = buttons[i].reference;
+				//get button reference
+				const buttonReference = buttons[i].reference;
 
-			//get button command
-			const buttonCommand = buttons[i].command;
+				//get button command
+				const buttonCommand = buttons[i].command;
 
-			//get button name
-			const buttonName = (buttons[i].name != undefined) ? buttons[i].name : [buttonReference, buttonReference, buttonCommand][buttonMode];
+				//get button name
+				const buttonName = (buttons[i].name != undefined) ? buttons[i].name : [buttonReference, buttonReference, buttonCommand][buttonMode];
 
-			//get button display type
-			const buttonDisplayType = (buttons[i].displayType != undefined) ? buttons[i].displayType : 0;
+				//get button display type
+				const buttonDisplayType = (buttons[i].displayType != undefined) ? buttons[i].displayType : 0;
 
-			const serviceType = [Service.Outlet, Service.Switch][buttonDisplayType];
-			const buttonService = new serviceType(`${accessoryName} ${buttonName}`, `Button ${i}`);
-			buttonService.getCharacteristic(Characteristic.On)
-				.onGet(async () => {
-					const state = false;
-					return state;
-				})
-				.onSet(async (state) => {
-					const appId = [buttonReference, 'com.webos.app.livetv', buttonCommand][buttonMode];
-					const payload = {
-						id: appId
-					}
-					const payload1 = {
-						channelId: buttonReference
-					}
-					const payload2 = {
-						name: buttonCommand
-					}
-					try {
-						const setInput = (state && this.powerState && buttonMode <= 1 && appId != this.appId) ? this.lgtv.send('request', API_URL.LaunchApp, payload) : false;
-						const setChannel = (state && this.powerState && buttonMode == 1) ? this.lgtv.send('request', API_URL.OpenChannel, payload1) : false;
-						const setCommand = (state && this.powerState && buttonMode == 2 && this.lgtv.inputSocket) ? this.lgtv.inputSocket.send('button', payload2) : false;
-						const logInfo = this.disableLogInfo ? false : this.log('Device: %s %s, set %s successful, name: %s, reference: %s', this.host, accessoryName, ['Input', 'Channel', 'Command'][buttonMode], buttonName, [buttonReference, buttonReference, buttonCommand][buttonMode]);
-						this.appId = appId;
-					} catch (error) {
-						this.log.error('Device: %s %s, set %s error: %s', this.host, accessoryName, ['Input', 'Channel', 'Command'][buttonMode], error);
-					};
-					setTimeout(() => {
-						buttonService.updateCharacteristic(Characteristic.On, false);
-					}, 150);
-				});
+				const serviceType = [Service.Outlet, Service.Switch][buttonDisplayType];
+				const buttonService = new serviceType(`${accessoryName} ${buttonName}`, `Button ${i}`);
+				buttonService.getCharacteristic(Characteristic.On)
+					.onGet(async () => {
+						const state = false;
+						return state;
+					})
+					.onSet(async (state) => {
+						const appId = [buttonReference, 'com.webos.app.livetv', buttonCommand][buttonMode];
+						const payload = {
+							id: appId
+						}
+						const payload1 = {
+							channelId: buttonReference
+						}
+						const payload2 = {
+							name: buttonCommand
+						}
+						try {
+							const setInput = (state && this.powerState && buttonMode <= 1 && appId != this.appId) ? this.lgtv.send('request', API_URL.LaunchApp, payload) : false;
+							const setChannel = (state && this.powerState && buttonMode == 1) ? this.lgtv.send('request', API_URL.OpenChannel, payload1) : false;
+							const setCommand = (state && this.powerState && buttonMode == 2 && this.lgtv.inputSocket) ? this.lgtv.inputSocket.send('button', payload2) : false;
+							const logInfo = this.disableLogInfo ? false : this.log('Device: %s %s, set %s successful, name: %s, reference: %s', this.host, accessoryName, ['Input', 'Channel', 'Command'][buttonMode], buttonName, [buttonReference, buttonReference, buttonCommand][buttonMode]);
+							this.appId = appId;
+						} catch (error) {
+							this.log.error('Device: %s %s, set %s error: %s', this.host, accessoryName, ['Input', 'Channel', 'Command'][buttonMode], error);
+						};
+						setTimeout(() => {
+							buttonService.updateCharacteristic(Characteristic.On, false);
+						}, 150);
+					});
 
-			accessory.addService(buttonService);
-		}
+				accessory.addService(buttonService);
+			};
+		};
 
 		const debug4 = this.enableDebugMode ? this.log('Device: %s %s, publishExternalAccessories.', this.host, accessoryName) : false;
 		this.api.publishExternalAccessories(PLUGIN_NAME, [accessory]);
