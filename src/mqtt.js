@@ -28,7 +28,7 @@ class MQTTCLIENT extends EventEmitter {
             this.mqttClient = await MQTT.connectAsync(url, options);
 
             this.isConnected = true;
-            this.emit('connected', 'MQTT Connected');
+            this.emit('connected', 'MQTT Connected.');
         } catch (error) {
             this.isConnected = false;
             this.emit('error', error);
