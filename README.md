@@ -70,7 +70,7 @@ Install and use [Homebridge Config UI X](https://github.com/oznu/homebridge-conf
 | `disableLogDeviceInfo` | If enabled, add ability to disable log device info by every connections device to the network. |
 | `enableDebugMode` | This enable deep log in homebridge console. |
 | `volumeControl` | Here select volume control mode `None`, `Slider`, `Fan`. |
-| `switchInfoMenu` | This switch the behaviour of `I` button in RC app between Menu and Home. |
+| `infoButtonCommand` | Here select the function of `I` button in RC app. |
 | `getInputsFromDevice` | This enable load inputs and apps direct from device. |
 | `filterSystemApps` | This enable filter sysem apps, only if `getInputsFromDevice` is `true`. |
 | `turnScreenOnOff` | This enable possibility turn the screen ON/OFF, only for webOS >= 4.0. |
@@ -105,7 +105,7 @@ Install and use [Homebridge Config UI X](https://github.com/oznu/homebridge-conf
             "disableLogDeviceInfo": false,
             "enableDebugMode": false,
             "volumeControl": 0,
-            "switchInfoMenu": false,
+            "infoButtonCommand": "MENU",
             "getInputsFromDevice": false,
             "filterSystemApps": false,
             "turnScreenOnOff": false,

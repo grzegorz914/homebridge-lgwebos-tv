@@ -24,7 +24,7 @@
             "disableLogDeviceInfo": false,
             "enableDebugMode": false,
             "volumeControl": 0,
-            "switchInfoMenu": false,
+            "infoButtonCommand": "MENU",
             "getInputsFromDevice": false,
             "filterSystemApps": false,
             "turnScreenOnOff": false,

@@ -2,6 +2,10 @@
 All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+## [1.11.1] - (22.02.2022)
+## Added
+- possibility to set custom command for Info button in RC
+
 ## [1.11.0] - (18.02.2022)
 ## Added
 - MQTT Client, publish all device data

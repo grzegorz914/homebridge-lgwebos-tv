@@ -65,7 +65,6 @@
               "type": "integer",
               "minimum": 0,
               "maximum": 2,
-              "description": "Here select what a volume control mode You want to use. If select *None* only hardware buttons in RC app can be used to control volume.",
               "oneOf": [{
                   "title": "None",
                   "enum": [
@@ -85,14 +84,63 @@
                   ]
                 }
               ],
+              "description": "Here select what a volume control mode You want to use. If select *None* only hardware buttons in RC app can be used to control volume.",
               "required": true
             },
-            "switchInfoMenu": {
-              "title": "Switch Home/Menu",
-              "type": "boolean",
-              "default": false,
-              "description": "This toggle behaviour for *I* button in RC app and *PowerModeSelection* in settings.",
-              "required": false
+            "infoButtonCommand": {
+              "title": "Volume control",
+              "type": "integer",
+              "oneOf": [{
+                  "title": "Home",
+                  "enum": [
+                    "HOME"
+                  ]
+                },
+                {
+                  "title": "Menu",
+                  "enum": [
+                    "MENU"
+                  ]
+                },
+                {
+                  "title": "Q Menu",
+                  "enum": [
+                    "QMENU"
+                  ]
+                },
+                {
+                  "title": "Info",
+                  "enum": [
+                    "INFO"
+                  ]
+                },
+                {
+                  "title": "Red",
+                  "enum": [
+                    "RED"
+                  ]
+                },
+                {
+                  "title": "Green",
+                  "enum": [
+                    "GREEN"
+                  ]
+                },
+                {
+                  "title": "Yellow",
+                  "enum": [
+                    "YELLOW"
+                  ]
+                },
+                {
+                  "title": "Blue",
+                  "enum": [
+                    "BLUE"
+                  ]
+                }
+              ],
+              "description": "Here select the function of info button in RC.",
+              "required": true
             },
             "getInputsFromDevice": {
               "title": "Load inputs from device",
@@ -616,25 +664,25 @@
                     "description": "Here select the remote control command.",
                     "required": true
                   },
-									"displayType": {
-										"title": "Display Type",
-										"type": "integer",
-										"oneOf": [{
-												"title": "Button",
-												"enum": [
-													0
-												]
-											},
-											{
-												"title": "Switch",
-												"enum": [
-													1
-												]
-											}
-										],
-										"description": "Here select display type in HomeKit app.",
-										"required": true
-									}
+                  "displayType": {
+                    "title": "Display Type",
+                    "type": "integer",
+                    "oneOf": [{
+                        "title": "Button",
+                        "enum": [
+                          0
+                        ]
+                      },
+                      {
+                        "title": "Switch",
+                        "enum": [
+                          1
+                        ]
+                      }
+                    ],
+                    "description": "Here select display type in HomeKit app.",
+                    "required": true
+                  }
                 }
               }
             },
@@ -1023,8 +1071,8 @@
           "devices[].enableDebugMode",
           "devices[].disableLogInfo",
           "devices[].disableLogDeviceInfo",
-          "devices[].switchInfoMenu",
           "devices[].turnScreenOnOff",
+          "devices[].infoButtonCommand",
           "devices[].volumeControl"
         ]
       }
