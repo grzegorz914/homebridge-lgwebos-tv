@@ -85,7 +85,7 @@
                 }
               ],
               "description": "Here select what a volume control mode You want to use. If select *None* only hardware buttons in RC app can be used to control volume.",
-              "required": false
+              "required": true
             },
             "infoButtonCommand": {
               "title": "Info Button",
@@ -140,7 +140,7 @@
                 }
               ],
               "description": "Here select the function of info button in RC.",
-              "required": false
+              "required": true
             },
             "getInputsFromDevice": {
               "title": "Load Inputs From Device",
