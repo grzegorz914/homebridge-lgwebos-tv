@@ -90,6 +90,7 @@ Install and use [Homebridge Config UI X](https://github.com/oznu/homebridge-conf
 | `mqttAuth` | If enabled, MQTT Broker will use authorization credentials. |
 | `mqttUser` | Here set the MQTT Broker user. |
 | `mqttPasswd` | Here set the MQTT Broker password. |
+| `mqttDebug` | If enabled, deep log will be present in homebridge console for MQTT. |
 | `manufacturer`, `modelName`, `serialNumber`, `firmwareRevision` | Free-form informational data that will be displayed in the Home.app. |
 | `reference` | All can be found in `homebridge_directory/lgwebosTv`, `inputs_xxx` file, where `reference == id`, or `channels_xxx` file, where `reference == channelId`. | Info |
 
@@ -159,7 +160,8 @@ Install and use [Homebridge Config UI X](https://github.com/oznu/homebridge-conf
             "mqttPrefix": "home/lg",
             "mqttAuth": false,
             "mqttUser": "user",
-            "mqttPass": "password"
+            "mqttPass": "password",
+            "mqttDebug": false
         }
     ]
 }

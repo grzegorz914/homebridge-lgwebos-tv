@@ -91,17 +91,11 @@ class lgwebosTvDevice {
 		this.host = config.host;
 		this.mac = config.mac;
 		this.volumeControl = config.volumeControl || 0;
-		this.infoButtonCommand = config.switchInfoMenu || 'MENU';
+		this.infoButtonCommand = config.infoButtonCommand || 'INFO';
 		this.disableLogInfo = config.disableLogInfo || false;
 		this.disableLogDeviceInfo = config.disableLogDeviceInfo || false;
 		this.enableDebugMode = config.enableDebugMode || false;
 		this.enableMqtt = config.enableMqtt || false;
-		this.mqttHost = config.mqttHost;
-		this.mqttPort = config.mqttPort || 1883;
-		this.mqttPrefix = config.mqttPrefix;
-		this.mqttAuth = config.mqttAuth || false;
-		this.mqttUser = config.mqttUser;
-		this.mqttPasswd = config.mqttPasswd;
 		this.getInputsFromDevice = config.getInputsFromDevice || false;
 		this.filterSystemApps = config.filterSystemApps || false;
 		this.inputs = config.inputs || [];
@@ -113,6 +107,13 @@ class lgwebosTvDevice {
 		this.pictureModeControl = config.pictureModeControl || false;
 		this.pictureModes = config.pictureModes || [];
 		this.turnScreenOnOff = config.turnScreenOnOff || false;
+		this.mqttHost = config.mqttHost;
+		this.mqttPort = config.mqttPort || 1883;
+		this.mqttPrefix = config.mqttPrefix;
+		this.mqttAuth = config.mqttAuth || false;
+		this.mqttUser = config.mqttUser;
+		this.mqttPasswd = config.mqttPasswd;
+		this.mqttDebug = config.mqttDebug || false;
 
 		//add configured inputs to the default inputs
 		const inputsArr = new Array();
@@ -207,7 +208,8 @@ class lgwebosTvDevice {
 			topic: this.name,
 			auth: this.mqttAuth,
 			user: this.mqttUser,
-			passwd: this.mqttPasswd
+			passwd: this.mqttPasswd,
+			debug: this.mqttDebug
 		});
 
 		this.mqttClient.on('connected', (message) => {
@@ -217,10 +219,10 @@ class lgwebosTvDevice {
 				this.log('Device: %s %s, %s', this.host, this.name, error);
 			})
 			.on('debug', (message) => {
-				const debug = this.enableDebugMode ? this.log('Device: %s %s, debug: %s', this.host, this.name, message) : false;
+				this.log('Device: %s %s, debug: %s', this.host, this.name, message);
 			})
 			.on('message', (message) => {
-				const logInfo = this.disableLogInfo ? false : this.log('Device: %s %s, %s', this.host, this.name, message);
+				this.log('Device: %s %s, %s', this.host, this.name, message);
 			})
 			.on('disconnected', (message) => {
 				this.log('Device: %s %s, %s', this.host, this.name, message);
