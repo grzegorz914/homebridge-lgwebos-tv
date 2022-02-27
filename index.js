@@ -95,7 +95,6 @@ class lgwebosTvDevice {
 		this.disableLogInfo = config.disableLogInfo || false;
 		this.disableLogDeviceInfo = config.disableLogDeviceInfo || false;
 		this.enableDebugMode = config.enableDebugMode || false;
-		this.enableMqtt = config.enableMqtt || false;
 		this.getInputsFromDevice = config.getInputsFromDevice || false;
 		this.filterSystemApps = config.filterSystemApps || false;
 		this.inputs = config.inputs || [];
@@ -107,6 +106,7 @@ class lgwebosTvDevice {
 		this.pictureModeControl = config.pictureModeControl || false;
 		this.pictureModes = config.pictureModes || [];
 		this.turnScreenOnOff = config.turnScreenOnOff || false;
+		this.enableMqtt = config.enableMqtt || false;
 		this.mqttHost = config.mqttHost;
 		this.mqttPort = config.mqttPort || 1883;
 		this.mqttPrefix = config.mqttPrefix;
