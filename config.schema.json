@@ -33,35 +33,35 @@
               "required": true
             },
             "disableLogInfo": {
-              "title": "Disable log info",
+              "title": "Disable Log Info",
               "type": "boolean",
               "default": false,
               "description": "This disable logging values and states on every it change.",
               "required": false
             },
             "disableLogDeviceInfo": {
-              "title": "Disable log device info",
+              "title": "Disable Log Device Info",
               "type": "boolean",
               "default": false,
               "description": "This disable log device info by every connections device to the network.",
               "required": false
             },
             "enableDebugMode": {
-              "title": "Enable debug mode",
+              "title": "Debug",
               "type": "boolean",
               "default": false,
               "description": "This enable debug mode.",
               "required": false
             },
             "turnScreenOnOff": {
-              "title": "Turn screen ON/OFF",
+              "title": "Turn Screen ON/OFF",
               "type": "boolean",
               "default": false,
               "description": "This enable possibility turn ON/OFF screen, only for webOS >= 4.0.",
               "required": false
             },
             "volumeControl": {
-              "title": "Volume control",
+              "title": "Volume Control",
               "type": "integer",
               "minimum": 0,
               "maximum": 2,
@@ -88,7 +88,7 @@
               "required": false
             },
             "infoButtonCommand": {
-              "title": "Info button",
+              "title": "Info Button",
               "type": "string",
               "oneOf": [{
                   "title": "Home",
@@ -143,14 +143,14 @@
               "required": false
             },
             "getInputsFromDevice": {
-              "title": "Load inputs from device",
+              "title": "Load Inputs From Device",
               "type": "boolean",
               "default": false,
               "description": "This function get all available inputs direct from device, manually configured inputs will be skipped.",
               "required": false
             },
             "filterSystemApps": {
-              "title": "Hide system apps",
+              "title": "Hide System Apps",
               "type": "boolean",
               "default": false,
               "description": "If enabled, all System Apps will not be displayed on the list of inputs.",
