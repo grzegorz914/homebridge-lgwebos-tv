@@ -2,6 +2,11 @@
 All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+## [1.11.4] - (24.04.2022)
+## Changes
+- fix PowerModeSelection
+- update config.schema.json
+
 ## [1.11.2] - (27.02.2022)
 ## Changes
 - fix Info button in RC

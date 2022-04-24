@@ -1058,7 +1058,22 @@
       {
         "key": "devices[]",
         "type": "section",
-        "title": "MQTT Client",
+        "title": "Advanced Settings",
+        "expandable": true,
+        "expanded": false,
+        "items": [
+          "devices[].enableDebugMode",
+          "devices[].disableLogInfo",
+          "devices[].disableLogDeviceInfo",
+          "devices[].turnScreenOnOff",
+          "devices[].infoButtonCommand",
+          "devices[].volumeControl"
+        ]
+      },
+      {
+        "key": "devices[]",
+        "type": "section",
+        "title": "MQTT",
         "expandable": true,
         "expanded": false,
         "items": [
@@ -1070,21 +1085,6 @@
           "devices[].mqttUser",
           "devices[].mqttPasswd",
           "devices[].mqttDebug"
-        ]
-      },
-      {
-        "key": "devices[]",
-        "type": "section",
-        "title": "Advanced Settings",
-        "expandable": true,
-        "expanded": false,
-        "items": [
-          "devices[].enableDebugMode",
-          "devices[].disableLogInfo",
-          "devices[].disableLogDeviceInfo",
-          "devices[].turnScreenOnOff",
-          "devices[].infoButtonCommand",
-          "devices[].volumeControl"
         ]
       }
     ]
