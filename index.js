@@ -232,7 +232,10 @@ class lgwebosTvDevice {
 		const url = `ws://${this.host}:${WEBSOCKET_PORT}`;
 		this.lgtv = new lgtv({
 			url: url,
-			keyFile: this.keyFile
+			keyFile: this.keyFile,
+			infoLog: this.disableLogInfo,
+			debugLog: this.enableDebugMode,
+			mqttEnabled: this.enableMqtt
 		});
 
 		this.lgtv.on('connect', (message) => {
@@ -245,10 +248,10 @@ class lgwebosTvDevice {
 				this.log('Device: %s %s, %s', this.host, this.name, error);
 			})
 			.on('debug', (message) => {
-				const debug = this.enableDebugMode ? this.log('Device: %s %s, debug: %s', this.host, this.name, message) : false;
+				this.log('Device: %s %s, debug: %s', this.host, this.name, message);
 			})
 			.on('message', (message) => {
-				const logInfo = this.disableLogInfo ? false : this.log('Device: %s %s, %s', this.host, this.name, message);
+				this.log('Device: %s %s, %s', this.host, this.name, message);
 			})
 			.on('deviceInfo', async (modelName, productName, serialNumber, firmwareRevision, webOS) => {
 				if (!this.disableLogDeviceInfo) {
