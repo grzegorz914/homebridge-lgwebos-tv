@@ -2,6 +2,11 @@
 All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+## [1.11.6] - (05.05.2022)
+## Changes
+- fix [#127](https://github.com/grzegorz914/homebridge-lgwebos-tv/issues/127)
+- more debug logging
+
 ## [1.11.5] - (25.04.2022)
 ## Changes
 - refactor debug and info log

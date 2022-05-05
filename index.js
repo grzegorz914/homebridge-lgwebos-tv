@@ -313,7 +313,7 @@ class lgwebosTvDevice {
 				};
 			})
 			.on('channelList', async (channelList) => {
-				if (channelList.channelList != undefined) {
+				if (channelList.channelList != undefined && channelList.channelList != null) {
 					const channelsArr = new Array();
 					const channelsData = channelList.channelList;
 					const channelsCount = channelsData.length;

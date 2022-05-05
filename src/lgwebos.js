@@ -66,7 +66,7 @@ class LGTV extends EventEmitter {
 
                             if (parsedMessage.payload && this.callbacks[parsedMessage.id]) {
                                 this.callbacks[parsedMessage.id](null, parsedMessage.payload);
-                                const debug = this.debugLog ? this.emit('debug', `message: ${JSON.stringify(parsedMessage.payload, null, 2)}`) : false;
+                                const debug = this.debugLog ? this.emit('debug', `Message: ${JSON.stringify(parsedMessage.payload, null, 2)}`) : false;
                             };
                         } else {
                             const debug = this.debugLog ? this.emit('debug', `Received non UTF-8 data: ${message}`) : false;
@@ -174,15 +174,19 @@ class LGTV extends EventEmitter {
                 if (error || response.errorCode) {
                     this.emit('error', `System info error: ${error}`)
                 }
+                const debug = this.debugLog ? this.emit('debug', `System info: ${JSON.stringify(response, null, 2)}`) : false;
+
                 this.send('request', API_URL.GetSoftwareInfo, (error, response1) => {
                     if (error || response.errorCode) {
                         this.emit('error', `Software info error: ${error}`)
                     }
+                    const debug = this.debugLog ? this.emit('debug', `Software info: ${JSON.stringify(response1, null, 2)}`) : false;
+
                     const modelName = response.modelName;
                     const productName = response1.product_name;
                     const serialNumber = response1.device_id;
                     const firmwareRevision = `${response1.major_ver}.${response1.minor_ver}`;
-                    const webOS = response1.product_name.slice(8, -2);
+                    const webOS = (response1.product_name != undefined) ? response1.product_name.slice(8, -2) : 3;
                     this.emit('deviceInfo', modelName, productName, serialNumber, firmwareRevision, webOS);
                     const mqtt = this.mqttEnabled ? this.emit('mqtt', 'Info', JSON.stringify(response, null, 2)) : false;
                     const mqtt1 = this.mqttEnabled ? this.emit('mqtt', 'Info 1', JSON.stringify(response1, null, 2)) : false;
