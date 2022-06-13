@@ -286,60 +286,54 @@ class lgwebosTvDevice {
 				this.webOS = webOS;
 			})
 			.on('installedApps', async (installedApps) => {
-				if (installedApps.apps != undefined) {
-					const inputsArr = new Array();
-					const inputsData = installedApps.apps;
-					const inputsCount = inputsData.length;
-					for (let i = 0; i < inputsCount; i++) {
-						const name = inputsData[i].title;
-						const reference = inputsData[i].id;
-						const type = 'APPLICATION';
-						const mode = 0;
-						const inputsObj = {
-							'name': name,
-							'reference': reference,
-							'type': type,
-							'mode': mode
-						}
-						inputsArr.push(inputsObj);
-					};
-					const obj = JSON.stringify(inputsArr, null, 2);
-					try {
-						const writeInputs = await fsPromises.writeFile(this.inputsFile, obj);
-						const debug = this.enableDebugMode ? this.log('Device: %s %s, saved inputs/apps list: %s', this.host, this.name, obj) : false;
-					} catch (error) {
-						this.log.error('Device: %s %s, save inputs/apps error: %s', this.host, accessoryName, error);
-					};
+				const inputsArr = new Array();
+				const inputsCount = installedApps.length;
+				for (let i = 0; i < inputsCount; i++) {
+					const name = installedApps[i].title;
+					const reference = installedApps[i].id;
+					const type = 'APPLICATION';
+					const mode = 0;
+					const inputsObj = {
+						'name': name,
+						'reference': reference,
+						'type': type,
+						'mode': mode
+					}
+					inputsArr.push(inputsObj);
+				};
+				const obj = JSON.stringify(inputsArr, null, 2);
+				try {
+					const writeInputs = await fsPromises.writeFile(this.inputsFile, obj);
+					const debug = this.enableDebugMode ? this.log('Device: %s %s, saved inputs/apps list: %s', this.host, this.name, obj) : false;
+				} catch (error) {
+					this.log.error('Device: %s %s, save inputs/apps error: %s', this.host, accessoryName, error);
 				};
 			})
 			.on('channelList', async (channelList) => {
-				if (channelList.channelList != undefined && channelList.channelList != null) {
-					const channelsArr = new Array();
-					const channelsData = channelList.channelList;
-					const channelsCount = channelsData.length;
-					for (let i = 0; i < channelsCount; i++) {
-						const name = channelsData[i].channelName;
-						const reference = channelsData[i].channelId;
-						const number = channelsData[i].channelNumber;
-						const type = 'TUNER';
-						const mode = 1;
-						const channelsObj = {
-							'name': name,
-							'reference': reference,
-							'number': number,
-							'type': type,
-							'mode': mode
-						}
-						channelsArr.push(channelsObj);
+				const channelsArr = new Array();
+				const channelsCount = channelList.length;
+				for (let i = 0; i < channelsCount; i++) {
+					const name = channelList[i].channelName;
+					const reference = channelList[i].channelId;
+					const number = channelList[i].channelNumber;
+					const type = 'TUNER';
+					const mode = 1;
+					const channelsObj = {
+						'name': name,
+						'reference': reference,
+						'number': number,
+						'type': type,
+						'mode': mode
 					}
-					const obj = JSON.stringify(channelsArr, null, 2);
-					try {
-						const writeChannels = await fsPromises.writeFile(this.channelsFile, obj);
-						const debug = this.enableDebugMode ? this.log('Device: %s %s, write channels list: %s', this.host, this.name, obj) : false;
-					} catch (error) {
-						this.log.error('Device: %s %s, save inputs/apps error: %s', this.host, accessoryName, error);
-					};
+					channelsArr.push(channelsObj);
 				}
+				const obj = JSON.stringify(channelsArr, null, 2);
+				try {
+					const writeChannels = await fsPromises.writeFile(this.channelsFile, obj);
+					const debug = this.enableDebugMode ? this.log('Device: %s %s, write channels list: %s', this.host, this.name, obj) : false;
+				} catch (error) {
+					this.log.error('Device: %s %s, save inputs/apps error: %s', this.host, accessoryName, error);
+				};
 			})
 			.on('powerState', (isConnected, power, pixelRefresh, screenState) => {
 				const powerState = (isConnected && power);
@@ -1015,7 +1009,7 @@ class lgwebosTvDevice {
 							}
 							try {
 								const setPictureMode = (state && this.powerState) ? this.lgtv.send('request', API_URL.SetSystemSettings, payload) : false;
-								const logInfo = this.disableLogInfo ? false : this.log('Device: %s %s, set Picture Mode successful, Mode: %s', this.host, accessoryName, pictureModeName, response);
+								const logInfo = this.disableLogInfo ? false : this.log('Device: %s %s, set Picture Mode successful, Mode: %s', this.host, accessoryName, pictureModeName);
 							} catch (error) {
 								this.log.error('Device: %s %s %s, set Picture Mode error: %s', this.host, accessoryName, error);
 							};

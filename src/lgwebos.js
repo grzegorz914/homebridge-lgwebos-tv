@@ -172,13 +172,13 @@ class LGTV extends EventEmitter {
         return new Promise((resolve, reject) => {
             this.send('request', API_URL.GetSystemInfo, (error, response) => {
                 if (error || response.errorCode) {
-                    this.emit('error', `System info error: ${error}`)
+                    this.emit('error', `System info error: ${error}, ${response.errorCode}`)
                 }
                 const debug = this.debugLog ? this.emit('debug', `System info: ${JSON.stringify(response, null, 2)}`) : false;
 
                 this.send('request', API_URL.GetSoftwareInfo, (error, response1) => {
                     if (error || response.errorCode) {
-                        this.emit('error', `Software info error: ${error}`)
+                        this.emit('error', `Software info error: ${error}, ${response.errorCode}`)
                     }
                     const debug = this.debugLog ? this.emit('debug', `Software info: ${JSON.stringify(response1, null, 2)}`) : false;
 
@@ -193,14 +193,16 @@ class LGTV extends EventEmitter {
 
                     this.send('subscribe', API_URL.GetChannelList, (error, response) => {
                         if (error || response.errorCode) {
-                            this.emit('error', `Channel list error: ${error}`)
+                            this.emit('error', `Channel list error: ${error}, ${response.errorCode}`)
                         }
-                        this.emit('channelList', response);
-                        const mqtt = this.mqttEnabled ? this.emit('mqtt', 'Channel List', JSON.stringify(response, null, 2)) : false;
+                        if (response.channelList != undefined) {
+                            this.emit('channelList', response.channelList);
+                            const mqtt = this.mqttEnabled ? this.emit('mqtt', 'Channel List', JSON.stringify(response.channelList, null, 2)) : false;
+                        }
                     });
                     this.send('subscribe', API_URL.GetCurrentChannel, (error, response) => {
                         if (error || response.errorCode) {
-                            this.emit('error', `Current channel error: ${error}`)
+                            this.emit('error', `Current channel error: ${error}, ${response.errorCode}`)
                         }
                         const channelName = response.channelName;
                         const channelNumber = response.channelNumber;
@@ -210,14 +212,16 @@ class LGTV extends EventEmitter {
                     });
                     this.send('subscribe', API_URL.GetInstalledApps, (error, response) => {
                         if (error || response.errorCode) {
-                            this.emit('error', `Installed apps error: ${error}`)
+                            this.emit('error', `Installed apps error: ${error}, ${response.errorCode}`)
                         }
-                        this.emit('installedApps', response);
-                        const mqtt = this.mqttEnabled ? this.emit('mqtt', 'Apps List', JSON.stringify(response, null, 2)) : false;
+                        if (response.apps != undefined) {
+                            this.emit('installedApps', response.apps);
+                            const mqtt = this.mqttEnabled ? this.emit('mqtt', 'Apps List', JSON.stringify(response.apps, null, 2)) : false;
+                        }
                     });
                     this.send('subscribe', API_URL.GetForegroundAppInfo, (error, response) => {
                         if (error || response.errorCode) {
-                            this.emit('error', `Foreground app error: ${error}`)
+                            this.emit('error', `Foreground app error: ${error}, ${response.errorCode}`)
                         }
                         const reference = response.appId;
                         this.emit('currentApp', reference);
@@ -225,7 +229,7 @@ class LGTV extends EventEmitter {
                     });
                     this.send('subscribe', API_URL.GetPowerState, (error, response) => {
                         if (error || response.errorCode) {
-                            this.emit('error', `Power state error: ${error}`)
+                            this.emit('error', `Power state error: ${error}, ${response.errorCode}`)
                         }
                         //screen On
                         const prepareScreenOn = ((response.state == 'Suspend' && response.processing == 'Screen On') || (response.state == 'Screen Saver' && response.processing == 'Screen On') || (response.state == 'Active Standby' && response.processing == 'Screen On'));
@@ -263,7 +267,7 @@ class LGTV extends EventEmitter {
                     });
                     this.send('subscribe', API_URL.GetAudioStatus, (error, response) => {
                         if (error || response.errorCode) {
-                            this.emit('error', `Audio state error: ${error}`)
+                            this.emit('error', `Audio state error: ${error}, ${response.errorCode}`)
                         }
                         const volume = response.volume;
                         const mute = (response.mute == true);
@@ -278,7 +282,7 @@ class LGTV extends EventEmitter {
                         }
                         this.send('subscribe', API_URL.GetSystemSettings, payload, (error, response) => {
                             if (error || response.errorCode) {
-                                this.emit('error', `System settings error: ${error}`)
+                                this.emit('error', `System settings error: ${error}, ${response.errorCode}`)
                             }
                             const brightness = response.settings.brightness;
                             const backlight = response.settings.backlight;
@@ -291,7 +295,7 @@ class LGTV extends EventEmitter {
                     };
                     this.send('subscribe', API_URL.GetAppState, (error, response) => {
                         if (error || response.errorCode) {
-                            this.emit('error', `App state error: ${error}`)
+                            this.emit('error', `App state error: ${error}, ${response.errorCode}`)
                         };
                         this.emit('appState');
                     });
