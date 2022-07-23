@@ -484,14 +484,11 @@ class lgwebosTvDevice {
 			const firmwareRevision = devInfo.firmwareRevision;
 			const webOS = devInfo.webOS;
 
-			accessory.removeService(accessory.getService(Service.AccessoryInformation));
-			const informationService = new Service.AccessoryInformation(accessoryName)
-				.setCharacteristic(Characteristic.Name, accessoryName)
+			accessory.getService(Service.AccessoryInformation)
 				.setCharacteristic(Characteristic.Manufacturer, manufacturer)
 				.setCharacteristic(Characteristic.Model, modelName)
 				.setCharacteristic(Characteristic.SerialNumber, serialNumber)
 				.setCharacteristic(Characteristic.FirmwareRevision, firmwareRevision);
-			accessory.addService(informationService);
 
 			this.webOS = webOS;
 		} catch (error) {
