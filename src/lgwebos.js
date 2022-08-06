@@ -56,6 +56,9 @@ class LGTV extends EventEmitter {
             })
             .on('connect', (connection) => {
                 this.connection = connection;
+                this.isConnected = true;
+                this.register();
+
                 this.connection.on('error', (error) => {
                         this.emit('error', `Connect to TV error: ${error}`);
                     })
@@ -78,7 +81,7 @@ class LGTV extends EventEmitter {
                         Object.keys(this.callbacks).forEach((cid) => {
                             delete this.callbacks[cid];
                         });
-                        this.emit('powerState', this.isConnected, this.power, false, false);
+                        this.emit('powerState', false, false, false, false);
                         this.emit('audioState', 0, true, '');
                         this.emit('disconnect', 'Disconnected.');
 
@@ -86,8 +89,6 @@ class LGTV extends EventEmitter {
                             this.connect();
                         }, 5000);
                     });
-                this.isConnected = true;
-                this.register();
             });
         this.connect();
     };
@@ -270,7 +271,7 @@ class LGTV extends EventEmitter {
                             this.emit('error', `Audio state error: ${error}, ${response.errorCode}`)
                         }
                         const volume = response.volume;
-                        const mute = (response.mute == true);
+                        const mute = this.power ? (response.mute == true) : true;
                         const audioOutput = response.scenario;
                         this.emit('audioState', volume, mute, audioOutput);
                         const mqtt = this.mqttEnabled ? this.emit('mqtt', 'Audio State', JSON.stringify(response, null, 2)) : false;
