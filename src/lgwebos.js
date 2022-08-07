@@ -39,30 +39,19 @@ class LGTV extends EventEmitter {
         this.isConnected = false;
         this.connection = {};
         this.specializedSockets = {};
+        this.inputSocket = {};
         this.callbacks = {};
         this.isPaired = false;
-        this.inputSocket = null;
         this.power = false;
 
         this.client = new WebSocketClient(SOCKET_OPTIONS);
-        this.client.on('connectFailed', (error) => {
-                this.isConnected = false;
-                this.connection = {};
-                const debug = this.debugLog ? this.emit('debug', `Connect to TV Failed: ${error}`) : false;
-
-                setTimeout(() => {
-                    this.connect();
-                }, 5000);
-            })
-            .on('connect', (connection) => {
+        this.client.on('connect', (connection) => {
+                const debug = this.debugLog ? this.emit('debug', 'Socket connected.') : false;
                 this.connection = connection;
                 this.isConnected = true;
                 this.register();
 
-                this.connection.on('error', (error) => {
-                        this.emit('error', `Connect to TV error: ${error}`);
-                    })
-                    .on('message', (message) => {
+                this.connection.on('message', (message) => {
                         if (message.type === 'utf8') {
                             const messageUtf8Data = message.utf8Data;
                             const parsedMessage = messageUtf8Data ? JSON.parse(messageUtf8Data) : this.infoLog ? false : this.emit('message', `Not received UTF-8 data: ${messageUtf8Data}`);
@@ -76,8 +65,8 @@ class LGTV extends EventEmitter {
                         };
                     })
                     .on('close', () => {
-                        this.connection = {};
                         this.isConnected = false;
+                        this.connection = {};
                         Object.keys(this.callbacks).forEach((cid) => {
                             delete this.callbacks[cid];
                         });
@@ -86,11 +75,23 @@ class LGTV extends EventEmitter {
                         this.emit('disconnect', 'Disconnected.');
 
                         setTimeout(() => {
-                            this.connect();
+                            this.client.connect(this.url);
                         }, 5000);
-                    });
+                    }).on('error', (error) => {
+                        this.emit('error', `Connect to TV error: ${error}`);
+                    })
+
+            })
+            .on('connectFailed', (error) => {
+                this.isConnected = false;
+                this.connection = {};
+                const debug = this.debugLog ? this.emit('debug', `Connect to TV Failed: ${error}`) : false;
+
+                setTimeout(() => {
+                    this.client.connect(this.url);
+                }, 5000);
             });
-        this.connect();
+        this.client.connect(this.url);
     };
 
     register() {
@@ -138,30 +139,24 @@ class LGTV extends EventEmitter {
             };
 
             const specialClient = new WebSocketClient(SOCKET_OPTIONS);
-            specialClient.on('connectFailed', (error) => {
-                    this.emit('error', `Specialized socket connect failed: ${error}`);
-
-                    setTimeout(() => {
-                        this.reconnectSocket();
-                    }, 6000);
-                })
-                .on('connect', (connection) => {
-                    connection.on('error', (error) => {
-                            this.emit('error', `Specialized socket connect error: ${error}`);
-                        })
-                        .on('close', () => {
-                            delete this.specializedSockets[API_URL.SocketUrl];
-                            this.inputSocket = null;
-                            this.emit('socketDisconnect', 'Specialized socket disconnected.');
-
-                            setTimeout(() => {
-                                this.reconnectSocket();
-                            }, 6000);
-                        });
-
+            specialClient.on('connect', (connection) => {
+                    const debug = this.debugLog ? this.emit('debug', 'Specialized socket connected.') : false;
                     this.specializedSockets[API_URL.SocketUrl] = new SpecializedSocket(connection);
                     this.inputSocket = this.specializedSockets[API_URL.SocketUrl];
-                    this.emit('socketConnect', 'Specialized socket connected.');
+
+                    connection.on('close', () => {
+                            delete this.specializedSockets[API_URL.SocketUrl];
+                            this.inputSocket = {};
+                            const debug1 = this.debugLog ? this.emit('debug', 'Specialized socket disconnected.') : false;
+                            this.reconnectSocket();
+                        })
+                        .on('error', (error) => {
+                            this.emit('error', `Specialized socket connect error: ${error}`);
+                        });
+                })
+                .on('connectFailed', (error) => {
+                    this.emit('error', `Specialized socket connect failed: ${error}`);
+                    this.reconnectSocket();
                 });
 
             const socketPath = data.socketPath;
@@ -367,17 +362,11 @@ class LGTV extends EventEmitter {
         return cidPrefix + (`000${(cidCount++).toString(16)}`).slice(-4);
     };
 
-    connect() {
-        if (this.isConnected && !this.isPaired) {
-            this.register();
-        } else if (!this.isConnected) {
-            this.client.connect(this.url);
-        };
-    };
-
     reconnectSocket() {
         if (this.isConnected && !this.inputSocket) {
-            this.getSocket();
+            setTimeout(() => {
+                this.getSocket();
+            }, 6000);
         };
     };
 };

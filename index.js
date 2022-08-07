@@ -241,9 +241,6 @@ class lgwebosTvDevice {
 		this.lgtv.on('connect', (message) => {
 				this.log('Device: %s %s, %s', this.host, this.name, message);
 			})
-			.on('socketConnect', (message) => {
-				this.log('Device: %s %s, %s', this.host, this.name, message);
-			})
 			.on('error', (error) => {
 				this.log('Device: %s %s, %s', this.host, this.name, error);
 			})
