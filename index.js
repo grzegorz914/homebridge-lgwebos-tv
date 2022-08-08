@@ -233,7 +233,6 @@ class lgwebosTvDevice {
 		this.lgtv = new lgtv({
 			url: url,
 			keyFile: this.keyFile,
-			infoLog: this.disableLogInfo,
 			debugLog: this.enableDebugMode,
 			mqttEnabled: this.enableMqtt
 		});
@@ -512,7 +511,7 @@ class lgwebosTvDevice {
 					port: 9
 				}) : false;
 				try {
-					const setPowerOff = (!state && this.powerState) ? this.lgtv.send('request', API_URL.TurnOff) : false;
+					const setPowerOff = (!state && this.powerState) ? await this.lgtv.send('request', API_URL.TurnOff) : false;
 					const logInfo = this.disableLogInfo ? false : this.log('Device: %s %s, set Power state successful: %s', this.host, accessoryName, state ? 'ON' : 'OFF');
 				} catch (error) {
 					this.log.error('Device: %s %s, set Power state error: %s', this.host, accessoryName, error);
@@ -540,8 +539,8 @@ class lgwebosTvDevice {
 					channelId: inputReference
 				}
 				try {
-					const setInput = (this.powerState && inputReference != undefined) ? this.lgtv.send('request', API_URL.LaunchApp, payload) : false
-					const setChannel = (this.powerState && inputReference != undefined && inputMode == 1) ? this.lgtv.send('request', API_URL.OpenChannel, payload1) : false;
+					const setInput = (this.powerState && inputReference != undefined) ? await this.lgtv.send('request', API_URL.LaunchApp, payload) : false
+					const setChannel = (this.powerState && inputReference != undefined && inputMode == 1) ? await this.lgtv.send('request', API_URL.OpenChannel, payload1) : false;
 					const logInfo = this.disableLogInfo ? false : this.log('Device: %s %s, set %s successful, name: %s, reference: %s', this.host, accessoryName, inputMode == 0 ? 'Input' : 'Channel', inputName, inputReference);
 					this.inputIdentifier = inputIdentifier;
 				} catch (error) {
@@ -650,7 +649,7 @@ class lgwebosTvDevice {
 			.onSet(async (value) => {
 				const newMediaState = [API_URL.SetMediaPlay, API_URL.SetMediaPause, API_URL.SetMediaStop][value]
 				try {
-					this.lgtv.send('request', newMediaState);
+					await this.lgtv.send('request', newMediaState);
 					const logInfo = this.disableLogInfo ? false : this.log('Device: %s %s, set Media state successful, state: %s', this.host, accessoryName, ['PLAY', 'PAUSE', 'STOP', 'LOADING', 'INTERRUPTED'][value]);
 				} catch (error) {
 					this.log.error('Device: %s %s %s, set Media state error: %s', this.host, accessoryName, error);
@@ -698,7 +697,7 @@ class lgwebosTvDevice {
 						}
 					}
 					try {
-						const setPistureMode = this.powerState ? this.lgtv.send('request', API_URL.SetSystemSettings, payload) : false;
+						const setPistureMode = this.powerState ? await this.lgtv.send('request', API_URL.SetSystemSettings, payload) : false;
 						const logInfo = this.disableLogInfo ? false : this.log('Device: %s %s, set Picture mode successful, command: %s', this.host, accessoryName, command);
 					} catch (error) {
 						this.log.error('Device: %s %s %s, set Picture Mode error: %s', this.host, accessoryName, error);
@@ -771,7 +770,7 @@ class lgwebosTvDevice {
 					volume: volume
 				}
 				try {
-					const setVolume = this.powerState ? this.lgtv.send('request', API_URL.SetVolume, payload) : false;
+					const setVolume = this.powerState ? await this.lgtv.send('request', API_URL.SetVolume, payload) : false;
 					const logInfo = this.disableLogInfo ? false : this.log('Device: %s %s, set Volume successful: %s', this.host, accessoryName, volume);
 				} catch (error) {
 					this.log.error('Device: %s %s %s, set Volume error: %s', this.host, accessoryName, error);
@@ -789,7 +788,7 @@ class lgwebosTvDevice {
 					mute: state
 				}
 				try {
-					const toggleMute = (this.powerState && state != this.muteState) ? this.lgtv.send('request', API_URL.SetMute, payload) : false;
+					const toggleMute = (this.powerState && state != this.muteState) ? await this.lgtv.send('request', API_URL.SetMute, payload) : false;
 					const logInfo = this.disableLogInfo ? false : this.log('Device: %s %s, set Mute state successful: %s', this.host, accessoryName, state ? 'ON' : 'OFF');
 				} catch (error) {
 					this.log.error('Device: %s %s %s, set Mute error: %s', this.host, accessoryName, error);
@@ -863,7 +862,7 @@ class lgwebosTvDevice {
 							}
 						}
 						try {
-							const setBackglight = this.powerState ? this.lgtv.send('request', API_URL.SetSystemSettings, payload) : false;
+							const setBackglight = this.powerState ? await this.lgtv.send('request', API_URL.SetSystemSettings, payload) : false;
 							const logInfo = this.disableLogInfo ? false : this.log('Device: %s %s, set Backlight successful, value: %s', this.host, accessoryName, value, response);
 						} catch (error) {
 							this.log.error('Device: %s %s %s, set Backlight error: %s', this.host, accessoryName, error);
@@ -895,7 +894,7 @@ class lgwebosTvDevice {
 							}
 						}
 						try {
-							const setBrightness = this.powerState ? this.lgtv.send('request', API_URL.SetSystemSettings, payload) : false;
+							const setBrightness = this.powerState ? await this.lgtv.send('request', API_URL.SetSystemSettings, payload) : false;
 							const logInfo = this.disableLogInfo ? false : this.log('Device: %s %s, set Brightness successful, value: %s', this.host, accessoryName, value, response);
 						} catch (error) {
 							this.log.error('Device: %s %s %s, set Brightness error: %s', this.host, accessoryName, error);
@@ -927,7 +926,7 @@ class lgwebosTvDevice {
 							}
 						}
 						try {
-							const setContrast = this.powerState ? this.lgtv.send('request', API_URL.SetSystemSettings, payload) : false;
+							const setContrast = this.powerState ? await this.lgtv.send('request', API_URL.SetSystemSettings, payload) : false;
 							const logInfo = this.disableLogInfo ? false : this.log('Device: %s %s, set Contrast successful, value: %s', this.host, accessoryName, value);
 						} catch (error) {
 							this.log.error('Device: %s %s %s, set Contrast error: %s', this.host, accessoryName, error);
@@ -959,7 +958,7 @@ class lgwebosTvDevice {
 							}
 						}
 						try {
-							const setColor = this.powerState ? this.lgtv.send('request', API_URL.SetSystemSettings, payload) : false;
+							const setColor = this.powerState ? await this.lgtv.send('request', API_URL.SetSystemSettings, payload) : false;
 							const logInfo = this.disableLogInfo ? false : this.log('Device: %s %s, set Color successful, value: %s', this.host, accessoryName, value);
 						} catch (error) {
 							this.log.error('Device: %s %s %s, set Color error: %s', this.host, accessoryName, error);
@@ -1002,7 +1001,7 @@ class lgwebosTvDevice {
 								}
 							}
 							try {
-								const setPictureMode = (state && this.powerState) ? this.lgtv.send('request', API_URL.SetSystemSettings, payload) : false;
+								const setPictureMode = (state && this.powerState) ? await this.lgtv.send('request', API_URL.SetSystemSettings, payload) : false;
 								const logInfo = this.disableLogInfo ? false : this.log('Device: %s %s, set Picture Mode successful, Mode: %s', this.host, accessoryName, pictureModeName);
 							} catch (error) {
 								this.log.error('Device: %s %s %s, set Picture Mode error: %s', this.host, accessoryName, error);
@@ -1026,7 +1025,7 @@ class lgwebosTvDevice {
 					})
 					.onSet(async (state) => {
 						try {
-							const turnScreenOnOff = this.powerState ? state ? this.lgtv.send('request', API_URL.TurnOnScreen) : this.lgtv.send('request', API_URL.TurnOffScreen) : false;
+							const turnScreenOnOff = this.powerState ? state ? await this.lgtv.send('request', API_URL.TurnOnScreen) : await this.lgtv.send('request', API_URL.TurnOffScreen) : false;
 							const logInfo = this.disableLogInfo ? false : this.log('Device: %s %s, turn screen %s successful.', this.host, accessoryName, state ? 'ON' : 'OFF');
 						} catch (error) {
 							this.log.error('Device: %s %s, turn screen %s, error: %s', this.host, accessoryName, state ? 'ON' : 'OFF', error);
@@ -1186,8 +1185,8 @@ class lgwebosTvDevice {
 							name: buttonCommand
 						}
 						try {
-							const setInput = (state && this.powerState && buttonMode <= 1 && appId != this.appId) ? this.lgtv.send('request', API_URL.LaunchApp, payload) : false;
-							const setChannel = (state && this.powerState && buttonMode == 1) ? this.lgtv.send('request', API_URL.OpenChannel, payload1) : false;
+							const setInput = (state && this.powerState && buttonMode <= 1 && appId != this.appId) ? await this.lgtv.send('request', API_URL.LaunchApp, payload) : false;
+							const setChannel = (state && this.powerState && buttonMode == 1) ? await this.lgtv.send('request', API_URL.OpenChannel, payload1) : false;
 							const setCommand = (state && this.powerState && buttonMode == 2 && this.lgtv.inputSocket) ? this.lgtv.inputSocket.send('button', payload2) : false;
 							const logInfo = this.disableLogInfo ? false : this.log('Device: %s %s, set %s successful, name: %s, reference: %s', this.host, accessoryName, ['Input', 'Channel', 'Command'][buttonMode], buttonName, [buttonReference, buttonReference, buttonCommand][buttonMode]);
 							this.appId = appId;
@@ -1203,7 +1202,7 @@ class lgwebosTvDevice {
 			};
 		};
 
-		const debug4 = this.enableDebugMode ? this.log('Device: %s %s, publishExternalAccessories.', this.host, accessoryName) : false;
+		const debug4 = this.enableDebugMode ? this.log('Device: %s %s, publish external accessory.', this.host, accessoryName) : false;
 		this.api.publishExternalAccessories(PLUGIN_NAME, [accessory]);
 	}
 };
