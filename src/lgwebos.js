@@ -32,43 +32,31 @@ class LGTV extends EventEmitter {
         super();
         this.url = config.url;
         this.keyFile = config.keyFile;
-        this.infoLog = config.infoLog;
         this.debugLog = config.debugLog;
         this.mqttEnabled = config.enableMqtt;
 
         this.isConnected = false;
         this.connection = {};
         this.specializedSockets = {};
-        this.callbacks = {};
+        this.inputSocket = {};
+        this.data = {};
         this.isPaired = false;
-        this.inputSocket = null;
         this.power = false;
 
         this.client = new WebSocketClient(SOCKET_OPTIONS);
-        this.client.on('connectFailed', (error) => {
-                this.isConnected = false;
-                this.connection = {};
-                const debug = this.debugLog ? this.emit('debug', `Connect to TV Failed: ${error}`) : false;
-
-                setTimeout(() => {
-                    this.connect();
-                }, 5000);
-            })
-            .on('connect', (connection) => {
+        this.client.on('connect', (connection) => {
+                const debug = this.debugLog ? this.emit('debug', 'Socket connected.') : false;
                 this.connection = connection;
                 this.isConnected = true;
                 this.register();
 
-                this.connection.on('error', (error) => {
-                        this.emit('error', `Connect to TV error: ${error}`);
-                    })
-                    .on('message', (message) => {
+                this.connection.on('message', (message) => {
                         if (message.type === 'utf8') {
                             const messageUtf8Data = message.utf8Data;
-                            const parsedMessage = messageUtf8Data ? JSON.parse(messageUtf8Data) : this.infoLog ? false : this.emit('message', `Not received UTF-8 data: ${messageUtf8Data}`);
+                            const parsedMessage = messageUtf8Data ? JSON.parse(messageUtf8Data) : this.debugLog ? this.emit('debug', `Not received UTF-8 data: ${messageUtf8Data}`) : false;
 
-                            if (parsedMessage.payload && this.callbacks[parsedMessage.id]) {
-                                this.callbacks[parsedMessage.id](null, parsedMessage.payload);
+                            if (parsedMessage.payload && this.data[parsedMessage.id]) {
+                                this.data[parsedMessage.id](parsedMessage.payload);
                                 const debug = this.debugLog ? this.emit('debug', `Message: ${JSON.stringify(parsedMessage.payload, null, 2)}`) : false;
                             };
                         } else {
@@ -76,289 +64,263 @@ class LGTV extends EventEmitter {
                         };
                     })
                     .on('close', () => {
-                        this.connection = {};
+                        const debug = this.debugLog ? this.emit('debug', `Connection to TV closed.`) : false;
                         this.isConnected = false;
-                        Object.keys(this.callbacks).forEach((cid) => {
-                            delete this.callbacks[cid];
+                        this.connection = {};
+                        Object.keys(this.data).forEach((cid) => {
+                            delete this.data[cid];
                         });
                         this.emit('powerState', false, false, false, false);
                         this.emit('audioState', 0, true, '');
                         this.emit('disconnect', 'Disconnected.');
 
                         setTimeout(() => {
-                            this.connect();
+                            this.client.connect(this.url);
                         }, 5000);
-                    });
+                    }).on('error', (error) => {
+                        this.emit('error', `Connect to TV error: ${error}`);
+                    })
+
+            })
+            .on('connectFailed', (error) => {
+                const debug = this.debugLog ? this.emit('debug', `Connect to TV Failed: ${error}`) : false;
+                this.isConnected = false;
+                this.connection = {};
+
+                setTimeout(() => {
+                    this.client.connect(this.url);
+                }, 5000);
             });
-        this.connect();
+        this.client.connect(this.url);
     };
 
-    register() {
+    async register() {
         const savedPairingKey = (fs.readFileSync(this.keyFile).toString() != undefined) ? fs.readFileSync(this.keyFile).toString() : undefined;
         pairing['client-key'] = savedPairingKey;
 
-        this.send('register', undefined, pairing, async (error, res) => {
-            if (!error && res) {
-                const pairingKey = res['client-key'];
-                if (pairingKey) {
-                    if (savedPairingKey !== pairingKey) {
-                        try {
-                            const writeKey = await fsPromises.writeFile(this.keyFile, pairingKey);
-                            const info = this.infoLog ? false : this.emit('message', 'Pairing key saved.')
-                        } catch (error) {
-                            this.emit('error', `Pairing key saved error: ${error}`)
-                        };
-                    };
-                    this.isPaired = true;
-                    this.emit('connect', 'Connected.');
+        try {
+            const data = await this.send('register', undefined, pairing);
+            const pairingKey = data['client-key'];
+            if (pairingKey) {
+                if (savedPairingKey !== pairingKey) {
                     try {
-                        await this.subscribeData();
+                        const writeKey = await fsPromises.writeFile(this.keyFile, pairingKey);
+                        this.emit('message', 'Pairing key saved.')
                     } catch (error) {
-                        this.emit('error', `Subscribe data error: ${error}`)
+                        this.emit('error', `Pairing key saved error: ${error}`)
                     };
-                    this.getSocket();
-                } else {
-                    const info = this.infoLog ? false : this.emit('message', 'Waiting on authorization accept...');
+                };
+                this.isPaired = true;
+                try {
+                    await this.getSocket();
+                    await this.subscribeData();
+                } catch (error) {
+                    this.emit('error', `Subscribe data error: ${error}`)
                 };
             } else {
-                this.emit('error', `Register error: ${error}`);
+                this.emit('message', 'Waiting on authorization accept...');
             };
-        });
+        } catch (error) {
+            this.emit('error', `Register error: ${error}`);
+        };
     };
 
     getSocket() {
-        if (this.specializedSockets[API_URL.SocketUrl]) {
-            this.inputSocket = this.specializedSockets[API_URL.SocketUrl];
-        };
-
-        this.send('request', API_URL.SocketUrl, (err, data) => {
-            if (err) {
-                this.emit('error', `Send request error: ${err}`);
-                return;
+        return new Promise(async (resolve, reject) => {
+            if (this.specializedSockets[API_URL.SocketUrl]) {
+                this.inputSocket = this.specializedSockets[API_URL.SocketUrl];
             };
 
-            const specialClient = new WebSocketClient(SOCKET_OPTIONS);
-            specialClient.on('connectFailed', (error) => {
-                    this.emit('error', `Specialized socket connect failed: ${error}`);
+            try {
+                const data = await this.send('request', API_URL.SocketUrl);
+                const debug = this.debugLog ? this.emit('debug', `Specialized socket URL: ${JSON.stringify(data, null, 2)}`) : false;
 
-                    setTimeout(() => {
-                        this.reconnectSocket();
-                    }, 6000);
-                })
-                .on('connect', (connection) => {
-                    connection.on('error', (error) => {
-                            this.emit('error', `Specialized socket connect error: ${error}`);
-                        })
-                        .on('close', () => {
-                            delete this.specializedSockets[API_URL.SocketUrl];
-                            this.inputSocket = null;
-                            this.emit('socketDisconnect', 'Specialized socket disconnected.');
-
-                            setTimeout(() => {
+                const specialClient = new WebSocketClient(SOCKET_OPTIONS);
+                specialClient.on('connect', (connection) => {
+                        connection.on('close', () => {
+                                const debug1 = this.debugLog ? this.emit('debug', 'Specialized socket closed.') : false;
+                                delete this.specializedSockets[API_URL.SocketUrl];
+                                this.inputSocket = {};
                                 this.reconnectSocket();
-                            }, 6000);
-                        });
+                            })
+                            .on('error', (error) => {
+                                this.emit('error', `Specialized socket error: ${error}`);
+                                reject(error);
+                            });
 
-                    this.specializedSockets[API_URL.SocketUrl] = new SpecializedSocket(connection);
-                    this.inputSocket = this.specializedSockets[API_URL.SocketUrl];
-                    this.emit('socketConnect', 'Specialized socket connected.');
-                });
+                        const debug2 = this.debugLog ? this.emit('debug', 'Specialized socket connected.') : false;
+                        this.specializedSockets[API_URL.SocketUrl] = new SpecializedSocket(connection);
+                        this.inputSocket = this.specializedSockets[API_URL.SocketUrl];
+                    })
+                    .on('connectFailed', (error) => {
+                        this.emit('error', `Specialized socket connect failed: ${error}`);
+                        this.reconnectSocket();
+                        reject(error);
+                    });
 
-            const socketPath = data.socketPath;
-            specialClient.connect(socketPath);
+                const socketPath = data.socketPath;
+                specialClient.connect(socketPath);
+                resolve(true);
+            } catch (error) {
+                this.emit('error', `Send request error: ${error}`);
+                reject(error);
+            };
         });
     };
 
     subscribeData() {
-        return new Promise((resolve, reject) => {
-            this.send('request', API_URL.GetSystemInfo, (error, response) => {
-                if (error || response.errorCode) {
-                    this.emit('error', `System info error: ${error}, ${response.errorCode}`)
+        return new Promise(async (resolve, reject) => {
+            try {
+                //System Info
+                const data = await this.send('request', API_URL.GetSystemInfo);
+                const debug = this.debugLog ? this.emit('debug', `System info: ${JSON.stringify(data, null, 2)}`) : false;
+                const mqtt = this.mqttEnabled ? this.emit('mqtt', 'Info', JSON.stringify(data, null, 2)) : false;
+                const modelName = data.modelName;
+
+                //Software Info
+                const data1 = await this.send('request', API_URL.GetSoftwareInfo);
+                const debug1 = this.debugLog ? this.emit('debug', `Software info: ${JSON.stringify(data1, null, 2)}`) : false;
+                const productName = data1.product_name;
+                const serialNumber = data1.device_id;
+                const firmwareRevision = `${data1.major_ver}.${data1.minor_ver}`;
+                const webOS = (data1.product_name != undefined) ? data1.product_name.slice(8, -2) : 3;
+
+                this.emit('connect', 'Connected.');
+                this.emit('deviceInfo', modelName, productName, serialNumber, firmwareRevision, webOS);
+                const mqtt1 = this.mqttEnabled ? this.emit('mqtt', 'Info 1', JSON.stringify(data1, null, 2)) : false;
+
+                //Channels list
+                //const data2 = await this.send('subscribe', API_URL.GetChannelList);
+                //const debug2 = this.debugLog ? this.emit('debug', `Channel List ${JSON.stringify(data2, null, 2)}`) : false;
+                //if (data2.channelList != undefined) {
+                //    this.emit('channelList', data2.channelList);
+                //    const mqtt2 = this.mqttEnabled ? this.emit('mqtt', 'Channel List', JSON.stringify(data2.channelList, null, 2)) : false;
+                //}
+
+                //Current Channel
+                //const data3 = await this.send('subscribe', API_URL.GetCurrentChannel);
+                //const debug3 = this.debugLog ? this.emit('debug', `Current Channel ${JSON.stringify(data3, null, 2)}`) : false;
+                //const channelName = data3.channelName;
+                //const channelNumber = data3.channelNumber;
+                //const channelReference = data3.channelId;
+                //this.emit('currentChannel', channelName, channelNumber, channelReference);
+                //const mqtt3 = this.mqttEnabled ? this.emit('mqtt', 'Current Channel', JSON.stringify(data3, null, 2)) : false;
+
+                //Installed Apps
+                const data4 = await this.send('subscribe', API_URL.GetInstalledApps);
+                const debug4 = this.debugLog ? this.emit('debug', `Apps List ${JSON.stringify(data4, null, 2)}`) : false;
+                if (data4.apps != undefined) {
+                    this.emit('installedApps', data4.apps);
+                    const mqtt4 = this.mqttEnabled ? this.emit('mqtt', 'Apps List', JSON.stringify(data4.apps, null, 2)) : false;
                 }
-                const debug = this.debugLog ? this.emit('debug', `System info: ${JSON.stringify(response, null, 2)}`) : false;
 
-                this.send('request', API_URL.GetSoftwareInfo, (error, response1) => {
-                    if (error || response.errorCode) {
-                        this.emit('error', `Software info error: ${error}, ${response.errorCode}`)
+                //Foreground App
+                const data5 = await this.send('subscribe', API_URL.GetForegroundAppInfo);
+                const debug5 = this.debugLog ? this.emit('debug', `Current App ${JSON.stringify(data5, null, 2)}`) : false;
+                const reference = data5.appId;
+                this.emit('currentApp', reference);
+                const mqtt5 = this.mqttEnabled ? this.emit('mqtt', 'Current App', JSON.stringify(data5, null, 2)) : false;
+
+                //Power State
+                const data6 = await this.send('subscribe', API_URL.GetPowerState);
+                const debug6 = this.debugLog ? this.emit('debug', `Power State ${JSON.stringify(data6, null, 2)}`) : false;
+
+                //screen On
+                const prepareScreenOn = ((data6.state == 'Suspend' && data6.processing == 'Screen On') || (data6.state == 'Screen Saver' && data6.processing == 'Screen On') || (data6.state == 'Active Standby' && data6.processing == 'Screen On'));
+                const stillScreenOn = (data6.state == 'Active' && data6.processing == 'Screen On');
+                const powerOnScreenOff = (data6.state == 'Screen Off' || (data6.state == 'Screen Off' && data6.processing == 'Screen On'));
+                const screenOn = (data6.state == 'Active');
+
+                //screen Saver
+                const prepareScreenSaver = (data6.state == 'Active' && data6.processing == 'Request Screen Saver');
+                const screenSaver = (data6.state == 'Screen Saver');
+
+                //screen Off
+                const prepareScreenOff = ((data6.state == 'Active' && data6.processing == 'Request Power Off') || (data6.state == 'Active' && data6.processing == 'Request Suspend') || (data6.state == 'Active' && data6.processing == 'Prepare Suspend') ||
+                        (data6.state == 'Screen Saver' && data6.processing == 'Request Power Off') || (data6.state == 'Screen Saver' && data6.processing == 'Request Suspend') || (data6.state == 'Screen Saver' && data6.processing == 'Prepare Suspend')) ||
+                    (data6.state == 'Active Standby' && data6.processing == 'Request Power Off') || (data6.state == 'Active Standby' && data6.processing == 'Request Suspend') || (data6.state == 'Active Standby' && data6.processing == 'Prepare Suspend');
+                const screenOff = (data6.state == 'Suspend');
+
+                //pixelRefresh
+                const prepareScreenPixelRefresh = ((data6.state == 'Active' && data6.processing == 'Request Active Standby') || (data6.state == 'Screen Saver' && data6.processing == 'Request Active Standby'));
+                const screenPixelRefresh = (data6.state == 'Active Standby');
+
+                //powerState
+                const pixelRefresh = (prepareScreenPixelRefresh || screenPixelRefresh);
+                const powerOn = (prepareScreenOn || stillScreenOn || powerOnScreenOff || screenOn || prepareScreenSaver || screenSaver);
+                const powerOff = (prepareScreenOff || screenOff || pixelRefresh);
+
+                const power = (webOS >= 3) ? (powerOn && !powerOff) : this.isConnected;
+                const screenState = power ? !powerOnScreenOff : false;
+
+                this.emit('powerState', this.isConnected, power, pixelRefresh, screenState);
+                const setAudioState = !power ? this.emit('audioState', 0, true, '') : false;
+                const mqtt6 = this.mqttEnabled ? this.emit('mqtt', 'Power State', JSON.stringify(data6, null, 2)) : false;
+
+                //Audio State
+                const data7 = await this.send('subscribe', API_URL.GetAudioStatus);
+                const debug7 = this.debugLog ? this.emit('debug', `Audio State ${JSON.stringify(data7, null, 2)}`) : false;
+                const volume = data7.volume;
+                const mute = power ? (data7.mute == true) : true;
+                const audioOutput = data7.scenario;
+                this.emit('audioState', volume, mute, audioOutput);
+                const mqtt7 = this.mqttEnabled ? this.emit('mqtt', 'Audio State', JSON.stringify(data7, null, 2)) : false;
+
+                //Picture Settings
+                if (webOS >= 4) {
+                    const payload = {
+                        category: 'picture',
+                        keys: ['brightness', 'backlight', 'contrast', 'color']
                     }
-                    const debug = this.debugLog ? this.emit('debug', `Software info: ${JSON.stringify(response1, null, 2)}`) : false;
+                    const data8 = await this.send('subscribe', API_URL.GetSystemSettings, payload);
+                    const debug8 = this.debugLog ? this.emit('debug', `Picture Settings ${JSON.stringify(data8, null, 2)}`) : false;
+                    const brightness = data8.settings.brightness;
+                    const backlight = data8.settings.backlight;
+                    const contrast = data8.settings.contrast;
+                    const color = data8.settings.color;
+                    const pictureMode = 3;
+                    this.emit('pictureSettings', brightness, backlight, contrast, color, pictureMode);
+                    const mqtt8 = this.mqttEnabled ? this.emit('mqtt', 'Picture Settings', JSON.stringify(data8, null, 2)) : false;
+                };
 
-                    const modelName = response.modelName;
-                    const productName = response1.product_name;
-                    const serialNumber = response1.device_id;
-                    const firmwareRevision = `${response1.major_ver}.${response1.minor_ver}`;
-                    const webOS = (response1.product_name != undefined) ? response1.product_name.slice(8, -2) : 3;
-                    this.emit('deviceInfo', modelName, productName, serialNumber, firmwareRevision, webOS);
-                    const mqtt = this.mqttEnabled ? this.emit('mqtt', 'Info', JSON.stringify(response, null, 2)) : false;
-                    const mqtt1 = this.mqttEnabled ? this.emit('mqtt', 'Info 1', JSON.stringify(response1, null, 2)) : false;
+                //App State
+                const data9 = await this.send('subscribe', API_URL.GetAppState);
+                const debug9 = this.debugLog ? this.emit('debug', `App State ${JSON.stringify(data9, null, 2)}`) : false;
+                this.emit('appState');
 
-                    this.send('subscribe', API_URL.GetChannelList, (error, response) => {
-                        if (error || response.errorCode) {
-                            this.emit('error', `Channel list error: ${error}, ${response.errorCode}`)
-                        }
-                        if (response.channelList != undefined) {
-                            this.emit('channelList', response.channelList);
-                            const mqtt = this.mqttEnabled ? this.emit('mqtt', 'Channel List', JSON.stringify(response.channelList, null, 2)) : false;
-                        }
-                    });
-                    this.send('subscribe', API_URL.GetCurrentChannel, (error, response) => {
-                        if (error || response.errorCode) {
-                            this.emit('error', `Current channel error: ${error}, ${response.errorCode}`)
-                        }
-                        const channelName = response.channelName;
-                        const channelNumber = response.channelNumber;
-                        const channelReference = response.channelId;
-                        this.emit('currentChannel', channelName, channelNumber, channelReference);
-                        const mqtt = this.mqttEnabled ? this.emit('mqtt', 'Current Channel', JSON.stringify(response, null, 2)) : false;
-                    });
-                    this.send('subscribe', API_URL.GetInstalledApps, (error, response) => {
-                        if (error || response.errorCode) {
-                            this.emit('error', `Installed apps error: ${error}, ${response.errorCode}`)
-                        }
-                        if (response.apps != undefined) {
-                            this.emit('installedApps', response.apps);
-                            const mqtt = this.mqttEnabled ? this.emit('mqtt', 'Apps List', JSON.stringify(response.apps, null, 2)) : false;
-                        }
-                    });
-                    this.send('subscribe', API_URL.GetForegroundAppInfo, (error, response) => {
-                        if (error || response.errorCode) {
-                            this.emit('error', `Foreground app error: ${error}, ${response.errorCode}`)
-                        }
-                        const reference = response.appId;
-                        this.emit('currentApp', reference);
-                        const mqtt = this.mqttEnabled ? this.emit('mqtt', 'Current App', JSON.stringify(response, null, 2)) : false;
-                    });
-                    this.send('subscribe', API_URL.GetPowerState, (error, response) => {
-                        if (error || response.errorCode) {
-                            this.emit('error', `Power state error: ${error}, ${response.errorCode}`)
-                        }
-                        //screen On
-                        const prepareScreenOn = ((response.state == 'Suspend' && response.processing == 'Screen On') || (response.state == 'Screen Saver' && response.processing == 'Screen On') || (response.state == 'Active Standby' && response.processing == 'Screen On'));
-                        const stillScreenOn = (response.state == 'Active' && response.processing == 'Screen On');
-                        const powerOnScreenOff = (response.state == 'Screen Off' || (response.state == 'Screen Off' && response.processing == 'Screen On'));
-                        const screenOn = (response.state == 'Active');
-
-                        //screen Saver
-                        const prepareScreenSaver = (response.state == 'Active' && response.processing == 'Request Screen Saver');
-                        const screenSaver = (response.state == 'Screen Saver');
-
-                        //screen Off
-                        const prepareScreenOff = ((response.state == 'Active' && response.processing == 'Request Power Off') || (response.state == 'Active' && response.processing == 'Request Suspend') || (response.state == 'Active' && response.processing == 'Prepare Suspend') ||
-                                (response.state == 'Screen Saver' && response.processing == 'Request Power Off') || (response.state == 'Screen Saver' && response.processing == 'Request Suspend') || (response.state == 'Screen Saver' && response.processing == 'Prepare Suspend')) ||
-                            (response.state == 'Active Standby' && response.processing == 'Request Power Off') || (response.state == 'Active Standby' && response.processing == 'Request Suspend') || (response.state == 'Active Standby' && response.processing == 'Prepare Suspend');
-                        const screenOff = (response.state == 'Suspend');
-
-                        //pixelRefresh
-                        const prepareScreenPixelRefresh = ((response.state == 'Active' && response.processing == 'Request Active Standby') || (response.state == 'Screen Saver' && response.processing == 'Request Active Standby'));
-                        const screenPixelRefresh = (response.state == 'Active Standby');
-
-                        //powerState
-                        const pixelRefresh = (prepareScreenPixelRefresh || screenPixelRefresh);
-                        const powerOn = (prepareScreenOn || stillScreenOn || powerOnScreenOff || screenOn || prepareScreenSaver || screenSaver);
-                        const powerOff = (prepareScreenOff || screenOff || pixelRefresh);
-
-                        const power = (webOS >= 3) ? (powerOn && !powerOff) : this.isConnected;
-                        const screenState = power ? !powerOnScreenOff : false;
-
-                        this.power = power;
-
-                        this.emit('powerState', this.isConnected, power, pixelRefresh, screenState);
-                        const setAudioState = !power ? this.emit('audioState', 0, true, '') : false;
-                        const mqtt = this.mqttEnabled ? this.emit('mqtt', 'Power State', JSON.stringify(response, null, 2)) : false;
-                    });
-                    this.send('subscribe', API_URL.GetAudioStatus, (error, response) => {
-                        if (error || response.errorCode) {
-                            this.emit('error', `Audio state error: ${error}, ${response.errorCode}`)
-                        }
-                        const volume = response.volume;
-                        const mute = this.power ? (response.mute == true) : true;
-                        const audioOutput = response.scenario;
-                        this.emit('audioState', volume, mute, audioOutput);
-                        const mqtt = this.mqttEnabled ? this.emit('mqtt', 'Audio State', JSON.stringify(response, null, 2)) : false;
-                    });
-                    if (webOS >= 4) {
-                        const payload = {
-                            category: 'picture',
-                            keys: ['brightness', 'backlight', 'contrast', 'color']
-                        }
-                        this.send('subscribe', API_URL.GetSystemSettings, payload, (error, response) => {
-                            if (error || response.errorCode) {
-                                this.emit('error', `System settings error: ${error}, ${response.errorCode}`)
-                            }
-                            const brightness = response.settings.brightness;
-                            const backlight = response.settings.backlight;
-                            const contrast = response.settings.contrast;
-                            const color = response.settings.color;
-                            const pictureMode = 3;
-                            this.emit('pictureSettings', brightness, backlight, contrast, color, pictureMode);
-                            const mqtt = this.mqttEnabled ? this.emit('mqtt', 'Picture Settings', JSON.stringify(response, null, 2)) : false;
-                        });
-                    };
-                    this.send('subscribe', API_URL.GetAppState, (error, response) => {
-                        if (error || response.errorCode) {
-                            this.emit('error', `App state error: ${error}, ${response.errorCode}`)
-                        };
-                        this.emit('appState');
-                    });
-                });
-            });
-
-            setTimeout(() => {
                 resolve(true);
-            }, 1500);
+            } catch (error) {
+                this.emit('error', `Subscriebe error: ${error}`);
+                reject(error);
+            };
         });
     };
 
-    send(type, uri, payload, cb) {
-        if (typeof payload === 'function') {
-            cb = payload;
-            payload = {};
-        };
-
-        if (!this.isConnected) {
-            if (typeof cb === 'function') {
-                cb(new Error('TV not connected'));
+    send(type, uri, payload) {
+        return new Promise((resolve, reject) => {
+            if (!this.isConnected) {
+                reject({
+                    status: 'Device not connected!',
+                });
+                return;
             };
-            return;
-        };
 
-        const cid = this.getCid();
-        const json = JSON.stringify({
-            id: cid,
-            type: type,
-            uri: uri,
-            payload: payload
+            const cid = this.getCid();
+            payload == undefined ? {} : payload;
+            const json = JSON.stringify({
+                id: cid,
+                type: type,
+                uri: uri,
+                payload: payload
+            });
+
+            this.data[cid] = (data) => {
+                //delete this.data[cid];
+                resolve(data);
+            };
+
+            this.connection.send(json);
         });
-
-        if (typeof cb === 'function') {
-            switch (type) {
-                case 'request':
-                    this.callbacks[cid] = (err, res) => {
-                        delete this.callbacks[cid];
-                        cb(err, res);
-                    };
-
-                    setTimeout(() => {
-                        if (this.callbacks[cid]) {
-                            cb(new Error('Callback timeout'));
-                        };
-                        delete this.callbacks[cid];
-                    }, 3500);
-                    break;
-
-                case 'subscribe':
-                    this.callbacks[cid] = cb;
-                    break;
-
-                case 'register':
-                    this.callbacks[cid] = cb;
-                    break;
-
-                default:
-                    throw new Error('Unknown send type');
-            }
-        }
-        this.connection.send(json);
     };
 
     getCid() {
@@ -367,17 +329,11 @@ class LGTV extends EventEmitter {
         return cidPrefix + (`000${(cidCount++).toString(16)}`).slice(-4);
     };
 
-    connect() {
-        if (this.isConnected && !this.isPaired) {
-            this.register();
-        } else if (!this.isConnected) {
-            this.client.connect(this.url);
-        };
-    };
-
     reconnectSocket() {
         if (this.isConnected && !this.inputSocket) {
-            this.getSocket();
+            setTimeout(() => {
+                this.getSocket();
+            }, 6000);
         };
     };
 };
