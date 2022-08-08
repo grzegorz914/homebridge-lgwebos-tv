@@ -1,5 +1,5 @@
 <p align="center">
-  <a href="https://github.com/grzegorz914/homebridge-lgwebos-tv"><img src="https://raw.githubusercontent.com/grzegorz914/homebridge-lgwebos-tv/master/graphics/lgwebos.png" width="540"></a>
+  <a href="https://github.com/grzegorz914/homebridge-lgwebos-tv"><img src="https://raw.githubusercontent.com/grzegorz914/homebridge-lgwebos-tv/main/graphics/lgwebos.png" width="540"></a>
 </p>
 
 <span align="center">
@@ -47,18 +47,20 @@ Tested with OLED65G6V, 32LM6300PLA, 49SK8500, OLED65C7T, 55SK800PLB, OLED48CX.
 
 
 <p align="left">
-  <a href="https://github.com/grzegorz914/homebridge-lgwebos-tv"><img src="https://raw.githubusercontent.com/grzegorz914/homebridge-lgwebos-tv/master/graphics/homekit.png" width="382"></a> 
-  <a href="https://github.com/grzegorz914/homebridge-lgwebos-tv"><img src="https://raw.githubusercontent.com/grzegorz914/homebridge-lgwebos-tv/master/graphics/inputs.png" width="135"></a> <a href="https://github.com/grzegorz914/homebridge-lgwebos-tv"><img src="https://raw.githubusercontent.com/grzegorz914/homebridge-lgwebos-tv/master/graphics/rc1.png" width="135"></a>
-  <a href="https://github.com/grzegorz914/homebridge-lgwebos-tv"><img src="https://raw.githubusercontent.com/grzegorz914/homebridge-lgwebos-tv/master/graphics/RC.png" width="135"></a>
+  <a href="https://github.com/grzegorz914/homebridge-lgwebos-tv"><img src="https://raw.githubusercontent.com/grzegorz914/homebridge-lgwebos-tv/main/graphics/homekit.png" width="382"></a> 
+  <a href="https://github.com/grzegorz914/homebridge-lgwebos-tv"><img src="https://raw.githubusercontent.com/grzegorz914/homebridge-lgwebos-tv/main/graphics/inputs.png" width="135"></a> <a href="https://github.com/grzegorz914/homebridge-lgwebos-tv"><img src="https://raw.githubusercontent.com/grzegorz914/homebridge-lgwebos-tv/main/graphics/rc1.png" width="135"></a>
+  <a href="https://github.com/grzegorz914/homebridge-lgwebos-tv"><img src="https://raw.githubusercontent.com/grzegorz914/homebridge-lgwebos-tv/main/graphics/RC.png" width="135"></a>
 </p>
 
 ## Configuration
-[First please configure LG Connect Apps](https://www.lg.com/ca_en/support/product-help/CT20098005-1437129879355-others)
+* [First please configure LG Connect Apps](https://www.lg.com/ca_en/support/product-help/CT20098005-1437129879355-others)
 
-Install and use [Homebridge Config UI X](https://github.com/oznu/homebridge-config-ui-x/wiki) plugin to configure this plugin (Highly Recommended). The sample configuration can be edited and used manually as an alternative. See the `sample-config.json` file in this repository for an example or copy the example below into your config.json file, making the apporpriate changes before saving it. Be sure to always make a backup copy of your config.json file before making any changes to it.
+* Run this plugin as a child bridge (Highly Recommended).
+* Install and use [Homebridge Config UI X](https://github.com/oznu/homebridge-config-ui-x/wiki) to configure this plugin (Highly Recommended). 
+* The sample configuration can be edited and used manually as an alternative. See the `sample-config.json` file in this repository for an example or copy the example below into your config.json file, making the apporpriate changes before saving it. Be sure to always make a backup copy of your config.json file before making any changes to it.saving it. Be sure to always make a backup copy of your config.json file before making any changes to it.
 
 <p align="left">
-  <a href="https://github.com/grzegorz914/homebridge-lgwebos-tv"><img src="https://raw.githubusercontent.com/grzegorz914/homebridge-lgwebos-tv/master/graphics/ustawienia.png" width="840"></a>
+  <a href="https://github.com/grzegorz914/homebridge-lgwebos-tv"><img src="https://raw.githubusercontent.com/grzegorz914/homebridge-lgwebos-tv/main/graphics/ustawienia.png" width="840"></a>
 </p>
 
 | Key | Description |
@@ -167,13 +169,13 @@ Install and use [Homebridge Config UI X](https://github.com/oznu/homebridge-conf
 }
 ```
 
-## Adding to HomeKit
+### Adding to HomeKit
 Each accessory needs to be manually paired. 
 1. Open the Home <img src='https://user-images.githubusercontent.com/3979615/78010622-4ea1d380-738e-11ea-8a17-e6a465eeec35.png' width='16.42px'> app on your device. 
-2. Tap the <img src='https://user-images.githubusercontent.com/3979615/78010869-9aed1380-738e-11ea-9644-9f46b3633026.png' width='16.42px'>. 
-3. Tap *Add Accessory*, and select *I Don't Have a Code or Cannot Scan* or *More Options*. 
-4. Select Your accessory. 
-5. Enter the Homebridge PIN or scan the QR code, this can be found in Homebridge UI or Homebridge logs.
+2. Tap the Home tab, then tap <img src='https://user-images.githubusercontent.com/3979615/78010869-9aed1380-738e-11ea-9644-9f46b3633026.png' width='16.42px'>. 
+3. Tap *Add Accessory*, and select *I Don't Have a Code, Cannot Scan* or *More options*. 
+4. Select Your accessory and press add anyway. 
+5. Enter the PIN or scan the QR code, this can be found in Homebridge UI or Homebridge logs.
 6. Complete the accessory setup.
 
 ## Limitations
@@ -189,7 +191,7 @@ Each accessory needs to be manually paired.
   * Inputs, which may range from 6 to 100 as each input is 1 service.
   * Buttons, which may range from 6 to 100 as each button is 1 service.
 
-## [What's New](https://github.com/grzegorz914/homebridge-lgwebos-tv/blob/master/CHANGELOG.md)
+## [What's New](https://github.com/grzegorz914/homebridge-lgwebos-tv/blob/main/CHANGELOG.md)
 
 ## Development
 * Pull request and help in development highly appreciated.
