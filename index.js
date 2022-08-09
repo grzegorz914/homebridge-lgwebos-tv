@@ -331,27 +331,26 @@ class lgwebosTvDevice {
 					this.log.error('Device: %s %s, save inputs/apps error: %s', this.host, accessoryName, error);
 				};
 			})
-			.on('powerState', (isConnected, power, pixelRefresh, screenState) => {
-				const powerState = (isConnected && power);
+			.on('powerState', (power, pixelRefresh, screenState) => {
 
 				if (this.televisionService) {
 					this.televisionService
-						.updateCharacteristic(Characteristic.Active, powerState);
+						.updateCharacteristic(Characteristic.Active, power);
 					if (this.brightnessService) {
 						this.brightnessService
-							.updateCharacteristic(Characteristic.On, powerState);
+							.updateCharacteristic(Characteristic.On, power);
 					}
 					if (this.backlightService) {
 						this.backlightService
-							.updateCharacteristic(Characteristic.On, powerState);
+							.updateCharacteristic(Characteristic.On, power);
 					}
 					if (this.contrastService) {
 						this.contrastService
-							.updateCharacteristic(Characteristic.On, powerState);
+							.updateCharacteristic(Characteristic.On, power);
 					}
 					if (this.colorService) {
 						this.colorService
-							.updateCharacteristic(Characteristic.On, powerState);
+							.updateCharacteristic(Characteristic.On, power);
 					}
 					if (this.turnScreenOnOffService) {
 						this.turnScreenOnOffService
@@ -363,10 +362,32 @@ class lgwebosTvDevice {
 				this.pixelRefresh = pixelRefresh;
 				this.screenState = screenState;
 			})
+			.on('audioState', (volume, mute, audioOutput) => {
+
+				if (this.speakerService) {
+					this.speakerService
+						.updateCharacteristic(Characteristic.Volume, volume)
+						.updateCharacteristic(Characteristic.Mute, mute);
+					if (this.volumeService && this.volumeControl == 1) {
+						this.volumeService
+							.updateCharacteristic(Characteristic.Brightness, volume)
+							.updateCharacteristic(Characteristic.On, !mute);
+					}
+					if (this.volumeServiceFan && this.volumeControl == 2) {
+						this.volumeServiceFan
+							.updateCharacteristic(Characteristic.RotationSpeed, volume)
+							.updateCharacteristic(Characteristic.On, !mute);
+					}
+				};
+
+				this.volume = volume;
+				this.muteState = mute;
+				this.audioOutput = audioOutput;
+			})
 			.on('currentApp', (reference) => {
 				const inputIdentifier = (this.inputsReference.indexOf(reference) >= 0) ? this.inputsReference.indexOf(reference) : this.inputIdentifier;
 
-				if (this.televisionService) {
+				if (this.televisionService && (inputIdentifier != this.inputIdentifier)) {
 					this.televisionService
 						.updateCharacteristic(Characteristic.ActiveIdentifier, inputIdentifier);
 				}
@@ -391,29 +412,6 @@ class lgwebosTvDevice {
 				this.channelName = channelName;
 				this.channelNumber = channelNumber;
 				this.inputIdentifier = inputIdentifier;
-			})
-			.on('audioState', (volume, mute, audioOutput) => {
-
-				volume = (volume != -1) ? volume : this.volume;
-				if (this.speakerService) {
-					this.speakerService
-						.updateCharacteristic(Characteristic.Volume, volume)
-						.updateCharacteristic(Characteristic.Mute, mute);
-					if (this.volumeService && this.volumeControl == 1) {
-						this.volumeService
-							.updateCharacteristic(Characteristic.Brightness, volume)
-							.updateCharacteristic(Characteristic.On, !mute);
-					}
-					if (this.volumeServiceFan && this.volumeControl == 2) {
-						this.volumeServiceFan
-							.updateCharacteristic(Characteristic.RotationSpeed, volume)
-							.updateCharacteristic(Characteristic.On, !mute);
-					}
-				};
-
-				this.volume = volume;
-				this.muteState = mute;
-				this.audioOutput = audioOutput;
 			})
 			.on('pictureSettings', (brightness, backlight, contrast, color, pictureMode) => {
 
@@ -766,8 +764,8 @@ class lgwebosTvDevice {
 					volume = this.volume;
 				}
 				const payload = {
-					soundOutput: this.soundOutput,
-					volume: volume
+					volume: volume,
+					soundOutput: this.soundOutput
 				}
 				try {
 					const setVolume = this.powerState ? await this.lgtv.send('request', API_URL.SetVolume, payload) : false;
