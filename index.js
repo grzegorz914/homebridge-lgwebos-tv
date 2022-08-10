@@ -394,8 +394,8 @@ class lgwebosTvDevice {
 
 				this.inputIdentifier = inputIdentifier;
 			})
-			.on('currentChannel', (channelName, channelNumber, channelReference) => {
-				const inputIdentifier = (this.inputsReference.indexOf(channelReference) >= 0) ? this.inputsReference.indexOf(channelReference) : this.inputIdentifier;
+			.on('currentChannel', (channelName, channelNumber, channelId) => {
+				const inputIdentifier = (this.inputsReference.indexOf(channelId) >= 0) ? this.inputsReference.indexOf(channelId) : this.inputIdentifier;
 
 				if (this.televisionService) {
 					this.televisionService
