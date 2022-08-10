@@ -185,7 +185,7 @@ class LGTV extends EventEmitter {
 
                                 //Power State
                                 if (messageId == this.powerStateId) {
-                                    const debug = this.debugLog ? this.emit('debug', `Power State data: ${stringifyMessage}`) : false;
+                                    const debug = this.debugLog ? this.emit('debug', `Power State: ${stringifyMessage}`) : false;
                                     //screen On
                                     const prepareScreenOn = ((messageData.state == 'Suspend' && messageData.processing == 'Screen On') || (messageData.state == 'Screen Saver' && messageData.processing == 'Screen On') || (messageData.state == 'Active Standby' && messageData.processing == 'Screen On'));
                                     const stillScreenOn = (messageData.state == 'Active' && messageData.processing == 'Screen On');
@@ -225,7 +225,7 @@ class LGTV extends EventEmitter {
 
                                 //Audio State
                                 if (messageId == this.audioStateId) {
-                                    const debug = this.debugLog ? this.emit('debug', `Audio State ${stringifyMessage}`) : false;
+                                    const debug = this.debugLog ? this.emit('debug', `Audio State: ${stringifyMessage}`) : false;
                                     const volume = messageData.volume;
                                     const mute = this.power ? (messageData.mute == true) : true;
                                     const audioOutput = (this.webOS >= 5) ? messageData.volumeStatus.soundOutput : messageData.scenario;
@@ -241,7 +241,7 @@ class LGTV extends EventEmitter {
 
                                 //Current App
                                 if (messageId == this.currentAppId) {
-                                    const debug = this.debugLog ? this.emit('debug', `Current App ${stringifyMessage}`) : false;
+                                    const debug = this.debugLog ? this.emit('debug', `Current App: ${stringifyMessage}`) : false;
                                     const appId = messageData.appId;
 
                                     if (appId != this.appId) {
@@ -253,7 +253,7 @@ class LGTV extends EventEmitter {
 
                                 //Current Channel
                                 if (messageId == this.currentChannelId) {
-                                    const debug = this.debugLog ? this.emit('debug', `Current Channel ${stringifyMessage}`) : false;
+                                    const debug = this.debugLog ? this.emit('debug', `Current Channel: ${stringifyMessage}`) : false;
                                     const channelId = messageData.channelId;
                                     const channelName = messageData.channelName;
                                     const channelNumber = messageData.channelNumber;
@@ -271,7 +271,7 @@ class LGTV extends EventEmitter {
 
                                 //Picture Settings
                                 if (messageId == this.pictureSettingsId) {
-                                    const debug = this.debugLog ? this.emit('debug', `Picture Settings ${stringifyMessage}`) : false;
+                                    const debug = this.debugLog ? this.emit('debug', `Picture Settings: ${stringifyMessage}`) : false;
                                     const brightness = messageData.settings.brightness;
                                     const backlight = messageData.settings.backlight;
                                     const contrast = messageData.settings.contrast;
