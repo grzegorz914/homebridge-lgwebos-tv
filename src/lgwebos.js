@@ -39,8 +39,14 @@ class LGTV extends EventEmitter {
         this.connection = {};
         this.specializedSockets = {};
         this.inputSocket = {};
-        this.data = {};
 
+        this.registerId = '';
+        this.socketId = '';
+        this.savedPairingKey = '';
+        this.systemInfoId = '';
+        this.softwareInfoId = '';
+        this.installedAppsId = '';
+        this.channelsId = '';
         this.powerStateId = '';
         this.audioStateId = '';
         this.currentAppId = '';
@@ -48,6 +54,7 @@ class LGTV extends EventEmitter {
         this.pictureSettingsId = '';
 
         this.webOs = 2;
+        this.modelName = '';
         this.power = false;
         this.screenState = false;
         this.volume = 0;
@@ -69,7 +76,7 @@ class LGTV extends EventEmitter {
                 const debug = this.debugLog ? this.emit('debug', 'Socket connected.') : false;
                 this.connection = connection;
 
-                this.connection.on('message', (message) => {
+                this.connection.on('message', async (message) => {
                         if (message.type === 'utf8') {
                             const messageUtf8Data = message.utf8Data;
                             const parsedMessage = messageUtf8Data ? JSON.parse(messageUtf8Data) : this.debugLog ? this.emit('debug', `Not received UTF-8 data: ${messageUtf8Data}`) : false;
@@ -78,7 +85,103 @@ class LGTV extends EventEmitter {
                             const stringifyMessage = JSON.stringify(messageData, null, 2);
 
                             if (messageData) {
-                                const debug = this.debugLog ? this.emit('debug', `Socket message Id: ${messageId}, data: ${stringifyMessage}`) : false;
+                                const debug = this.debugLog ? this.emit('debug', `Message Id: ${messageId}, Data: ${stringifyMessage}`) : false;
+
+                                //Register
+                                if (messageId == this.registerId) {
+                                    const pairingKey = messageData['client-key'];
+                                    if (pairingKey) {
+                                        if (pairingKey != this.savedPairingKey) {
+                                            try {
+                                                const writeKey = await fsPromises.writeFile(this.keyFile, pairingKey);
+                                                this.emit('message', 'Pairing key saved.')
+                                                this.savedPairingKey = pairingKey;
+                                            } catch (error) {
+                                                this.emit('error', `Pairing key saved error: ${error}`)
+                                            };
+                                        };
+
+                                        try {
+                                            await this.getSocket();
+                                            await this.subscribeData();
+                                        } catch (error) {
+                                            this.emit('error', `Data error: ${error}`)
+                                        };
+                                    } else {
+                                        this.emit('message', 'Waiting on authorization accept...');
+                                    };
+                                };
+
+                                //Specialized Sockes
+                                if (messageId == this.socketId) {
+                                    if (this.specializedSockets[API_URL.SocketUrl]) {
+                                        this.inputSocket = this.specializedSockets[API_URL.SocketUrl];
+                                    };
+
+                                    const specialClient = new WebSocketClient(SOCKET_OPTIONS);
+                                    specialClient.on('connect', (connection) => {
+                                            connection.on('close', () => {
+                                                    const debug1 = this.debugLog ? this.emit('debug', 'Specialized socket closed.') : false;
+                                                    delete this.specializedSockets[API_URL.SocketUrl];
+                                                    this.inputSocket = {};
+                                                })
+                                                .on('error', (error) => {
+                                                    this.emit('error', `Specialized socket error: ${error}`);
+                                                    this.reconnectSocket();
+                                                });
+
+                                            const debug2 = this.debugLog ? this.emit('debug', 'Specialized socket connected.') : false;
+                                            this.specializedSockets[API_URL.SocketUrl] = new SpecializedSocket(connection);
+                                            this.inputSocket = this.specializedSockets[API_URL.SocketUrl];
+                                        })
+                                        .on('connectFailed', (error) => {
+                                            this.emit('error', `Specialized socket connect failed: ${error}`);
+                                            this.reconnectSocket();
+                                        });
+
+                                    const socketPath = messageData.socketPath;
+                                    specialClient.connect(socketPath);
+                                };
+
+                                //System Info
+                                if (messageId == this.systemInfoId) {
+                                    const debug = this.debugLog ? this.emit('debug', `System info: ${stringifyMessage}`) : false;
+                                    const modelName = messageData.modelName;
+                                    const mqtt = this.mqttEnabled ? this.emit('mqtt', 'System Info', stringifyMessage) : false;
+                                    this.modelName = modelName;
+                                };
+
+                                //Software Info
+                                if (messageId == this.softwareInfoId) {
+                                    const debug1 = this.debugLog ? this.emit('debug', `Software info: ${stringifyMessage}`) : false;
+                                    const productName = messageData.product_name;
+                                    const serialNumber = messageData.device_id;
+                                    const firmwareRevision = `${messageData.major_ver}.${messageData.minor_ver}`;
+                                    const webOS = (messageData.product_name != undefined) ? messageData.product_name.slice(8, -2) : 3;
+                                    this.webOs = webOS;
+
+                                    this.emit('connect', 'Connected.');
+                                    this.emit('deviceInfo', this.modelName, productName, serialNumber, firmwareRevision, webOS);
+                                    const mqtt1 = this.mqttEnabled ? this.emit('mqtt', 'Software Info', stringifyMessage) : false;
+
+                                };
+                                //Installed Apps
+                                if (messageId == this.installedAppsId) {
+                                    const debug2 = this.debugLog ? this.emit('debug', `Apps List ${stringifyMessage}`) : false;
+                                    if (messageData.apps != undefined) {
+                                        this.emit('installedApps', messageData.apps);
+                                        const mqtt2 = this.mqttEnabled ? this.emit('mqtt', 'Apps List', stringifyMessage) : false;
+                                    };
+                                };
+
+                                //Channels list
+                                if (messageId == this.channelsId) {
+                                    const debug3 = this.debugLog ? this.emit('debug', `Channel List ${stringifyMessage}`) : false;
+                                    if (messageData.channelList != undefined) {
+                                        this.emit('channelList', messageData.channelList);
+                                        const mqtt3 = this.mqttEnabled ? this.emit('mqtt', 'Channel List', stringifyMessage) : false;
+                                    };
+                                };
 
                                 //Power State
                                 if (messageId == this.powerStateId) {
@@ -122,7 +225,7 @@ class LGTV extends EventEmitter {
 
                                 //Audio State
                                 if (messageId == this.audioStateId) {
-                                    const debug = this.debugLog ? this.emit('debug', `Audio State ${JstringifyMessage}`) : false;
+                                    const debug = this.debugLog ? this.emit('debug', `Audio State ${stringifyMessage}`) : false;
                                     const volume = messageData.volume;
                                     const mute = this.power ? (messageData.mute == true) : true;
                                     const audioOutput = (this.webOS >= 5) ? messageData.volumeStatus.soundOutput : messageData.scenario;
@@ -186,7 +289,6 @@ class LGTV extends EventEmitter {
                                     };
 
                                 };
-                                this.data[messageId](messageData);
                             };
                         } else {
                             const debug = this.debugLog ? this.emit('debug', `Received non UTF-8 data: ${message}`) : false;
@@ -196,7 +298,6 @@ class LGTV extends EventEmitter {
                         const debug = this.debugLog ? this.emit('debug', `Connection to TV closed.`) : false;
                         this.isConnected = false;
                         this.connection = {};
-                        this.data = {};
                         this.emit('powerState', false, false, false, false);
                         this.emit('audioState', 0, true, '');
                         this.emit('disconnect', 'Disconnected.');
@@ -214,7 +315,6 @@ class LGTV extends EventEmitter {
                 const debug = this.debugLog ? this.emit('debug', `Connect to TV Failed: ${error}`) : false;
                 this.isConnected = false;
                 this.connection = {};
-                this.data = {};
                 this.emit('powerState', false, false, false, false);
                 this.emit('audioState', 0, true, '');
 
@@ -227,32 +327,13 @@ class LGTV extends EventEmitter {
     };
 
     async register() {
-        const savedPairingKey = (fs.readFileSync(this.keyFile).toString() != undefined) ? fs.readFileSync(this.keyFile).toString() : undefined;
-        pairing['client-key'] = savedPairingKey;
-
         try {
-            const data = await this.send('register', undefined, pairing);
-            const pairingKey = data['client-key'];
-            if (pairingKey) {
-                if (savedPairingKey !== pairingKey) {
-                    try {
-                        const writeKey = await fsPromises.writeFile(this.keyFile, pairingKey);
-                        this.emit('message', 'Pairing key saved.')
-                    } catch (error) {
-                        this.emit('error', `Pairing key saved error: ${error}`)
-                    };
-                };
+            const savedPairingKey = await fsPromises.readFile(this.keyFile);
+            const pairingKey = savedPairingKey.toString();
+            this.savedPairingKey = pairingKey;
 
-                try {
-                    await this.getSocket();
-                    await this.requestData();
-                    await this.subscribeData();
-                } catch (error) {
-                    this.emit('error', `Data error: ${error}`)
-                };
-            } else {
-                this.emit('message', 'Waiting on authorization accept...');
-            };
+            pairing['client-key'] = pairingKey;
+            this.registerId = await this.send('register', undefined, pairing);
         } catch (error) {
             this.emit('error', `Register error: ${error}`);
         };
@@ -260,88 +341,11 @@ class LGTV extends EventEmitter {
 
     getSocket() {
         return new Promise(async (resolve, reject) => {
-            if (this.specializedSockets[API_URL.SocketUrl]) {
-                this.inputSocket = this.specializedSockets[API_URL.SocketUrl];
-            };
-
             try {
-                const data = await this.send('request', API_URL.SocketUrl);
-                const debug = this.debugLog ? this.emit('debug', `Specialized socket URL: ${JSON.stringify(data, null, 2)}`) : false;
-
-                const specialClient = new WebSocketClient(SOCKET_OPTIONS);
-                specialClient.on('connect', (connection) => {
-                        connection.on('close', () => {
-                                const debug1 = this.debugLog ? this.emit('debug', 'Specialized socket closed.') : false;
-                                delete this.specializedSockets[API_URL.SocketUrl];
-                                this.inputSocket = {};
-                            })
-                            .on('error', (error) => {
-                                this.emit('error', `Specialized socket error: ${error}`);
-                                this.reconnectSocket();
-                                reject(error);
-                            });
-
-                        const debug2 = this.debugLog ? this.emit('debug', 'Specialized socket connected.') : false;
-                        this.specializedSockets[API_URL.SocketUrl] = new SpecializedSocket(connection);
-                        this.inputSocket = this.specializedSockets[API_URL.SocketUrl];
-                        resolve(true);
-                    })
-                    .on('connectFailed', (error) => {
-                        this.emit('error', `Specialized socket connect failed: ${error}`);
-                        this.reconnectSocket();
-                        reject(error);
-                    });
-
-                const socketPath = data.socketPath;
-                specialClient.connect(socketPath);
-            } catch (error) {
-                this.emit('error', `Send request error: ${error}`);
-                reject(error);
-            };
-        });
-    };
-
-    requestData() {
-        return new Promise(async (resolve, reject) => {
-            try {
-                //System Info
-                const systemInfoData = await this.send('request', API_URL.GetSystemInfo);
-                const debug = this.debugLog ? this.emit('debug', `System info: ${JSON.stringify(systemInfoData, null, 2)}`) : false;
-                const modelName = systemInfoData.modelName;
-
-                //Software Info
-                const softwareInfoData = await this.send('request', API_URL.GetSoftwareInfo);
-                const debug1 = this.debugLog ? this.emit('debug', `Software info: ${JSON.stringify(softwareInfoData, null, 2)}`) : false;
-                const productName = softwareInfoData.product_name;
-                const serialNumber = softwareInfoData.device_id;
-                const firmwareRevision = `${softwareInfoData.major_ver}.${softwareInfoData.minor_ver}`;
-                const webOS = (softwareInfoData.product_name != undefined) ? softwareInfoData.product_name.slice(8, -2) : 3;
-                this.webOs = webOS;
-
-                this.emit('connect', 'Connected.');
-                this.emit('deviceInfo', modelName, productName, serialNumber, firmwareRevision, webOS);
-                const mqtt = this.mqttEnabled ? this.emit('mqtt', 'Info', JSON.stringify(systemInfoData, null, 2)) : false;
-                const mqtt1 = this.mqttEnabled ? this.emit('mqtt', 'Info 1', JSON.stringify(softwareInfoData, null, 2)) : false;
-
-                //Installed Apps
-                const installedAppsData = await this.send('request', API_URL.GetInstalledApps);
-                const debug2 = this.debugLog ? this.emit('debug', `Apps List ${JSON.stringify(installedAppsData, null, 2)}`) : false;
-                if (installedAppsData.apps != undefined) {
-                    this.emit('installedApps', installedAppsData.apps);
-                    const mqtt2 = this.mqttEnabled ? this.emit('mqtt', 'Apps List', JSON.stringify(installedAppsData.apps, null, 2)) : false;
-                };
-
-                //Channels list
-                const channelsListData = await this.send('request', API_URL.GetChannelList);
-                const debug3 = this.debugLog ? this.emit('debug', `Channel List ${JSON.stringify(channelsListData, null, 2)}`) : false;
-                if (channelsListData.channelList != undefined) {
-                    this.emit('channelList', channelsListData.channelList);
-                    const mqtt3 = this.mqttEnabled ? this.emit('mqtt', 'Channel List', JSON.stringify(channelsListData.channelList, null, 2)) : false;
-                };
-
+                this.socketId = await this.send('request', API_URL.SocketUrl);
                 resolve(true);
             } catch (error) {
-                this.emit('error', `Request data error: ${error}`);
+                this.emit('error', `Get socket error: ${error}`);
                 reject(error);
             };
         });
@@ -350,6 +354,18 @@ class LGTV extends EventEmitter {
     subscribeData() {
         return new Promise(async (resolve, reject) => {
             try {
+                //System Info
+                this.systemInfoId = await this.send('request', API_URL.GetSystemInfo);;
+
+                //Software Info
+                this.softwareInfoId = await this.send('request', API_URL.GetSoftwareInfo);
+
+                //Installed Apps
+                this.installedAppsId = await this.send('request', API_URL.GetInstalledApps);
+
+                //Channels list
+                this.channelsId = await this.send('request', API_URL.GetChannelList);
+
                 //Power State
                 this.powerStateId = await this.send('subscribe', API_URL.GetPowerState);
 
@@ -397,24 +413,7 @@ class LGTV extends EventEmitter {
                 payload: payload
             });
 
-            switch (type) {
-                case 'register':
-                    this.data[cid] = (data) => {
-                        resolve(data);
-                    };
-                    break;
-                case 'request':
-                    this.data[cid] = (data) => {
-                        delete this.data[cid];
-                        resolve(data);
-                    };
-                    break;
-                case 'subscribe':
-                    resolve(cid);
-                    this.data[cid] = () => {};
-                    break;
-            };
-
+            resolve(cid);
             this.connection.send(json);
         });
     };
