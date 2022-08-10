@@ -73,33 +73,35 @@ class LGTV extends EventEmitter {
                         if (message.type === 'utf8') {
                             const messageUtf8Data = message.utf8Data;
                             const parsedMessage = messageUtf8Data ? JSON.parse(messageUtf8Data) : this.debugLog ? this.emit('debug', `Not received UTF-8 data: ${messageUtf8Data}`) : false;
+                            const messageId = parsedMessage.id;
+                            const messageData = parsedMessage.payload;
+                            const stringifyMessage = JSON.stringify(messageData, null, 2);
 
-                            if (parsedMessage.payload) {
-                                const debug = this.debugLog ? this.emit('debug', `Socket message Id: ${parsedMessage.id}, data: ${JSON.stringify(parsedMessage.payload, null, 2)}`) : false;
+                            if (messageData) {
+                                const debug = this.debugLog ? this.emit('debug', `Socket message Id: ${messageId}, data: ${stringifyMessage}`) : false;
 
                                 //Power State
-                                if (parsedMessage.id == this.powerStateId) {
-                                    const powerStateData = parsedMessage.payload;
-                                    const debug = this.debugLog ? this.emit('debug', `Power State data: ${JSON.stringify(powerStateData, null, 2)}`) : false;
+                                if (messageId == this.powerStateId) {
+                                    const debug = this.debugLog ? this.emit('debug', `Power State data: ${stringifyMessage}`) : false;
                                     //screen On
-                                    const prepareScreenOn = ((powerStateData.state == 'Suspend' && powerStateData.processing == 'Screen On') || (powerStateData.state == 'Screen Saver' && powerStateData.processing == 'Screen On') || (powerStateData.state == 'Active Standby' && powerStateData.processing == 'Screen On'));
-                                    const stillScreenOn = (powerStateData.state == 'Active' && powerStateData.processing == 'Screen On');
-                                    const powerOnScreenOff = (powerStateData.state == 'Screen Off' || (powerStateData.state == 'Screen Off' && powerStateData.processing == 'Screen On'));
-                                    const screenOn = (powerStateData.state == 'Active');
+                                    const prepareScreenOn = ((messageData.state == 'Suspend' && messageData.processing == 'Screen On') || (messageData.state == 'Screen Saver' && messageData.processing == 'Screen On') || (messageData.state == 'Active Standby' && messageData.processing == 'Screen On'));
+                                    const stillScreenOn = (messageData.state == 'Active' && messageData.processing == 'Screen On');
+                                    const powerOnScreenOff = (messageData.state == 'Screen Off' || (messageData.state == 'Screen Off' && messageData.processing == 'Screen On'));
+                                    const screenOn = (messageData.state == 'Active');
 
                                     //screen Saver
-                                    const prepareScreenSaver = (powerStateData.state == 'Active' && powerStateData.processing == 'Request Screen Saver');
-                                    const screenSaver = (powerStateData.state == 'Screen Saver');
+                                    const prepareScreenSaver = (messageData.state == 'Active' && messageData.processing == 'Request Screen Saver');
+                                    const screenSaver = (messageData.state == 'Screen Saver');
 
                                     //screen Off
-                                    const prepareScreenOff = ((powerStateData.state == 'Active' && powerStateData.processing == 'Request Power Off') || (powerStateData.state == 'Active' && powerStateData.processing == 'Request Suspend') || (powerStateData.state == 'Active' && powerStateData.processing == 'Prepare Suspend') ||
-                                            (powerStateData.state == 'Screen Saver' && powerStateData.processing == 'Request Power Off') || (powerStateData.state == 'Screen Saver' && powerStateData.processing == 'Request Suspend') || (powerStateData.state == 'Screen Saver' && powerStateData.processing == 'Prepare Suspend')) ||
-                                        (powerStateData.state == 'Active Standby' && powerStateData.processing == 'Request Power Off') || (powerStateData.state == 'Active Standby' && powerStateData.processing == 'Request Suspend') || (powerStateData.state == 'Active Standby' && powerStateData.processing == 'Prepare Suspend');
-                                    const screenOff = (powerStateData.state == 'Suspend');
+                                    const prepareScreenOff = ((messageData.state == 'Active' && messageData.processing == 'Request Power Off') || (messageData.state == 'Active' && messageData.processing == 'Request Suspend') || (messageData.state == 'Active' && messageData.processing == 'Prepare Suspend') ||
+                                            (messageData.state == 'Screen Saver' && messageData.processing == 'Request Power Off') || (messageData.state == 'Screen Saver' && messageData.processing == 'Request Suspend') || (messageData.state == 'Screen Saver' && messageData.processing == 'Prepare Suspend')) ||
+                                        (messageData.state == 'Active Standby' && messageData.processing == 'Request Power Off') || (messageData.state == 'Active Standby' && messageData.processing == 'Request Suspend') || (messageData.state == 'Active Standby' && messageData.processing == 'Prepare Suspend');
+                                    const screenOff = (messageData.state == 'Suspend');
 
                                     //pixelRefresh
-                                    const prepareScreenPixelRefresh = ((powerStateData.state == 'Active' && powerStateData.processing == 'Request Active Standby') || (powerStateData.state == 'Screen Saver' && powerStateData.processing == 'Request Active Standby'));
-                                    const screenPixelRefresh = (powerStateData.state == 'Active Standby');
+                                    const prepareScreenPixelRefresh = ((messageData.state == 'Active' && messageData.processing == 'Request Active Standby') || (messageData.state == 'Screen Saver' && messageData.processing == 'Request Active Standby'));
+                                    const screenPixelRefresh = (messageData.state == 'Active Standby');
 
                                     //powerState
                                     const pixelRefresh = (prepareScreenPixelRefresh || screenPixelRefresh);
@@ -112,23 +114,22 @@ class LGTV extends EventEmitter {
                                     if (power != this.power || screenState != this.screenState) {
                                         this.emit('powerState', power, pixelRefresh, screenState);
                                         const setAudioState = !power ? this.emit('audioState', 0, true, '') : false;
-                                        const mqtt = this.mqttEnabled ? this.emit('mqtt', 'Power State', JSON.stringify(powerStateData, null, 2)) : false;
+                                        const mqtt = this.mqttEnabled ? this.emit('mqtt', 'Power State', stringifyMessage) : false;
                                         this.power = power;
                                         this.screenState = screenState;
                                     };
                                 };
 
                                 //Audio State
-                                if (parsedMessage.id == this.audioStateId) {
-                                    const audioStateData = parsedMessage.payload;
-                                    const debug1 = this.debugLog ? this.emit('debug', `Audio State ${JSON.stringify(audioStateData, null, 2)}`) : false;
-                                    const volume = audioStateData.volume;
-                                    const mute = this.power ? (audioStateData.mute == true) : true;
-                                    const audioOutput = (this.webOS >= 5) ? audioStateData.volumeStatus.soundOutput : audioStateData.scenario;
+                                if (messageId == this.audioStateId) {
+                                    const debug = this.debugLog ? this.emit('debug', `Audio State ${JstringifyMessage}`) : false;
+                                    const volume = messageData.volume;
+                                    const mute = this.power ? (messageData.mute == true) : true;
+                                    const audioOutput = (this.webOS >= 5) ? messageData.volumeStatus.soundOutput : messageData.scenario;
 
                                     if (volume != this.volume || mute != this.mute || audioOutput != this.audioOutput) {
                                         this.emit('audioState', volume, mute, audioOutput);
-                                        const mqtt1 = this.mqttEnabled ? this.emit('mqtt', 'Audio State', JSON.stringify(audioStateData, null, 2)) : false;
+                                        const mqtt = this.mqttEnabled ? this.emit('mqtt', 'Audio State', stringifyMessage) : false;
                                         this.volume = volume;
                                         this.mute = mute;
                                         this.audioOutput = audioOutput;
@@ -136,30 +137,28 @@ class LGTV extends EventEmitter {
                                 };
 
                                 //Current App
-                                if (parsedMessage.id == this.currentAppId) {
-                                    const currentAppData = parsedMessage.payload;
-                                    const debug2 = this.debugLog ? this.emit('debug', `Current App ${JSON.stringify(currentAppData, null, 2)}`) : false;
-                                    const appId = currentAppData.appId;
+                                if (messageId == this.currentAppId) {
+                                    const debug = this.debugLog ? this.emit('debug', `Current App ${stringifyMessage}`) : false;
+                                    const appId = messageData.appId;
 
                                     if (appId != this.appId) {
                                         this.emit('currentApp', appId);
-                                        const mqtt2 = this.mqttEnabled ? this.emit('mqtt', 'Current App', JSON.stringify(currentAppData, null, 2)) : false;
+                                        const mqtt = this.mqttEnabled ? this.emit('mqtt', 'Current App', stringifyMessage) : false;
                                         this.appId = appId;
                                     };
                                 };
 
                                 //Current Channel
-                                if (parsedMessage.id == this.currentChannelId) {
-                                    const currentChannelData = parsedMessage.payload;
-                                    const debug3 = this.debugLog ? this.emit('debug', `Current Channel ${JSON.stringify(currentChannelData, null, 2)}`) : false;
-                                    const channelId = currentChannelData.channelId;
-                                    const channelName = currentChannelData.channelName;
-                                    const channelNumber = currentChannelData.channelNumber;
+                                if (messageId == this.currentChannelId) {
+                                    const debug = this.debugLog ? this.emit('debug', `Current Channel ${stringifyMessage}`) : false;
+                                    const channelId = messageData.channelId;
+                                    const channelName = messageData.channelName;
+                                    const channelNumber = messageData.channelNumber;
 
 
                                     if (channelName != this.channelName || channelNumber != this.channelNumber || channelId != this.channelId) {
                                         this.emit('currentChannel', channelName, channelNumber, channelId);
-                                        const mqtt3 = this.mqttEnabled ? this.emit('mqtt', 'Current Channel', JSON.stringify(currentChannelData, null, 2)) : false;
+                                        const mqtt = this.mqttEnabled ? this.emit('mqtt', 'Current Channel', stringifyMessage) : false;
                                         this.channelId = channelId;
                                         this.channelName = channelName;
                                         this.channelNumber = channelNumber;
@@ -168,18 +167,17 @@ class LGTV extends EventEmitter {
                                 };
 
                                 //Picture Settings
-                                if (parsedMessage.id == this.pictureSettingsId) {
-                                    const pictureSettingsData = parsedMessage.payload;
-                                    const debug4 = this.debugLog ? this.emit('debug', `Picture Settings ${JSON.stringify(pictureSettingsData, null, 2)}`) : false;
-                                    const brightness = pictureSettingsData.settings.brightness;
-                                    const backlight = pictureSettingsData.settings.backlight;
-                                    const contrast = pictureSettingsData.settings.contrast;
-                                    const color = pictureSettingsData.settings.color;
+                                if (messageId == this.pictureSettingsId) {
+                                    const debug = this.debugLog ? this.emit('debug', `Picture Settings ${stringifyMessage}`) : false;
+                                    const brightness = messageData.settings.brightness;
+                                    const backlight = messageData.settings.backlight;
+                                    const contrast = messageData.settings.contrast;
+                                    const color = messageData.settings.color;
                                     const pictureMode = 3;
 
                                     if (brightness != this.brightness || backlight != this.backlight || contrast != this.contrast || color != this.color || pictureMode != this.pictureMode) {
                                         this.emit('pictureSettings', brightness, backlight, contrast, color, pictureMode);
-                                        const mqtt4 = this.mqttEnabled ? this.emit('mqtt', 'Picture Settings', JSON.stringify(pictureSettingsData, null, 2)) : false;
+                                        const mqtt = this.mqttEnabled ? this.emit('mqtt', 'Picture Settings', stringifyMessage) : false;
                                         this.brightness = brightness;
                                         this.backlight = backlight;
                                         this.contrast = contrast;
@@ -188,7 +186,7 @@ class LGTV extends EventEmitter {
                                     };
 
                                 };
-                                this.data[parsedMessage.id](parsedMessage.payload);
+                                this.data[messageId](messageData);
                             };
                         } else {
                             const debug = this.debugLog ? this.emit('debug', `Received non UTF-8 data: ${message}`) : false;
