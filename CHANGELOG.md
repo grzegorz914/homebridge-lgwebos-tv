@@ -2,6 +2,11 @@
 All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+## [2.1.0] - (13.08.2022)
+## Changes
+- rebuild power state and screen state identify
+- rebuild log
+
 ## [2.0.4] - (10.08.2022)
 ## Changes
 - remove outdated code
