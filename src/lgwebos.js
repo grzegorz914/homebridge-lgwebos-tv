@@ -1,3 +1,5 @@
+'use strict';
+
 const fs = require('fs');
 const fsPromises = fs.promises;
 const EventEmitter = require('events');
@@ -13,16 +15,16 @@ const SOCKET_OPTIONS = {
 };
 
 class SpecializedSocket {
-    constructor(ws) {
+    constructor(connection) {
         this.send = (type, payload) => {
             payload = payload || {};
             const message = Object.keys(payload).reduce((acc, k) => {
                 return acc.concat([k + ':' + payload[k]]);
             }, ['type:' + type]).join('\n') + '\n\n';
-            ws.send(message);
+            connection.send(message);
         };
         this.close = () => {
-            ws.close();
+            connection.close();
         };
     };
 };
@@ -38,7 +40,7 @@ class LGTV extends EventEmitter {
         this.isConnected = false;
         this.connection = {};
         this.specializedSockets = {};
-        this.inputSocket = {};
+        this.inputSocket = false;
 
         this.registerId = '';
         this.socketId = '';
@@ -53,8 +55,10 @@ class LGTV extends EventEmitter {
         this.currentChannelId = '';
         this.pictureSettingsId = '';
 
+        this.webOS = 2;
         this.power = false;
         this.screenState = false;
+        this.pixelRefresh = false;
 
         this.client = new WebSocketClient(SOCKET_OPTIONS);
         this.client.on('connect', async (connection) => {
@@ -63,16 +67,15 @@ class LGTV extends EventEmitter {
 
                 this.connection.on('message', async (message) => {
                         if (message.type !== 'utf8') {
-                            const debug = this.debugLog ? this.emit('debug', `Received non UTF-8 data: ${message}`) : false;
+                            const debug = this.debugLog ? this.emit('debug', `Non UTF-8 message: ${message}`) : false;
                             return;
                         };
 
-                        const messageUtf8Data = message.utf8Data;
-                        const parsedMessage = messageUtf8Data ? JSON.parse(messageUtf8Data) : this.debugLog ? this.emit('debug', `Not UTF-8 data received: ${messageUtf8Data}`) : false;
+                        const parsedMessage = JSON.parse(message.utf8Data);
                         const messageId = parsedMessage.id;
                         const messageData = parsedMessage.payload;
-                        const stringifyMessage = JSON.stringify(messageData, null, 2);
-                        const debug = this.debugLog ? this.emit('debug', `Message Id: ${messageId}, data: ${stringifyMessage}`) : false;
+                        const stringifyMessage = JSON.stringify(messageData, false, 2);
+                        const debug = this.debugLog ? this.emit('debug', `Message Id: ${messageId}, Data: ${stringifyMessage}`) : false;
 
                         switch (messageId) {
                             case this.registerId:
@@ -91,116 +94,126 @@ class LGTV extends EventEmitter {
                                     try {
                                         //Request data
                                         this.systemInfoId = await this.send('request', API_URL.GetSystemInfo);
-                                        this.softwareInfoId = await this.send('request', API_URL.GetSoftwareInfo);
-                                        this.installedAppsId = await this.send('request', API_URL.GetInstalledApps);
-                                        this.channelsId = await this.send('request', API_URL.GetChannelList);
 
-                                        //Subscribe data
-                                        this.powerStateId = await this.send('subscribe', API_URL.GetPowerState);
-                                        this.audioStateId = await this.send('subscribe', API_URL.GetAudioStatus);
-                                        this.currentAppId = await this.send('subscribe', API_URL.GetForegroundAppInfo);
-                                        this.currentChannelId = await this.send('subscribe', API_URL.GetCurrentChannel);
+                                        setTimeout(async () => {
+                                            this.softwareInfoId = await this.send('request', API_URL.GetSoftwareInfo);
+                                        }, 35);
 
-                                        if (this.webOS >= 4) {
-                                            const payload = {
-                                                category: 'picture',
-                                                keys: ['brightness', 'backlight', 'contrast', 'color']
-                                            }
-                                            this.pictureSettingsId = await this.send('subscribe', API_URL.GetSystemSettings, payload);
-                                        };
+                                        setTimeout(async () => {
+                                            this.channelsId = await this.send('subscribe', API_URL.GetChannelList);
+                                            this.appsId = await this.send('subscribe', API_URL.GetInstalledApps);
+                                            this.powerStateId = await this.send('subscribe', API_URL.GetPowerState);
+                                            this.currentAppId = await this.send('subscribe', API_URL.GetForegroundAppInfo);
+                                            this.audioStateId = await this.send('subscribe', API_URL.GetAudioStatus);
+                                            this.currentChannelId = await this.send('subscribe', API_URL.GetCurrentChannel);
 
-                                        //Specialized Socket
-                                        this.socketId = await this.send('request', API_URL.SocketUrl);
+                                            if (this.webOS >= 4) {
+                                                const payload = {
+                                                    category: 'picture',
+                                                    keys: ['brightness', 'backlight', 'contrast', 'color']
+                                                }
+                                                this.pictureSettingsId = await this.send('subscribe', API_URL.GetSystemSettings, payload);
+                                            };
+                                        }, 100);
+
+                                        setTimeout(async () => {
+                                            this.socketId = await this.send('request', API_URL.SocketUrl);
+                                        }, 250);
                                     } catch (error) {
                                         this.emit('error', `Data error: ${error}`)
                                     };
                                 } else {
-                                    this.emit('message', 'Waiting on authorization accept...');
+                                    this.emit('message', 'Please accept authorization on TV, after authorize and payring key saved please restart the plugin again.');
                                 };
                                 break;
                             case this.systemInfoId:
-                                const debug1 = this.debugLog ? this.emit('debug', `System info: ${stringifyMessage}`) : false;
-                                this.modelName = (messageData.modelName != undefined) ? messageData.modelName : 'ModelName';
+                                const debug1 = this.debugLog ? this.emit('debug', `System Info: ${stringifyMessage}`) : false;
+                                this.modelName = (messageData.returnValue == true) ? messageData.modelName : 'ModelName';
                                 const mqtt1 = this.mqttEnabled ? this.emit('mqtt', 'System Info', stringifyMessage) : false;
                                 break;
                             case this.softwareInfoId:
-                                const debug2 = this.debugLog ? this.emit('debug', `Software info: ${stringifyMessage}`) : false;
+                                const debug2 = this.debugLog ? this.emit('debug', `Software Info: ${stringifyMessage}`) : false;
                                 const productName = messageData.product_name;
                                 const serialNumber = messageData.device_id;
                                 const firmwareRevision = `${messageData.major_ver}.${messageData.minor_ver}`;
-                                this.webOS = (messageData.product_name != undefined) ? messageData.product_name.slice(8, -2) : 2;
+                                this.webOS = messageData.product_name.slice(8, -2);
 
 
-                                this.emit('deviceInfo', this.modelName, productName, serialNumber, firmwareRevision, this.webOS);
+                                const emi2 = (messageData.returnValue == true) ? this.emit('deviceInfo', this.modelName, productName, serialNumber, firmwareRevision, this.webOS) : false;
                                 const mqtt2 = this.mqttEnabled ? this.emit('mqtt', 'Software Info', stringifyMessage) : false;
                                 break;
-                            case this.installedAppsId:
-                                const debug3 = this.debugLog ? this.emit('debug', `Apps List ${stringifyMessage}`) : false;
-                                if (messageData.apps != undefined) {
-                                    this.emit('installedApps', messageData.apps);
-                                    const mqtt3 = this.mqttEnabled ? this.emit('mqtt', 'Apps List', stringifyMessage) : false;
-                                };
-                                break;
                             case this.channelsId:
-                                const debug4 = this.debugLog ? this.emit('debug', `Channel List ${stringifyMessage}`) : false;
-                                if (messageData.channelList != undefined) {
-                                    this.emit('channelList', messageData.channelList);
-                                    const mqtt4 = this.mqttEnabled ? this.emit('mqtt', 'Channel List', stringifyMessage) : false;
-                                };
+                                const debug3 = this.debugLog ? this.emit('debug', `Channel List ${stringifyMessage}`) : false;
+                                const emit3 = (messageData.returnValue == true) ? this.emit('channelList', messageData.channelList) : false;
+                                const mqtt3 = this.mqttEnabled ? this.emit('mqtt', 'Channel List', stringifyMessage) : false;
+                                break;
+                            case this.appsId:
+                                const debug4 = this.debugLog ? this.emit('debug', `Apps List ${stringifyMessage}`) : false;
+
+                                const emit4 = (messageData.returnValue == true) ? this.emit('installedApps', messageData.apps) : false;
+                                const mqtt4 = this.mqttEnabled ? this.emit('mqtt', 'Apps List', stringifyMessage) : false;
                                 break;
                             case this.powerStateId:
                                 const debug5 = this.debugLog ? this.emit('debug', `Power State: ${stringifyMessage}`) : false;
 
                                 let power = false;
-                                let screenState = true;
+                                let screenState = false;
                                 let pixelRefresh = false;
                                 switch (messageData.state) {
                                     case 'Active':
                                         power = true;
+                                        screenState = true;
+                                        pixelRefresh = false;
                                         break;
                                     case 'Active Standby':
                                         power = false;
+                                        screenState = false;
                                         pixelRefresh = true;
                                         break;
                                     case 'Screen Saver':
                                         power = true;
+                                        screenState = true;
+                                        pixelRefresh = false;
                                         break;
                                     case 'Screen Off':
                                         power = true;
-                                        screenState = (messageData.processing == 'Screen On')
+                                        screenState = false;
+                                        pixelRefresh = false;
                                         break;
                                     case 'Suspend':
                                         power = false;
+                                        screenState = false;
+                                        pixelRefresh = false;
                                         break;
                                 }
                                 power = (this.webOS >= 3) ? (this.isConnected && power) : this.isConnected;
-                                screenState = power ? screenState : false;
 
-                                if (power != this.power || screenState != this.screenState) {
+                                if (power != this.power || screenState != this.screenState || pixelRefresh != this.pixelRefresh) {
                                     this.power = power;
                                     this.screenState = screenState;
+                                    this.pixelRefresh = pixelRefresh;
 
-                                    this.emit('powerState', power, pixelRefresh, screenState);
+                                    const emit5 = (messageData.returnValue == true) ? this.emit('powerState', power, pixelRefresh, screenState) : false;
                                     const updateAudioState = !power ? this.emit('audioState', 0, true, '') : false;
                                     const updatePictureSettings = !power ? this.emit('pictureSettings', 0, 0, 0, 0, 0, false) : false;
                                     const mqtt5 = this.mqttEnabled ? this.emit('mqtt', 'Power State', stringifyMessage) : false;
                                 }
                                 break;
+                            case this.currentAppId:
+                                const debug6 = this.debugLog ? this.emit('debug', `Current App: ${stringifyMessage}`) : false;
+                                const appId = messageData.appId;
+
+                                const emit6 = (messageData.returnValue == true) ? this.emit('currentApp', appId) : false;
+                                const mqtt6 = this.mqttEnabled ? this.emit('mqtt', 'Current App', stringifyMessage) : false;
+                                break;
                             case this.audioStateId:
-                                const debug6 = this.debugLog ? this.emit('debug', `Audio State: ${stringifyMessage}`) : false;
+                                const debug7 = this.debugLog ? this.emit('debug', `Audio State: ${stringifyMessage}`) : false;
                                 const volume = messageData.volume;
                                 const mute = (messageData.mute == true);
                                 const audioOutput = (this.webOS >= 5) ? messageData.volumeStatus.soundOutput : messageData.scenario;
 
-                                this.emit('audioState', volume, mute, audioOutput);
-                                const mqtt6 = this.mqttEnabled ? this.emit('mqtt', 'Audio State', stringifyMessage) : false;
-                                break;
-                            case this.currentAppId:
-                                const debug7 = this.debugLog ? this.emit('debug', `Current App: ${stringifyMessage}`) : false;
-                                const appId = messageData.appId;
-
-                                this.emit('currentApp', appId);
-                                const mqtt7 = this.mqttEnabled ? this.emit('mqtt', 'Current App', stringifyMessage) : false;
+                                const emit7 = (messageData.returnValue == true) ? this.emit('audioState', volume, mute, audioOutput) : false;
+                                const mqtt7 = this.mqttEnabled ? this.emit('mqtt', 'Audio State', stringifyMessage) : false;
                                 break;
                             case this.currentChannelId:
                                 const debug8 = this.debugLog ? this.emit('debug', `Current Channel: ${stringifyMessage}`) : false;
@@ -208,7 +221,7 @@ class LGTV extends EventEmitter {
                                 const channelName = messageData.channelName;
                                 const channelNumber = messageData.channelNumber;
 
-                                this.emit('currentChannel', channelName, channelNumber, channelId);
+                                const emit8 = (messageData.returnValue == true) ? this.emit('currentChannel', channelName, channelNumber, channelId) : false;
                                 const mqtt8 = this.mqttEnabled ? this.emit('mqtt', 'Current Channel', stringifyMessage) : false;
                                 break;
                             case this.pictureSettingsId:
@@ -219,12 +232,13 @@ class LGTV extends EventEmitter {
                                 const color = messageData.settings.color;
                                 const pictureMode = 3;
 
-                                this.emit('pictureSettings', brightness, backlight, contrast, color, pictureMode, this.power);
+                                const emit9 = (messageData.returnValue == true) ? this.emit('pictureSettings', brightness, backlight, contrast, color, pictureMode, this.power) : false;
                                 const mqtt9 = this.mqttEnabled ? this.emit('mqtt', 'Picture Settings', stringifyMessage) : false;
                                 break;
                             case this.socketId:
                                 if (this.specializedSockets[API_URL.SocketUrl]) {
                                     this.inputSocket = this.specializedSockets[API_URL.SocketUrl];
+                                    return;
                                 };
 
                                 const specialClient = new WebSocketClient(SOCKET_OPTIONS);
@@ -232,19 +246,23 @@ class LGTV extends EventEmitter {
                                         connection.on('close', () => {
                                                 const debug1 = this.debugLog ? this.emit('debug', 'Specialized socket closed.') : false;
                                                 delete this.specializedSockets[API_URL.SocketUrl];
-                                                this.inputSocket = {};
+                                                this.inputSocket = false;
                                             })
                                             .on('error', (error) => {
-                                                this.emit('error', `Specialized socket error: ${error}`);
+                                                this.emit('error', `Specialized socket connection error: ${error}, reconnect in 6s.`);
+                                                delete this.specializedSockets[API_URL.SocketUrl];
+                                                this.inputSocket = false;
                                                 this.reconnectSocket();
                                             });
 
-                                        const debug2 = this.debugLog ? this.emit('debug', 'Specialized socket connected.') : false;
                                         this.specializedSockets[API_URL.SocketUrl] = new SpecializedSocket(connection);
                                         this.inputSocket = this.specializedSockets[API_URL.SocketUrl];
+                                        const debug2 = this.debugLog ? this.emit('debug', `Specialized socket connected, Input Socket: ${JSON.stringify(this.inputSocket, false, 2)}`) : false;
                                     })
                                     .on('connectFailed', (error) => {
-                                        this.emit('error', `Specialized socket connect failed: ${error}`);
+                                        this.emit('error', `Specialized socket connect error: ${error}, reconnect in 6s.`);
+                                        delete this.specializedSockets[API_URL.SocketUrl];
+                                        this.inputSocket = false;;
                                         this.reconnectSocket();
                                     });
 
@@ -256,9 +274,9 @@ class LGTV extends EventEmitter {
                     .on('close', () => {
                         const debug = this.debugLog ? this.emit('debug', `Socked closed.`) : false;
                         this.isConnected = false;
-                        this.connection = {};
                         this.power = false;
                         this.screenState = false;
+                        this.pixelRefresh = false;
                         this.emit('powerState', false, false, false, false);
                         this.emit('audioState', 0, true, '');
                         this.emit('pictureSettings', 0, 0, 0, 0, 0, false);
@@ -268,7 +286,7 @@ class LGTV extends EventEmitter {
                         }, 5000);
                     })
                     .on('error', (error) => {
-                        this.emit('error', `Socket communication error: ${error}`);
+                        this.emit('error', `Socket connection error: ${error}`);
                     });
 
                 this.isConnected = true;
@@ -284,11 +302,11 @@ class LGTV extends EventEmitter {
                 };
             })
             .on('connectFailed', (error) => {
-                const debug = this.debugLog ? this.emit('debug', `Socked connect error: ${error}`) : false;
+                const debug = this.debugLog ? this.emit('debug', `Socked connect error: ${error}, reconnect in 5s.`) : false;
                 this.isConnected = false;
-                this.connection = {};
                 this.power = false;
                 this.screenState = false;
+                this.pixelRefresh = false;
                 this.emit('powerState', false, false, false, false);
                 this.emit('audioState', 0, true, '');
                 this.emit('pictureSettings', 0, 0, 0, 0, 0, false);

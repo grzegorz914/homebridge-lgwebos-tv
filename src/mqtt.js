@@ -1,4 +1,5 @@
 "use strict";
+
 const MQTT = require("async-mqtt");
 const EventEmitter = require('events');
 
