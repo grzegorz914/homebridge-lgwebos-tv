@@ -299,12 +299,12 @@ class LGTV extends EventEmitter {
                         this.emit('pictureSettings', this.backlight, this.backlight, this.contrast, this.color, this.pictureMode, false)
 
                         setTimeout(() => {
-                            this.client.connect(this.url);
+                            client.connect(this.url);
                         }, 5000);
                     })
                     .on('error', (error) => {
                         this.emit('error', `Socket connection error: ${error}`);
-                        this.client.close();
+                        client.close();
                     });
 
                 try {
