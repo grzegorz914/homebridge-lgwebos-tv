@@ -280,7 +280,7 @@ class LGTV extends EventEmitter {
                                         this.inputSocket = false;
 
                                         setTimeout(() => {
-                                            const reconnect = this.isConnected ? this.specialClient.connect(socketPath) : false;
+                                            const reconnect = this.isConnected ? specialClient.connect(socketPath) : false;
                                         }, 6000);
                                     });
 
