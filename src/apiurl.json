@@ -21,6 +21,8 @@
     "TurnOn": "ssap://system/turnOn",
     "TurnOffScreen": "ssap://com.webos.service.tvpower/power/turnOffScreen",
     "TurnOnScreen": "ssap://com.webos.service.tvpower/power/turnOnScreen",
+    "TurnOffScreen5": "ssap://com.webos.service.tv.power/power/turnOffScreen",
+    "TurnOnScreen5": "ssap://com.webos.service.tv.power/power/turnOnScreen",
     "LaunchApp": "ssap://system.launcher/launch",
     "CloseApp": "ssap://system.launcher/close",
     "CloseMediaViewer": "ssap://media.viewer/close",
