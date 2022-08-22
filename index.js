@@ -271,54 +271,58 @@ class lgwebosTvDevice {
 				this.webOS = webOS;
 			})
 			.on('channelList', async (channelList) => {
-				const channelsArr = new Array();
 				const channelsCount = Array.isArray(channelList) ? channelList.length : 0;
-				for (let i = 0; i < channelsCount; i++) {
-					const name = channelList[i].channelName;
-					const reference = channelList[i].channelId;
-					const number = channelList[i].channelNumber;
-					const type = 'TUNER';
-					const mode = 1;
-					const channelsObj = {
-						'name': name,
-						'reference': reference,
-						'number': number,
-						'type': type,
-						'mode': mode
-					}
-					channelsArr.push(channelsObj);
-				};
+				if (channelsCount > 0) {
+					const channelsArr = new Array();
+					for (let i = 0; i < channelsCount; i++) {
+						const name = channelList[i].channelName;
+						const reference = channelList[i].channelId;
+						const number = channelList[i].channelNumber;
+						const type = 'TUNER';
+						const mode = 1;
+						const channelsObj = {
+							'name': name,
+							'reference': reference,
+							'number': number,
+							'type': type,
+							'mode': mode
+						}
+						channelsArr.push(channelsObj);
+					};
 
-				try {
-					const obj = JSON.stringify(channelsArr, null, 2);
-					const writeChannels = await fsPromises.writeFile(this.channelsFile, obj);
-					const debug = this.enableDebugMode ? this.log(`Device: ${this.host} ${this.name}, saved Channels: ${obj}`) : false;
-				} catch (error) {
-					this.log.error(`Device: ${this.host} ${this.name}, save Channels error: ${error}`);
+					try {
+						const obj = JSON.stringify(channelsArr, null, 2);
+						const writeChannels = await fsPromises.writeFile(this.channelsFile, obj);
+						const debug = this.enableDebugMode ? this.log(`Device: ${this.host} ${this.name}, saved Channels: ${obj}`) : false;
+					} catch (error) {
+						this.log.error(`Device: ${this.host} ${this.name}, save Channels error: ${error}`);
+					};
 				};
 			})
 			.on('installedApps', async (installedApps) => {
-				const inputsArr = new Array();
 				const inputsCount = Array.isArray(installedApps) ? installedApps.length : 0;
-				for (let i = 0; i < inputsCount; i++) {
-					const name = installedApps[i].title;
-					const reference = installedApps[i].id;
-					const type = 'APPLICATION';
-					const mode = 0;
-					const inputsObj = {
-						'name': name,
-						'reference': reference,
-						'type': type,
-						'mode': mode
-					}
-					inputsArr.push(inputsObj);
-				};;
-				try {
-					const obj = JSON.stringify(inputsArr, null, 2)
-					const writeInputs = await fsPromises.writeFile(this.inputsFile, obj);
-					const debug = this.enableDebugMode ? this.log(`Device: ${this.host} ${this.name}, saved Inputs/Apps: ${obj}`) : false;
-				} catch (error) {
-					this.log.error(`Device: ${this.host} ${this.name}, save Inputs/Apps error: ${error}`);
+				if (inputsCount > 0) {
+					const inputsArr = new Array();
+					for (let i = 0; i < inputsCount; i++) {
+						const name = installedApps[i].title;
+						const reference = installedApps[i].id;
+						const type = 'APPLICATION';
+						const mode = 0;
+						const inputsObj = {
+							'name': name,
+							'reference': reference,
+							'type': type,
+							'mode': mode
+						}
+						inputsArr.push(inputsObj);
+					};;
+					try {
+						const obj = JSON.stringify(inputsArr, null, 2)
+						const writeInputs = await fsPromises.writeFile(this.inputsFile, obj);
+						const debug = this.enableDebugMode ? this.log(`Device: ${this.host} ${this.name}, saved Inputs/Apps: ${obj}`) : false;
+					} catch (error) {
+						this.log.error(`Device: ${this.host} ${this.name}, save Inputs/Apps error: ${error}`);
+					};
 				};
 			})
 			.on('powerState', (power, pixelRefresh, screenState) => {
