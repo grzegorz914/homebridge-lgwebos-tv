@@ -272,7 +272,7 @@ class lgwebosTvDevice {
 			})
 			.on('channelList', async (channelList) => {
 				const channelsArr = new Array();
-				const channelsCount = channelList.length;
+				const channelsCount = Array.isArray(channelList) ? channelList.length : 0;
 				for (let i = 0; i < channelsCount; i++) {
 					const name = channelList[i].channelName;
 					const reference = channelList[i].channelId;
@@ -299,7 +299,7 @@ class lgwebosTvDevice {
 			})
 			.on('installedApps', async (installedApps) => {
 				const inputsArr = new Array();
-				const inputsCount = installedApps.length;
+				const inputsCount = Array.isArray(installedApps) ? installedApps.length : 0;
 				for (let i = 0; i < inputsCount; i++) {
 					const name = installedApps[i].title;
 					const reference = installedApps[i].id;
@@ -992,7 +992,7 @@ class lgwebosTvDevice {
 			}
 
 			//turn screen ON/OFF
-			if (this.turnScreenOnOff) {
+			if (this.turnScreenOnOff && this.webOS >= 4) {
 				this.turnScreenOnOffService = new Service.Switch(`${accessoryName} Screen Off`, 'Screen Off');
 				this.turnScreenOnOffService.getCharacteristic(Characteristic.On)
 					.onGet(async () => {
@@ -1001,7 +1001,9 @@ class lgwebosTvDevice {
 					})
 					.onSet(async (state) => {
 						try {
-							const turnScreenOnOff = this.powerState ? state ? await this.lgtv.send('request', API_URL.TurnOnScreen) : await this.lgtv.send('request', API_URL.TurnOffScreen) : false;
+							const onUrl = this.webOS >= 5 ? API_URL.TurnOnScreen5 : API_URL.TurnOnScreen;
+							const offUrl = this.webOS >= 5 ? API_URL.TurnOffScreen5 : API_URL.TurnOffScreen;
+							const turnScreenOnOff = this.powerState ? state ? await this.lgtv.send('request', onUrl) : await this.lgtv.send('request', offUrl) : false;
 							const logInfo = this.disableLogInfo ? false : this.log(`Device: ${this.host} ${accessoryName}, turn screen ${state ? 'ON' : 'OFF'}.`);
 						} catch (error) {
 							this.log.error(`Device: ${this.host} ${accessoryName}, turn screen ${state ? 'ON' : 'OFF'}, error: ${error}`);

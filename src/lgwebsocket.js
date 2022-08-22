@@ -145,7 +145,6 @@ class LGTV extends EventEmitter {
                                 const firmwareRevision = `${messageData.major_ver}.${messageData.minor_ver}`;
                                 this.webOS = messageData.product_name.slice(8, -2);
 
-
                                 const emi2 = (messageData.returnValue == true) ? this.emit('deviceInfo', this.modelName, productName, serialNumber, firmwareRevision, this.webOS) : false;
                                 const mqtt2 = mqttEnabled ? this.emit('mqtt', 'Software Info', stringifyMessage) : false;
                                 break;
@@ -156,7 +155,6 @@ class LGTV extends EventEmitter {
                                 break;
                             case this.appsId:
                                 const debug4 = debugLog ? this.emit('debug', `Apps List ${stringifyMessage}`) : false;
-
                                 const emit4 = (messageData.returnValue == true) ? this.emit('installedApps', messageData.apps) : false;
                                 const mqtt4 = mqttEnabled ? this.emit('mqtt', 'Apps List', stringifyMessage) : false;
                                 break;

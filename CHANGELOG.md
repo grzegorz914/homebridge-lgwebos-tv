@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+## [2.1.5] - (22.08.2022)
+## Changes
+- fix error if apps list unknown
+- fix error if channels list unknown
+- fix screen on/off for webOs >= 5
+
 ## [2.1.4] - (18.08.2022)
 ## Changes
 - fix special soccket reconnect
