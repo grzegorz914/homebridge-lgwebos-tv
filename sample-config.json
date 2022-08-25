@@ -14,71 +14,77 @@
         "comment": "In this section set the port for Homebridge accessories."
     },
     "accessories": [],
-    "platforms": [{
-        "platform": "LgWebOsTv",
-        "devices": [{
-            "name": "LG TV",
-            "host": "192.168.1.8",
-            "mac": "ab:cd:ef:fe:dc:ba",
-            "disableLogInfo": false,
-            "disableLogDeviceInfo": false,
-            "enableDebugMode": false,
-            "volumeControl": 0,
-            "infoButtonCommand": "MENU",
-            "getInputsFromDevice": false,
-            "filterSystemApps": false,
-            "turnScreenOnOff": false,
-            "inputs": [{
-                    "name": "HDMI 3",
-                    "reference": "com.webos.app.hdmi3",
-                    "type": "HDMI",
-                    "mode": 0
-                },
+    "platforms": [
+        {
+            "platform": "LgWebOsTv",
+            "devices": [
                 {
-                    "name": "HDMI 4",
-                    "reference": "com.webos.app.hdmi4",
-                    "type": "HDMI",
-                    "mode": 0
-                },
-                {
-                    "name": "Netflix",
-                    "reference": "netflix",
-                    "type": "APPLICATION",
-                    "mode": 0
-                },
-                {
-                     "name": "BBC ONE HD",
-                     "reference": "1_45_101_101_16521_17540_9018",
-                     "mode": 1
+                    "name": "LG TV",
+                    "host": "192.168.1.8",
+                    "mac": "ab:cd:ef:fe:dc:ba",
+                    "disableLogInfo": false,
+                    "disableLogDeviceInfo": false,
+                    "enableDebugMode": false,
+                    "volumeControl": 0,
+                    "infoButtonCommand": "MENU",
+                    "getInputsFromDevice": false,
+                    "filterSystemApps": false,
+                    "turnScreenOnOff": false,
+                    "inputs": [
+                        {
+                            "name": "HDMI 3",
+                            "reference": "com.webos.app.hdmi3",
+                            "type": "HDMI",
+                            "mode": 0
+                        },
+                        {
+                            "name": "HDMI 4",
+                            "reference": "com.webos.app.hdmi4",
+                            "type": "HDMI",
+                            "mode": 0
+                        },
+                        {
+                            "name": "Netflix",
+                            "reference": "netflix",
+                            "type": "APPLICATION",
+                            "mode": 0
+                        },
+                        {
+                            "name": "BBC ONE HD",
+                            "reference": "1_45_101_101_16521_17540_9018",
+                            "mode": 1
+                        }
+                    ],
+                    "buttons": [
+                        {
+                            "name": "HDMI 3",
+                            "reference": "com.webos.app.hdmi3",
+                            "mode": 0,
+                            "displayType": 0
+                        },
+                        {
+                            "name": "BBC ONE HD",
+                            "reference": "1_45_101_101_16521_17540_9018",
+                            "mode": 1,
+                            "displayType": 0
+                        },
+                        {
+                            "name": "Menu Up",
+                            "mode": 2,
+                            "command": "UP",
+                            "displayType": 0
+                        }
+                    ],
+                    "enableMqtt": false,
+                    "mqttHost": "192.168.1.33",
+                    "mqttPort": 1883,
+                    "mqttPrefix": "home/lg",
+                    "mqttAuth": false,
+                    "mqttUser": "user",
+                    "mqttPass": "password",
+                    "mqttDebug": false
                 }
-            ],
-            "buttons": [{
-                    "name": "HDMI 3",
-                    "reference": "com.webos.app.hdmi3",
-                    "mode": 0,
-                    "displayType": 0
-                },
-                {
-                     "name": "BBC ONE HD",
-                     "reference": "1_45_101_101_16521_17540_9018",
-                     "mode": 1,
-                     "displayType": 0
-                },
-                {
-                     "name": "Menu Up",
-                     "mode": 2,
-                     "command": "UP",
-                     "displayType": 0
-                }
-            ],
-            "enableMqtt": false,
-            "mqttHost": "192.168.1.33",
-            "mqttPort": 1883,
-            "mqttPrefix": "home/lg",
-            "mqttAuth": false,
-            "mqttUser": "user",
-            "mqttPass": "password",
-            "mqttDebug": false
-        }]
-    }]
+            ]
+        }
+    ]
 }
