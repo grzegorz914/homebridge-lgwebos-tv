@@ -13,22 +13,22 @@ const PLATFORM_NAME = 'LgWebOsTv';
 
 const WEBSOCKET_PORT = 3000;
 const DEFAULT_INPUTS = [{
-		'name': 'Live TV',
-		'reference': 'com.webos.app.livetv',
-		'type': 'TUNER',
-		'mode': 0
-	}, {
-		'name': 'HDMI 1',
-		'reference': 'com.webos.app.hdmi1',
-		'type': 'HDMI',
-		'mode': 0
-	},
-	{
-		'name': 'HDMI 2',
-		'reference': 'com.webos.app.hdmi2',
-		'type': 'HDMI',
-		'mode': 0
-	}
+	'name': 'Live TV',
+	'reference': 'com.webos.app.livetv',
+	'type': 'TUNER',
+	'mode': 0
+}, {
+	'name': 'HDMI 1',
+	'reference': 'com.webos.app.hdmi1',
+	'type': 'HDMI',
+	'mode': 0
+},
+{
+	'name': 'HDMI 2',
+	'reference': 'com.webos.app.hdmi2',
+	'type': 'HDMI',
+	'mode': 0
+}
 ];
 
 const INPUT_SOURCE_TYPES = ['OTHER', 'HOME_SCREEN', 'TUNER', 'HDMI', 'COMPOSITE_VIDEO', 'S_VIDEO', 'COMPONENT_VIDEO', 'DVI', 'AIRPLAY', 'USB', 'APPLICATION'];
@@ -214,8 +214,8 @@ class lgwebosTvDevice {
 		});
 
 		this.mqttClient.on('connected', (message) => {
-				this.log(`Device: ${this.host} ${this.name}, ${message}`);
-			})
+			this.log(`Device: ${this.host} ${this.name}, ${message}`);
+		})
 			.on('error', (error) => {
 				this.log(`Device: ${this.host} ${this.name}, ${error}`);
 			})
@@ -239,45 +239,46 @@ class lgwebosTvDevice {
 		});
 
 		this.lgtv.on('deviceInfo', async (modelName, productName, serialNumber, firmwareRevision, webOS) => {
-				if (!this.disableLogDeviceInfo) {
-					this.log(`-------- ${this.name} --------`);
-					this.log(`Manufacturer: ${this.manufacturer}`);
-					this.log(`Model: ${modelName}`);
-					this.log(`System: ${productName}`);
-					this.log(`Serialnr: ${serialNumber}`);
-					this.log(`Firmware: ${firmwareRevision}`);
-					this.log(`----------------------------------`);
-				};
+			if (!this.disableLogDeviceInfo) {
+				this.log(`-------- ${this.name} --------`);
+				this.log(`Manufacturer: ${this.manufacturer}`);
+				this.log(`Model: ${modelName}`);
+				this.log(`System: ${productName}`);
+				this.log(`Serialnr: ${serialNumber}`);
+				this.log(`Firmware: ${firmwareRevision}`);
+				this.log(`----------------------------------`);
+			};
 
-				try {
-					const obj = {
-						'manufacturer': this.manufacturer,
-						'modelName': modelName,
-						'serialNumber': serialNumber,
-						'firmwareRevision': firmwareRevision,
-						'webOS': webOS
-					};
-					const devInfo = JSON.stringify(obj, null, 2);
-					const writeDevInfo = await fsPromises.writeFile(this.devInfoFile, devInfo);
-					const debug = this.enableDebugMode ? this.log(`Device: ${this.host} ${this.name}, saved Info: ${devInfo}`) : false;
-				} catch (error) {
-					this.log.error(`Device: ${this.host} ${this.name}, save Info error: ${error}`);
+			try {
+				const obj = {
+					'manufacturer': this.manufacturer,
+					'modelName': modelName,
+					'serialNumber': serialNumber,
+					'firmwareRevision': firmwareRevision,
+					'webOS': webOS
 				};
+				const devInfo = JSON.stringify(obj, null, 2);
+				const writeDevInfo = await fsPromises.writeFile(this.devInfoFile, devInfo);
+				const debug = this.enableDebugMode ? this.log(`Device: ${this.host} ${this.name}, saved Info: ${devInfo}`) : false;
+			} catch (error) {
+				this.log.error(`Device: ${this.host} ${this.name}, save Info error: ${error}`);
+			};
 
-				this.modelName = modelName;
-				this.productName = productName;
-				this.serialNumber = serialNumber;
-				this.firmwareRevision = firmwareRevision;
-				this.webOS = webOS;
-			})
+			this.modelName = modelName;
+			this.productName = productName;
+			this.serialNumber = serialNumber;
+			this.firmwareRevision = firmwareRevision;
+			this.webOS = webOS;
+		})
 			.on('channelList', async (channelList) => {
 				const channelsCount = Array.isArray(channelList) ? channelList.length : 0;
 				if (channelsCount > 0) {
 					const channelsArr = new Array();
 					for (let i = 0; i < channelsCount; i++) {
-						const name = channelList[i].channelName;
-						const reference = channelList[i].channelId;
-						const number = channelList[i].channelNumber;
+						const channell = channelList[i];
+						const name = channell.channelName;
+						const reference = channell.channelId;
+						const number = channell.channelNumber;
 						const type = 'TUNER';
 						const mode = 1;
 						const channelsObj = {
@@ -304,8 +305,9 @@ class lgwebosTvDevice {
 				if (inputsCount > 0) {
 					const inputsArr = new Array();
 					for (let i = 0; i < inputsCount; i++) {
-						const name = installedApps[i].title;
-						const reference = installedApps[i].id;
+						const app = installedApps[i];
+						const name = app.title;
+						const reference = app.id;
 						const type = 'APPLICATION';
 						const mode = 0;
 						const inputsObj = {
@@ -840,7 +842,7 @@ class lgwebosTvDevice {
 						const state = this.powerState;
 						return state;
 					})
-					.onSet(async (state) => {});
+					.onSet(async (state) => { });
 				this.backlightService.getCharacteristic(Characteristic.Brightness)
 					.onGet(async () => {
 						const value = this.backlight;
@@ -871,7 +873,7 @@ class lgwebosTvDevice {
 						const state = this.powerState;
 						return state;
 					})
-					.onSet(async (state) => {})
+					.onSet(async (state) => { })
 				this.brightnessService.getCharacteristic(Characteristic.Brightness)
 					.onGet(async () => {
 						const value = this.brightness;
@@ -902,7 +904,7 @@ class lgwebosTvDevice {
 						const state = this.powerState;
 						return state;
 					})
-					.onSet(async (state) => {});
+					.onSet(async (state) => { });
 				this.contrastService.getCharacteristic(Characteristic.Brightness)
 					.onGet(async () => {
 						const value = this.contrast;
@@ -933,7 +935,7 @@ class lgwebosTvDevice {
 						const state = this.powerState;
 						return state;
 					})
-					.onSet(async (state) => {});
+					.onSet(async (state) => { });
 				this.colorService.getCharacteristic(Characteristic.Brightness)
 					.onGet(async () => {
 						const value = this.color;
@@ -1054,18 +1056,20 @@ class lgwebosTvDevice {
 		const inputsCount = inputs.length;
 		const maxInputsCount = (inputsCount < 94) ? inputsCount : 94;
 		for (let j = 0; j < maxInputsCount; j++) {
+			//input
+			const input = inputs[j];
 
 			//get input reference
-			const inputReference = (inputs[j].reference != undefined) ? inputs[j].reference : undefined;
+			const inputReference = (input.reference != undefined) ? input.reference : undefined;
 
 			//get input name		
-			const inputName = (savedInputsNames[inputReference] != undefined) ? savedInputsNames[inputReference] : inputs[j].name;
+			const inputName = (savedInputsNames[inputReference] != undefined) ? savedInputsNames[inputReference] : input.name;
 
 			//get input type
-			const inputType = (inputs[j].type != undefined) ? INPUT_SOURCE_TYPES.indexOf(inputs[j].type) : 10;
+			const inputType = (input.type != undefined) ? INPUT_SOURCE_TYPES.indexOf(input.type) : 10;
 
 			//get input mode
-			const inputMode = (inputs[j].mode != undefined) ? inputs[j].mode : 0;
+			const inputMode = (input.mode != undefined) ? input.mode : 0;
 
 			//get input configured
 			const isConfigured = 1;

@@ -145,7 +145,8 @@ class LGTV extends EventEmitter {
                                 const firmwareRevision = `${messageData.major_ver}.${messageData.minor_ver}`;
                                 this.webOS = messageData.product_name.slice(8, -2);
 
-                                const emi2 = (messageData.returnValue == true) ? this.emit('deviceInfo', this.modelName, productName, serialNumber, firmwareRevision, this.webOS) : false;
+                                const emit = (messageData.returnValue == true) ? this.emit('message', 'Connected.') : false;;
+                                const emit2 = (messageData.returnValue == true) ? this.emit('deviceInfo', this.modelName, productName, serialNumber, firmwareRevision, this.webOS) : false;
                                 const mqtt2 = mqttEnabled ? this.emit('mqtt', 'Software Info', stringifyMessage) : false;
                                 break;
                             case this.channelsId:
@@ -295,6 +296,7 @@ class LGTV extends EventEmitter {
                         this.emit('powerState', false, false, false);
                         this.emit('audioState', this.volume, true, this.audioOutput);
                         this.emit('pictureSettings', this.backlight, this.backlight, this.contrast, this.color, this.pictureMode, false)
+                        this.emit('message', 'Disconnected.');
 
                         setTimeout(() => {
                             client.connect(this.url);
