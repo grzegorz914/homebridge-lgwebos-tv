@@ -1,4 +1,5 @@
 'use strict';
+
 class WebSocketSpecialized {
     constructor(connection) {
         this.send = (type, payload) => {
