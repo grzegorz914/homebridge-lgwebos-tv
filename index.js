@@ -84,7 +84,7 @@ class lgwebosTvDevice {
 		this.pictureModeControl = config.pictureModeControl || false;
 		this.pictureModes = config.pictureModes || [];
 		this.turnScreenOnOff = config.turnScreenOnOff || false;
-		this.enableMqtt = config.enableMqtt || false;
+		this.mqttEnabled = config.enableMqtt || false;
 		this.mqttHost = config.mqttHost;
 		this.mqttPort = config.mqttPort || 1883;
 		this.mqttPrefix = config.mqttPrefix;
@@ -179,7 +179,7 @@ class lgwebosTvDevice {
 
 		//mqtt client
 		this.mqttClient = new mqttClient({
-			enabled: this.enableMqtt,
+			enabled: this.mqttEnabled,
 			host: this.mqttHost,
 			port: this.mqttPort,
 			prefix: this.mqttPrefix,
@@ -212,7 +212,7 @@ class lgwebosTvDevice {
 			url: url,
 			keyFile: this.keyFile,
 			debugLog: this.enableDebugMode,
-			mqttEnabled: this.enableMqtt
+			mqttEnabled: this.mqttEnabled
 		});
 
 		this.lgtv.on('deviceInfo', async (modelName, productName, serialNumber, firmwareRevision, webOS) => {
