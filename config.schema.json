@@ -65,7 +65,8 @@
               "type": "integer",
               "minimum": 0,
               "maximum": 2,
-              "oneOf": [{
+              "oneOf": [
+                {
                   "title": "None",
                   "enum": [
                     0
@@ -90,7 +91,8 @@
             "infoButtonCommand": {
               "title": "Info Button",
               "type": "string",
-              "oneOf": [{
+              "oneOf": [
+                {
                   "title": "Home",
                   "enum": [
                     "HOME"
@@ -183,7 +185,8 @@
                     "title": "Type",
                     "type": "string",
                     "description": "Here select the source type.",
-                    "oneOf": [{
+                    "oneOf": [
+                      {
                         "title": "Other",
                         "enum": [
                           "OTHER"
@@ -257,7 +260,8 @@
                     "type": "integer",
                     "maximum": 1,
                     "description": "Here select the function mode.",
-                    "oneOf": [{
+                    "oneOf": [
+                      {
                         "title": "Input/App",
                         "enum": [
                           0
@@ -293,7 +297,8 @@
                     "type": "integer",
                     "maximum": 1,
                     "description": "Here select the function mode.",
-                    "oneOf": [{
+                    "oneOf": [
+                      {
                         "title": "Input/App",
                         "enum": [
                           0
@@ -324,7 +329,8 @@
                   "command": {
                     "title": "RC Command",
                     "type": "string",
-                    "oneOf": [{
+                    "oneOf": [
+                      {
                         "title": "0",
                         "enum": [
                           "0"
@@ -667,7 +673,8 @@
                   "displayType": {
                     "title": "Display Type",
                     "type": "integer",
-                    "oneOf": [{
+                    "oneOf": [
+                      {
                         "title": "Button",
                         "enum": [
                           0
@@ -765,10 +772,10 @@
               }
             },
             "pictureModeControl": {
-              "title": "Picture",
+              "title": "Picture Modes",
               "type": "boolean",
               "default": false,
-              "description": "This enable possibility control of picture mode.",
+              "description": "This enable possibility control of picture modes.",
               "required": false
             },
             "pictureModes": {
@@ -782,14 +789,14 @@
                     "type": "string",
                     "placeholder": "Picture Mode Name",
                     "description": "Here set Your own picture mode name.",
-
                     "required": true
                   },
                   "reference": {
                     "title": "Mode",
                     "type": "string",
                     "description": "Here choice the picture mode.",
-                    "oneOf": [{
+                    "oneOf": [
+                      {
                         "title": "Normal",
                         "enum": [
                           "normal"
@@ -937,9 +944,6 @@
                     "required": true
                   }
                 }
-              },
-              "condition": {
-                "functionBody": "return model.devices[arrayIndices].pictureModeControl === true"
               }
             },
             "brightnessControl": {
@@ -975,118 +979,124 @@
       }
     }
   },
-  "layout": [{
-    "key": "devices",
-    "type": "tabarray",
-    "title": "{{ value.name || 'new device' }}",
-    "items": [
-      "devices[].name",
-      "devices[].host",
-      "devices[].mac",
-      {
-        "key": "devices[]",
-        "type": "section",
-        "title": "Inputs",
-        "expandable": true,
-        "expanded": false,
-        "items": [
-          "devices[].getInputsFromDevice",
-          "devices[].filterSystemApps",
-          {
-            "key": "devices[].inputs",
-            "type": "tabarray",
-            "title": "{{ value.name || 'new input' }}",
-            "items": [
-              "devices[].inputs[].name",
-              "devices[].inputs[].reference",
-              "devices[].inputs[].type",
-              "devices[].inputs[].mode"
-            ],
-            "condition": {
-              "functionBody": "return model.devices[arrayIndices].getInputsFromDevice === false;"
-            }
-          }
-        ]
-      },
-      {
-        "key": "devices[]",
-        "type": "section",
-        "title": "Buttons",
-        "expandable": true,
-        "expanded": false,
-        "items": [{
-          "key": "devices[].buttons",
-          "type": "tabarray",
-          "title": "{{ value.name || 'new button' }}",
+  "layout": [
+    {
+      "key": "devices",
+      "type": "tabarray",
+      "title": "{{ value.name || 'new device' }}",
+      "items": [
+        "devices[].name",
+        "devices[].host",
+        "devices[].mac",
+        {
+          "key": "devices[]",
+          "type": "section",
+          "title": "Inputs",
+          "expandable": true,
+          "expanded": false,
           "items": [
-            "devices[].buttons[].name",
-            "devices[].buttons[].mode",
-            "devices[].buttons[].reference",
-            "devices[].buttons[].command",
-            "devices[].buttons[].displayType"
-          ]
-        }]
-      },
-      {
-        "key": "devices[]",
-        "type": "section",
-        "title": "Picture Control",
-        "expandable": true,
-        "expanded": false,
-        "items": [
-          "devices[].brightnessControl",
-          "devices[].backlightControl",
-          "devices[].contrastControl",
-          "devices[].colorControl",
-          "devices[].pictureModeControl",
-          {
-            "items": [{
-              "key": "devices[].pictureModes",
+            "devices[].getInputsFromDevice",
+            "devices[].filterSystemApps",
+            {
+              "key": "devices[].inputs",
               "type": "tabarray",
-              "title": "{{ value.name || 'new mode' }}",
+              "title": "{{ value.name || 'new input' }}",
               "items": [
-                "devices[].pictureModes[].name",
-                "devices[].pictureModes[].reference"
+                "devices[].inputs[].name",
+                "devices[].inputs[].reference",
+                "devices[].inputs[].type",
+                "devices[].inputs[].mode"
+              ],
+              "condition": {
+                "functionBody": "return model.devices[arrayIndices].getInputsFromDevice === false;"
+              }
+            }
+          ]
+        },
+        {
+          "key": "devices[]",
+          "type": "section",
+          "title": "Buttons",
+          "expandable": true,
+          "expanded": false,
+          "items": [
+            {
+              "key": "devices[].buttons",
+              "type": "tabarray",
+              "title": "{{ value.name || 'new button' }}",
+              "items": [
+                "devices[].buttons[].name",
+                "devices[].buttons[].mode",
+                "devices[].buttons[].reference",
+                "devices[].buttons[].command",
+                "devices[].buttons[].displayType"
               ]
-            }]
-          }
-        ],
-        "condition": {
-          "functionBody": "return model.devices[arrayIndices].pictureModeControl === true;"
+            }
+          ]
+        },
+        {
+          "key": "devices[]",
+          "type": "section",
+          "title": "Picture Control",
+          "expandable": true,
+          "expanded": false,
+          "items": [
+            "devices[].brightnessControl",
+            "devices[].backlightControl",
+            "devices[].contrastControl",
+            "devices[].colorControl",
+            "devices[].pictureModeControl",
+            {
+              "items": [
+                {
+                  "key": "devices[].pictureModes",
+                  "type": "tabarray",
+                  "title": "{{ value.name || 'new mode' }}",
+                  "items": [
+                    "devices[].pictureModes[].name",
+                    "devices[].pictureModes[].reference"
+                  ],
+                  "condition": {
+                    "functionBody": "return model.devices[arrayIndices].pictureModeControl === true;"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "key": "devices[]",
+          "type": "section",
+          "title": "Advanced Settings",
+          "expandable": true,
+          "expanded": false,
+          "items": [
+            "devices[].enableDebugMode",
+            "devices[].disableLogInfo",
+            "devices[].disableLogDeviceInfo",
+            "devices[].turnScreenOnOff",
+            "devices[].infoButtonCommand",
+            "devices[].volumeControl"
+          ]
+        },
+        {
+          "key": "devices[]",
+          "type": "section",
+          "title": "MQTT",
+          "expandable": true,
+          "expanded": false,
+          "items": [
+            "devices[].enableMqtt",
+            "devices[].mqttHost",
+            "devices[].mqttPort",
+            "devices[].mqttPrefix",
+            "devices[].mqttAuth",
+            "devices[].mqttUser",
+            "devices[].mqttPasswd",
+            "devices[].mqttDebug"
+          ]
         }
-      },
-      {
-        "key": "devices[]",
-        "type": "section",
-        "title": "Advanced Settings",
-        "expandable": true,
-        "expanded": false,
-        "items": [
-          "devices[].enableDebugMode",
-          "devices[].disableLogInfo",
-          "devices[].disableLogDeviceInfo",
-          "devices[].turnScreenOnOff",
-          "devices[].infoButtonCommand",
-          "devices[].volumeControl"
-        ]
-      },
-      {
-        "key": "devices[]",
-        "type": "section",
-        "title": "MQTT",
-        "expandable": true,
-        "expanded": false,
-        "items": [
-          "devices[].enableMqtt",
-          "devices[].mqttHost",
-          "devices[].mqttPort",
-          "devices[].mqttPrefix",
-          "devices[].mqttAuth",
-          "devices[].mqttUser",
-          "devices[].mqttPasswd",
-          "devices[].mqttDebug"
-        ]
-      }
-    ]
-  }]
+      ]
+    }
+  ]
 }

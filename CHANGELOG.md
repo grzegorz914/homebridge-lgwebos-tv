@@ -2,6 +2,13 @@
 All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+## [2.8.0] - (28.08.2022)
+## Changes
+- cleanup
+- added picture control (backlight, brightness, contrast, color)
+- fix [#136](https://github.com/grzegorz914/homebridge-lgwebos-tv/issues/136)
+- fix [#109](https://github.com/grzegorz914/homebridge-lgwebos-tv/issues/109)
+
 ## [2.1.5] - (22.08.2022)
 ## Changes
 - fix error if apps list unknown
