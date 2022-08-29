@@ -148,17 +148,17 @@ class LGTV extends EventEmitter {
                         const mqtt2 = mqttEnabled ? this.emit('mqtt', 'Software Info', stringifyMessage) : false;
                         break;
                     case this.channelsId:
-                        const debug3 = debugLog ? this.emit('debug', `Channel List ${stringifyMessage}`) : false;
+                        const debug3 = debugLog ? this.emit('debug', `Channels: ${stringifyMessage}`) : false;
                         const emit3 = (messageData.returnValue == true) ? this.emit('channelList', messageData.channelList) : false;
-                        const mqtt3 = mqttEnabled ? this.emit('mqtt', 'Channel List', stringifyMessage) : false;
+                        const mqtt3 = mqttEnabled ? this.emit('mqtt', 'Channels', stringifyMessage) : false;
                         break;
                     case this.appsId:
-                        const debug4 = debugLog ? this.emit('debug', `Apps List ${stringifyMessage}`) : false;
+                        const debug4 = debugLog ? this.emit('debug', `Apps: ${stringifyMessage}`) : false;
                         const emit4 = (messageData.returnValue == true) ? this.emit('installedApps', messageData.apps) : false;
-                        const mqtt4 = mqttEnabled ? this.emit('mqtt', 'Apps List', stringifyMessage) : false;
+                        const mqtt4 = mqttEnabled ? this.emit('mqtt', 'Apps', stringifyMessage) : false;
                         break;
                     case this.powerStateId:
-                        const debug5 = debugLog ? this.emit('debug', `Power State: ${stringifyMessage}`) : false;
+                        const debug5 = debugLog ? this.emit('debug', `Power: ${stringifyMessage}`) : false;
 
                         let power = false;
                         let screenState = false;
@@ -200,7 +200,7 @@ class LGTV extends EventEmitter {
                             const emit5 = (messageData.returnValue == true) ? this.emit('powerState', power, pixelRefresh, screenState) : false;
                             const updateAudioState = (messageData.returnValue == true && !power) ? this.emit('audioState', this.volume, true, this.audioOutput) : false;
                             const updatePictureSettings = (messageData.returnValue == true && !power) ? this.emit('pictureSettings', this.backlight, this.backlight, this.contrast, this.color, this.pictureMode, false) : false;
-                            const mqtt5 = mqttEnabled ? this.emit('mqtt', 'Power State', stringifyMessage) : false;
+                            const mqtt5 = mqttEnabled ? this.emit('mqtt', 'Power', stringifyMessage) : false;
                         }
                         break;
                     case this.currentAppId:
@@ -211,7 +211,7 @@ class LGTV extends EventEmitter {
                         const mqtt6 = mqttEnabled ? this.emit('mqtt', 'Current App', stringifyMessage) : false;
                         break;
                     case this.audioStateId:
-                        const debug7 = debugLog ? this.emit('debug', `Audio State: ${stringifyMessage}`) : false;
+                        const debug7 = debugLog ? this.emit('debug', `Audio: ${stringifyMessage}`) : false;
                         const volume = messageData.volume;
                         const mute = (messageData.mute == true);
                         const audioOutput = (this.webOS >= 5) ? messageData.volumeStatus.soundOutput : messageData.scenario;
@@ -219,7 +219,7 @@ class LGTV extends EventEmitter {
                         this.audioOutput = audioOutput;
 
                         const emit7 = (messageData.returnValue == true) ? this.emit('audioState', volume, mute, audioOutput) : false;
-                        const mqtt7 = mqttEnabled ? this.emit('mqtt', 'Audio State', stringifyMessage) : false;
+                        const mqtt7 = mqttEnabled ? this.emit('mqtt', 'Audio', stringifyMessage) : false;
                         break;
                     case this.currentChannelId:
                         const debug8 = debugLog ? this.emit('debug', `Current Channel: ${stringifyMessage}`) : false;
