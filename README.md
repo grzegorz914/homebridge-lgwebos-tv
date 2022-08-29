@@ -46,7 +46,7 @@ Tested with OLED65G6V, 32LM6300PLA, 49SK8500, OLED65C7T, 55SK800PLB, OLED48CX.
 * Channels can be changed using Channels selector in HomeKit app, additionally can create separate tile.
 * Siri can be used for all functions, some times need create legacy buttons/switches/sensors.
 * Automations can be used for all functions, some times need create legacy buttons/switches/sensors.
-* MQTT Client publisch all available data from device.
+* MQTT publisch topic *System Info*, *Software Info*, *Channels*, *Apps*, *Power*, *Audio*, *Current App*, *Current Channel*, *Picture Settings* as payload JSON data.
 
 
 <p align="left">
