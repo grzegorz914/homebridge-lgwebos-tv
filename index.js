@@ -467,14 +467,14 @@ class lgwebosTvDevice {
 				return state;
 			})
 			.onSet(async (state) => {
-				const setPowerOn = (!this.power && state) ? wol(this.mac, {
+				const setPowerOn = (stae && !this.power) ? wol(this.mac, {
 					address: '255.255.255.255',
 					packets: 3,
 					interval: 100,
 					port: 9
 				}) : false;
 				try {
-					const setPowerOff = (this.power && !state) ? await this.lgtv.send('request', CONSTANS.ApiUrls.TurnOff) : false;
+					const setPowerOff = (!state && this.power) ? await this.lgtv.send('request', CONSTANS.ApiUrls.TurnOff) : false;
 					const logInfo = this.disableLogInfo ? false : this.log(`Device: ${this.host} ${accessoryName}, set Power: ${state ? 'ON' : 'OFF'}`);
 				} catch (error) {
 					this.log.error(`Device: ${this.host} ${accessoryName}, set Power state error:  ${error}`);
@@ -505,7 +505,6 @@ class lgwebosTvDevice {
 					const setInput = (this.power && inputReference != undefined) ? await this.lgtv.send('request', CONSTANS.ApiUrls.LaunchApp, payload) : false
 					const setChannel = (this.power && inputReference != undefined && inputMode == 1) ? await this.lgtv.send('request', CONSTANS.ApiUrls.OpenChannel, payload1) : false;
 					const logInfo = this.disableLogInfo ? false : this.log(`Device: ${this.host} ${accessoryName}, set ${inputMode == 0 ? 'Input' : 'Channel'}, name: ${inputName}, reference: ${inputReference}`);
-					this.inputIdentifier = inputIdentifier;
 				} catch (error) {
 					this.log.error(`Device: ${this.host} ${accessoryName}, set ${inputMode == 0 ? 'Input' : 'Channel'} error: ${error}`);
 				};
