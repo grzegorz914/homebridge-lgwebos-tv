@@ -1,10 +1,10 @@
 'use strict';
-const wol = require('@mi-sec/wol');
 const path = require('path');
 const fs = require('fs');
 const fsPromises = fs.promises;
-const lgtv = require('./src/lgwebsocket');
-const mqttClient = require('./src/mqtt.js');
+const wol = require('@mi-sec/wol');
+const LgTv = require('./src/lgwebsocket');
+const Mqtt = require('./src/mqtt.js');
 
 const PLUGIN_NAME = 'homebridge-lgwebos-tv';
 const PLATFORM_NAME = 'LgWebOsTv';
@@ -178,7 +178,7 @@ class lgwebosTvDevice {
 		}
 
 		//mqtt client
-		this.mqttClient = new mqttClient({
+		this.mqtt = new Mqtt({
 			enabled: this.mqttEnabled,
 			host: this.mqttHost,
 			port: this.mqttPort,
@@ -190,7 +190,7 @@ class lgwebosTvDevice {
 			debug: this.mqttDebug
 		});
 
-		this.mqttClient.on('connected', (message) => {
+		this.mqtt.on('connected', (message) => {
 			this.log(`Device: ${this.host} ${this.name}, ${message}`);
 		})
 			.on('error', (error) => {
@@ -208,7 +208,7 @@ class lgwebosTvDevice {
 
 		//lg tv client
 		const url = `ws://${this.host}:${CONSTANS.WebSocketPort}`;
-		this.lgtv = new lgtv({
+		this.lgtv = new LgTv({
 			url: url,
 			keyFile: this.keyFile,
 			debugLog: this.enableDebugMode,
@@ -467,7 +467,7 @@ class lgwebosTvDevice {
 				return state;
 			})
 			.onSet(async (state) => {
-				const setPowerOn = (stae && !this.power) ? wol(this.mac, {
+				const setPowerOn = (state && !this.power) ? wol(this.mac, {
 					address: '255.255.255.255',
 					packets: 3,
 					interval: 100,
