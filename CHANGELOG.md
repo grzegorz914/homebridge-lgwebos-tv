@@ -2,6 +2,10 @@
 All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+ [2.2.3] - (04.09.2022)
+## Changes
+- fix turn screen on/off for webOs <= 5
+
 ## [2.2.2] - (03.09.2022)
 ## Changes
 - cleanup

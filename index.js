@@ -968,7 +968,7 @@ class lgwebosTvDevice {
 					})
 					.onSet(async (state) => {
 						try {
-							const url = state ? this.webOS >= 5 ? CONSTANS.ApiUrls.TurnOnScreen5 : CONSTANS.ApiUrls.TurnOnScreen : this.webOS >= 5 ? CONSTANS.ApiUrls.TurnOffScreen5 : CONSTANS.ApiUrls.TurnOffScreen;
+							const url = state ? this.webOS > 5 ? CONSTANS.ApiUrls.TurnOnScreen5 : CONSTANS.ApiUrls.TurnOnScreen : this.webOS > 5 ? CONSTANS.ApiUrls.TurnOffScreen5 : CONSTANS.ApiUrls.TurnOffScreen;
 							const turnScreenOnOff = this.power ? await this.lgtv.send('request', url) : false;
 							const logInfo = this.disableLogInfo ? false : this.log(`Device: ${this.host} ${accessoryName}, turn screen ${state ? 'ON' : 'OFF'}.`);
 						} catch (error) {
