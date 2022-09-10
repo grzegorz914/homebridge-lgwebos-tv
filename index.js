@@ -99,11 +99,7 @@ class lgwebosTvDevice {
 		for (let i = 0; i < defaultInputsCount; i++) {
 			inputsArr.push(CONSTANS.DefaultInputs[i]);
 		}
-		const inputsCount = this.inputs.length;
-		for (let j = 0; j < inputsCount; j++) {
-			inputsArr.push(this.inputs[j]);
-		}
-		this.inputs = inputsArr;
+		this.inputs = [...inputsArr, ...this.inputs];
 
 		//device info
 		this.manufacturer = 'LG Electronics';
@@ -415,7 +411,7 @@ class lgwebosTvDevice {
 				this.log(`Device: ${this.host} ${this.name}, ${message}`);
 			})
 			.on('mqtt', (topic, message) => {
-				this.mqttClient.send(topic, message);
+				this.mqtt.send(topic, message);
 			})
 			.on('prepareAccessory', () => {
 				this.prepareAccessory();
