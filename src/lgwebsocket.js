@@ -86,66 +86,108 @@ class LGTV extends EventEmitter {
                                 };
                             };
 
+                            //Request specjalized socket
                             try {
-                                //Request data
-                                this.systemInfoId = await this.send('request', CONSTANS.ApiUrls.GetSystemInfo);
-
-                                setTimeout(async () => {
-                                    this.softwareInfoId = await this.send('request', CONSTANS.ApiUrls.GetSoftwareInfo);
-                                }, 35);
-
-                                //Subscribe data
-                                setTimeout(async () => {
-                                    this.channelsId = await this.send('subscribe', CONSTANS.ApiUrls.GetChannelList);
-                                    this.appsId = await this.send('subscribe', CONSTANS.ApiUrls.GetInstalledApps);
-                                    this.powerStateId = await this.send('subscribe', CONSTANS.ApiUrls.GetPowerState);
-                                    this.currentAppId = await this.send('subscribe', CONSTANS.ApiUrls.GetForegroundAppInfo);
-                                    this.audioStateId = await this.send('subscribe', CONSTANS.ApiUrls.GetAudioStatus);
-                                    this.currentChannelId = await this.send('subscribe', CONSTANS.ApiUrls.GetCurrentChannel);
-
-                                    if (this.webOS >= 4) {
-                                        const payload = {
-                                            category: 'picture',
-                                            keys: ['brightness', 'backlight', 'contrast', 'color']
-                                        }
-                                        this.pictureSettingsId = await this.send('subscribe', CONSTANS.ApiUrls.GetSystemSettings, payload);
-                                    };
-                                }, 100);
-
-                                //Prepare accessory
-                                setTimeout(async () => {
-                                    if (this.savedPairingKey.length > 0 && this.startPrepareAccessory) {
-                                        this.emit('prepareAccessory');
-                                        this.startPrepareAccessory = false;
-                                    };
-                                }, 150);
-
-                                //Request socket
-                                setTimeout(async () => {
-                                    this.socketId = await this.send('request', CONSTANS.ApiUrls.SocketUrl);
-                                }, 250);
+                                this.socketId = await this.send('request', CONSTANS.ApiUrls.SocketUrl);
                             } catch (error) {
-                                this.emit('error', `Data error: ${error}`)
+                                this.emit('error', `Request spezjalized socket error: ${error}`)
+                            };
+
+                            //Request system info data
+                            try {
+                                this.systemInfoId = await this.send('request', CONSTANS.ApiUrls.GetSystemInfo);
+                            } catch (error) {
+                                this.emit('error', `Request system info data error: ${error}`)
                             };
                         } else {
                             this.emit('message', 'Please accept authorization on TV.');
                         };
                         break;
+                    case this.socketId:
+                        const debug10 = debugLog ? this.emit('debug', `Socket Path: ${stringifyMessage}`) : false;
+                        if (this.specializedSockets[CONSTANS.ApiUrls.SocketUrl]) {
+                            this.inputSocket = this.specializedSockets[CONSTANS.ApiUrls.SocketUrl];
+                            return;
+                        };
+
+                        const socketPath = messageData.socketPath;
+                        const specialClient = new WebSocket(SOCKET_OPTIONS);
+                        specialClient.on('connect', (specialConnection) => {
+                            specialConnection.on('close', () => {
+                                const debug1 = debugLog ? this.emit('debug', 'Specialized socket closed.') : false;
+                                delete this.specializedSockets[CONSTANS.ApiUrls.SocketUrl];
+                                this.inputSocket = false;
+                            })
+                                .on('error', (error) => {
+                                    this.emit('error', `Specialized socket connection error: ${error}, reconnect in 6s.`);
+                                    specialClient.close();
+                                });
+
+                            this.specializedSockets[CONSTANS.ApiUrls.SocketUrl] = new WebSocketSpecialized(specialConnection);
+                            this.inputSocket = this.specializedSockets[CONSTANS.ApiUrls.SocketUrl];
+                            const debug2 = debugLog ? this.emit('debug', `Specialized socket connected, Input Socket: ${JSON.stringify(this.inputSocket, null, 2)}`) : false;
+                        })
+                            .on('connectFailed', (error) => {
+                                this.emit('error', `Specialized socket connect error: ${error}, reconnect in 6s.`);
+                                delete this.specializedSockets[CONSTANS.ApiUrls.SocketUrl];
+                                this.inputSocket = false;
+
+                                setTimeout(() => {
+                                    const reconnect = this.isConnected ? specialClient.connect(socketPath) : false;
+                                }, 6000);
+                            });
+
+                        specialClient.connect(socketPath);
+                        break;
                     case this.systemInfoId:
                         const debug1 = debugLog ? this.emit('debug', `System Info: ${stringifyMessage}`) : false;
                         this.modelName = (messageData.returnValue == true) ? messageData.modelName : 'ModelName';
                         const mqtt1 = mqttEnabled ? this.emit('mqtt', 'System Info', stringifyMessage) : false;
+
+                        try {
+                            this.softwareInfoId = await this.send('request', CONSTANS.ApiUrls.GetSoftwareInfo);
+                        } catch (error) {
+                            this.emit('error', `Data error: ${error}`)
+                        };
                         break;
                     case this.softwareInfoId:
                         const debug2 = debugLog ? this.emit('debug', `Software Info: ${stringifyMessage}`) : false;
                         const productName = messageData.product_name;
                         const serialNumber = messageData.device_id;
                         const firmwareRevision = `${messageData.major_ver}.${messageData.minor_ver}`;
-                        this.webOS = messageData.product_name.slice(8, -2);
+                        const webOS = messageData.product_name.slice(8, -2);
+                        this.webOS = webOS;
 
-                        const emit = (messageData.returnValue == true) ? this.emit('message', 'Connected.') : false;;
-                        const emit2 = (messageData.returnValue == true) ? this.emit('deviceInfo', this.modelName, productName, serialNumber, firmwareRevision, this.webOS) : false;
+                        const emit = (messageData.returnValue == true) ? this.emit('message', 'Connected.') : false;
+                        const emit2 = (messageData.returnValue == true) ? this.emit('deviceInfo', this.modelName, productName, serialNumber, firmwareRevision, webOS) : false;
                         const mqtt2 = mqttEnabled ? this.emit('mqtt', 'Software Info', stringifyMessage) : false;
+
+                        try {
+                            this.channelsId = await this.send('subscribe', CONSTANS.ApiUrls.GetChannelList);
+                            this.appsId = await this.send('subscribe', CONSTANS.ApiUrls.GetInstalledApps);
+                            this.powerStateId = await this.send('subscribe', CONSTANS.ApiUrls.GetPowerState);
+                            this.currentAppId = await this.send('subscribe', CONSTANS.ApiUrls.GetForegroundAppInfo);
+                            this.audioStateId = await this.send('subscribe', CONSTANS.ApiUrls.GetAudioStatus);
+                            this.currentChannelId = await this.send('subscribe', CONSTANS.ApiUrls.GetCurrentChannel);
+
+                            if (webOS >= 4) {
+                                const payload = {
+                                    category: 'picture',
+                                    keys: ['brightness', 'backlight', 'contrast', 'color']
+                                }
+                                this.pictureSettingsId = await this.send('subscribe', CONSTANS.ApiUrls.GetSystemSettings, payload);
+                            };
+
+                            //Prepare accessory
+                            setTimeout(() => {
+                                if (this.savedPairingKey.length > 0 && this.startPrepareAccessory) {
+                                    this.emit('prepareAccessory');
+                                    this.startPrepareAccessory = false;
+                                };
+                            }, 200);
+                        } catch (error) {
+                            this.emit('error', `Data error: ${error}`)
+                        };
                         break;
                     case this.channelsId:
                         const debug3 = debugLog ? this.emit('debug', `Channels: ${stringifyMessage}`) : false;
@@ -246,42 +288,6 @@ class LGTV extends EventEmitter {
 
                         const emit9 = (messageData.returnValue == true) ? this.emit('pictureSettings', brightness, backlight, contrast, color, pictureMode, this.power) : false;
                         const mqtt9 = mqttEnabled ? this.emit('mqtt', 'Picture Settings', stringifyMessage) : false;
-                        break;
-                    case this.socketId:
-                        const debug10 = debugLog ? this.emit('debug', `Socket Path: ${stringifyMessage}`) : false;
-                        if (this.specializedSockets[CONSTANS.ApiUrls.SocketUrl]) {
-                            this.inputSocket = this.specializedSockets[CONSTANS.ApiUrls.SocketUrl];
-                            return;
-                        };
-
-                        const socketPath = messageData.socketPath;
-                        const specialClient = new WebSocket(SOCKET_OPTIONS);
-                        specialClient.on('connect', (specialConnection) => {
-                            specialConnection.on('close', () => {
-                                const debug1 = debugLog ? this.emit('debug', 'Specialized socket closed.') : false;
-                                delete this.specializedSockets[CONSTANS.ApiUrls.SocketUrl];
-                                this.inputSocket = false;
-                            })
-                                .on('error', (error) => {
-                                    this.emit('error', `Specialized socket connection error: ${error}, reconnect in 6s.`);
-                                    specialClient.close();
-                                });
-
-                            this.specializedSockets[CONSTANS.ApiUrls.SocketUrl] = new WebSocketSpecialized(specialConnection);
-                            this.inputSocket = this.specializedSockets[CONSTANS.ApiUrls.SocketUrl];
-                            const debug2 = debugLog ? this.emit('debug', `Specialized socket connected, Input Socket: ${JSON.stringify(this.inputSocket, null, 2)}`) : false;
-                        })
-                            .on('connectFailed', (error) => {
-                                this.emit('error', `Specialized socket connect error: ${error}, reconnect in 6s.`);
-                                delete this.specializedSockets[CONSTANS.ApiUrls.SocketUrl];
-                                this.inputSocket = false;
-
-                                setTimeout(() => {
-                                    const reconnect = this.isConnected ? specialClient.connect(socketPath) : false;
-                                }, 6000);
-                            });
-
-                        specialClient.connect(socketPath);
                         break;
                 };
             })
