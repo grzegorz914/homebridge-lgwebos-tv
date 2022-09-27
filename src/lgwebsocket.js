@@ -117,10 +117,13 @@ class LGTV extends EventEmitter {
                                 const debug1 = debugLog ? this.emit('debug', 'Specialized socket closed.') : false;
                                 delete this.specializedSockets[CONSTANS.ApiUrls.SocketUrl];
                                 this.inputSocket = false;
+
+                                setTimeout(() => {
+                                    const reconnect = this.isConnected ? specialClient.connect(socketPath) : false;
+                                }, 6000);
                             })
                                 .on('error', (error) => {
                                     this.emit('error', `Specialized socket connection error: ${error}, reconnect in 6s.`);
-                                    specialClient.close();
                                 });
 
                             this.specializedSockets[CONSTANS.ApiUrls.SocketUrl] = new WebSocketSpecialized(specialConnection);
