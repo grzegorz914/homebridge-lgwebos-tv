@@ -2,7 +2,11 @@
 All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
- [2.2.6] - (27.10.2022)
+ [2.2.7] - (20.10.2022)
+## Changes
+- fix client.close
+
+ [2.2.6] - (27.09.2022)
 ## Changes
 - fix [#139](https://github.com/grzegorz914/homebridge-lgwebos-tv/issues/139)
 

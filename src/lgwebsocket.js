@@ -310,8 +310,7 @@ class LGTV extends EventEmitter {
                     }, 5000);
                 })
                 .on('error', (error) => {
-                    this.emit('error', `Socket connection error: ${error}`);
-                    client.close();
+                    this.emit('error', `Socket connection error: ${error}`)
                 });
 
             try {
