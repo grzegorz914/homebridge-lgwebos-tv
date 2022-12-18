@@ -70,6 +70,11 @@ class lgwebosTvDevice {
 		this.mac = config.mac;
 		this.volumeControl = config.volumeControl || 0;
 		this.infoButtonCommand = config.infoButtonCommand || 'INFO';
+		this.sensorPower = config.sensorPower || false;
+		this.masterVolume = config.masterVolume || false;
+		this.sensorVolume = config.sensorVolume || false
+		this.sensorScreenOnOff = config.sensorScreenOnOff || false;
+		this.sensorScreenSaver = config.sensorScreenSaver || false;
 		this.disableLogInfo = config.disableLogInfo || false;
 		this.disableLogDeviceInfo = config.disableLogDeviceInfo || false;
 		this.enableDebugMode = config.enableDebugMode || false;
@@ -123,6 +128,8 @@ class lgwebosTvDevice {
 		this.mute = true;
 		this.audioOutput = '';
 		this.invertMediaState = false;
+		this.screenOnOff = false;
+		this.screenSaver = false;
 
 		this.inputIdentifier = 0;
 		this.channelName = '';
@@ -300,7 +307,7 @@ class lgwebosTvDevice {
 					};
 				};
 			})
-			.on('powerState', (power, pixelRefresh, screenState) => {
+			.on('powerState', (power, pixelRefresh, screenState, tvScreenState) => {
 
 				if (this.televisionService) {
 					this.televisionService
@@ -310,6 +317,25 @@ class lgwebosTvDevice {
 							.updateCharacteristic(Characteristic.On, screenState);
 					};
 				};
+
+				if (this.sensorPowerService) {
+					this.sensorPowerService
+						.updateCharacteristic(Characteristic.MotionDetected, power)
+				}
+
+				if (this.sensorScreenOnOffService) {
+					const state = (power && tvScreenState == 'Screen Off') ? true : false;
+					this.sensorScreenOnOffService
+						.updateCharacteristic(Characteristic.MotionDetected, state)
+					this.screenOnOff = state;
+				}
+
+				if (this.sensorScreenSaverService) {
+					const state = (power && tvScreenState == 'Screen Saver') ? true : false;
+					this.sensorScreenSaverService
+						.updateCharacteristic(Characteristic.MotionDetected, state)
+					this.screenSaver = state;
+				}
 
 				this.power = power;
 				this.screenState = screenState;
@@ -344,6 +370,19 @@ class lgwebosTvDevice {
 							.updateCharacteristic(Characteristic.On, !mute);
 					};
 				};
+
+				if (this.sensorVolumeService) {
+					const state = (this.volume != volume) ? true : false;
+					this.sensorVolumeService
+						.updateCharacteristic(Characteristic.MotionDetected, state)
+					this.sensorVolumeState = state;
+				}
+
+				if (this.sensorMuteService) {
+					const state = this.power ? mute : false;
+					this.sensorMuteService
+						.updateCharacteristic(Characteristic.MotionDetected, state)
+				}
 
 				this.volume = volume;
 				this.mute = mute;
@@ -974,6 +1013,62 @@ class lgwebosTvDevice {
 				accessory.addService(this.turnScreenOnOffService);
 			};
 		}
+
+		//prepare sensor service
+		if (this.sensorPower) {
+			this.log.debug('prepareSensorPowerService')
+			this.sensorPowerService = new Service.MotionSensor(`${accessoryName} Power Sensor`, `Power Sensor`);
+			this.sensorPowerService.getCharacteristic(Characteristic.MotionDetected)
+				.onGet(async () => {
+					const state = this.power;
+					return state;
+				});
+			accessory.addService(this.sensorPowerService);
+		};
+
+		if (this.sensorVolume) {
+			this.log.debug('prepareSensorVolumeService')
+			this.sensorVolumeService = new Service.MotionSensor(`${accessoryName} Volume Sensor`, `Volume Sensor`);
+			this.sensorVolumeService.getCharacteristic(Characteristic.MotionDetected)
+				.onGet(async () => {
+					const state = this.sensorVolumeState;
+					return state;
+				});
+			accessory.addService(this.sensorVolumeService);
+		};
+
+		if (this.sensorMute) {
+			this.log.debug('prepareSensorMuteService')
+			this.sensorMuteService = new Service.MotionSensor(`${accessoryName} Mute Sensor`, `Mute Sensor`);
+			this.sensorMuteService.getCharacteristic(Characteristic.MotionDetected)
+				.onGet(async () => {
+					const state = this.power ? this.mute : false;
+					return state;
+				});
+			accessory.addService(this.sensorMuteService);
+		};
+
+		if (this.sensorScreenOnOff && this.webOS >= 4) {
+			this.log.debug('prepareSensorScreenOnOffService')
+			this.sensorScreenOnOffService = new Service.MotionSensor(`${accessoryName} Screen On/Off Sensor`, `Screen On/Off Sensor`);
+			this.sensorScreenOnOffService.getCharacteristic(Characteristic.MotionDetected)
+				.onGet(async () => {
+					const state = this.power ? this.screenOnOff : false;
+					return state;
+				});
+			accessory.addService(this.sensorScreenOnOffService);
+		};
+
+		if (this.sensorScreenSaver) {
+			this.log.debug('prepareSensorScreenSaverService')
+			this.sensorScreenSaverService = new Service.MotionSensor(`${accessoryName} Screen Saver Sensor`, `Screen Saver Sensor`);
+			this.sensorScreenSaverService.getCharacteristic(Characteristic.MotionDetected)
+				.onGet(async () => {
+					const state = this.power ? this.screenSaver : false;
+					return state;
+				});
+			accessory.addService(this.sensorScreenSaverService);
+		};
 
 		//Prepare inputs service
 		this.log.debug('prepareInputsService');

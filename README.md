@@ -62,7 +62,12 @@ Tested with OLED65G6V, 32LM6300PLA, 49SK8500, OLED65C7T, 55SK800PLB, OLED48CX.
 | `disableLogInfo` | This disable log info, all values and state will not be displayed in Homebridge log console. |
 | `disableLogDeviceInfo` | If enabled, add ability to disable log device info by every connections device to the network. |
 | `enableDebugMode` | This enable deep log in homebridge console. |
+| `sensorPower`| If enabled, then the Power will be exposed as a `Motion Sensor` to use with automations. |
 | `volumeControl` | Here select volume control mode `None`, `Slider`, `Fan`. |
+| `sensorVolume`| If enabled, then the Volume will be exposed as a `Motion Sensor` to use with automations. |
+| `sensorMute`| If enabled, then the Mute will be exposed as a `Motion Sensor` to use with automations. |
+| `sensorScreenOnOff`| If enabled, then the Screen On/Off will be exposed as a `Motion Sensor` to use with automations. |
+| `sensorScreenSaver`| If enabled, then the Screen Saver will be exposed as a `Motion Sensor` to use with automations. |
 | `infoButtonCommand` | Here select the function of `I` button in RC app. |
 | `getInputsFromDevice` | This enable load inputs and apps direct from device. |
 | `filterSystemApps` | This enable filter sysem apps, only if `getInputsFromDevice` is `true`. |
@@ -95,14 +100,16 @@ Tested with OLED65G6V, 32LM6300PLA, 49SK8500, OLED65C7T, 55SK800PLB, OLED48CX.
             "name": "LG TV",
             "host": "192.168.1.8",
             "mac": "ab:cd:ef:fe:dc:ba",
-            "disableLogInfo": false,
-            "disableLogDeviceInfo": false,
-            "enableDebugMode": false,
             "volumeControl": 0,
             "infoButtonCommand": "MENU",
             "getInputsFromDevice": false,
             "filterSystemApps": false,
             "turnScreenOnOff": false,
+            "sensorPower": false,
+            "sensorMute": false,
+            "sensorVolume": false,
+            "sensorScreenOnOff": false,
+            "sensorScreenSaver": false,
             "inputs": [
                 {
                     "name": "HDMI 3",
@@ -147,6 +154,9 @@ Tested with OLED65G6V, 32LM6300PLA, 49SK8500, OLED65C7T, 55SK800PLB, OLED48CX.
                     "displayType": 0
                }
           ],
+            "enableDebugMode": false,
+            "disableLogInfo": false,
+            "disableLogDeviceInfo": false,
             "enableMqtt": false,
             "mqttHost": "192.168.1.33",
             "mqttPort": 1883,

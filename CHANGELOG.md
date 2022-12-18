@@ -2,6 +2,17 @@
 All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+## [2.3.0] - (18.12.2022)
+## Changes
+- enhancement [#145](https://github.com/grzegorz914/homebridge-lgwebos-tv/issues/145)
+- added Power Motion Sensor for use with automations
+- added Volume Motion Sensor for use with automations (every volume change report motion)
+- added Mute Motion Sensor for use with automations
+- added Screen On/Off Motion Sensor for use with automations
+- added Screen Saver Motion Sensor for use with automations
+- config.schema updated
+- other small fixes
+
  [2.2.7] - (20.10.2022)
 ## Changes
 - fix client.close

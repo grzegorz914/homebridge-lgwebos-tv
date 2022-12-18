@@ -47,6 +47,7 @@ class LGTV extends EventEmitter {
         this.pixelRefresh = false;
         this.volume = 0;
         this.audioOutput = '';
+        this.tvScreenState = '';
 
         this.brightness = 0;
         this.backlight = 0;
@@ -205,10 +206,11 @@ class LGTV extends EventEmitter {
                     case this.powerStateId:
                         const debug5 = debugLog ? this.emit('debug', `Power: ${stringifyMessage}`) : false;
 
+                        let tvScreenState = messageData.state;
                         let power = false;
                         let screenState = false;
                         let pixelRefresh = false;
-                        switch (messageData.state) {
+                        switch (tvScreenState) {
                             case 'Active':
                                 power = true;
                                 screenState = true;
@@ -237,12 +239,12 @@ class LGTV extends EventEmitter {
                         }
                         power = (this.webOS >= 3) ? (this.isConnected && power) : this.isConnected;
 
-                        if (this.power != power || this.screenState != screenState || this.pixelRefresh != pixelRefresh) {
+                        if (this.power != power || this.screenState != screenState || this.pixelRefresh != pixelRefresh || this.tvScreenState != tvScreenState) {
                             this.power = power;
                             this.screenState = screenState;
                             this.pixelRefresh = pixelRefresh;
 
-                            const emit5 = (messageData.returnValue == true) ? this.emit('powerState', power, pixelRefresh, screenState) : false;
+                            const emit5 = (messageData.returnValue == true) ? this.emit('powerState', power, pixelRefresh, screenState, tvScreenState) : false;
                             const updateAudioState = (messageData.returnValue == true && !power) ? this.emit('audioState', this.volume, true, this.audioOutput) : false;
                             const updatePictureSettings = (messageData.returnValue == true && !power) ? this.emit('pictureSettings', this.backlight, this.backlight, this.contrast, this.color, this.pictureMode, false) : false;
                             const mqtt5 = mqttEnabled ? this.emit('mqtt', 'Power', stringifyMessage) : false;

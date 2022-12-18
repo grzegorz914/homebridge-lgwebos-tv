@@ -60,6 +60,41 @@
               "description": "This enable possibility turn ON/OFF screen, only for webOS >= 4.0.",
               "required": false
             },
+            "sensorPower": {
+              "title": "Power Sensor",
+              "type": "boolean",
+              "default": false,
+              "description": "This expose Power as a Motion Sensor to use with automations.",
+              "required": false
+            },
+            "sensorVolume": {
+              "title": "Volume Sensor",
+              "type": "boolean",
+              "default": false,
+              "description": "This expose Volume as a Motion Sensor to use with automations.",
+              "required": false
+            },
+            "sensorMute": {
+              "title": "Mute Sensor",
+              "type": "boolean",
+              "default": false,
+              "description": "This expose Mute as a Motion Sensor to use with automations.",
+              "required": false
+            },
+            "sensorScreenOnOff": {
+              "title": "Screen On/Off Sensor",
+              "type": "boolean",
+              "default": false,
+              "description": "This expose Screen ON/OFF as a Motion Sensor to use with automations.",
+              "required": false
+            },
+            "sensorScreenSaver": {
+              "title": "ScreenSaver Sensor",
+              "type": "boolean",
+              "default": false,
+              "description": "This expose ScreenSaver as a Motion Sensor to use with automations.",
+              "required": false
+            },
             "volumeControl": {
               "title": "Volume Control",
               "type": "integer",
@@ -1074,6 +1109,11 @@
             "devices[].enableDebugMode",
             "devices[].disableLogInfo",
             "devices[].disableLogDeviceInfo",
+            "devices[].sensorPower",
+            "devices[].sensorVolume",
+            "devices[].sensorMute",
+            "devices[].sensorScreenOnOff",
+            "devices[].sensorScreenSaver",
             "devices[].turnScreenOnOff",
             "devices[].infoButtonCommand",
             "devices[].volumeControl"

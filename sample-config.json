@@ -22,14 +22,16 @@
                     "name": "LG TV",
                     "host": "192.168.1.8",
                     "mac": "ab:cd:ef:fe:dc:ba",
-                    "disableLogInfo": false,
-                    "disableLogDeviceInfo": false,
-                    "enableDebugMode": false,
                     "volumeControl": 0,
                     "infoButtonCommand": "MENU",
                     "getInputsFromDevice": false,
                     "filterSystemApps": false,
                     "turnScreenOnOff": false,
+                    "sensorPower": false,
+                    "sensorMute": false,
+                    "sensorVolume": false,
+                    "sensorScreenOnOff": false,
+                    "sensorScreenSaver": false,
                     "inputs": [
                         {
                             "name": "HDMI 3",
@@ -75,6 +77,9 @@
                             "displayType": 0
                         }
                     ],
+                    "enableDebugMode": false,
+                    "disableLogInfo": false,
+                    "disableLogDeviceInfo": false,
                     "enableMqtt": false,
                     "mqttHost": "192.168.1.33",
                     "mqttPort": 1883,
