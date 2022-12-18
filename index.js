@@ -934,10 +934,12 @@ class lgwebosTvDevice {
 								};
 								const setPictureMode = (state && this.power) ? await this.lgtv.send('request', CONSTANS.ApiUrls.SetSystemSettings, payload) : false;
 								const logInfo = this.disableLogInfo ? false : this.log(`Device: ${this.host} ${accessoryName}, set Picture mode: ${pictureModeName}`);
-								this.pictureModeService.updateCharacteristic(Characteristic.On, false);
+
+								setTimeout(() => {
+									const setChar = this.pictureModeService.updateCharacteristic(Characteristic.On, false);
+								}, 300)
 							} catch (error) {
 								this.log.error(`Device: ${this.host} ${accessoryName}, set Picture Mode error: ${error}`);
-								this.pictureModeService.updateCharacteristic(Characteristic.On, false);
 							};
 						});
 
@@ -1182,8 +1184,8 @@ class lgwebosTvDevice {
 		//check available buttons and possible buttons count (max 94)
 		const buttons = this.buttons;
 		const buttonsCount = buttons.length;
-		const availableButtonshCount = 94 - maxInputsCount;
-		const maxButtonsCount = (availableButtonshCount > 0) ? (availableButtonshCount > buttonsCount) ? buttonsCount : availableButtonshCount : 0;
+		const availableButtonsCount = 94 - maxInputsCount;
+		const maxButtonsCount = (availableButtonsCount > 0) ? (availableButtonsCount > buttonsCount) ? buttonsCount : availableButtonsCount : 0;
 		if (maxButtonsCount > 0) {
 			this.log.debug('prepareInputsButtonService');
 			for (let i = 0; i < maxButtonsCount; i++) {
@@ -1228,12 +1230,13 @@ class lgwebosTvDevice {
 							const setChannel = (state && this.power && buttonMode == 1) ? await this.lgtv.send('request', CONSTANS.ApiUrls.OpenChannel, payload1) : false;
 							const setCommand = (state && this.power && buttonMode == 2 && this.lgtv.inputSocket) ? this.lgtv.inputSocket.send('button', payload2) : false;
 							const logInfo = this.disableLogInfo ? false : this.log(`Device: ${this.host} ${accessoryName}, set ${['Input', 'Channel', 'Command'][buttonMode]} name: ${buttonName}, reference: ${[buttonReference, buttonReference, buttonCommand][buttonMode]}`);
-							buttonService.updateCharacteristic(Characteristic.On, false);
-
 							this.appId = appId;
+
+							setTimeout(() => {
+								const setChar = (state && this.power) ? buttonService.updateCharacteristic(Characteristic.On, false) : false;
+							}, 300)
 						} catch (error) {
 							this.log.error(`Device: ${this.host} ${accessoryName}, set ${['Input', 'Channel', 'Command'][buttonMode]} error: ${error}`);
-							buttonService.updateCharacteristic(Characteristic.On, false);
 						};
 					});
 				accessory.addService(buttonService);
