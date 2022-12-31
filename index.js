@@ -141,6 +141,8 @@ class lgwebosTvDevice {
 		this.color = 0;
 		this.pictureMode = 3;
 
+		this.sensorVolumeState = false;
+
 		this.prefDir = path.join(api.user.storagePath(), 'lgwebosTv');
 		this.keyFile = `${this.prefDir}/key_${this.host.split('.').join('')}`;
 		this.devInfoFile = `${this.prefDir}/devInfo_${this.host.split('.').join('')}`;
@@ -155,17 +157,6 @@ class lgwebosTvDevice {
 		}
 		if (fs.existsSync(this.keyFile) == false) {
 			fs.writeFileSync(this.keyFile, '');
-		}
-		if (fs.existsSync(this.devInfoFile) == false) {
-			const obj = {
-				'manufacturer': this.manufacturer,
-				'modelName': this.modelName,
-				'serialNumber': this.serialNumber,
-				'firmwareRevision': this.firmwareRevision,
-				'webOS': this.webOS
-			};
-			const devInfo = JSON.stringify(obj, null, 2);
-			fs.writeFileSync(this.devInfoFile, devInfo);
 		}
 		if (fs.existsSync(this.inputsFile) == false) {
 			fs.writeFileSync(this.inputsFile, '');
@@ -231,17 +222,21 @@ class lgwebosTvDevice {
 
 			try {
 				const obj = {
-					'manufacturer': this.manufacturer,
-					'modelName': modelName,
-					'serialNumber': serialNumber,
-					'firmwareRevision': firmwareRevision,
 					'webOS': webOS
 				};
 				const devInfo = JSON.stringify(obj, null, 2);
 				const writeDevInfo = await fsPromises.writeFile(this.devInfoFile, devInfo);
-				const debug = this.enableDebugMode ? this.log(`Device: ${this.host} ${this.name}, saved Info: ${devInfo}`) : false;
+				const debug = this.enableDebugMode ? this.log(`Device: ${this.host} ${this.name}, saved webOS Info: ${devInfo}`) : false;
 			} catch (error) {
-				this.log.error(`Device: ${this.host} ${this.name}, save Info error: ${error}`);
+				this.log.error(`Device: ${this.host} ${this.name}, save webOS Info error: ${error}`);
+			}
+
+			if (this.informationService) {
+				this.informationService
+					.updateCharacteristic(Characteristic.Manufacturer, this.manufacturer)
+					.updateCharacteristic(Characteristic.Model, modelName)
+					.updateCharacteristic(Characteristic.SerialNumber, serialNumber)
+					.updateCharacteristic(Characteristic.FirmwareRevision, firmwareRevision);
 			};
 
 			this.modelName = modelName;
@@ -298,6 +293,7 @@ class lgwebosTvDevice {
 						}
 						appsArr.push(inputsObj);
 					};
+
 					try {
 						const obj = JSON.stringify(appsArr, null, 2)
 						const writeInputs = await fsPromises.writeFile(this.inputsFile, obj);
@@ -460,36 +456,35 @@ class lgwebosTvDevice {
 	//Prepare accessory
 	async prepareAccessory() {
 		this.log.debug('prepareAccessory');
+		try {
+			const readDevInfo = await fsPromises.readFile(this.devInfoFile);
+			const devInfo = JSON.parse(readDevInfo);
+			const debug = this.enableDebugMode ? this.log(`Device: ${this.host} ${accessoryName}, read webOS Info: ${JSON.stringify(devInfo, null, 2)}`) : false;
+			this.webOS = devInfo.webOS;
+		} catch (error) {
+			this.log.error(`Device: ${this.host} ${accessoryName}, read webOS Info error: ${error}`);
+		};
+
+		//accessory
 		const accessoryName = this.name;
 		const accessoryUUID = UUID.generate(this.mac);
 		const accessoryCategory = Categories.TELEVISION;
 		const accessory = new Accessory(accessoryName, accessoryUUID, accessoryCategory);
 
-		//Prepare information service
+		//information service
 		this.log.debug('prepareInformationService');
-		try {
-			const readDevInfo = await fsPromises.readFile(this.devInfoFile);
-			const devInfo = JSON.parse(readDevInfo);
-			const debug = this.enableDebugMode ? this.log(`Device: ${this.host} ${accessoryName}, read saved Info: ${JSON.stringify(devInfo, null, 2)}`) : false;
+		const manufacturer = this.manufacturer;
+		const modelName = this.modelName;
+		const serialNumber = this.serialNumber;
+		const firmwareRevision = this.firmwareRevision;
+		
+		this.informationService = accessory.getService(Service.AccessoryInformation)
+			.setCharacteristic(Characteristic.Manufacturer, manufacturer)
+			.setCharacteristic(Characteristic.Model, modelName)
+			.setCharacteristic(Characteristic.SerialNumber, serialNumber)
+			.setCharacteristic(Characteristic.FirmwareRevision, firmwareRevision);
 
-			const manufacturer = devInfo.manufacturer;
-			const modelName = devInfo.modelName || this.modelName;
-			const serialNumber = devInfo.serialNumber || this.serialNumber;
-			const firmwareRevision = devInfo.firmwareRevision || this.firmwareRevision;
-			const webOS = devInfo.webOS;
-
-			accessory.getService(Service.AccessoryInformation)
-				.setCharacteristic(Characteristic.Manufacturer, manufacturer)
-				.setCharacteristic(Characteristic.Model, modelName)
-				.setCharacteristic(Characteristic.SerialNumber, serialNumber)
-				.setCharacteristic(Characteristic.FirmwareRevision, firmwareRevision);
-
-			this.webOS = webOS;
-		} catch (error) {
-			this.log.error(`Device: ${this.host} ${accessoryName}, prepare informationn service error: ${error}`);
-		};
-
-		//Prepare television service 
+		//prepare television service 
 		this.log.debug('prepareTelevisionService');
 		this.televisionService = new Service.Television(`${accessoryName} Television`, 'Television');
 		this.televisionService.setCharacteristic(Characteristic.ConfiguredName, accessoryName);
