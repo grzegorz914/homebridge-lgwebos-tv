@@ -463,7 +463,7 @@ class lgwebosTvDevice {
 			const readDevInfo = await fsPromises.readFile(this.devInfoFile);
 			const devInfo = JSON.parse(readDevInfo);
 			const debug = this.enableDebugMode ? this.log(`Device: ${this.host} ${accessoryName}, read webOS Info: ${JSON.stringify(devInfo, null, 2)}`) : false;
-			this.webOS = devInfo.webOS !== undefined ? devInfo.webOS : this.webOS;
+			this.webOS = devInfo.webOS ? devInfo.webOS : this.webOS;
 		} catch (error) {
 			this.log.error(`Device: ${this.host} ${accessoryName}, read webOS Info error: ${error}`);
 		};
@@ -529,8 +529,8 @@ class lgwebosTvDevice {
 					channelId: inputReference
 				}
 				try {
-					const setInput = (this.power && inputReference !== undefined) ? await this.lgtv.send('request', CONSTANS.ApiUrls.LaunchApp, payload) : false
-					const setChannel = (this.power && inputReference !== undefined && inputMode === 1) ? await this.lgtv.send('request', CONSTANS.ApiUrls.OpenChannel, payload1) : false;
+					const setInput = (this.power && inputReference) ? await this.lgtv.send('request', CONSTANS.ApiUrls.LaunchApp, payload) : false
+					const setChannel = (this.power && inputReference && inputMode === 1) ? await this.lgtv.send('request', CONSTANS.ApiUrls.OpenChannel, payload1) : false;
 					const logInfo = this.disableLogInfo ? false : this.log(`Device: ${this.host} ${accessoryName}, set ${inputMode === 0 ? 'Input' : 'Channel'}, name: ${inputName}, reference: ${inputReference}`);
 				} catch (error) {
 					this.log.error(`Device: ${this.host} ${accessoryName}, set ${inputMode === 0 ? 'Input' : 'Channel'} error: ${error}`);
@@ -1105,22 +1105,22 @@ class lgwebosTvDevice {
 			const input = inputs[j];
 
 			//get input reference
-			const inputReference = (input.reference !== undefined) ? input.reference : undefined;
+			const inputReference = (input.reference) ? input.reference : undefined;
 
 			//get input name		
-			const inputName = (savedInputsNames[inputReference] !== undefined) ? savedInputsNames[inputReference] : input.name;
+			const inputName = (savedInputsNames[inputReference]) ? savedInputsNames[inputReference] : input.name;
 
 			//get input type
-			const inputType = (input.type !== undefined) ? CONSTANS.InputSourceType.indexOf(input.type) : 10;
+			const inputType = (input.type) ? CONSTANS.InputSourceType.indexOf(input.type) : 10;
 
 			//get input mode
-			const inputMode = (input.mode !== undefined) ? input.mode : 0;
+			const inputMode = (input.mode) ? input.mode : 0;
 
 			//get input configured
 			const isConfigured = 1;
 
 			//get input visibility state
-			const currentVisibility = (savedTargetVisibility[inputReference] !== undefined) ? savedTargetVisibility[inputReference] : 0;
+			const currentVisibility = (savedTargetVisibility[inputReference]) ? savedTargetVisibility[inputReference] : 0;
 			const targetVisibility = currentVisibility;
 
 			const inputService = new Service.InputSource(inputName, `Input ${j}`);
@@ -1135,10 +1135,9 @@ class lgwebosTvDevice {
 			inputService
 				.getCharacteristic(Characteristic.ConfiguredName)
 				.onSet(async (name) => {
-					const nameIdentifier = (inputReference !== undefined) ? inputReference : false;
-					let newName = savedInputsNames;
-					newName[nameIdentifier] = name;
-					const newCustomName = JSON.stringify(newName);
+					const nameIdentifier = (inputReference) ? inputReference : false;
+					savedInputsNames[nameIdentifier] = name;
+					const newCustomName = JSON.stringify(savedInputsNames, null, 2);
 					try {
 						const writeNewCustomName = (nameIdentifier !== false) ? await fsPromises.writeFile(this.inputsNamesFile, newCustomName) : false;
 						const logInfo = this.disableLogInfo ? false : this.log(`Device: ${this.host} ${accessoryName}, saved new ${inputMode === 0 ? 'Input' : 'Channel'}, name: ${newCustomName}, reference: ${inputReference}`);
@@ -1150,10 +1149,9 @@ class lgwebosTvDevice {
 			inputService
 				.getCharacteristic(Characteristic.TargetVisibilityState)
 				.onSet(async (state) => {
-					const targetVisibilityIdentifier = (inputReference !== undefined) ? inputReference : false;
-					let newState = savedTargetVisibility;
-					newState[targetVisibilityIdentifier] = state;
-					const newTargetVisibility = JSON.stringify(newState);
+					const targetVisibilityIdentifier = (inputReference) ? inputReference : false;
+					savedTargetVisibility[targetVisibilityIdentifier] = state;
+					const newTargetVisibility = JSON.stringify(savedTargetVisibility, null, 2);
 					try {
 						const writeNewTargetVisibility = (targetVisibilityIdentifier !== false) ? await fsPromises.writeFile(this.inputsTargetVisibilityFile, newTargetVisibility) : false;
 						const logInfo = this.disableLogInfo ? false : this.log(`Device: ${this.host} ${accessoryName}, saved new ${inputMode === 0 ? 'Input' : 'Channel'}: ${inputName}, Visibility: ${state ? 'HIDEN' : 'SHOWN'}`);
@@ -1191,10 +1189,10 @@ class lgwebosTvDevice {
 				const buttonCommand = button.command;
 
 				//get button name
-				const buttonName = (button.name !== undefined) ? button.name : [buttonReference, buttonReference, buttonCommand][buttonMode];
+				const buttonName = (button.name) ? button.name : [buttonReference, buttonReference, buttonCommand][buttonMode];
 
 				//get button display type
-				const buttonDisplayType = (button.displayType !== undefined) ? button.displayType : 0;
+				const buttonDisplayType = (button.displayType) ? button.displayType : 0;
 
 				const serviceType = [Service.Outlet, Service.Switch][buttonDisplayType];
 				const buttonService = new serviceType(`${accessoryName} ${buttonName}`, `Button ${buttonName}`);
