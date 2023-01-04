@@ -1076,7 +1076,7 @@ class lgwebosTvDevice {
 		const savedInputsNames = ((fs.readFileSync(this.inputsNamesFile)).length > 0) ? JSON.parse(fs.readFileSync(this.inputsNamesFile)) : {};
 		const debug1 = this.enableDebugMode ? this.log(`Device: ${this.host} ${accessoryName}, saved Inputs/Channels names: ${JSON.stringify(savedInputsNames, null, 2)}`) : false;
 
-		const savedTargetVisibility = ((fs.readFileSync(this.inputsTargetVisibilityFile)).length > 0) ? JSON.parse(fs.readFileSync(this.inputsTargetVisibilityFile)) : {};
+		const savedInputsTargetVisibility = ((fs.readFileSync(this.inputsTargetVisibilityFile)).length > 0) ? JSON.parse(fs.readFileSync(this.inputsTargetVisibilityFile)) : {};
 		const debug2 = this.enableDebugMode ? this.log(`Device: ${this.host} ${accessoryName}, saved Inputs/Channels Visibility states: ${JSON.stringify(savedTargetVisibility, null, 2)}`) : false;
 
 		//check available inputs and filter custom unnecessary inputs
@@ -1120,7 +1120,7 @@ class lgwebosTvDevice {
 			const isConfigured = 1;
 
 			//get input visibility state
-			const currentVisibility = (savedTargetVisibility[inputReference]) ? savedTargetVisibility[inputReference] : 0;
+			const currentVisibility = (savedInputsTargetVisibility[inputReference]) ? savedInputsTargetVisibility[inputReference] : 0;
 			const targetVisibility = currentVisibility;
 
 			const inputService = new Service.InputSource(inputName, `Input ${j}`);
@@ -1150,8 +1150,8 @@ class lgwebosTvDevice {
 				.getCharacteristic(Characteristic.TargetVisibilityState)
 				.onSet(async (state) => {
 					const targetVisibilityIdentifier = (inputReference) ? inputReference : false;
-					savedTargetVisibility[targetVisibilityIdentifier] = state;
-					const newTargetVisibility = JSON.stringify(savedTargetVisibility, null, 2);
+					savedInputsTargetVisibility[targetVisibilityIdentifier] = state;
+					const newTargetVisibility = JSON.stringify(savedInputsTargetVisibility, null, 2);
 					try {
 						const writeNewTargetVisibility = (targetVisibilityIdentifier !== false) ? await fsPromises.writeFile(this.inputsTargetVisibilityFile, newTargetVisibility) : false;
 						const logInfo = this.disableLogInfo ? false : this.log(`Device: ${this.host} ${accessoryName}, saved new ${inputMode === 0 ? 'Input' : 'Channel'}: ${inputName}, Visibility: ${state ? 'HIDEN' : 'SHOWN'}`);
