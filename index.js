@@ -453,20 +453,20 @@ class lgwebosTvDevice {
 	//Prepare accessory
 	async prepareAccessory() {
 		this.log.debug('prepareAccessory');
-		try {
-			const readDevInfo = await fsPromises.readFile(this.devInfoFile);
-			const devInfo = JSON.parse(readDevInfo);
-			const debug = this.enableDebugMode ? this.log(`Device: ${this.host} ${accessoryName}, read webOS Info: ${JSON.stringify(devInfo, null, 2)}`) : false;
-			this.webOS = devInfo.webOS;
-		} catch (error) {
-			this.log.error(`Device: ${this.host} ${accessoryName}, read webOS Info error: ${error}`);
-		};
-
 		//accessory
 		const accessoryName = this.name;
 		const accessoryUUID = UUID.generate(this.mac);
 		const accessoryCategory = Categories.TELEVISION;
 		const accessory = new Accessory(accessoryName, accessoryUUID, accessoryCategory);
+
+		try {
+			const readDevInfo = await fsPromises.readFile(this.devInfoFile);
+			const devInfo = JSON.parse(readDevInfo);
+			const debug = this.enableDebugMode ? this.log(`Device: ${this.host} ${accessoryName}, read webOS Info: ${JSON.stringify(devInfo, null, 2)}`) : false;
+			this.webOS = devInfo.webOS !== undefined ? devInfo.webOS : this.webOS;
+		} catch (error) {
+			this.log.error(`Device: ${this.host} ${accessoryName}, read webOS Info error: ${error}`);
+		};
 
 		//information service
 		this.log.debug('prepareInformationService');
