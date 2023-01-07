@@ -41,13 +41,17 @@ class LGTV extends EventEmitter {
         this.currentChannelId = '';
         this.pictureSettingsId = '';
 
+        this.firstRun = true;
         this.webOS = 2;
         this.power = false;
         this.screenState = false;
         this.pixelRefresh = false;
         this.volume = 0;
+        this.mute = false;
         this.audioOutput = '';
         this.tvScreenState = '';
+        this.appId = '';
+        this.channelId = '';
 
         this.brightness = 0;
         this.backlight = 0;
@@ -76,32 +80,33 @@ class LGTV extends EventEmitter {
                 switch (messageId) {
                     case this.registerId:
                         const pairingKey = messageData['client-key'];
-                        if (pairingKey) {
-                            if (pairingKey !== this.savedPairingKey) {
-                                try {
-                                    const writeKey = await fsPromises.writeFile(keyFile, pairingKey);
-                                    this.emit('message', 'Pairing key saved.')
-                                    this.savedPairingKey = pairingKey;
-                                } catch (error) {
-                                    this.emit('error', `Pairing key saved error: ${error}`)
-                                };
-                            };
-
-                            //Request specjalized socket
-                            try {
-                                this.socketId = await this.send('request', CONSTANS.ApiUrls.SocketUrl);
-                            } catch (error) {
-                                this.emit('error', `Request spezjalized socket error: ${error}`)
-                            };
-
-                            //Request system info data
-                            try {
-                                this.systemInfoId = await this.send('request', CONSTANS.ApiUrls.GetSystemInfo);
-                            } catch (error) {
-                                this.emit('error', `Request system info data error: ${error}`)
-                            };
-                        } else {
+                        if (!pairingKey) {
                             this.emit('message', 'Please accept authorization on TV.');
+                            return;
+                        };
+
+                        if (pairingKey !== this.savedPairingKey) {
+                            try {
+                                const writeKey = await fsPromises.writeFile(keyFile, pairingKey);
+                                this.emit('message', 'Pairing key saved.')
+                                this.savedPairingKey = pairingKey;
+                            } catch (error) {
+                                this.emit('error', `Pairing key saved error: ${error}`)
+                            };
+                        };
+
+                        //Request specjalized socket
+                        try {
+                            this.socketId = await this.send('request', CONSTANS.ApiUrls.SocketUrl);
+                        } catch (error) {
+                            this.emit('error', `Request spezjalized socket error: ${error}`)
+                        };
+
+                        //Request system info data
+                        try {
+                            this.systemInfoId = await this.send('request', CONSTANS.ApiUrls.GetSystemInfo);
+                        } catch (error) {
+                            this.emit('error', `Request system info data error: ${error}`)
                         };
                         break;
                     case this.socketId:
@@ -236,23 +241,30 @@ class LGTV extends EventEmitter {
                                 screenState = false;
                                 pixelRefresh = false;
                                 break;
+                            default:
+                                power = false;
+                                screenState = false;
+                                pixelRefresh = false;
                         }
                         power = (this.webOS >= 3) ? (this.isConnected && power) : this.isConnected;
 
-                        if (this.power !== power || this.screenState !== screenState || this.pixelRefresh !== pixelRefresh || this.tvScreenState !== tvScreenState) {
-                            this.power = power;
-                            this.screenState = screenState;
-                            this.pixelRefresh = pixelRefresh;
-
-                            const emit5 = (messageData.returnValue === true) ? this.emit('powerState', power, pixelRefresh, screenState, tvScreenState) : false;
-                            const updateAudioState = (messageData.returnValue === true && !power) ? this.emit('audioState', this.volume, true, this.audioOutput) : false;
-                            const updatePictureSettings = (messageData.returnValue === true && !power) ? this.emit('pictureSettings', this.backlight, this.backlight, this.contrast, this.color, this.pictureMode, false) : false;
-                            const mqtt5 = mqttEnabled ? this.emit('mqtt', 'Power', stringifyMessage) : false;
+                        if (this.power === power && this.screenState === screenState && this.pixelRefresh === pixelRefresh && this.tvScreenState === tvScreenState) {
+                            return;
                         }
+
+                        this.power = power;
+                        this.screenState = screenState;
+                        this.pixelRefresh = pixelRefresh;
+
+                        const emit5 = (messageData.returnValue === true) ? this.emit('powerState', power, pixelRefresh, screenState, tvScreenState) : false;
+                        const updateAudioState = (messageData.returnValue === true && !power) ? this.emit('audioState', this.volume, true, this.audioOutput) : false;
+                        const updatePictureSettings = (messageData.returnValue === true && !power) ? this.emit('pictureSettings', this.backlight, this.backlight, this.contrast, this.color, this.pictureMode, false) : false;
+                        const mqtt5 = mqttEnabled ? this.emit('mqtt', 'Power', stringifyMessage) : false;
                         break;
                     case this.currentAppId:
                         const debug6 = debugLog ? this.emit('debug', `Current App: ${stringifyMessage}`) : false;
                         const appId = messageData.appId;
+                        this.appId = appId;
 
                         const emit6 = (messageData.returnValue === true) ? this.emit('currentApp', appId) : false;
                         const mqtt6 = mqttEnabled ? this.emit('mqtt', 'Current App', stringifyMessage) : false;
@@ -262,7 +274,9 @@ class LGTV extends EventEmitter {
                         const volume = messageData.volume;
                         const mute = (messageData.mute === true);
                         const audioOutput = (this.webOS >= 5) ? messageData.volumeStatus.soundOutput : messageData.scenario;
+
                         this.volume = volume;
+                        this.mute = mute;
                         this.audioOutput = audioOutput;
 
                         const emit7 = (messageData.returnValue === true) ? this.emit('audioState', volume, mute, audioOutput) : false;
@@ -273,6 +287,8 @@ class LGTV extends EventEmitter {
                         const channelId = messageData.channelId;
                         const channelName = messageData.channelName;
                         const channelNumber = messageData.channelNumber;
+
+                        this.channelId = channelId;
 
                         const emit8 = (messageData.returnValue === true) ? this.emit('currentChannel', channelName, channelNumber, channelId) : false;
                         const mqtt8 = mqttEnabled ? this.emit('mqtt', 'Current Channel', stringifyMessage) : false;
