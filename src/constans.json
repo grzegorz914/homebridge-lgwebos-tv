@@ -34,7 +34,7 @@
         "APPLICATION"
     ],
     "ApiUrls": {
-        "WsUrl": "ws://lgwebostv:3000",
+        "WsUrl": "wss://lgwebostv:3001",
         "SocketUrl": "ssap://com.webos.service.networkinput/getPointerInputSocket",
         "ApiGetServiceList": "ssap://api/getServiceList",
         "GetSystemInfo": "ssap://system/getSystemInfo",
