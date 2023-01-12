@@ -98,12 +98,7 @@ class lgwebosTvDevice {
 		this.mqttDebug = config.mqttDebug || false;
 
 		//add configured inputs to the default inputs
-		const inputsArr = new Array();
-		const defaultInputsCount = CONSTANS.DefaultInputs.length;
-		for (let i = 0; i < defaultInputsCount; i++) {
-			inputsArr.push(CONSTANS.DefaultInputs[i]);
-		}
-		this.inputs = [...inputsArr, ...this.inputs];
+		this.inputs = [...CONSTANS.DefaultInputs, ...this.inputs];
 
 		//device info
 		this.manufacturer = 'LG Electronics';
