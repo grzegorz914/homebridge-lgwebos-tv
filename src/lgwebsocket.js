@@ -10,7 +10,8 @@ const SOCKET_OPTIONS = {
     keepalive: true,
     keepaliveInterval: 5000,
     keepaliveGracePeriod: 3000,
-    dropConnectionOnKeepaliveTimeout: true
+    dropConnectionOnKeepaliveTimeout: true,
+    maxReceivedFrameSize: 4000000,
 };
 
 class LGTV extends EventEmitter {
