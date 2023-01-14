@@ -2,6 +2,11 @@
 All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+## [2.4.2] - (14.01.2023)
+## Changes
+- fix state update after restart
+- code cleanup
+
 ## [2.4.1] - (14.01.2023)
 ## Changes
 - added Input Motion Sensor for use with automations (every Input change report motion)

@@ -19,38 +19,8 @@ class LGTV extends EventEmitter {
         this.savedPairingKey = savedKey.toString();
         this.startPrepareAccessory = true;
         this.isConnected = false;
-        this.specializedSockets = {};
         this.inputSocket = false;
-
-        this.registerId = '';
-        this.socketId = '';
-        this.systemInfoId = '';
-        this.softwareInfoId = '';
-        this.installedAppsId = '';
-        this.channelsId = '';
-        this.powerStateId = '';
-        this.audioStateId = '';
-        this.currentAppId = '';
-        this.currentChannelId = '';
-        this.pictureSettingsId = '';
-
-        this.firstRun = true;
-        this.power = false;
-        this.screenState = false;
-        this.pixelRefresh = false;
-        this.volume = 0;
-        this.mute = false;
-        this.audioOutput = '';
-        this.tvScreenState = '';
-        this.appId = '';
-        this.channelId = '';
-
-        this.brightness = 0;
-        this.backlight = 0;
-        this.contrast = 0;
-        this.color = 0;
-        this.pictureMode = 3;
-        this.heartBeat = false;
+        this.heartBeat = true;
 
         this.connect = () => {
             const clientUrl = sslWebSocket ? (url, { rejectUnauthorized: false }) : url;
@@ -124,7 +94,7 @@ class LGTV extends EventEmitter {
                             const debug1 = debugLog ? this.emit('debug', 'Specialized socket closed.') : false;
                             this.inputSocket = false;
                         }).on('error', (error) => {
-                            this.emit('error', `Specialized socket special connection error: ${error}.`);
+                            this.emit('error', `Specialized socket error: ${error}.`);
                         });
                         break;
                     case this.systemInfoId:
@@ -144,31 +114,16 @@ class LGTV extends EventEmitter {
                         const productName = messageData.product_name;
                         const serialNumber = messageData.device_id;
                         const firmwareRevision = `${messageData.major_ver}.${messageData.minor_ver}`;
-                        const webOS = productName.slice(8, -2);
+                        this.webOS = productName.slice(8, -2);
 
-                        try {
-                            this.channelsId = await this.send('subscribe', CONSTANS.ApiUrls.GetChannelList);
-                            this.appsId = await this.send('subscribe', CONSTANS.ApiUrls.GetInstalledApps);
-                            this.powerStateId = await this.send('subscribe', CONSTANS.ApiUrls.GetPowerState);
-                            this.currentAppId = await this.send('subscribe', CONSTANS.ApiUrls.GetForegroundAppInfo);
-                            this.audioStateId = await this.send('subscribe', CONSTANS.ApiUrls.GetAudioStatus);
-                            this.currentChannelId = await this.send('subscribe', CONSTANS.ApiUrls.GetCurrentChannel);
+                        this.emit('message', 'Connected.');
+                        this.emit('deviceInfo', this.modelName, productName, serialNumber, firmwareRevision, this.webOS);
+                        const mqtt2 = mqttEnabled ? this.emit('mqtt', 'Software Info', stringifyMessage) : false;
 
-                            if (webOS >= 4) {
-                                const payload = {
-                                    category: 'picture',
-                                    keys: ['brightness', 'backlight', 'contrast', 'color']
-                                }
-                                this.pictureSettingsId = await this.send('subscribe', CONSTANS.ApiUrls.GetSystemSettings, payload);
-                            };
-
-                            this.emit('message', 'Connected.');
-                            this.emit('deviceInfo', this.modelName, productName, serialNumber, firmwareRevision, webOS);
-                            const mqtt2 = mqttEnabled ? this.emit('mqtt', 'Software Info', stringifyMessage) : false;
-                            const prepareAccessory = this.startPrepareAccessory ? client.emit('prepareAccessory') : false;
-                        } catch (error) {
-                            this.emit('error', `Data error: ${error}`)
-                        };
+                        client.emit('subscribeInputsChannelsList');
+                        await new Promise(resolve => setTimeout(resolve, 2500));
+                        const prepareAccessory = this.startPrepareAccessory ? client.emit('prepareAccessory') : false;
+                        client.emit('subscribeTvState');
                         break;
                     case this.channelsId:
                         const debug3 = debugLog ? this.emit('debug', `Channels: ${stringifyMessage}`) : false;
@@ -186,7 +141,7 @@ class LGTV extends EventEmitter {
                         const debug4 = debugLog ? this.emit('debug', `Apps: ${stringifyMessage}`) : false;
 
                         const apppsList = messageData.apps;
-                        if (!apppsList || !messageData.returnValue) {
+                        if (!apppsList) {
                             return;
                         };
 
@@ -233,24 +188,19 @@ class LGTV extends EventEmitter {
                         }
                         power = (this.webOS >= 3) ? (this.isConnected && power) : this.isConnected;
 
-                        if (this.power === power && this.screenState === screenState && this.pixelRefresh === pixelRefresh && this.tvScreenState === tvScreenState) {
-                            return;
-                        };
-
-                        this.power = power;
-                        this.screenState = screenState;
-                        this.pixelRefresh = pixelRefresh;
-                        this.tvScreenState = tvScreenState;
-
                         this.emit('powerState', power, pixelRefresh, screenState, tvScreenState);
-                        const updateAudioState = !power ? this.emit('audioState', this.volume, true, this.audioOutput) : false;
-                        const updatePictureSettings = !power ? this.emit('pictureSettings', this.backlight, this.backlight, this.contrast, this.color, this.pictureMode, false) : false;
                         const mqtt5 = mqttEnabled ? this.emit('mqtt', 'Power', stringifyMessage) : false;
+
+                        if (power) {
+                            return;
+                        }
+
+                        this.emit('audioState', 0, true, 'unknown');
+                        this.emit('pictureSettings', 0, 0, 0, 0, 3, false);
                         break;
                     case this.currentAppId:
                         const debug6 = debugLog ? this.emit('debug', `Current App: ${stringifyMessage}`) : false;
                         const appId = messageData.appId;
-                        this.appId = appId;
 
                         this.emit('currentApp', appId);
                         const mqtt6 = mqttEnabled ? this.emit('mqtt', 'Current App', stringifyMessage) : false;
@@ -273,7 +223,6 @@ class LGTV extends EventEmitter {
                         const channelName = messageData.channelName;
                         const channelNumber = messageData.channelNumber;
 
-                        this.channelId = channelId;
                         this.emit('currentChannel', channelName, channelNumber, channelId);
                         const mqtt8 = mqttEnabled ? this.emit('mqtt', 'Current Channel', stringifyMessage) : false;
                         break;
@@ -285,40 +234,57 @@ class LGTV extends EventEmitter {
                         const color = messageData.settings.color;
                         const pictureMode = 3;
 
-                        this.brightness = brightness;
-                        this.backlight = backlight;
-                        this.contrast = contrast;
-                        this.color = color;
-                        this.pictureMode = pictureMode;
-
                         this.emit('pictureSettings', brightness, backlight, contrast, color, pictureMode, this.power);
                         const mqtt9 = mqttEnabled ? this.emit('mqtt', 'Picture Settings', stringifyMessage) : false;
                         break;
                 };
 
+            }).on('subscribeInputsChannelsList', async () => {
+                const debug = debugLog ? this.emit('debug', `Subscribe Inputs and Channels list.`) : false;
+                try {
+                    this.channelsId = await this.send('subscribe', CONSTANS.ApiUrls.GetChannelList);
+                    this.appsId = await this.send('subscribe', CONSTANS.ApiUrls.GetInstalledApps);
+                } catch (error) {
+                    this.emit('error', `Subscribe Inputs and Channels list error: ${error}`)
+                };
             }).on('prepareAccessory', async () => {
                 const debug = debugLog ? this.emit('debug', `Start prepare accessory.`) : false;
-                await new Promise(resolve => setTimeout(resolve, 3000));
                 this.emit('prepareAccessory');
                 this.startPrepareAccessory = false;
+            }).on('subscribeTvState', async () => {
+                const debug = debugLog ? this.emit('debug', `Subscribe TV state.`) : false;
+                try {
+                    this.powerStateId = await this.send('subscribe', CONSTANS.ApiUrls.GetPowerState);
+                    this.currentAppId = await this.send('subscribe', CONSTANS.ApiUrls.GetForegroundAppInfo);
+                    this.audioStateId = await this.send('subscribe', CONSTANS.ApiUrls.GetAudioStatus);
+                    this.currentChannelId = await this.send('subscribe', CONSTANS.ApiUrls.GetCurrentChannel);
+
+                    if (this.webOS >= 4) {
+                        const payload = {
+                            category: 'picture',
+                            keys: ['brightness', 'backlight', 'contrast', 'color']
+                        }
+                        this.pictureSettingsId = await this.send('subscribe', CONSTANS.ApiUrls.GetSystemSettings, payload);
+                    };
+                } catch (error) {
+                    this.emit('error', `Subscribe TV state error: ${error}`)
+                };
             }).on('close', () => {
                 const debug = debugLog ? this.emit('debug', `Socked closed.`) : false;
+                this.isConnected = false;
 
                 if (!this.heartBeat) {
-                    this.isConnected = false;
-                    this.power = false;
-                    this.screenState = false;
-                    this.pixelRefresh = false;
-                    this.emit('powerState', false, false, false, this.tvScreenState);
-                    this.emit('audioState', this.volume, true, this.audioOutput);
-                    this.emit('pictureSettings', this.backlight, this.backlight, this.contrast, this.color, this.pictureMode, false)
+                    this.emit('powerState', false, false, false, false);
+                    this.emit('audioState', 0, true, 'unknown');
+                    this.emit('pictureSettings', 0, 0, 0, 0, 3, false)
                     this.emit('message', 'Disconnected.');
-                    this.heartBeat = true;
                 }
 
+                this.heartBeat = true;
                 this.reconnect();
             }).on('error', (error) => {
-                const debug8 = debugLog ? this.heartBeat ? this.emit('debug', `Socket send heart beat`) : this.emit('debug', `Socket connect error: ${error}`) : false;
+                const debug8 = debugLog ? this.heartBeat ? this.emit('debug', `Socket send heart beat.`) : this.emit('debug', `Socket connect error: ${error}`) : false;
+                this.heartBeat = true;
 
                 //Prepare accessory
                 if (!this.savedPairingKey.length === 0 || !this.startPrepareAccessory) {
@@ -339,7 +305,7 @@ class LGTV extends EventEmitter {
     };
 
     send(type, uri, payload) {
-        return new Promise((resolve, reject) => {
+        return new Promise(async (resolve, reject) => {
             if (!this.isConnected) {
                 reject({
                     status: 'TV not connected!',
