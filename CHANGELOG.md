@@ -2,6 +2,15 @@
 All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+## [2.4.5] - (14.01.2023)
+## Changes
+- fix sensor volume
+
+## [2.4.4] - (14.01.2023)
+## Changes
+- correct some debug info and mqtt topics
+- fix create ssl client
+
 ## [2.4.3] - (14.01.2023)
 ## Changes
 - added Channel Motion Sensor for use with automations (every Channel change report motion)
