@@ -23,8 +23,7 @@ class LGTV extends EventEmitter {
         this.heartBeat = true;
 
         this.connect = () => {
-            const clientUrl = sslWebSocket ? (url, { rejectUnauthorized: false }) : url;
-            const client = new WebSocket(clientUrl);
+            const client = sslWebSocket ? new WebSocket(url, { rejectUnauthorized: false }) : new WebSocket(url);
             client.on('open', async () => {
                 const debug = debugLog ? this.emit('debug', `WebSocket connection established.`) : false;
                 this.websocketClient = client;
@@ -85,13 +84,12 @@ class LGTV extends EventEmitter {
                         const debug10 = debugLog ? this.emit('debug', `Socket Path: ${stringifyMessage}`) : false;
 
                         const socketPath = messageData.socketPath;
-                        const specialClientUrl = sslWebSocket ? (socketPath, { rejectUnauthorized: false }) : socketPath;
-                        const specialClient = new WebSocket(specialClientUrl);
+                        const specialClient = sslWebSocket ? new WebSocket(socketPath, { rejectUnauthorized: false }) : new WebSocket(socketPath);
                         specialClient.on('open', () => {
                             this.inputSocket = new WebSocketSpecialized(specialClient);
-                            const debug2 = debugLog ? this.emit('debug', `Specialized socket connected.`) : false;
+                            const debug = debugLog ? this.emit('debug', `Specialized socket connected.`) : false;
                         }).on('close', () => {
-                            const debug1 = debugLog ? this.emit('debug', 'Specialized socket closed.') : false;
+                            const debug = debugLog ? this.emit('debug', 'Specialized socket closed.') : false;
                             this.inputSocket = false;
                         }).on('error', (error) => {
                             this.emit('error', `Specialized socket error: ${error}.`);
@@ -122,11 +120,11 @@ class LGTV extends EventEmitter {
 
                         client.emit('subscribeInputsChannelsList');
                         await new Promise(resolve => setTimeout(resolve, 2500));
-                        const prepareAccessory = this.startPrepareAccessory ? client.emit('prepareAccessory') : false;
+                        client.emit('prepareAccessory');
                         client.emit('subscribeTvState');
                         break;
                     case this.channelsId:
-                        const debug3 = debugLog ? this.emit('debug', `Channels: ${stringifyMessage}`) : false;
+                        const debug3 = debugLog ? this.emit('debug', `Channels List: ${stringifyMessage}`) : false;
 
                         const channelsList = messageData.channelList;
                         const channelsListCount = messageData.channelListCount;
@@ -138,7 +136,7 @@ class LGTV extends EventEmitter {
                         const mqtt3 = mqttEnabled ? this.emit('mqtt', 'Channels', stringifyMessage) : false;
                         break;
                     case this.appsId:
-                        const debug4 = debugLog ? this.emit('debug', `Apps: ${stringifyMessage}`) : false;
+                        const debug4 = debugLog ? this.emit('debug', `Apps List: ${stringifyMessage}`) : false;
 
                         const appsList = messageData.apps;
                         const appsListCount = messageData.apps.length;
@@ -200,11 +198,11 @@ class LGTV extends EventEmitter {
                         this.emit('pictureSettings', 0, 0, 0, 0, 3, false);
                         break;
                     case this.currentAppId:
-                        const debug6 = debugLog ? this.emit('debug', `Current App: ${stringifyMessage}`) : false;
+                        const debug6 = debugLog ? this.emit('debug', `App: ${stringifyMessage}`) : false;
                         const appId = messageData.appId;
 
                         this.emit('currentApp', appId);
-                        const mqtt6 = mqttEnabled ? this.emit('mqtt', 'Current App', stringifyMessage) : false;
+                        const mqtt6 = mqttEnabled ? this.emit('mqtt', 'App', stringifyMessage) : false;
                         break;
                     case this.audioStateId:
                         const debug7 = debugLog ? this.emit('debug', `Audio: ${stringifyMessage}`) : false;
@@ -219,16 +217,16 @@ class LGTV extends EventEmitter {
                         const mqtt7 = mqttEnabled ? this.emit('mqtt', 'Audio', stringifyMessage) : false;
                         break;
                     case this.currentChannelId:
-                        const debug8 = debugLog ? this.emit('debug', `Current Channel: ${stringifyMessage}`) : false;
+                        const debug8 = debugLog ? this.emit('debug', `Channel: ${stringifyMessage}`) : false;
                         const channelId = messageData.channelId;
                         const channelName = messageData.channelName;
                         const channelNumber = messageData.channelNumber;
 
                         this.emit('currentChannel', channelName, channelNumber, channelId);
-                        const mqtt8 = mqttEnabled ? this.emit('mqtt', 'Current Channel', stringifyMessage) : false;
+                        const mqtt8 = mqttEnabled ? this.emit('mqtt', 'Channel', stringifyMessage) : false;
                         break;
                     case this.pictureSettingsId:
-                        const debug9 = debugLog ? this.emit('debug', `Picture Settings: ${stringifyMessage}`) : false;
+                        const debug9 = debugLog ? this.emit('debug', `Picture: ${stringifyMessage}`) : false;
                         const brightness = messageData.settings.brightness;
                         const backlight = messageData.settings.backlight;
                         const contrast = messageData.settings.contrast;
@@ -236,7 +234,7 @@ class LGTV extends EventEmitter {
                         const pictureMode = 3;
 
                         this.emit('pictureSettings', brightness, backlight, contrast, color, pictureMode, this.power);
-                        const mqtt9 = mqttEnabled ? this.emit('mqtt', 'Picture Settings', stringifyMessage) : false;
+                        const mqtt9 = mqttEnabled ? this.emit('mqtt', 'Picture', stringifyMessage) : false;
                         break;
                 };
 
@@ -248,9 +246,9 @@ class LGTV extends EventEmitter {
                 } catch (error) {
                     this.emit('error', `Subscribe Inputs and Channels list error: ${error}`)
                 };
-            }).on('prepareAccessory', async () => {
-                const debug = debugLog ? this.emit('debug', `Start prepare accessory.`) : false;
-                this.emit('prepareAccessory');
+            }).on('prepareAccessory', () => {
+                const debug = debugLog ? this.emit('debug', `Prepare accessory.`) : false;
+                const prepareAccessory = this.startPrepareAccessory ? this.emit('prepareAccessory') : false;
                 this.startPrepareAccessory = false;
             }).on('subscribeTvState', async () => {
                 const debug = debugLog ? this.emit('debug', `Subscribe TV state.`) : false;
