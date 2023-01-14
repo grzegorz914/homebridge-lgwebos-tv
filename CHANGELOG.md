@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+## [2.4.0] - (14.01.2023)
+## Changes
+- change websocket library to ws
+- added SSL for WebSocket, TV with new firmware
+- fix [#151](https://github.com/grzegorz914/homebridge-lgwebos-tv/issues/151)
+- config schema updated
+- code refactor
+
 ## [2.3.6] - (04.01.2023)
 ## Changes
 - fix save target visibility

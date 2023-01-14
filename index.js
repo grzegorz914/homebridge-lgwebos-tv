@@ -88,6 +88,7 @@ class lgwebosTvDevice {
 		this.pictureModeControl = config.pictureModeControl || false;
 		this.pictureModes = config.pictureModes || [];
 		this.turnScreenOnOff = config.turnScreenOnOff || false;
+		this.sslWebSocket = config.sslWebSocket || false;
 		this.mqttEnabled = config.enableMqtt || false;
 		this.mqttHost = config.mqttHost;
 		this.mqttPort = config.mqttPort || 1883;
@@ -194,12 +195,13 @@ class lgwebosTvDevice {
 			});
 
 		//lg tv client
-		const url = `ws://${this.host}:${CONSTANS.WebSocketPort}`;
+		const url = this.sslWebSocket ? CONSTANS.ApiUrls.WssUrl.replace('lgwebostv', this.host) : CONSTANS.ApiUrls.WsUrl.replace('lgwebostv', this.host);
 		this.lgtv = new LgTv({
 			url: url,
 			keyFile: this.keyFile,
 			debugLog: this.enableDebugMode,
-			mqttEnabled: this.mqttEnabled
+			mqttEnabled: this.mqttEnabled,
+			sslWebSocket: this.sslWebSocket
 		});
 
 		this.lgtv.on('deviceInfo', async (modelName, productName, serialNumber, firmwareRevision, webOS) => {
@@ -214,10 +216,7 @@ class lgwebosTvDevice {
 			};
 
 			try {
-				const obj = {
-					'webOS': webOS
-				};
-				const devInfo = JSON.stringify(obj, null, 2);
+				const devInfo = JSON.stringify(webOS, null, 2);
 				const writeDevInfo = await fsPromises.writeFile(this.devInfoFile, devInfo);
 				const debug = this.enableDebugMode ? this.log(`Device: ${this.host} ${this.name}, saved webOS Info: ${devInfo}`) : false;
 			} catch (error) {
@@ -448,22 +447,13 @@ class lgwebosTvDevice {
 	};
 
 	//Prepare accessory
-	async prepareAccessory() {
+	prepareAccessory() {
 		this.log.debug('prepareAccessory');
 		//accessory
 		const accessoryName = this.name;
 		const accessoryUUID = UUID.generate(this.mac);
 		const accessoryCategory = Categories.TELEVISION;
 		const accessory = new Accessory(accessoryName, accessoryUUID, accessoryCategory);
-
-		try {
-			const readDevInfo = await fsPromises.readFile(this.devInfoFile);
-			const devInfo = JSON.parse(readDevInfo);
-			const debug = this.enableDebugMode ? this.log(`Device: ${this.host} ${accessoryName}, read webOS Info: ${JSON.stringify(devInfo, null, 2)}`) : false;
-			this.webOS = devInfo.webOS ? devInfo.webOS : this.webOS;
-		} catch (error) {
-			this.log.error(`Device: ${this.host} ${accessoryName}, read webOS Info error: ${error}`);
-		};
 
 		//information service
 		this.log.debug('prepareInformationService');

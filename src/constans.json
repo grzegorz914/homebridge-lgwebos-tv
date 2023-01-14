@@ -1,5 +1,4 @@
 {
-    "WebSocketPort": 3000,
     "DefaultInputs": [
         {
             "name": "Live TV",
@@ -34,7 +33,8 @@
         "APPLICATION"
     ],
     "ApiUrls": {
-        "WsUrl": "wss://lgwebostv:3001",
+        "WsUrl": "ws://lgwebostv:3000",
+        "WssUrl": "wss://lgwebostv:3001",
         "SocketUrl": "ssap://com.webos.service.networkinput/getPointerInputSocket",
         "ApiGetServiceList": "ssap://api/getServiceList",
         "GetSystemInfo": "ssap://system/getSystemInfo",
