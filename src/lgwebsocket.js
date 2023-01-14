@@ -134,18 +134,19 @@ class LGTV extends EventEmitter {
                             return;
                         };
 
-                        this.emit('channelList', channelsList);
+                        this.emit('channelList', channelsList, channelsListCount);
                         const mqtt3 = mqttEnabled ? this.emit('mqtt', 'Channels', stringifyMessage) : false;
                         break;
                     case this.appsId:
                         const debug4 = debugLog ? this.emit('debug', `Apps: ${stringifyMessage}`) : false;
 
-                        const apppsList = messageData.apps;
-                        if (!apppsList) {
+                        const appsList = messageData.apps;
+                        const appsListCount = messageData.apps.length;
+                        if (appsListCount === 0) {
                             return;
                         };
 
-                        this.emit('installedApps', apppsList);
+                        this.emit('appsList', appsList, appsListCount);
                         const mqtt4 = mqttEnabled ? this.emit('mqtt', 'Apps', stringifyMessage) : false;
                         break;
                     case this.powerStateId:

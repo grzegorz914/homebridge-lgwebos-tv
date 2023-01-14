@@ -31,6 +31,7 @@
                     "sensorVolume": false,
                     "sensorMute": false,
                     "sensorInput": false,
+                    "sensorChannel": false,
                     "sensorScreenOnOff": false,
                     "sensorScreenSaver": false,
                     "inputs": [

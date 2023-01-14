@@ -64,6 +64,7 @@ Tested with OLED65G6V, 32LM6300PLA, 49SK8500, OLED65C7T, 55SK800PLB, OLED48CX.
 | `sensorVolume`| If enabled, then the Volume will be exposed as a `Motion Sensor` to use with automations. |
 | `sensorMute`| If enabled, then the Mute will be exposed as a `Motion Sensor` to use with automations. |
 | `sensorInput`| If enabled, then the Input will be exposed as a `Motion Sensor` to use with automations. |
+| `sensorChannel`| If enabled, then the Channel will be exposed as a `Motion Sensor` to use with automations. |
 | `sensorScreenOnOff`| If enabled, then the Screen On/Off will be exposed as a `Motion Sensor` to use with automations. |
 | `sensorScreenSaver`| If enabled, then the Screen Saver will be exposed as a `Motion Sensor` to use with automations. |
 | `infoButtonCommand` | Here select the function of `I` button in RC app. |
@@ -110,6 +111,7 @@ Tested with OLED65G6V, 32LM6300PLA, 49SK8500, OLED65C7T, 55SK800PLB, OLED48CX.
             "sensorVolume": false,
             "sensorMute": false,
             "sensorInput": false,
+            "sensorChannel": false,
             "sensorScreenOnOff": false,
             "sensorScreenSaver": false,
             "inputs": [

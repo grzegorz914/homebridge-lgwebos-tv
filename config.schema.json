@@ -609,6 +609,13 @@
               "description": "This expose Input as a Motion Sensor to use with automations.",
               "required": false
             },
+            "sensorChannel": {
+              "title": "Channel",
+              "type": "boolean",
+              "default": false,
+              "description": "This expose Channel as a Motion Sensor to use with automations.",
+              "required": false
+            },
             "sensorScreenOnOff": {
               "title": "Screen On/Off",
               "type": "boolean",
@@ -1094,6 +1101,7 @@
             "devices[].sensorVolume",
             "devices[].sensorMute",
             "devices[].sensorInput",
+            "devices[].sensorChannel",
             "devices[].sensorScreenOnOff",
             "devices[].sensorScreenSaver"
           ]

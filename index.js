@@ -71,8 +71,9 @@ class lgwebosTvDevice {
 		this.infoButtonCommand = config.infoButtonCommand || 'INFO';
 		this.sensorPower = config.sensorPower || false;
 		this.masterVolume = config.masterVolume || false;
-		this.sensorMute = config.sensorMute || false
+		this.sensorMute = config.sensorMute || false;
 		this.sensorInput = config.sensorInput || false;
+		this.sensorChannel = config.sensorChannel || false;
 		this.sensorScreenOnOff = config.sensorScreenOnOff || false;
 		this.sensorScreenSaver = config.sensorScreenSaver || false;
 		this.disableLogInfo = config.disableLogInfo || false;
@@ -138,6 +139,7 @@ class lgwebosTvDevice {
 		this.pictureMode = 3;
 		this.sensorVolumeState = false;
 		this.sensorInputState = false;
+		this.sensorChannelState = false;
 
 		this.prefDir = path.join(api.user.storagePath(), 'lgwebosTv');
 		this.keyFile = `${this.prefDir}/key_${this.host.split('.').join('')}`;
@@ -239,62 +241,56 @@ class lgwebosTvDevice {
 			this.firmwareRevision = firmwareRevision;
 			this.webOS = webOS;
 		})
-			.on('channelList', async (channelList) => {
-				const channelsCount = Array.isArray(channelList) ? channelList.length : 0;
-				if (channelsCount > 0) {
-					const channelsArr = new Array();
-					for (let i = 0; i < channelsCount; i++) {
-						const channell = channelList[i];
-						const name = channell.channelName;
-						const reference = channell.channelId;
-						const number = channell.channelNumber;
-						const type = 'TUNER';
-						const mode = 1;
-						const channelsObj = {
-							'name': name,
-							'reference': reference,
-							'number': number,
-							'type': type,
-							'mode': mode
-						}
-						channelsArr.push(channelsObj);
-					};
+			.on('channelList', async (channelList, channelsListCount) => {
+				const channelsArr = new Array();
+				for (let i = 0; i < channelsListCount; i++) {
+					const channell = channelList[i];
+					const name = channell.channelName;
+					const reference = channell.channelId;
+					const number = channell.channelNumber;
+					const type = 'TUNER';
+					const mode = 1;
+					const channelsObj = {
+						'name': name,
+						'reference': reference,
+						'number': number,
+						'type': type,
+						'mode': mode
+					}
+					channelsArr.push(channelsObj);
+				};
 
-					try {
-						const obj = JSON.stringify(channelsArr, null, 2);
-						const writeChannels = await fsPromises.writeFile(this.channelsFile, obj);
-						const debug = this.enableDebugMode ? this.log(`Device: ${this.host} ${this.name}, saved Channels: ${obj}`) : false;
-					} catch (error) {
-						this.log.error(`Device: ${this.host} ${this.name}, save Channels error: ${error}`);
-					};
+				try {
+					const obj = JSON.stringify(channelsArr, null, 2);
+					const writeChannels = await fsPromises.writeFile(this.channelsFile, obj);
+					const debug = this.enableDebugMode ? this.log(`Device: ${this.host} ${this.name}, channels list saved: ${obj}`) : false;
+				} catch (error) {
+					this.log.error(`Device: ${this.host} ${this.name}, save channels list error: ${error}`);
 				};
 			})
-			.on('installedApps', async (installedApps) => {
-				const appsCount = Array.isArray(installedApps) ? installedApps.length : 0;
-				if (appsCount > 0) {
-					const appsArr = new Array();
-					for (let i = 0; i < appsCount; i++) {
-						const app = installedApps[i];
-						const name = app.title;
-						const reference = app.id;
-						const type = 'APPLICATION';
-						const mode = 0;
-						const inputsObj = {
-							'name': name,
-							'reference': reference,
-							'type': type,
-							'mode': mode
-						}
-						appsArr.push(inputsObj);
-					};
+			.on('appsList', async (appsList, appsListCount) => {
+				const appsArr = new Array();
+				for (let i = 0; i < appsListCount; i++) {
+					const app = appsList[i];
+					const name = app.title;
+					const reference = app.id;
+					const type = 'APPLICATION';
+					const mode = 0;
+					const inputsObj = {
+						'name': name,
+						'reference': reference,
+						'type': type,
+						'mode': mode
+					}
+					appsArr.push(inputsObj);
+				};
 
-					try {
-						const obj = JSON.stringify(appsArr, null, 2)
-						const writeInputs = await fsPromises.writeFile(this.inputsFile, obj);
-						const debug = this.enableDebugMode ? this.log(`Device: ${this.host} ${this.name}, saved Apps: ${obj}`) : false;
-					} catch (error) {
-						this.log.error(`Device: ${this.host} ${this.name}, save Apps error: ${error}`);
-					};
+				try {
+					const obj = JSON.stringify(appsArr, null, 2)
+					const writeInputs = await fsPromises.writeFile(this.inputsFile, obj);
+					const debug = this.enableDebugMode ? this.log(`Device: ${this.host} ${this.name}, apps list saved: ${obj}`) : false;
+				} catch (error) {
+					this.log.error(`Device: ${this.host} ${this.name}, save apps list error: ${error}`);
 				};
 			})
 			.on('powerState', (power, pixelRefresh, screenState, tvScreenState) => {
@@ -392,14 +388,14 @@ class lgwebosTvDevice {
 				if (this.televisionService) {
 					this.televisionService
 						.updateCharacteristic(Characteristic.ActiveIdentifier, inputIdentifier);
-
-					if (this.setStartInput) {
-						setTimeout(() => {
-							this.televisionService.setCharacteristic(Characteristic.ActiveIdentifier, this.startInputIdentifier);
-							this.setStartInput = false;
-						}, 1200);
-					};
 				};
+
+				if (this.sensorChannelService) {
+					const state = (this.inputIdentifier !== inputIdentifier) ? true : false;
+					this.sensorChannelService
+						.updateCharacteristic(Characteristic.MotionDetected, state)
+					this.sensorChannelState = state;
+				}
 
 				this.channelName = channelName;
 				this.channelNumber = channelNumber;
@@ -1039,7 +1035,7 @@ class lgwebosTvDevice {
 		};
 
 		if (this.sensorInput) {
-			this.log.debug('prepareSensorChannelService')
+			this.log.debug('prepareSensorInputService')
 			this.sensorInputService = new Service.MotionSensor(`${accessoryName} Input Sensor`, `Input Sensor`);
 			this.sensorInputService.getCharacteristic(Characteristic.MotionDetected)
 				.onGet(async () => {
@@ -1047,6 +1043,17 @@ class lgwebosTvDevice {
 					return state;
 				});
 			accessory.addService(this.sensorInputService);
+		};
+
+		if (this.sensorChannel) {
+			this.log.debug('prepareSensorChannelService')
+			this.sensorChannelService = new Service.MotionSensor(`${accessoryName} Channel Sensor`, `Channel Sensor`);
+			this.sensorChannelService.getCharacteristic(Characteristic.MotionDetected)
+				.onGet(async () => {
+					const state = this.sensorChannelState;
+					return state;
+				});
+			accessory.addService(this.sensorChannelService);
 		};
 
 		if (this.sensorScreenOnOff && this.webOS >= 4) {
