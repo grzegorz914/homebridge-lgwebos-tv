@@ -28,8 +28,9 @@
                     "filterSystemApps": false,
                     "turnScreenOnOff": false,
                     "sensorPower": false,
-                    "sensorMute": false,
                     "sensorVolume": false,
+                    "sensorMute": false,
+                    "sensorInput": false,
                     "sensorScreenOnOff": false,
                     "sensorScreenSaver": false,
                     "inputs": [

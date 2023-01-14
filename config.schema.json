@@ -602,6 +602,13 @@
               "description": "This expose Mute as a Motion Sensor to use with automations.",
               "required": false
             },
+            "sensorInput": {
+              "title": "Input",
+              "type": "boolean",
+              "default": false,
+              "description": "This expose Input as a Motion Sensor to use with automations.",
+              "required": false
+            },
             "sensorScreenOnOff": {
               "title": "Screen On/Off",
               "type": "boolean",
@@ -1086,6 +1093,7 @@
             "devices[].sensorPower",
             "devices[].sensorVolume",
             "devices[].sensorMute",
+            "devices[].sensorInput",
             "devices[].sensorScreenOnOff",
             "devices[].sensorScreenSaver"
           ]

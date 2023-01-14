@@ -71,7 +71,8 @@ class lgwebosTvDevice {
 		this.infoButtonCommand = config.infoButtonCommand || 'INFO';
 		this.sensorPower = config.sensorPower || false;
 		this.masterVolume = config.masterVolume || false;
-		this.sensorVolume = config.sensorVolume || false
+		this.sensorMute = config.sensorMute || false
+		this.sensorInput = config.sensorInput || false;
 		this.sensorScreenOnOff = config.sensorScreenOnOff || false;
 		this.sensorScreenSaver = config.sensorScreenSaver || false;
 		this.disableLogInfo = config.disableLogInfo || false;
@@ -136,6 +137,7 @@ class lgwebosTvDevice {
 		this.color = 0;
 		this.pictureMode = 3;
 		this.sensorVolumeState = false;
+		this.sensorInputState = false;
 
 		this.prefDir = path.join(api.user.storagePath(), 'lgwebosTv');
 		this.keyFile = `${this.prefDir}/key_${this.host.split('.').join('')}`;
@@ -337,6 +339,13 @@ class lgwebosTvDevice {
 					this.televisionService
 						.updateCharacteristic(Characteristic.ActiveIdentifier, inputIdentifier);
 				};
+
+				if (this.sensorInputService) {
+					const state = (this.inputIdentifier !== inputIdentifier) ? true : false;
+					this.sensorInputService
+						.updateCharacteristic(Characteristic.MotionDetected, state)
+					this.sensorInputState = state;
+				}
 
 				this.inputIdentifier = inputIdentifier;
 			})
@@ -1027,6 +1036,17 @@ class lgwebosTvDevice {
 					return state;
 				});
 			accessory.addService(this.sensorMuteService);
+		};
+
+		if (this.sensorInput) {
+			this.log.debug('prepareSensorChannelService')
+			this.sensorInputService = new Service.MotionSensor(`${accessoryName} Input Sensor`, `Input Sensor`);
+			this.sensorInputService.getCharacteristic(Characteristic.MotionDetected)
+				.onGet(async () => {
+					const state = this.sensorInputState;
+					return state;
+				});
+			accessory.addService(this.sensorInputService);
 		};
 
 		if (this.sensorScreenOnOff && this.webOS >= 4) {
