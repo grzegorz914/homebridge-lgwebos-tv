@@ -70,7 +70,7 @@ class lgwebosTvDevice {
 		this.volumeControl = config.volumeControl || 0;
 		this.infoButtonCommand = config.infoButtonCommand || 'INFO';
 		this.sensorPower = config.sensorPower || false;
-		this.masterVolume = config.masterVolume || false;
+		this.sensorVolume = config.sensorVolume || false;
 		this.sensorMute = config.sensorMute || false;
 		this.sensorInput = config.sensorInput || false;
 		this.sensorChannel = config.sensorChannel || false;
