@@ -452,8 +452,11 @@ class lgwebosTvDevice {
 	};
 
 	//Prepare accessory
-	prepareAccessory() {
+	async prepareAccessory() {
 		this.log.debug('prepareAccessory');
+		const webOSInfo = await fsPromises.readFile(this.devInfoFile);
+		const webOS = webOSInfo ? this.webOS : this.webOS;
+
 		//accessory
 		const accessoryName = this.name;
 		const accessoryUUID = UUID.generate(this.mac);
@@ -764,7 +767,7 @@ class lgwebosTvDevice {
 		}
 
 		//Picture Control
-		if (this.webOS >= 4) {
+		if (webOS >= 4) {
 			//Backlight
 			if (this.backlightControl) {
 				this.log.debug('prepareBacklightService');
@@ -980,7 +983,7 @@ class lgwebosTvDevice {
 			}
 
 			//turn screen ON/OFF
-			if (this.turnScreenOnOff && this.webOS >= 4) {
+			if (this.turnScreenOnOff && webOS >= 4) {
 				this.turnScreenOnOffService = new Service.Switch(`${accessoryName} Screen Off`, 'Screen Off');
 				this.turnScreenOnOffService.getCharacteristic(Characteristic.On)
 					.onGet(async () => {
@@ -989,7 +992,7 @@ class lgwebosTvDevice {
 					})
 					.onSet(async (state) => {
 						try {
-							const url = state ? this.webOS > 5 ? CONSTANS.ApiUrls.TurnOnScreen5 : CONSTANS.ApiUrls.TurnOnScreen : this.webOS > 5 ? CONSTANS.ApiUrls.TurnOffScreen5 : CONSTANS.ApiUrls.TurnOffScreen;
+							const url = state ? webOS > 5 ? CONSTANS.ApiUrls.TurnOnScreen5 : CONSTANS.ApiUrls.TurnOnScreen : this.webOS > 5 ? CONSTANS.ApiUrls.TurnOffScreen5 : CONSTANS.ApiUrls.TurnOffScreen;
 							const turnScreenOnOff = this.power ? await this.lgtv.send('request', url) : false;
 							const logInfo = this.disableLogInfo || this.firstRun ? false : this.log(`Device: ${this.host} ${accessoryName}, turn screen ${state ? 'ON' : 'OFF'}.`);
 						} catch (error) {
@@ -1056,7 +1059,7 @@ class lgwebosTvDevice {
 			accessory.addService(this.sensorChannelService);
 		};
 
-		if (this.sensorScreenOnOff && this.webOS >= 4) {
+		if (this.sensorScreenOnOff && webOS >= 4) {
 			this.log.debug('prepareSensorScreenOnOffService')
 			this.sensorScreenOnOffService = new Service.MotionSensor(`${accessoryName} Screen On/Off Sensor`, `Screen On/Off Sensor`);
 			this.sensorScreenOnOffService.getCharacteristic(Characteristic.MotionDetected)
