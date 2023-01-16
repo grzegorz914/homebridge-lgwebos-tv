@@ -156,6 +156,9 @@ class lgwebosTvDevice {
 		if (fs.existsSync(this.keyFile) === false) {
 			fs.writeFileSync(this.keyFile, '');
 		}
+		if (fs.existsSync(this.devInfoFile) === false) {
+			fs.writeFileSync(this.devInfoFile, '');
+		}
 		if (fs.existsSync(this.inputsFile) === false) {
 			fs.writeFileSync(this.inputsFile, '');
 		}
@@ -992,7 +995,16 @@ class lgwebosTvDevice {
 					})
 					.onSet(async (state) => {
 						try {
-							const url = state ? webOS > 5 ? CONSTANS.ApiUrls.TurnOnScreen5 : CONSTANS.ApiUrls.TurnOnScreen : this.webOS > 5 ? CONSTANS.ApiUrls.TurnOffScreen5 : CONSTANS.ApiUrls.TurnOffScreen;
+							const mode = state ? 'screen_on' : 'screen_off';
+							const payload = {
+								category: 'picture',
+								settings: {
+									'energySaving': mode
+								}
+							}
+							const webOS5 = webOS <= 5 ? state ? CONSTANS.ApiUrls.TurnOnScreen : CONSTANS.ApiUrls.TurnOffScreen : false;
+							const webOS6 = webOS > 5 ? state ? CONSTANS.ApiUrls.TurnOnScreen5 : CONSTANS.ApiUrls.TurnOffScreen5 : false;
+							const url = webOS <= 5 ? webOS5 : webOS6;
 							const turnScreenOnOff = this.power ? await this.lgtv.send('request', url) : false;
 							const logInfo = this.disableLogInfo || this.firstRun ? false : this.log(`Device: ${this.host} ${accessoryName}, turn screen ${state ? 'ON' : 'OFF'}.`);
 						} catch (error) {

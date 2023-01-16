@@ -20,7 +20,6 @@ class LGTV extends EventEmitter {
         this.startPrepareAccessory = true;
         this.isConnected = false;
         this.inputSocket = false;
-        this.heartBeat = true;
 
         this.connect = () => {
             const client = sslWebSocket ? new WebSocket(url, { rejectUnauthorized: false }) : new WebSocket(url);
@@ -28,7 +27,6 @@ class LGTV extends EventEmitter {
                 const debug = debugLog ? this.emit('debug', `WebSocket connection established.`) : false;
                 this.websocketClient = client;
                 this.isConnected = true;
-                this.heartBeat = false;
 
                 try {
                     CONSTANS.Pairing['client-key'] = this.savedPairingKey;
@@ -270,20 +268,18 @@ class LGTV extends EventEmitter {
                 };
             }).on('close', () => {
                 const debug = debugLog ? this.emit('debug', `Socked closed.`) : false;
-                this.isConnected = false;
 
-                if (!this.heartBeat) {
+                if (this.isConnected) {
                     this.emit('powerState', false, false, false, false);
                     this.emit('audioState', 0, true, 'unknown');
                     this.emit('pictureSettings', 0, 0, 0, 0, 3, false)
                     this.emit('message', 'Disconnected.');
                 }
 
-                this.heartBeat = true;
+                this.isConnected = false;
                 this.reconnect();
             }).on('error', (error) => {
-                const debug8 = debugLog ? this.heartBeat ? this.emit('debug', `Socket send heart beat.`) : this.emit('debug', `Socket connect error: ${error}`) : false;
-                this.heartBeat = true;
+                const debug8 = debugLog ? !this.isConnected ? this.emit('debug', `Socket send heart beat.`) : this.emit('debug', `Socket connect error: ${error}`) : false;;
 
                 //Prepare accessory
                 if (!this.savedPairingKey.length === 0 || !this.startPrepareAccessory) {
