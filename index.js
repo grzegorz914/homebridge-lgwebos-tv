@@ -112,10 +112,10 @@ class lgwebosTvDevice {
 		this.webOS = 2;
 
 		//setup variables
-		this.inputsReference = new Array();
-		this.inputsName = new Array();
-		this.inputsType = new Array();
-		this.inputsMode = new Array();
+		this.inputsReference = [];
+		this.inputsName = [];
+		this.inputsType = [];
+		this.inputsMode = [];
 
 		this.firstRun = true;
 		this.power = false;
@@ -245,7 +245,7 @@ class lgwebosTvDevice {
 			this.webOS = webOS;
 		})
 			.on('channelList', async (channelList, channelsListCount) => {
-				const channelsArr = new Array();
+				const channelsArr = [];
 				for (let i = 0; i < channelsListCount; i++) {
 					const channell = channelList[i];
 					const name = channell.channelName;
@@ -272,7 +272,7 @@ class lgwebosTvDevice {
 				};
 			})
 			.on('appsList', async (appsList, appsListCount) => {
-				const appsArr = new Array();
+				const appsArr = [];
 				for (let i = 0; i < appsListCount; i++) {
 					const app = appsList[i];
 					const name = app.title;
@@ -1110,7 +1110,7 @@ class lgwebosTvDevice {
 
 		//check available inputs and filter custom unnecessary inputs
 		const allInputs = (this.getInputsFromDevice && savedInputs.length > 0) ? savedInputs : this.inputs;
-		const inputsArr = new Array();
+		const inputsArr = [];
 		const allInputsCount = allInputs.length;
 		for (let i = 0; i < allInputsCount; i++) {
 			const reference = allInputs[i].reference;
