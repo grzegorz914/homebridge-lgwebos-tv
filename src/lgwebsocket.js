@@ -130,7 +130,7 @@ class LGTV extends EventEmitter {
                             return;
                         };
 
-                        this.emit('channelList', channelsList, channelsListCount);
+                        this.emit('channelList', channelsList);
                         const mqtt3 = mqttEnabled ? this.emit('mqtt', 'Channels', stringifyMessage) : false;
                         break;
                     case this.appsId:
@@ -142,7 +142,7 @@ class LGTV extends EventEmitter {
                             return;
                         };
 
-                        this.emit('appsList', appsList, appsListCount);
+                        this.emit('appsList', appsList);
                         const mqtt4 = mqttEnabled ? this.emit('mqtt', 'Apps', stringifyMessage) : false;
                         break;
                     case this.powerStateId:

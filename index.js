@@ -244,21 +244,18 @@ class lgwebosTvDevice {
 			this.firmwareRevision = firmwareRevision;
 			this.webOS = webOS;
 		})
-			.on('channelList', async (channelList, channelsListCount) => {
+			.on('channelList', async (channelList) => {
 				const channelsArr = [];
-				for (let i = 0; i < channelsListCount; i++) {
-					const channell = channelList[i];
+				for (const channell of channelList) {
 					const name = channell.channelName;
 					const reference = channell.channelId;
 					const number = channell.channelNumber;
-					const type = 'TUNER';
-					const mode = 1;
 					const channelsObj = {
 						'name': name,
 						'reference': reference,
 						'number': number,
-						'type': type,
-						'mode': mode
+						'type': 'TUNER',
+						'mode': 1
 					}
 					channelsArr.push(channelsObj);
 				};
@@ -271,19 +268,16 @@ class lgwebosTvDevice {
 					this.log.error(`Device: ${this.host} ${this.name}, save channels list error: ${error}`);
 				};
 			})
-			.on('appsList', async (appsList, appsListCount) => {
+			.on('appsList', async (appsList) => {
 				const appsArr = [];
-				for (let i = 0; i < appsListCount; i++) {
-					const app = appsList[i];
+				for (const app of appsList) {
 					const name = app.title;
 					const reference = app.id;
-					const type = 'APPLICATION';
-					const mode = 0;
 					const inputsObj = {
 						'name': name,
 						'reference': reference,
-						'type': type,
-						'mode': mode
+						'type': 'APPLICATION',
+						'mode': 0
 					}
 					appsArr.push(inputsObj);
 				};
@@ -1110,7 +1104,7 @@ class lgwebosTvDevice {
 
 		//check available inputs and filter custom unnecessary inputs
 		const allInputs = (this.getInputsFromDevice && savedInputs.length > 0) ? savedInputs : this.inputs;
-		const inputsArr = [];
+		const filteredInputsArr = [];
 		const allInputsCount = allInputs.length;
 		for (let i = 0; i < allInputsCount; i++) {
 			const reference = allInputs[i].reference;
@@ -1122,11 +1116,11 @@ class lgwebosTvDevice {
 			const filterApp5 = reference.substr(0, 26) !== 'com.webos.app.twinlivezoom';
 			const filterApp6 = reference !== 'com.webos.app.softwareupdate';
 			const filterApp7 = reference !== 'google.assistant';
-			const push = (this.getInputsFromDevice && this.filterSystemApps) ? (filterApp && filterApp1 && filterApp2 && filterApp3 && filterApp4 && filterApp5 && filterApp6 && filterApp7) ? inputsArr.push(allInputs[i]) : false : inputsArr.push(allInputs[i]);
+			const push = (this.getInputsFromDevice && this.filterSystemApps) ? (filterApp && filterApp1 && filterApp2 && filterApp3 && filterApp4 && filterApp5 && filterApp6 && filterApp7) ? filteredInputsArr.push(allInputs[i]) : false : filteredInputsArr.push(allInputs[i]);
 		}
 
 		//check available inputs and possible inputs count (max 94)
-		const inputs = inputsArr;
+		const inputs = filteredInputsArr;
 		const inputsCount = inputs.length;
 		const maxInputsCount = (inputsCount < 94) ? inputsCount : 94;
 		for (let j = 0; j < maxInputsCount; j++) {
