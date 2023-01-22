@@ -137,7 +137,7 @@ class LGTV extends EventEmitter {
                         const debug4 = debugLog ? this.emit('debug', `Apps List: ${stringifyMessage}`) : false;
 
                         const appsList = messageData.apps;
-                        const appsListCount = appsList.length;
+                        const appsListCount = Array.isArray(appsList) ? appsList.length : 0;
                         if (appsListCount === 0) {
                             return;
                         };
