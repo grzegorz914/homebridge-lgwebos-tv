@@ -146,7 +146,6 @@
                   "mode": {
                     "title": "Mode",
                     "type": "integer",
-                    "maximum": 1,
                     "description": "Here select the function mode.",
                     "oneOf": [
                       {
@@ -183,7 +182,6 @@
                   "mode": {
                     "title": "Mode",
                     "type": "integer",
-                    "maximum": 1,
                     "description": "Here select the function mode.",
                     "oneOf": [
                       {
@@ -654,7 +652,6 @@
                   "displayType": {
                     "title": "Type",
                     "type": "integer",
-                    "default": -1,
                     "oneOf": [
                       {
                         "title": "None",

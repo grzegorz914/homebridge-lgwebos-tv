@@ -1228,7 +1228,7 @@ class lgwebosTvDevice {
 				const inputSensorReference = inputSensor.reference;
 
 				//get sensor display type
-				const inputSensorDisplayType = inputSensor.displayType;
+				const inputSensorDisplayType = inputSensor.displayType || -1;
 
 				if (inputSensorDisplayType === -1) {
 					return;
