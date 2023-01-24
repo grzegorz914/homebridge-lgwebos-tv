@@ -67,6 +67,10 @@ Tested with OLED65G6V, 32LM6300PLA, 49SK8500, OLED65C7T, 55SK800PLB, OLED48CX.
 | `sensorChannel`| If enabled, then the Channel will be exposed as a `Motion Sensor` to use with automations. |
 | `sensorScreenOnOff`| If enabled, then the Screen On/Off will be exposed as a `Motion Sensor` to use with automations. |
 | `sensorScreenSaver`| If enabled, then the Screen Saver will be exposed as a `Motion Sensor` to use with automations. |
+| `sensorInputs.name` | Here set own *Name* which You want expose to the *Homebridge/HomeKit* for this sensor. |
+| `sensorInputs.reference` | Here set *Reference* like `com.webos.app.hdmi1`, `com.webos.app.hdmi2` to be exposed as sensor. | 
+| `sensorInputs.displayType` | Here select sensor type to be exposed in HomeKit app, possible `None`, `Motion Sensor`, `Occupancy Sensor`, `Contact Sensor`. |
+| `buttons.name` | Here set *Name* which You want expose to the *Homebridge/HomeKit*. | 
 | `infoButtonCommand` | Here select the function of `I` button in RC app. |
 | `getInputsFromDevice` | This enable load inputs and apps direct from device. |
 | `filterSystemApps` | This enable filter sysem apps, only if `getInputsFromDevice` is `true`. |
@@ -75,7 +79,6 @@ Tested with OLED65G6V, 32LM6300PLA, 49SK8500, OLED65C7T, 55SK800PLB, OLED48CX.
 | `inputs.reference` | Here set *Reference*. `Live TV`, `HDMI 1`, `HDMI 2` are created by default. | 
 | `inputs.type` | Here select source input type. |
 | `inputs.mode` | Here select input mode, `Input/App`, `Live TV Channel`. |
-| `buttons.name` | Here set *Name* which You want expose to the *Homebridge/HomeKit*. | 
 | `buttons.mode` | Here select button mode, `Input/App`, `Live TV Channel` or `Remote Control`. |
 | `buttons.reference` | Here set *Reference*, only for `Input/App` or `Live TV Channel` mode, in other case leave empty. | 
 | `buttons.command` | Here select `Remote Control` command which will be assigned to the button. |
@@ -114,6 +117,13 @@ Tested with OLED65G6V, 32LM6300PLA, 49SK8500, OLED65C7T, 55SK800PLB, OLED48CX.
             "sensorChannel": false,
             "sensorScreenOnOff": false,
             "sensorScreenSaver": false,
+            "sensorInputs": [
+                {
+                    "name": "HDMI 1",
+                    "reference": "com.webos.app.hdmi1",
+                    "displayType": -1
+                }
+           ],
             "inputs": [
                 {
                     "name": "HDMI 3",

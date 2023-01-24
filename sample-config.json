@@ -59,6 +59,13 @@
                             "mode": 1
                         }
                     ],
+                    "sensorInputs": [
+                        {
+                            "name": "HDMI 1",
+                            "reference": "com.webos.app.hdmi1",
+                            "displayType": -1
+                        }
+                    ],
                     "buttons": [
                         {
                             "name": "HDMI 3",

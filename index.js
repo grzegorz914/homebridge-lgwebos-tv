@@ -76,6 +76,7 @@ class lgwebosTvDevice {
 		this.sensorChannel = config.sensorChannel || false;
 		this.sensorScreenOnOff = config.sensorScreenOnOff || false;
 		this.sensorScreenSaver = config.sensorScreenSaver || false;
+		this.sensorInputs = config.sensorInputs || [];
 		this.disableLogInfo = config.disableLogInfo || false;
 		this.disableLogDeviceInfo = config.disableLogDeviceInfo || false;
 		this.enableDebugMode = config.enableDebugMode || false;
@@ -116,6 +117,8 @@ class lgwebosTvDevice {
 		this.inputsName = [];
 		this.inputsType = [];
 		this.inputsMode = [];
+		this.inputsSensors = [];
+		this.inputsSensorsDisplayType = [];
 
 		this.firstRun = true;
 		this.power = false;
@@ -129,6 +132,7 @@ class lgwebosTvDevice {
 		this.screenOnOff = false;
 		this.screenSaver = false;
 
+		this.reference = '';
 		this.inputIdentifier = 0;
 		this.channelName = '';
 		this.channelNumber = 0;
@@ -340,6 +344,18 @@ class lgwebosTvDevice {
 					this.sensorInputState = state;
 				}
 
+				if (this.inputSensorServices) {
+					const servicesCount = this.inputSensorServices.length;
+					for (let i = 0; i < servicesCount; i++) {
+						const state = power ? (this.inputIdentifier === inputIdentifier) : false;
+						const displayType = this.inputsSensorsDisplayType[i];
+						const characteristicType = [Characteristic.MotionDetected, Characteristic.OccupancyDetected, Characteristic.ContactSensorState][displayType];
+						this.inputSensorServices[i]
+							.updateCharacteristic(characteristicType, state);
+					}
+				}
+
+				this.reference = reference;
 				this.inputIdentifier = inputIdentifier;
 			})
 			.on('audioState', (volume, mute, audioOutput) => {
@@ -1193,11 +1209,49 @@ class lgwebosTvDevice {
 			accessory.addService(inputService);
 		}
 
+		//prepare sonsor service
+		const inputsSensors = this.sensorInputs;
+		const inputsSensorsCount = inputsSensors.length;
+		const availableInputsSensorsCount = 94 - maxInputsCount;
+		const maxInputsSensorsCount = (availableInputsSensorsCount > 0) ? (availableInputsSensorsCount > inputsSensorsCount) ? inputsSensorsCount : availableInputsSensorsCount : 0;
+		if (maxInputsSensorsCount > 0) {
+			this.log.debug('prepareSwitchsService');
+			this.inputSensorServices = [];
+			for (let i = 0; i < maxInputsSensorsCount; i++) {
+				//get sensor
+				const inputSensor = inputsSensors[i];
+
+				//get sensor name		
+				const inputSensorName = inputSensor.name;
+
+				//get sensor reference
+				const inputSensorReference = inputSensor.reference;
+
+				//get sensor display type
+				const inputSensorDisplayType = inputSensor.displayType;
+
+				if (inputSensorDisplayType === -1) {
+					return;
+				}
+
+				const serviceType = [Service.MotionSensor, Service.OccupancySensor, Service.ContactSensor][inputSensorDisplayType];
+				const characteristicType = [Characteristic.MotionDetected, Characteristic.OccupancyDetected, Characteristic.ContactSensorState][inputSensorDisplayType];
+				const inputSensorService = new serviceType(`${accessoryName} ${inputSensorName}`, `Sensor ${inputSensorName}`);
+				inputSensorService.getCharacteristic(characteristicType)
+					.onGet(async () => {
+						const state = this.power ? (inputSensorReference === this.reference) : false;
+						return state;
+					});
+
+				this.inputSensorServices.push(inputSensorService);
+				accessory.addService(this.inputSensorServices[i]);
+			}
+		}
+
 		//Prepare inputs button services
-		//check available buttons and possible buttons count (max 94)
 		const buttons = this.buttons;
 		const buttonsCount = buttons.length;
-		const availableButtonsCount = 94 - maxInputsCount;
+		const availableButtonsCount = (94 - (maxInputsCount + maxInputsSensorsCount));
 		const maxButtonsCount = (availableButtonsCount > 0) ? (availableButtonsCount > buttonsCount) ? buttonsCount : availableButtonsCount : 0;
 		if (maxButtonsCount > 0) {
 			this.log.debug('prepareInputsButtonService');

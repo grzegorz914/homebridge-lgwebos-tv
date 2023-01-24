@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+## [2.5.0] - (24.01.2023)
+## Changes
+- enchancement [#156](https://github.com/grzegorz914/homebridge-lgwebos-tv/issues/156)
+- config.schema updated
+- cleanup
+
 ## [2.4.5] - (14.01.2023)
 ## Changes
 - fix sensor volume

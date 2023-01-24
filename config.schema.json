@@ -630,6 +630,63 @@
               "description": "This expose Screen Saver as a Motion Sensor to use with automations.",
               "required": false
             },
+            "sensorInputs": {
+              "type": "array",
+              "items": {
+                "title": "Inputs",
+                "type": "object",
+                "description": "Here create Input/App Sensors based on reference, sensor will active if switch to it.",
+                "properties": {
+                  "name": {
+                    "title": "Name",
+                    "type": "string",
+                    "placeholder": "Name",
+                    "description": "Here set Your own name.",
+                    "required": true
+                  },
+                  "reference": {
+                    "title": "Reference",
+                    "type": "string",
+                    "placeholder": "Input/App reference",
+                    "description": "Here set the Input/App reference.",
+                    "required": true
+                  },
+                  "displayType": {
+                    "title": "Type",
+                    "type": "integer",
+                    "default": -1,
+                    "oneOf": [
+                      {
+                        "title": "None",
+                        "enum": [
+                          -1
+                        ]
+                      },
+                      {
+                        "title": "Motion Sensor",
+                        "enum": [
+                          0
+                        ]
+                      },
+                      {
+                        "title": "Occupancy Sensor",
+                        "enum": [
+                          1
+                        ]
+                      },
+                      {
+                        "title": "Contact Sensor",
+                        "enum": [
+                          2
+                        ]
+                      }
+                    ],
+                    "description": "Here select sensor type to be exposed in HomeKit app.",
+                    "required": true
+                  }
+                }
+              }
+            },
             "brightnessControl": {
               "title": "Brightness",
               "type": "boolean",
@@ -1100,10 +1157,29 @@
             "devices[].sensorPower",
             "devices[].sensorVolume",
             "devices[].sensorMute",
-            "devices[].sensorInput",
             "devices[].sensorChannel",
             "devices[].sensorScreenOnOff",
-            "devices[].sensorScreenSaver"
+            "devices[].sensorScreenSaver",
+            {
+              "key": "devices[]",
+              "type": "section",
+              "title": "Inputs",
+              "expandable": true,
+              "expanded": false,
+              "items": [
+                "devices[].sensorInput",
+                {
+                  "key": "devices[].sensorInputs",
+                  "type": "tabarray",
+                  "title": "{{ value.name || 'new input sensor' }}",
+                  "items": [
+                    "devices[].sensorInputs[].name",
+                    "devices[].sensorInputs[].reference",
+                    "devices[].sensorInputs[].displayType"
+                  ]
+                }
+              ]
+            }
           ]
         },
         {
