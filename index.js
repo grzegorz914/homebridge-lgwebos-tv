@@ -117,7 +117,6 @@ class lgwebosTvDevice {
 		this.inputsName = [];
 		this.inputsType = [];
 		this.inputsMode = [];
-		this.inputsSensors = [];
 		this.inputsSensorsReference = [];
 		this.inputsSensorsDisplayType = [];
 
@@ -1231,22 +1230,20 @@ class lgwebosTvDevice {
 				//get sensor display type
 				const inputSensorDisplayType = inputSensor.displayType || -1;
 
-				if (inputSensorDisplayType === -1) {
-					return;
+				if (inputSensorDisplayType >= 0) {
+					const serviceType = [Service.MotionSensor, Service.OccupancySensor, Service.ContactSensor][inputSensorDisplayType];
+					const characteristicType = [Characteristic.MotionDetected, Characteristic.OccupancyDetected, Characteristic.ContactSensorState][inputSensorDisplayType];
+					const inputSensorService = new serviceType(`${accessoryName} ${inputSensorName}`, `Sensor ${inputSensorName}`);
+					inputSensorService.getCharacteristic(characteristicType)
+						.onGet(async () => {
+							const state = this.power ? (inputSensorReference === this.reference) : false;
+							return state;
+						});
+
+					this.inputsSensorsReference.push(inputSensorReference);
+					this.inputSensorServices.push(inputSensorService);
+					accessory.addService(this.inputSensorServices[i]);
 				}
-
-				const serviceType = [Service.MotionSensor, Service.OccupancySensor, Service.ContactSensor][inputSensorDisplayType];
-				const characteristicType = [Characteristic.MotionDetected, Characteristic.OccupancyDetected, Characteristic.ContactSensorState][inputSensorDisplayType];
-				const inputSensorService = new serviceType(`${accessoryName} ${inputSensorName}`, `Sensor ${inputSensorName}`);
-				inputSensorService.getCharacteristic(characteristicType)
-					.onGet(async () => {
-						const state = this.power ? (inputSensorReference === this.reference) : false;
-						return state;
-					});
-
-				this.inputsSensorsReference.push(inputSensorReference);
-				this.inputSensorServices.push(inputSensorService);
-				accessory.addService(this.inputSensorServices[i]);
 			}
 		}
 
