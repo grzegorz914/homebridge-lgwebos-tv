@@ -1126,13 +1126,16 @@ class lgwebosTvDevice {
 			const reference = allInputs[i].reference;
 			const filterApp = reference.substr(0, 20) !== 'com.webos.exampleapp';
 			const filterApp1 = reference.substr(0, 17) !== 'com.webos.app.acr';
-			const filterApp2 = reference.substr(0, 22) !== 'com.webos.app.livezoom';
-			const filterApp3 = reference.substr(0, 28) !== 'com.webos.app.livemenuplayer';
-			const filterApp4 = reference.substr(0, 22) !== 'com.webos.app.twinzoom';
-			const filterApp5 = reference.substr(0, 26) !== 'com.webos.app.twinlivezoom';
+			const filterApp2 = reference.substr(0, 23) !== 'com.webos.app.livedmost';
+			const filterApp3 = reference.substr(0, 17) !== 'com.webos.app.bts';
+			const filterApp4 = reference.substr(0, 18) !== 'com.webos.app.twin';
+			const filterApp5 = reference.substr(0, 22) !== 'com.webos.app.miracast';
 			const filterApp6 = reference !== 'com.webos.app.softwareupdate';
 			const filterApp7 = reference !== 'google.assistant';
-			const push = (this.getInputsFromDevice && this.filterSystemApps) ? (filterApp && filterApp1 && filterApp2 && filterApp3 && filterApp4 && filterApp5 && filterApp6 && filterApp7) ? filteredInputsArr.push(allInputs[i]) : false : filteredInputsArr.push(allInputs[i]);
+			const filterApp8 = reference !== 'com.palm.app.firstuse';
+			const filterApp9 = reference.substr(0, 22) !== 'com.webos.app.livemenu';
+			const filterApp10 = reference.substr(0, 22) !== 'com.webos.app.livepick';
+			const push = (this.getInputsFromDevice && this.filterSystemApps) ? (filterApp && filterApp1 && filterApp2 && filterApp3 && filterApp4 && filterApp5 && filterApp6 && filterApp7 && filterApp8 && filterApp9 && filterApp10) ? filteredInputsArr.push(allInputs[i]) : false : filteredInputsArr.push(allInputs[i]);
 		}
 
 		//check available inputs and possible inputs count (max 94)
