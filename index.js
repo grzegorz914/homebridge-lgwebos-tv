@@ -118,6 +118,7 @@ class lgwebosTvDevice {
 		this.inputsType = [];
 		this.inputsMode = [];
 		this.inputsSensors = [];
+		this.inputsSensorsReference = [];
 		this.inputsSensorsDisplayType = [];
 
 		this.firstRun = true;
@@ -347,7 +348,7 @@ class lgwebosTvDevice {
 				if (this.inputSensorServices) {
 					const servicesCount = this.inputSensorServices.length;
 					for (let i = 0; i < servicesCount; i++) {
-						const state = power ? (this.inputIdentifier === inputIdentifier) : false;
+						const state = power ? (this.inputsSensorsReference[i] === reference) : false;
 						const displayType = this.inputsSensorsDisplayType[i];
 						const characteristicType = [Characteristic.MotionDetected, Characteristic.OccupancyDetected, Characteristic.ContactSensorState][displayType];
 						this.inputSensorServices[i]
@@ -1243,6 +1244,7 @@ class lgwebosTvDevice {
 						return state;
 					});
 
+				this.inputsSensorsReference.push(inputSensorReference);
 				this.inputSensorServices.push(inputSensorService);
 				accessory.addService(this.inputSensorServices[i]);
 			}
