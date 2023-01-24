@@ -312,14 +312,14 @@ class lgwebosTvDevice {
 				}
 
 				if (this.sensorScreenOnOffService) {
-					const state = (power && tvScreenState === 'Screen Off') ? true : false;
+					const state = power ? (tvScreenState === 'Screen Off') : false;
 					this.sensorScreenOnOffService
 						.updateCharacteristic(Characteristic.MotionDetected, state)
 					this.screenOnOff = state;
 				}
 
 				if (this.sensorScreenSaverService) {
-					const state = (power && tvScreenState === 'Screen Saver') ? true : false;
+					const state = power ? (tvScreenState === 'Screen Saver') : false;
 					this.sensorScreenSaverService
 						.updateCharacteristic(Characteristic.MotionDetected, state)
 					this.screenSaver = state;
@@ -339,7 +339,7 @@ class lgwebosTvDevice {
 				};
 
 				if (this.sensorInputService) {
-					const state = (this.inputIdentifier !== inputIdentifier) ? true : false;
+					const state = this.power ? (this.inputIdentifier !== inputIdentifier) : false;
 					this.sensorInputService
 						.updateCharacteristic(Characteristic.MotionDetected, state)
 					this.sensorInputState = state;
@@ -348,7 +348,7 @@ class lgwebosTvDevice {
 				if (this.inputSensorServices) {
 					const servicesCount = this.inputSensorServices.length;
 					for (let i = 0; i < servicesCount; i++) {
-						const state = power ? (this.inputsSensorsReference[i] === reference) : false;
+						const state = this.power ? (this.inputsSensorsReference[i] === reference) : false;
 						const displayType = this.inputsSensorsDisplayType[i];
 						const characteristicType = [Characteristic.MotionDetected, Characteristic.OccupancyDetected, Characteristic.ContactSensorState][displayType];
 						this.inputSensorServices[i]
@@ -380,7 +380,7 @@ class lgwebosTvDevice {
 				};
 
 				if (this.sensorVolumeService) {
-					const state = (this.volume !== volume) ? true : false;
+					const state = this.power ? (this.volume !== volume) : false;
 					this.sensorVolumeService
 						.updateCharacteristic(Characteristic.MotionDetected, state)
 					this.sensorVolumeState = state;
@@ -405,7 +405,7 @@ class lgwebosTvDevice {
 				};
 
 				if (this.sensorChannelService) {
-					const state = (this.inputIdentifier !== inputIdentifier) ? true : false;
+					const state = this.power ? (this.inputIdentifier !== inputIdentifier) : false;
 					this.sensorChannelService
 						.updateCharacteristic(Characteristic.MotionDetected, state)
 					this.sensorChannelState = state;
