@@ -60,15 +60,15 @@ Tested with OLED65G6V, 32LM6300PLA, 49SK8500, OLED65C7T, 55SK800PLB, OLED48CX.
 | `host` | Here set the *Hsostname or Address IP* of TV. |
 | `mac` | Here set the *Mac Address* of TV. |
 | `volumeControl` | Here select volume control mode `None`, `Slider`, `Fan`. |
-| `sensorPower`| If enabled, then the Power will be exposed as a `Motion Sensor` to use with automations. |
-| `sensorVolume`| If enabled, then the Volume will be exposed as a `Motion Sensor` to use with automations. |
-| `sensorMute`| If enabled, then the Mute will be exposed as a `Motion Sensor` to use with automations. |
-| `sensorInput`| If enabled, then the Input will be exposed as a `Motion Sensor` to use with automations. |
-| `sensorChannel`| If enabled, then the Channel will be exposed as a `Motion Sensor` to use with automations. |
-| `sensorScreenOnOff`| If enabled, then the Screen On/Off will be exposed as a `Motion Sensor` to use with automations. |
-| `sensorScreenSaver`| If enabled, then the Screen Saver will be exposed as a `Motion Sensor` to use with automations. |
+| `sensorPower`| If enabled, then the Power will be exposed as a `Motion Sensor` (active on Power ON) to use with automations. |
+| `sensorVolume`| If enabled, then the Volume will be exposed as a `Motion Sensor` (active on every Volume change) to use with automations. |
+| `sensorMute`| If enabled, then the Mute will be exposed as a `Motion Sensor` (active on Mute ON) to use with automations. |
+| `sensorInput`| If enabled, then the Input will be exposed as a `Motion Sensor` (active on every Input change) to use with automations. |
+| `sensorChannel`| If enabled, then the Channel will be exposed as a `Motion Sensor` (active on every Channel change) to use with automations. |
+| `sensorScreenOnOff`| If enabled, then the Screen On/Off will be exposed as a `Motion Sensor` (active on Screen OFF) to use with automations. |
+| `sensorScreenSaver`| If enabled, then the Screen Saver will be exposed as a `Motion Sensor` (active on Screen Saver ON) to use with automations. |
 | `sensorInputs.name` | Here set own *Name* which You want expose to the *Homebridge/HomeKit* for this sensor. |
-| `sensorInputs.reference` | Here set *Reference* like `com.webos.app.hdmi1`, `com.webos.app.hdmi2` to be exposed as sensor. | 
+| `sensorInputs.reference` | Here set *Reference* like `com.webos.app.hdmi1` to be exposed as sensor (active on switch to this Input). | 
 | `sensorInputs.displayType` | Here select sensor type to be exposed in HomeKit app, possible `None`, `Motion Sensor`, `Occupancy Sensor`, `Contact Sensor`. |
 | `buttons.name` | Here set *Name* which You want expose to the *Homebridge/HomeKit*. | 
 | `infoButtonCommand` | Here select the function of `I` button in RC app. |
