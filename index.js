@@ -332,7 +332,7 @@ class lgwebosTvDevice {
 			.on('currentApp', (reference) => {
 				const inputIdentifier = (this.inputsReference.indexOf(reference) >= 0) ? this.inputsReference.indexOf(reference) : this.inputIdentifier;
 
-				if (this.televisionService && (inputIdentifier !== this.inputIdentifier)) {
+				if (this.televisionService && (this.inputIdentifier !== inputIdentifier)) {
 					this.televisionService
 						.updateCharacteristic(Characteristic.ActiveIdentifier, inputIdentifier);
 				};
@@ -1124,18 +1124,8 @@ class lgwebosTvDevice {
 		const allInputsCount = allInputs.length;
 		for (let i = 0; i < allInputsCount; i++) {
 			const reference = allInputs[i].reference;
-			const filterApp = reference.substr(0, 20) !== 'com.webos.exampleapp';
-			const filterApp1 = reference.substr(0, 17) !== 'com.webos.app.acr';
-			const filterApp2 = reference.substr(0, 23) !== 'com.webos.app.livedmost';
-			const filterApp3 = reference.substr(0, 17) !== 'com.webos.app.bts';
-			const filterApp4 = reference.substr(0, 18) !== 'com.webos.app.twin';
-			const filterApp5 = reference.substr(0, 22) !== 'com.webos.app.miracast';
-			const filterApp6 = reference !== 'com.webos.app.softwareupdate';
-			const filterApp7 = reference !== 'google.assistant';
-			const filterApp8 = reference !== 'com.palm.app.firstuse';
-			const filterApp9 = reference.substr(0, 22) !== 'com.webos.app.livemenu';
-			const filterApp10 = reference.substr(0, 22) !== 'com.webos.app.livepick';
-			const push = (this.getInputsFromDevice && this.filterSystemApps) ? (filterApp && filterApp1 && filterApp2 && filterApp3 && filterApp4 && filterApp5 && filterApp6 && filterApp7 && filterApp8 && filterApp9 && filterApp10) ? filteredInputsArr.push(allInputs[i]) : false : filteredInputsArr.push(allInputs[i]);
+			const filterApp = CONSTANS.SystemApps.includes(reference);
+			const push = (this.getInputsFromDevice && this.filterSystemApps) ? (!filterApp) ? filteredInputsArr.push(allInputs[i]) : false : filteredInputsArr.push(allInputs[i]);
 		}
 
 		//check available inputs and possible inputs count (max 94)
