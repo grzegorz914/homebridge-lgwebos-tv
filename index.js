@@ -1121,17 +1121,16 @@ class lgwebosTvDevice {
 		//check available inputs and filter custom unnecessary inputs
 		const allInputs = (this.getInputsFromDevice && savedInputs.length > 0) ? savedInputs : this.inputs;
 		const filteredInputsArr = [];
-		const allInputsCount = allInputs.length;
-		for (let i = 0; i < allInputsCount; i++) {
-			const reference = allInputs[i].reference;
-			const filterApp = CONSTANS.SystemApps.includes(reference);
-			const push = (this.getInputsFromDevice && this.filterSystemApps) ? (!filterApp) ? filteredInputsArr.push(allInputs[i]) : false : filteredInputsArr.push(allInputs[i]);
+		for (const input of allInputs) {
+			const reference = input.reference;
+			const filterSystemApps = this.filterSystemApps ? CONSTANS.SystemApps.includes(reference) : false;
+			const push = this.getInputsFromDevice ? (!filterSystemApps) ? filteredInputsArr.push(input) : false : filteredInputsArr.push(input);
 		}
 
-		//check available inputs and possible inputs count (max 94)
+		//check available inputs and possible inputs count (max 90)
 		const inputs = filteredInputsArr;
 		const inputsCount = inputs.length;
-		const maxInputsCount = (inputsCount < 94) ? inputsCount : 94;
+		const maxInputsCount = (inputsCount < 90) ? inputsCount : 90;
 		for (let j = 0; j < maxInputsCount; j++) {
 			//input
 			const input = inputs[j];
@@ -1205,7 +1204,7 @@ class lgwebosTvDevice {
 		//prepare sonsor service
 		const inputsSensors = this.sensorInputs;
 		const inputsSensorsCount = inputsSensors.length;
-		const availableInputsSensorsCount = 94 - maxInputsCount;
+		const availableInputsSensorsCount = 90 - maxInputsCount;
 		const maxInputsSensorsCount = (availableInputsSensorsCount > 0) ? (availableInputsSensorsCount > inputsSensorsCount) ? inputsSensorsCount : availableInputsSensorsCount : 0;
 		if (maxInputsSensorsCount > 0) {
 			this.log.debug('prepareSwitchsService');
@@ -1243,7 +1242,7 @@ class lgwebosTvDevice {
 		//Prepare inputs button services
 		const buttons = this.buttons;
 		const buttonsCount = buttons.length;
-		const availableButtonsCount = (94 - (maxInputsCount + maxInputsSensorsCount));
+		const availableButtonsCount = (90 - (maxInputsCount + maxInputsSensorsCount));
 		const maxButtonsCount = (availableButtonsCount > 0) ? (availableButtonsCount > buttonsCount) ? buttonsCount : availableButtonsCount : 0;
 		if (maxButtonsCount > 0) {
 			this.log.debug('prepareInputsButtonService');
