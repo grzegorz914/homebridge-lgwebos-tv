@@ -1155,7 +1155,7 @@ class lgwebosTvDevice {
 			const currentVisibility = (savedInputsTargetVisibility[inputReference]) ? savedInputsTargetVisibility[inputReference] : 0;
 			const targetVisibility = currentVisibility;
 
-			const inputService = new Service.InputSource(inputName, `Input ${j}`);
+			const inputService = new Service.InputSource(inputName, `Input ${i}`);
 			inputService
 				.setCharacteristic(Characteristic.Identifier, i)
 				.setCharacteristic(Characteristic.ConfiguredName, inputName)
