@@ -59,7 +59,10 @@ Tested with OLED65G6V, 32LM6300PLA, 49SK8500, OLED65C7T, 55SK800PLB, OLED48CX.
 | `name` | Here set the accessory *Name* to be displayed in *Homebridge/HomeKit*. |
 | `host` | Here set the *Hsostname or Address IP* of TV. |
 | `mac` | Here set the *Mac Address* of TV. |
+| `sslWebSocket` | If enabled, SSL WebSocket will support TV with new firmware. |
+| `turnScreenOnOff` | This enable possibility turn the screen ON/OFF, only for webOS >= 4.0. |
 | `volumeControl` | Here select volume control mode `None`, `Slider`, `Fan`. |
+| `infoButtonCommand` | Here select the function of `I` button in RC app. |
 | `sensorPower`| If enabled, then the Power will be exposed as a `Motion Sensor` (active on Power ON) to use with automations. |
 | `sensorVolume`| If enabled, then the Volume will be exposed as a `Motion Sensor` (active on every Volume change) to use with automations. |
 | `sensorMute`| If enabled, then the Mute will be exposed as a `Motion Sensor` (active on Mute ON) to use with automations. |
@@ -69,16 +72,14 @@ Tested with OLED65G6V, 32LM6300PLA, 49SK8500, OLED65C7T, 55SK800PLB, OLED48CX.
 | `sensorScreenSaver`| If enabled, then the Screen Saver will be exposed as a `Motion Sensor` (active on Screen Saver ON) to use with automations. |
 | `sensorInputs.name` | Here set own *Name* which You want expose to the *Homebridge/HomeKit* for this sensor. |
 | `sensorInputs.reference` | Here set *Reference* like `com.webos.app.hdmi1` to be exposed as sensor (active on switch to this Input). | 
-| `sensorInputs.displayType` | Here select sensor type to be exposed in HomeKit app, possible `None`, `Motion Sensor`, `Occupancy Sensor`, `Contact Sensor`. |
-| `buttons.name` | Here set *Name* which You want expose to the *Homebridge/HomeKit*. | 
-| `infoButtonCommand` | Here select the function of `I` button in RC app. |
+| `sensorInputs.displayType` | Here select sensor type to be exposed in HomeKit app, possible `None`, `Motion Sensor`, `Occupancy Sensor`, `Contact Sensor`. | 
 | `getInputsFromDevice` | This enable load inputs and apps direct from device. |
 | `filterSystemApps` | This enable filter sysem apps, only if `getInputsFromDevice` is `true`. |
-| `turnScreenOnOff` | This enable possibility turn the screen ON/OFF, only for webOS >= 4.0. |
 | `inputs.name` | Here set *Name* which You want expose to the *Homebridge/HomeKit*. |
 | `inputs.reference` | Here set *Reference*. `Live TV`, `HDMI 1`, `HDMI 2` are created by default. | 
 | `inputs.type` | Here select source input type. |
 | `inputs.mode` | Here select input mode, `Input/App`, `Live TV Channel`. |
+| `buttons.name` | Here set *Name* which You want expose to the *Homebridge/HomeKit*. |
 | `buttons.mode` | Here select button mode, `Input/App`, `Live TV Channel` or `Remote Control`. |
 | `buttons.reference` | Here set *Reference*, only for `Input/App` or `Live TV Channel` mode, in other case leave empty. | 
 | `buttons.command` | Here select `Remote Control` command which will be assigned to the button. |
@@ -86,7 +87,6 @@ Tested with OLED65G6V, 32LM6300PLA, 49SK8500, OLED65C7T, 55SK800PLB, OLED48CX.
 | `enableDebugMode` | If enabled, deep log will be present in homebridge console. |
 | `disableLogInfo` | If enabled, disable log info, all values and state will not be displayed in Homebridge log console. |
 | `disableLogDeviceInfo` | If enabled, add ability to disable log device info by every connections device to the network. |
-| `sslWebSocket` | If enabled, SSL WebSocket will support TV with new firmware. |
 | `enableMqtt` | If enabled, MQTT Broker will start automatically and publish all awailable PV installation data. |
 | `mqttHost` | Here set the *IP Address* or *Hostname* for MQTT Broker.) |
 | `mqttPort` | Here set the *Port* for MQTT Broker, default 1883.) |
@@ -105,11 +105,10 @@ Tested with OLED65G6V, 32LM6300PLA, 49SK8500, OLED65C7T, 55SK800PLB, OLED48CX.
             "name": "LG TV",
             "host": "192.168.1.8",
             "mac": "ab:cd:ef:fe:dc:ba",
+            "sslWebSocket": false,
+            "turnScreenOnOff": false,
             "volumeControl": 0,
             "infoButtonCommand": "MENU",
-            "getInputsFromDevice": false,
-            "filterSystemApps": false,
-            "turnScreenOnOff": false,
             "sensorPower": false,
             "sensorVolume": false,
             "sensorMute": false,
@@ -124,6 +123,8 @@ Tested with OLED65G6V, 32LM6300PLA, 49SK8500, OLED65C7T, 55SK800PLB, OLED48CX.
                     "displayType": -1
                 }
            ],
+           "getInputsFromDevice": false,
+            "filterSystemApps": false,
             "inputs": [
                 {
                     "name": "HDMI 3",
@@ -171,7 +172,6 @@ Tested with OLED65G6V, 32LM6300PLA, 49SK8500, OLED65C7T, 55SK800PLB, OLED48CX.
             "enableDebugMode": false,
             "disableLogInfo": false,
             "disableLogDeviceInfo": false,
-            "sslWebSocket": false,
             "enableMqtt": false,
             "mqttHost": "192.168.1.33",
             "mqttPort": 1883,
