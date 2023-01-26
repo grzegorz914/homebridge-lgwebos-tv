@@ -1221,11 +1221,11 @@ class lgwebosTvDevice {
 				const sensorInputReference = sensorInput.reference;
 
 				//get sensor display type
-				const inputSensorDisplayType = sensorInput.displayType || -1;
+				const sensorInputDisplayType = sensorInput.displayType || -1;
 
-				if (inputSensorDisplayType >= 0) {
-					const serviceType = [Service.MotionSensor, Service.OccupancySensor, Service.ContactSensor][inputSensorDisplayType];
-					const characteristicType = [Characteristic.MotionDetected, Characteristic.OccupancyDetected, Characteristic.ContactSensorState][inputSensorDisplayType];
+				if (sensorInputDisplayType >= 0) {
+					const serviceType = [Service.MotionSensor, Service.OccupancySensor, Service.ContactSensor][sensorInputDisplayType];
+					const characteristicType = [Characteristic.MotionDetected, Characteristic.OccupancyDetected, Characteristic.ContactSensorState][sensorInputDisplayType];
 					const sensorInputsService = new serviceType(`${accessoryName} ${sensorInputName}`, `Sensor ${sensorInputName}`);
 					sensorInputsService.getCharacteristic(characteristicType)
 						.onGet(async () => {
@@ -1234,7 +1234,7 @@ class lgwebosTvDevice {
 						});
 
 					this.sensorInputsReference.push(sensorInputReference);
-					this.sensorInputsDisplayType.push(inputSensorDisplayType);
+					this.sensorInputsDisplayType.push(sensorInputDisplayType);
 					this.sensorInputsServices.push(sensorInputsService);
 					accessory.addService(this.sensorInputsServices[i]);
 				}
