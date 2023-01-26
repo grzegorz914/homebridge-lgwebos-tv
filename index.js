@@ -1234,6 +1234,7 @@ class lgwebosTvDevice {
 						});
 
 					this.sensorInputsReference.push(sensorInputReference);
+					this.sensorInputsDisplayType.push(inputSensorDisplayType);
 					this.sensorInputsServices.push(sensorInputsService);
 					accessory.addService(this.sensorInputsServices[i]);
 				}
