@@ -1154,17 +1154,17 @@
             "devices[].sensorPower",
             "devices[].sensorVolume",
             "devices[].sensorMute",
+            "devices[].sensorInput",
             "devices[].sensorChannel",
             "devices[].sensorScreenOnOff",
             "devices[].sensorScreenSaver",
             {
               "key": "devices[]",
               "type": "section",
-              "title": "Inputs",
+              "title": "Custom Inputs",
               "expandable": true,
               "expanded": false,
               "items": [
-                "devices[].sensorInput",
                 {
                   "key": "devices[].sensorInputs",
                   "type": "tabarray",
