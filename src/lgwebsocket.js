@@ -119,6 +119,7 @@ class LGTV extends EventEmitter {
                         client.emit('subscribeInputsChannelsList');
                         await new Promise(resolve => setTimeout(resolve, 2500));
                         client.emit('prepareAccessory');
+                        await new Promise(resolve => setTimeout(resolve, 1500));
                         client.emit('subscribeTvState');
                         break;
                     case this.channelsId:
