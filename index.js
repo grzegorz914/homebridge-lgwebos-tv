@@ -513,6 +513,7 @@ class lgwebosTvDevice {
 					}
 					const setPower = (state && !this.power) ? await wol(this.mac, options) : (!state && this.power) ? await this.lgtv.send('request', CONSTANS.ApiUrls.TurnOff) : false;
 					const logInfo = this.disableLogInfo || this.firstRun ? false : this.log(`Device: ${this.host} ${accessoryName}, set Power: ${state ? 'ON' : 'OFF'}`);
+					await new Promise(resolve => setTimeout(resolve, 2000));
 				} catch (error) {
 					this.log.error(`Device: ${this.host} ${accessoryName}, set Power state error:  ${error}`);
 				}
