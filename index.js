@@ -332,7 +332,7 @@ class lgwebosTvDevice {
 				this.pixelRefresh = pixelRefresh;
 			})
 			.on('currentApp', (reference) => {
-				const inputIdentifier = (this.inputsReference.indexOf(reference) >= 0) ? this.inputsReference.indexOf(reference) : this.inputIdentifier;
+				const inputIdentifier = this.inputsReference.includes(reference) ? this.inputsReference.findIndex(index => index === reference) : this.inputIdentifier;
 
 				if (this.televisionService && (this.inputIdentifier !== inputIdentifier)) {
 					this.televisionService
@@ -398,7 +398,7 @@ class lgwebosTvDevice {
 				this.audioOutput = audioOutput;
 			})
 			.on('currentChannel', (channelName, channelNumber, channelId) => {
-				const inputIdentifier = (this.inputsReference.indexOf(channelId) >= 0) ? this.inputsReference.indexOf(channelId) : this.inputIdentifier;
+				const inputIdentifier = this.inputsReference.includes(channelId) ? this.inputsReference.findIndex(index => index === channelId) : this.inputIdentifier;
 
 				if (this.televisionService) {
 					this.televisionService
