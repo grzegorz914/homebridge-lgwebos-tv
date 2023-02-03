@@ -265,7 +265,7 @@ class LGTV extends EventEmitter {
                         this.pictureSettingsId = await this.send('subscribe', CONSTANS.ApiUrls.GetSystemSettings, payload);
                     };
                 } catch (error) {
-                    this.emit('error', `Subscribe TV state error: ${error}`)
+                    this.emit('error', `Subscribe TV states error: ${error}`)
                 };
             }).on('close', () => {
                 const debug = debugLog ? this.emit('debug', `Socked closed.`) : false;

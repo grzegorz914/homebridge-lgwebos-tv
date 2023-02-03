@@ -178,33 +178,34 @@ class lgwebosTvDevice {
 		}
 
 		//mqtt client
-		this.mqtt = new Mqtt({
-			enabled: this.mqttEnabled,
-			host: this.mqttHost,
-			port: this.mqttPort,
-			prefix: this.mqttPrefix,
-			topic: this.name,
-			auth: this.mqttAuth,
-			user: this.mqttUser,
-			passwd: this.mqttPasswd,
-			debug: this.mqttDebug
-		});
-
-		this.mqtt.on('connected', (message) => {
-			this.log(`Device: ${this.host} ${this.name}, ${message}`);
-		})
-			.on('error', (error) => {
-				this.log.error(`Device: ${this.host} ${this.name}, ${error}`);
-			})
-			.on('debug', (message) => {
-				this.log(`Device: ${this.host} ${this.name}, debug: ${message}`);
-			})
-			.on('message', (message) => {
-				this.log(`Device: ${this.host} ${this.name}, ${message}`);
-			})
-			.on('disconnected', (message) => {
-				this.log(`Device: ${this.host} ${this.name}, ${message}`);
+		if (this.mqttEnabled) {
+			this.mqtt = new Mqtt({
+				host: this.mqttHost,
+				port: this.mqttPort,
+				prefix: this.mqttPrefix,
+				topic: this.name,
+				auth: this.mqttAuth,
+				user: this.mqttUser,
+				passwd: this.mqttPasswd,
+				debug: this.mqttDebug
 			});
+
+			this.mqtt.on('connected', (message) => {
+				this.log(`Device: ${this.host} ${this.name}, ${message}`);
+			})
+				.on('error', (error) => {
+					this.log.error(`Device: ${this.host} ${this.name}, ${error}`);
+				})
+				.on('debug', (message) => {
+					this.log(`Device: ${this.host} ${this.name}, debug: ${message}`);
+				})
+				.on('message', (message) => {
+					this.log(`Device: ${this.host} ${this.name}, ${message}`);
+				})
+				.on('disconnected', (message) => {
+					this.log(`Device: ${this.host} ${this.name}, ${message}`);
+				});
+		}
 
 		//lg tv client
 		const url = this.sslWebSocket ? CONSTANS.ApiUrls.WssUrl.replace('lgwebostv', this.host) : CONSTANS.ApiUrls.WsUrl.replace('lgwebostv', this.host);
@@ -450,7 +451,7 @@ class lgwebosTvDevice {
 				this.pictureMode = pictureMode;
 			})
 			.on('error', (error) => {
-				this.log.error(`Device: ${this.host} ${this.name}, ${error}`);
+				this.log.error(`Device: ${this.host} ${this.name}, ${JSON.stringify(error, null, 2)}`);
 			})
 			.on('debug', (message) => {
 				this.log(`Device: ${this.host} ${this.name}, debug: ${message}`);
@@ -1109,13 +1110,13 @@ class lgwebosTvDevice {
 		//Prepare inputs service
 		this.log.debug('prepareInputsService');
 
-		const savedInputs = ((fs.readFileSync(this.inputsFile)).length > 0) ? JSON.parse(fs.readFileSync(this.inputsFile)) : this.inputs;
+		const savedInputs = fs.readFileSync(this.inputsFile).length > 0 ? JSON.parse(fs.readFileSync(this.inputsFile)) : this.inputs;
 		const debug = this.enableDebugMode ? this.log(`Device: ${this.host} ${accessoryName}, saved Inputs: ${JSON.stringify(savedInputs, null, 2)}`) : false;
 
-		const savedChannels = ((fs.readFileSync(this.channelsFile)).length > 0) ? JSON.parse(fs.readFileSync(this.channelsFile)) : [];
+		const savedChannels = fs.readFileSync(this.channelsFile).length > 0 ? JSON.parse(fs.readFileSync(this.channelsFile)) : [];
 		const debug3 = this.enableDebugMode ? this.log(`Device: ${this.host} ${accessoryName}, saved Channels: ${JSON.stringify(savedChannels, null, 2)}`) : false;
 
-		const savedInputsNames = ((fs.readFileSync(this.inputsNamesFile)).length > 0) ? JSON.parse(fs.readFileSync(this.inputsNamesFile)) : {};
+		const savedInputsNames = fs.readFileSync(this.inputsNamesFile).length > 0 ? JSON.parse(fs.readFileSync(this.inputsNamesFile)) : {};
 		const debug1 = this.enableDebugMode ? this.log(`Device: ${this.host} ${accessoryName}, saved Inputs/Channels names: ${JSON.stringify(savedInputsNames, null, 2)}`) : false;
 
 		const savedInputsTargetVisibility = ((fs.readFileSync(this.inputsTargetVisibilityFile)).length > 0) ? JSON.parse(fs.readFileSync(this.inputsTargetVisibilityFile)) : {};

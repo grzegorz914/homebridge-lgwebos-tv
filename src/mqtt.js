@@ -5,7 +5,6 @@ const EventEmitter = require('events');
 class MQTTCLIENT extends EventEmitter {
     constructor(config) {
         super();
-        this.mqttEnabled = config.enabled;
         this.mqttHost = config.host;
         this.mqttPort = config.port;
         this.mqttPrefix = config.prefix;
@@ -16,7 +15,7 @@ class MQTTCLIENT extends EventEmitter {
         this.mqttDebug = config.debug;
         this.isConnected = false;
 
-        const run = this.mqttEnabled ? this.connect() : false;
+        this.connect();
     };
 
     async connect() {
@@ -37,7 +36,8 @@ class MQTTCLIENT extends EventEmitter {
 
     async send(topic, message) {
         if (!this.isConnected) {
-            return
+            const emitDebug = this.mqttDebug ? this.emit('debug', `MQTT client not connected.`) : false;
+            return;
         };
 
         try {
