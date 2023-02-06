@@ -188,7 +188,6 @@
     },
     "SystemApps": [
         "undefined",
-        "com.webos.app.favshows",
         "com.webos.app.softwareupdate",
         "com.webos.app.acrcomponent",
         "com.webos.app.acrhdmi1",
