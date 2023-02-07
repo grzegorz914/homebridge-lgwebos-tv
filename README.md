@@ -96,6 +96,9 @@ Tested with OLED65G6V, 32LM6300PLA, 49SK8500, OLED65C7T, 55SK800PLB, OLED48CX.
 | `mqttPasswd` | Here set the MQTT Broker password. |
 | `mqttDebug` | If enabled, deep log will be present in homebridge console for MQTT. |
 | `reference` | All can be found in `homebridge_directory/lgwebosTv`, `inputs_xxx` file, where `reference == id`, or `channels_xxx` file, where `reference == channelId`. | Info |
+| `Display Type Inputs/Buttons` | -1 - `None`, 0 - `Button`, 1 - `Switch`.|
+| `Display Type Sensors` | -1 - `None`, 0 - `Motion Sensor`, 1 - `Occupancy Sensor`, 2 - `Contact Sensor`.|
+
 
 ```json
 {
