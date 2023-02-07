@@ -1133,7 +1133,7 @@ class lgwebosTvDevice {
 		//check available inputs and possible inputs count (max 90)
 		const inputs = filteredInputsArr;
 		const inputsCount = inputs.length;
-		const maxInputsCount = (inputsCount < 80) ? inputsCount : 80;
+		const maxInputsCount = inputsCount < 80 ? inputsCount : 80;
 		for (let i = 0; i < maxInputsCount; i++) {
 			//input
 			const input = inputs[i];
@@ -1205,13 +1205,13 @@ class lgwebosTvDevice {
 		}
 
 		//prepare sonsor service
+		this.sensorInputsServices = [];
 		const sensorInputs = this.sensorInputs;
 		const sensorInputsCount = sensorInputs.length;
-		const availableSensorInputsCount = 80 - maxInputsCount;
+		const availableSensorInputsCount = 80 - this.inputsReference.length;
 		const maxSensorInputsCount = (availableSensorInputsCount > 0) ? (availableSensorInputsCount > sensorInputsCount) ? sensorInputsCount : availableSensorInputsCount : 0;
 		if (maxSensorInputsCount > 0) {
 			this.log.debug('prepareSensorInputsServices');
-			this.sensorInputsServices = [];
 			for (let i = 0; i < maxSensorInputsCount; i++) {
 				//get sensor
 				const sensorInput = sensorInputs[i];
@@ -1246,7 +1246,7 @@ class lgwebosTvDevice {
 		//Prepare inputs button services
 		const buttons = this.buttons;
 		const buttonsCount = buttons.length;
-		const availableButtonsCount = (80 - (maxInputsCount + maxSensorInputsCount));
+		const availableButtonsCount = 80 - (this.inputsReference.length + this.sensorInputsServices.length);
 		const maxButtonsCount = (availableButtonsCount > 0) ? (availableButtonsCount > buttonsCount) ? buttonsCount : availableButtonsCount : 0;
 		if (maxButtonsCount > 0) {
 			this.log.debug('prepareInputsButtonService');
