@@ -25,6 +25,7 @@ class LGTV extends EventEmitter {
             const client = sslWebSocket ? new WebSocket(url, { rejectUnauthorized: false }) : new WebSocket(url);
             client.on('open', async () => {
                 const debug = debugLog ? this.emit('debug', `WebSocket connection established.`) : false;
+
                 this.websocketClient = client;
                 this.isConnected = true;
 
@@ -267,20 +268,13 @@ class LGTV extends EventEmitter {
                 } catch (error) {
                     this.emit('error', `Subscribe TV states error: ${error}`)
                 };
+            }).on('ping', () => {
+
             }).on('close', () => {
                 const debug = debugLog ? this.emit('debug', `Socked closed.`) : false;
-
-                if (this.isConnected) {
-                    this.emit('powerState', false, false, false, false);
-                    this.emit('audioState', 0, true, 'unknown');
-                    this.emit('pictureSettings', 0, 0, 0, 0, 3, false)
-                    this.emit('message', 'Disconnected.');
-                }
-
-                this.isConnected = false;
-                this.reconnect();
+                client.emit('disconnect');
             }).on('error', (error) => {
-                const debug8 = debugLog ? !this.isConnected ? this.emit('debug', `Socket send heart beat.`) : this.emit('debug', `Socket connect error: ${error}`) : false;;
+                const debug8 = debugLog ? this.emit('debug', `Socket connect error: ${error}`) : false;
 
                 //Prepare accessory
                 if (!this.savedPairingKey.length === 0 || !this.startPrepareAccessory) {
@@ -289,14 +283,19 @@ class LGTV extends EventEmitter {
 
                 this.emit('prepareAccessory');
                 this.startPrepareAccessory = false;
+            }).on('disconnect', async () => {
+                const emitMessage = this.isConnected ? this.emit('message', 'Disconnected.') : false;
+
+                this.isConnected = false;
+                this.emit('powerState', false, false, false, false);
+                this.emit('audioState', 0, true, 'unknown');
+                this.emit('pictureSettings', 0, 0, 0, 0, 3, false)
+
+                await new Promise(resolve => setTimeout(resolve, 5000));
+                this.connect();
             });
         }
 
-        this.connect();
-    };
-
-    async reconnect() {
-        await new Promise(resolve => setTimeout(resolve, 5000));
         this.connect();
     };
 
