@@ -327,15 +327,15 @@ class lgwebosTvDevice {
 					this.screenSaver = state;
 				}
 
-				this.firstRun = false;
 				this.power = power;
 				this.screenState = screenState;
 				this.pixelRefresh = pixelRefresh;
+				this.firstRun = false;
 			})
 			.on('currentApp', (reference) => {
 				const inputIdentifier = this.inputsReference.includes(reference) ? this.inputsReference.findIndex(index => index === reference) : this.inputIdentifier;
 
-				if (this.televisionService && (this.inputIdentifier !== inputIdentifier)) {
+				if (this.televisionService) {
 					this.televisionService
 						.updateCharacteristic(Characteristic.ActiveIdentifier, inputIdentifier);
 				};
@@ -468,10 +468,9 @@ class lgwebosTvDevice {
 	};
 
 	//Prepare accessory
-	async prepareAccessory() {
+	prepareAccessory() {
 		this.log.debug('prepareAccessory');
-		const webOSInfo = await fsPromises.readFile(this.devInfoFile);
-		const webOS = webOSInfo ? this.webOS : this.webOS;
+		const webOS = fs.readFileSync(this.devInfoFile) !== undefined ? fs.readFileSync(this.devInfoFile) : this.webOS;
 
 		//accessory
 		const accessoryName = this.name;
@@ -1001,7 +1000,7 @@ class lgwebosTvDevice {
 			}
 
 			//turn screen ON/OFF
-			if (this.turnScreenOnOff && webOS >= 4) {
+			if (this.turnScreenOnOff) {
 				this.turnScreenOnOffService = new Service.Switch(`${accessoryName} Screen Off`, 'Screen Off');
 				this.turnScreenOnOffService.getCharacteristic(Characteristic.On)
 					.onGet(async () => {
@@ -1176,7 +1175,7 @@ class lgwebosTvDevice {
 						const newCustomName = JSON.stringify(savedInputsNames, null, 2);
 
 						const writeNewCustomName = (nameIdentifier !== false) ? await fsPromises.writeFile(this.inputsNamesFile, newCustomName) : false;
-						const logInfo = this.disableLogInfo || this.firstRun ? false : this.log(`Device: ${this.host} ${accessoryName}, saved new ${inputMode === 0 ? 'Input' : 'Channel'}, name: ${name}, reference: ${inputReference}`);
+						const logInfo = this.disableLogInfo || this.firstRun ? false : this.log(`Device: ${this.host} ${accessoryName}, new ${inputMode === 0 ? 'Input' : 'Channel'} name saved successful, name: ${name}, reference: ${inputReference}`);
 					} catch (error) {
 						this.log.error(`Device: ${this.host} ${accessoryName}, save new ${inputMode === 0 ? 'Input' : 'Channel'} name error: ${error}`);
 					}
@@ -1191,7 +1190,7 @@ class lgwebosTvDevice {
 						const newTargetVisibility = JSON.stringify(savedInputsTargetVisibility, null, 2);
 
 						const writeNewTargetVisibility = (targetVisibilityIdentifier !== false) ? await fsPromises.writeFile(this.inputsTargetVisibilityFile, newTargetVisibility) : false;
-						const logInfo = this.disableLogInfo || this.firstRun ? false : this.log(`Device: ${this.host} ${accessoryName}, saved new ${inputMode === 0 ? 'Input' : 'Channel'}: ${inputName}, Visibility: ${state ? 'HIDEN' : 'SHOWN'}`);
+						const logInfo = this.disableLogInfo || this.firstRun ? false : this.log(`Device: ${this.host} ${accessoryName}, new ${inputMode === 0 ? 'Input' : 'Channel'}: ${inputName}, saved target visibility state: ${state ? 'HIDEN' : 'SHOWN'}`);
 						inputService.setCharacteristic(Characteristic.CurrentVisibilityState, state);
 					} catch (error) {
 						this.log.error(`Device: ${this.host} ${accessoryName}, save new ${inputMode === 0 ? 'Input' : 'Channel'} Visibility error: ${error}`);

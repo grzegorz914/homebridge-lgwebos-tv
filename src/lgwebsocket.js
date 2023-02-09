@@ -136,8 +136,8 @@ class LGTV extends EventEmitter {
                     case this.systemInfoId:
                         const debug1 = debugLog ? this.emit('debug', `System Info: ${stringifyMessage}`) : false;
 
-                        this.modelName = messageData.modelName ? messageData.modelName : 'ModelName';
                         try {
+                            this.modelName = messageData.modelName || 'ModelName';
                             const mqtt1 = mqttEnabled ? this.emit('mqtt', 'System Info', stringifyMessage) : false;
                             this.softwareInfoId = await this.send('request', CONSTANS.ApiUrls.GetSoftwareInfo);
                         } catch (error) {
@@ -166,7 +166,7 @@ class LGTV extends EventEmitter {
                         const debug3 = debugLog ? this.emit('debug', `Channels List: ${stringifyMessage}`) : false;
 
                         const channelsList = messageData.channelList;
-                        const channelsListCount = messageData.channelListCount;
+                        const channelsListCount = Array.isArray(channelsList) ? channelsList.length : 0;
                         if (channelsListCount === 0) {
                             return;
                         };
@@ -297,13 +297,15 @@ class LGTV extends EventEmitter {
                     this.audioStateId = await this.send('subscribe', CONSTANS.ApiUrls.GetAudioStatus);
                     this.currentChannelId = await this.send('subscribe', CONSTANS.ApiUrls.GetCurrentChannel);
 
-                    if (this.webOS >= 4) {
-                        const payload = {
-                            category: 'picture',
-                            keys: ['brightness', 'backlight', 'contrast', 'color']
-                        }
-                        this.pictureSettingsId = await this.send('subscribe', CONSTANS.ApiUrls.GetSystemSettings, payload);
+                    if (this.webOS < 4) {
+                        return;
                     };
+
+                    const payload = {
+                        category: 'picture',
+                        keys: ['brightness', 'backlight', 'contrast', 'color']
+                    }
+                    this.pictureSettingsId = await this.send('subscribe', CONSTANS.ApiUrls.GetSystemSettings, payload);
                 } catch (error) {
                     this.emit('error', `Subscribe TV states error: ${error}`)
                 };
