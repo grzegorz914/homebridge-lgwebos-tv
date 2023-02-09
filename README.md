@@ -69,7 +69,7 @@ Tested with OLED65G6V, 32LM6300PLA, 49SK8500, OLED65C7T, 55SK800PLB, OLED48CX.
 | `buttons.mode` | Here select button mode, `Input/App`, `Live TV Channel` or `Remote Control`. |
 | `buttons.reference` | Here set *Reference*, only for `Input/App` or `Live TV Channel` mode, in other case leave empty. | 
 | `buttons.command` | Here select `Remote Control` command which will be assigned to the button. |
-| `buttons.displayType` | Here select display type in HomeKit app, possible `Switch`, `Button` - selectable in HomeKit app as Light, Fan, Outlet.|
+| `buttons.displayType` | Here select display type in HomeKit app, possible `None`, `Switch`, `Button` - selectable in HomeKit app as Light, Fan, Outlet.|
 | `sensorPower`| If enabled, then the Power will be exposed as a `Motion Sensor` (active on Power ON) to use with automations. |
 | `sensorVolume`| If enabled, then the Volume will be exposed as a `Motion Sensor` (active on every Volume change) to use with automations. |
 | `sensorMute`| If enabled, then the Mute will be exposed as a `Motion Sensor` (active on Mute ON) to use with automations. |

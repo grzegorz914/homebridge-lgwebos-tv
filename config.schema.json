@@ -561,6 +561,12 @@
                     "type": "integer",
                     "oneOf": [
                       {
+                        "title": "None",
+                        "enum": [
+                          -1
+                        ]
+                      },
+                      {
                         "title": "Button",
                         "enum": [
                           0
