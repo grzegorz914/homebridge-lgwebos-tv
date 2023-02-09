@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+## [2.6.0] - (09.02.2023)
+## Changes
+- added heartbeat to keep alive sockets
+- logging message updated
+- cleanup
+
 ## [2.5.0] - (24.01.2023)
 ## Changes
 - enchancement [#156](https://github.com/grzegorz914/homebridge-lgwebos-tv/issues/156)

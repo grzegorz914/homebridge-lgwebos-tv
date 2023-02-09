@@ -24,10 +24,31 @@ class LGTV extends EventEmitter {
         this.connect = () => {
             const client = sslWebSocket ? new WebSocket(url, { rejectUnauthorized: false }) : new WebSocket(url);
             client.on('open', async () => {
-                const debug = debugLog ? this.emit('debug', `WebSocket connection established.`) : false;
-
-                this.websocketClient = client;
+                const debug = debugLog ? this.emit('debug', `Socked connected.`) : false;
+                this.client = client;
                 this.isConnected = true;
+
+                client.on('pong', () => {
+                    const debug = debugLog ? this.emit('debug', `Socked received heartbeat.`) : false;
+                    this.isConnected = true;
+                });
+
+                const heartbeat = setInterval(() => {
+                    if (client.readyState === WebSocket.OPEN) {
+                        const debug = debugLog ? this.emit('debug', `Socked send heartbeat.`) : false;
+                        client.ping(null, false, 'UTF-8');
+                    }
+
+                    if (client.readyState === WebSocket.CLOSED) {
+                        clearInterval(heartbeat);
+                    }
+                }, 5000);
+
+                client.on('close', () => {
+                    const debug = debugLog ? this.emit('debug', `Socked closed.`) : false;
+                    clearInterval(heartbeat);
+                    client.emit('disconnect');
+                });
 
                 try {
                     CONSTANS.Pairing['client-key'] = this.savedPairingKey;
@@ -85,11 +106,29 @@ class LGTV extends EventEmitter {
                         const socketPath = messageData.socketPath;
                         const specialClient = sslWebSocket ? new WebSocket(socketPath, { rejectUnauthorized: false }) : new WebSocket(socketPath);
                         specialClient.on('open', () => {
-                            this.inputSocket = new WebSocketSpecialized(specialClient);
                             const debug = debugLog ? this.emit('debug', `Specialized socket connected.`) : false;
-                        }).on('close', () => {
-                            const debug = debugLog ? this.emit('debug', 'Specialized socket closed.') : false;
-                            this.inputSocket = false;
+                            this.inputSocket = new WebSocketSpecialized(specialClient);
+
+                            specialClient.on('pong', () => {
+                                const debug = debugLog ? this.emit('debug', `Specialized socket received heartbeat.`) : false;
+                            });
+
+                            const heartbeat = setInterval(() => {
+                                if (specialClient.readyState === WebSocket.OPEN) {
+                                    const debug = debugLog ? this.emit('debug', `Specialized socket send heartbeat.`) : false;
+                                    specialClient.ping(null, false, 'UTF-8');
+                                }
+
+                                if (specialClient.readyState === WebSocket.CLOSED) {
+                                    clearInterval(heartbeat);
+                                }
+                            }, 5000);
+
+                            specialClient.on('close', () => {
+                                const debug = debugLog ? this.emit('debug', 'Specialized socket closed.') : false;
+                                clearInterval(heartbeat);
+                                this.inputSocket = false;
+                            })
                         }).on('error', (error) => {
                             this.emit('error', `Specialized socket error: ${error}.`);
                         });
@@ -268,13 +307,9 @@ class LGTV extends EventEmitter {
                 } catch (error) {
                     this.emit('error', `Subscribe TV states error: ${error}`)
                 };
-            }).on('ping', () => {
-
-            }).on('close', () => {
-                const debug = debugLog ? this.emit('debug', `Socked closed.`) : false;
-                client.emit('disconnect');
             }).on('error', (error) => {
-                const debug8 = debugLog ? this.emit('debug', `Socket connect error: ${error}`) : false;
+                const debug = debugLog ? this.emit('debug', `Socket connect error: ${error}, update TV state.`) : false;
+                client.emit('disconnect');
 
                 //Prepare accessory
                 if (!this.savedPairingKey.length === 0 || !this.startPrepareAccessory) {
@@ -285,7 +320,6 @@ class LGTV extends EventEmitter {
                 this.startPrepareAccessory = false;
             }).on('disconnect', async () => {
                 const emitMessage = this.isConnected ? this.emit('message', 'Disconnected.') : false;
-
                 this.isConnected = false;
                 this.emit('powerState', false, false, false, false);
                 this.emit('audioState', 0, true, 'unknown');
@@ -318,7 +352,7 @@ class LGTV extends EventEmitter {
             });
 
             resolve(cid);
-            this.websocketClient.send(json);
+            this.client.send(json);
         });
     };
 };
