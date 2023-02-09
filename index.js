@@ -1110,16 +1110,16 @@ class lgwebosTvDevice {
 		//Prepare inputs service
 		this.log.debug('prepareInputsService');
 		const savedInputs = fs.readFileSync(this.inputsFile).length > 0 ? JSON.parse(fs.readFileSync(this.inputsFile)) : this.inputs;
-		const debug = this.enableDebugMode ? this.log(`Device: ${this.host} ${accessoryName}, saved Inputs: ${JSON.stringify(savedInputs, null, 2)}`) : false;
+		const debug = this.enableDebugMode ? this.log(`Device: ${this.host} ${accessoryName}, read saved Inputs: ${JSON.stringify(savedInputs, null, 2)}`) : false;
 
 		const savedChannels = fs.readFileSync(this.channelsFile).length > 0 ? JSON.parse(fs.readFileSync(this.channelsFile)) : [];
-		const debug1 = this.enableDebugMode ? this.log(`Device: ${this.host} ${accessoryName}, saved Channels: ${JSON.stringify(savedChannels, null, 2)}`) : false;
+		const debug1 = this.enableDebugMode ? this.log(`Device: ${this.host} ${accessoryName}, read saved Channels: ${JSON.stringify(savedChannels, null, 2)}`) : false;
 
 		const savedInputsNames = fs.readFileSync(this.inputsNamesFile).length > 0 ? JSON.parse(fs.readFileSync(this.inputsNamesFile)) : {};
-		const debug2 = this.enableDebugMode ? this.log(`Device: ${this.host} ${accessoryName}, saved Inputs/Channels names: ${JSON.stringify(savedInputsNames, null, 2)}`) : false;
+		const debug2 = this.enableDebugMode ? this.log(`Device: ${this.host} ${accessoryName}, read saved Inputs/Channels names: ${JSON.stringify(savedInputsNames, null, 2)}`) : false;
 
 		const savedInputsTargetVisibility = ((fs.readFileSync(this.inputsTargetVisibilityFile)).length > 0) ? JSON.parse(fs.readFileSync(this.inputsTargetVisibilityFile)) : {};
-		const debug3 = this.enableDebugMode ? this.log(`Device: ${this.host} ${accessoryName}, saved Inputs/Channels Visibility states: ${JSON.stringify(savedInputsTargetVisibility, null, 2)}`) : false;
+		const debug3 = this.enableDebugMode ? this.log(`Device: ${this.host} ${accessoryName}, read saved Inputs/Channels Target Visibility states: ${JSON.stringify(savedInputsTargetVisibility, null, 2)}`) : false;
 
 
 		//check available inputs and filter custom unnecessary inputs
@@ -1175,9 +1175,9 @@ class lgwebosTvDevice {
 						const newCustomName = JSON.stringify(savedInputsNames, null, 2);
 
 						const writeNewCustomName = (nameIdentifier !== false) ? await fsPromises.writeFile(this.inputsNamesFile, newCustomName) : false;
-						const logInfo = this.disableLogInfo || this.firstRun ? false : this.log(`Device: ${this.host} ${accessoryName}, new ${inputMode === 0 ? 'Input' : 'Channel'} name saved successful, name: ${name}, reference: ${inputReference}`);
+						const logInfo = this.disableLogInfo || this.firstRun ? false : this.log(`Device: ${this.host} ${accessoryName}, saved new ${inputMode === 0 ? 'Input' : 'Channel'} name: ${name}, reference: ${inputReference}`);
 					} catch (error) {
-						this.log.error(`Device: ${this.host} ${accessoryName}, save new ${inputMode === 0 ? 'Input' : 'Channel'} name error: ${error}`);
+						this.log.error(`Device: ${this.host} ${accessoryName}, new Input name save error: ${error}`);
 					}
 				});
 
@@ -1190,10 +1190,10 @@ class lgwebosTvDevice {
 						const newTargetVisibility = JSON.stringify(savedInputsTargetVisibility, null, 2);
 
 						const writeNewTargetVisibility = (targetVisibilityIdentifier !== false) ? await fsPromises.writeFile(this.inputsTargetVisibilityFile, newTargetVisibility) : false;
-						const logInfo = this.disableLogInfo || this.firstRun ? false : this.log(`Device: ${this.host} ${accessoryName}, new ${inputMode === 0 ? 'Input' : 'Channel'}: ${inputName}, saved target visibility state: ${state ? 'HIDEN' : 'SHOWN'}`);
+						const logInfo = this.disableLogInfo || this.firstRun ? false : this.log(`Device: ${this.host} ${accessoryName}, saved new ${inputMode === 0 ? 'Input' : 'Channel'}: ${inputName}, target visibility state: ${state ? 'HIDEN' : 'SHOWN'}`);
 						inputService.setCharacteristic(Characteristic.CurrentVisibilityState, state);
 					} catch (error) {
-						this.log.error(`Device: ${this.host} ${accessoryName}, save new ${inputMode === 0 ? 'Input' : 'Channel'} Visibility error: ${error}`);
+						this.log.error(`Device: ${this.host} ${accessoryName}, new target visibility state save error: ${error}`);
 					}
 				});
 
