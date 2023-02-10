@@ -239,7 +239,7 @@ class LGTV extends EventEmitter {
                     case this.audioStateId:
                         const debug7 = debugLog ? this.emit('debug', `Audio: ${stringifyMessage}`) : false;
                         const volume = messageData.volume;
-                        const mute = messageData.mute === true;
+                        const mute = messageData.mute;
                         const audioOutput = this.webOS >= 5 ? messageData.volumeStatus.soundOutput : messageData.scenario;
 
                         this.emit('audioState', volume, mute, audioOutput);

@@ -722,7 +722,7 @@ class lgwebosTvDevice {
 
 		this.speakerService.getCharacteristic(Characteristic.Mute)
 			.onGet(async () => {
-				const state = this.mute;
+				const state = this.power ? this.mute : true;
 				const logInfo = this.disableLogInfo || this.firstRun ? false : this.log(`Device: ${this.host} ${accessoryName}, Mute: ${state ? 'ON' : 'OFF'}`);
 				return state;
 			})
@@ -754,7 +754,7 @@ class lgwebosTvDevice {
 					});
 				this.volumeService.getCharacteristic(Characteristic.On)
 					.onGet(async () => {
-						const state = !this.mute;
+						const state = this.power ? !this.mute : false;
 						return state;
 					})
 					.onSet(async (state) => {
@@ -775,7 +775,7 @@ class lgwebosTvDevice {
 					});
 				this.volumeServiceFan.getCharacteristic(Characteristic.On)
 					.onGet(async () => {
-						const state = !this.mute;
+						const state = this.power ? !this.mute : false;
 						return state;
 					})
 					.onSet(async (state) => {
