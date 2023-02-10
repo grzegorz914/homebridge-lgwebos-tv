@@ -228,13 +228,6 @@ class LGTV extends EventEmitter {
 
                         this.emit('powerState', power, pixelRefresh, screenState, tvScreenState);
                         const mqtt5 = mqttEnabled ? this.emit('mqtt', 'Power', stringifyMessage) : false;
-
-                        if (power) {
-                            return;
-                        }
-
-                        this.emit('audioState', undefined, true, undefined);
-                        this.emit('pictureSettings', 0, 0, 0, 0, 3, false);
                         break;
                     case this.currentAppId:
                         const debug6 = debugLog ? this.emit('debug', `App: ${stringifyMessage}`) : false;
@@ -246,7 +239,7 @@ class LGTV extends EventEmitter {
                     case this.audioStateId:
                         const debug7 = debugLog ? this.emit('debug', `Audio: ${stringifyMessage}`) : false;
                         const volume = messageData.volume;
-                        const mute = messageData.mute;
+                        const mute = messageData.mute === true;
                         const audioOutput = this.webOS >= 5 ? messageData.volumeStatus.soundOutput : messageData.scenario;
 
                         this.emit('audioState', volume, mute, audioOutput);
@@ -290,8 +283,11 @@ class LGTV extends EventEmitter {
                 const debug = debugLog ? this.emit('debug', `Subscribe TV state.`) : false;
                 try {
                     this.powerStateId = await this.send('subscribe', CONSTANS.ApiUrls.GetPowerState);
+                    await new Promise(resolve => setTimeout(resolve, 250));
                     this.currentAppId = await this.send('subscribe', CONSTANS.ApiUrls.GetForegroundAppInfo);
+                    await new Promise(resolve => setTimeout(resolve, 250));
                     this.audioStateId = await this.send('subscribe', CONSTANS.ApiUrls.GetAudioStatus);
+                    await new Promise(resolve => setTimeout(resolve, 250));
                     this.currentChannelId = await this.send('subscribe', CONSTANS.ApiUrls.GetCurrentChannel);
 
                     if (this.webOS < 4) {

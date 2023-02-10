@@ -375,6 +375,7 @@ class lgwebosTvDevice {
 							.updateCharacteristic(Characteristic.Brightness, volume)
 							.updateCharacteristic(Characteristic.On, !mute);
 					};
+
 					if (this.volumeServiceFan && this.volumeControl === 2) {
 						this.volumeServiceFan
 							.updateCharacteristic(Characteristic.RotationSpeed, volume)
