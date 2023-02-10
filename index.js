@@ -1124,7 +1124,7 @@ class lgwebosTvDevice {
 		const debug3 = this.enableDebugMode ? this.log(`Device: ${this.host} ${accessoryName}, read saved Inputs/Channels Target Visibility states: ${JSON.stringify(savedInputsTargetVisibility, null, 2)}`) : false;
 
 
-		//check available inputs and filter custom unnecessary inputs
+		//check possible inputs and filter custom unnecessary inputs
 		const filteredInputsArr = [];
 		for (const input of savedInputs) {
 			const reference = input.reference;
@@ -1132,7 +1132,7 @@ class lgwebosTvDevice {
 			const push = this.getInputsFromDevice ? (!filterSystemApps) ? filteredInputsArr.push(input) : false : filteredInputsArr.push(input);
 		}
 
-		//check available inputs and possible inputs count (max 90)
+		//check possible inputs and possible inputs count (max 90)
 		const inputs = filteredInputsArr;
 		const inputsCount = inputs.length;
 		const maxInputsCount = inputsCount < 80 ? inputsCount : 80;
@@ -1212,8 +1212,8 @@ class lgwebosTvDevice {
 		this.sensorInputsServices = [];
 		const sensorInputs = this.sensorInputs;
 		const sensorInputsCount = sensorInputs.length;
-		const availableSensorInputsCount = 80 - this.inputsReference.length;
-		const maxSensorInputsCount = (availableSensorInputsCount > 0) ? (availableSensorInputsCount > sensorInputsCount) ? sensorInputsCount : availableSensorInputsCount : 0;
+		const possibleSensorInputsCount = 80 - this.inputsReference.length;
+		const maxSensorInputsCount = possibleSensorInputsCount >= sensorInputsCount ? sensorInputsCount : possibleSensorInputsCount;
 		if (maxSensorInputsCount > 0) {
 			this.log.debug('prepareSensorInputsServices');
 			for (let i = 0; i < maxSensorInputsCount; i++) {
@@ -1227,12 +1227,12 @@ class lgwebosTvDevice {
 				const sensorInputReference = sensorInput.reference || 'Not set';
 
 				//get sensor display type
-				const sensorInputDisplayType = sensorInput.displayType || -1;
+				const sensorInputDisplayType = sensorInput.displayType >= 0 ? sensorInput.displayType : -1;
 
 				if (sensorInputDisplayType >= 0) {
 					const serviceType = [Service.MotionSensor, Service.OccupancySensor, Service.ContactSensor][sensorInputDisplayType];
 					const characteristicType = [Characteristic.MotionDetected, Characteristic.OccupancyDetected, Characteristic.ContactSensorState][sensorInputDisplayType];
-					const sensorInputsService = new serviceType(`${accessoryName} ${sensorInputName}`, `Sensor ${sensorInputName}`);
+					const sensorInputsService = new serviceType(`${accessoryName} ${sensorInputName}`, `Sensor ${i}`);
 					sensorInputsService.getCharacteristic(characteristicType)
 						.onGet(async () => {
 							const state = this.power ? (sensorInputReference === this.reference) : false;
@@ -1248,13 +1248,17 @@ class lgwebosTvDevice {
 		}
 
 		//Prepare inputs button services
+		this.buttonsServices = [];
 		const buttons = this.buttons;
 		const buttonsCount = buttons.length;
-		const availableButtonsCount = 80 - (this.inputsReference.length + this.sensorInputsServices.length);
-		const maxButtonsCount = (availableButtonsCount > 0) ? (availableButtonsCount > buttonsCount) ? buttonsCount : availableButtonsCount : 0;
+		const possibleButtonsCount = 80 - (this.inputsReference.length + this.sensorInputsServices.length);
+		const maxButtonsCount = possibleButtonsCount >= buttonsCount ? buttonsCount : possibleButtonsCount;
 		if (maxButtonsCount > 0) {
 			this.log.debug('prepareInputsButtonService');
-			for (const button of buttons) {
+			for (let i = 0; i < maxButtonsCount; i++) {
+				//get button
+				const button = buttons[i];
+
 				//get button name
 				const buttonName = button.name || 'Not set';
 
@@ -1268,11 +1272,11 @@ class lgwebosTvDevice {
 				const buttonCommand = button.command || 'Not set';
 
 				//get button display type
-				const buttonDisplayType = button.displayType || -1;
+				const buttonDisplayType = button.displayType >= 0 ? button.displayType : -1;
 
 				if (buttonDisplayType >= 0) {
 					const serviceType = [Service.Outlet, Service.Switch][buttonDisplayType];
-					const buttonService = new serviceType(`${accessoryName} ${buttonName}`, `Button ${buttonName}`);
+					const buttonService = new serviceType(`${accessoryName} ${buttonName}`, `Button ${i}`);
 					buttonService.getCharacteristic(Characteristic.On)
 						.onGet(async () => {
 							const state = false;
@@ -1297,14 +1301,14 @@ class lgwebosTvDevice {
 								const logInfo = this.disableLogInfo || this.firstRun ? false : this.log(`Device: ${this.host} ${accessoryName}, set ${['Input', 'Channel', 'Command'][buttonMode]} name: ${buttonName}, reference: ${[buttonReference, buttonReference, buttonCommand][buttonMode]}`);
 								this.appId = appId;
 
-								setTimeout(() => {
-									const setChar = (state && this.power) ? buttonService.updateCharacteristic(Characteristic.On, false) : false;
-								}, 300)
+								await new Promise(resolve => setTimeout(resolve, 300));
+								const setChar = (state && this.power) ? buttonService.updateCharacteristic(Characteristic.On, false) : false;
 							} catch (error) {
 								this.log.error(`Device: ${this.host} ${accessoryName}, set ${['Input', 'Channel', 'Command'][buttonMode]} error: ${error}`);
 							};
 						});
-					accessory.addService(buttonService);
+					this.buttonsServices.push(buttonService);
+					accessory.addService(this.buttonsServices[i]);
 				};
 			};
 		};
