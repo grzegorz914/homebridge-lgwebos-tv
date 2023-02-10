@@ -362,13 +362,14 @@ class lgwebosTvDevice {
 				this.inputIdentifier = inputIdentifier;
 			})
 			.on('audioState', (volume, mute, audioOutput) => {
-				volume = this.power ? volume : 0;
-				mute = this.power ? mute : true;
+				volume = volume ? volume : this.volume;
+				audioOutput = audioOutput ? audioOutput : this.audioOutput;
 
 				if (this.speakerService) {
 					this.speakerService
 						.updateCharacteristic(Characteristic.Volume, volume)
 						.updateCharacteristic(Characteristic.Mute, mute);
+
 					if (this.volumeService && this.volumeControl === 1) {
 						this.volumeService
 							.updateCharacteristic(Characteristic.Brightness, volume)

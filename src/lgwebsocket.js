@@ -233,7 +233,7 @@ class LGTV extends EventEmitter {
                             return;
                         }
 
-                        this.emit('audioState', 0, true, 'unknown');
+                        this.emit('audioState', undefined, true, undefined);
                         this.emit('pictureSettings', 0, 0, 0, 0, 3, false);
                         break;
                     case this.currentAppId:
@@ -246,12 +246,9 @@ class LGTV extends EventEmitter {
                     case this.audioStateId:
                         const debug7 = debugLog ? this.emit('debug', `Audio: ${stringifyMessage}`) : false;
                         const volume = messageData.volume;
-                        const mute = (messageData.mute === true);
-                        const audioOutput = (this.webOS >= 5) ? messageData.volumeStatus.soundOutput : messageData.scenario;
+                        const mute = messageData.mute;
+                        const audioOutput = this.webOS >= 5 ? messageData.volumeStatus.soundOutput : messageData.scenario;
 
-                        this.volume = volume;
-                        this.mute = mute;
-                        this.audioOutput = audioOutput;
                         this.emit('audioState', volume, mute, audioOutput);
                         const mqtt7 = mqttEnabled ? this.emit('mqtt', 'Audio', stringifyMessage) : false;
                         break;
@@ -324,7 +321,7 @@ class LGTV extends EventEmitter {
                 const emitMessage = this.isConnected ? this.emit('message', 'Disconnected.') : false;
                 this.isConnected = false;
                 this.emit('powerState', false, false, false, false);
-                this.emit('audioState', 0, true, 'unknown');
+                this.emit('audioState', undefined, true, undefined);
                 this.emit('pictureSettings', 0, 0, 0, 0, 3, false)
 
                 await new Promise(resolve => setTimeout(resolve, 5000));
