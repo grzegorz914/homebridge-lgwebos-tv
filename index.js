@@ -67,7 +67,7 @@ class lgwebosTvDevice {
 		this.name = config.name;
 		this.host = config.host;
 		this.mac = config.mac;
-		this.volumeControl = config.volumeControl || 0;
+		this.volumeControl = config.volumeControl || -1;
 		this.infoButtonCommand = config.infoButtonCommand || 'INFO';
 		this.sensorPower = config.sensorPower || false;
 		this.sensorVolume = config.sensorVolume || false;
@@ -115,7 +115,6 @@ class lgwebosTvDevice {
 		//setup variables
 		this.inputsReference = [];
 		this.inputsName = [];
-		this.inputsType = [];
 		this.inputsMode = [];
 
 		this.sensorInputsReference = [];
@@ -154,27 +153,29 @@ class lgwebosTvDevice {
 		this.inputsTargetVisibilityFile = `${this.prefDir}/inputsTargetVisibility_${this.host.split('.').join('')}`;
 		this.channelsFile = `${this.prefDir}/channels_${this.host.split('.').join('')}`;
 
+		const object = JSON.stringify({});
+		const array = JSON.stringify([]);
 		//check if the directory exists, if not then create it
-		if (fs.existsSync(this.prefDir) === false) {
+		if (!fs.existsSync(this.prefDir)) {
 			fs.mkdirSync(this.prefDir);
 		}
-		if (fs.existsSync(this.keyFile) === false) {
+		if (!fs.existsSync(this.keyFile)) {
 			fs.writeFileSync(this.keyFile, '');
 		}
-		if (fs.existsSync(this.devInfoFile) === false) {
-			fs.writeFileSync(this.devInfoFile, '');
+		if (!fs.existsSync(this.devInfoFile)) {
+			fs.writeFileSync(this.devInfoFile, object);
 		}
-		if (fs.existsSync(this.inputsFile) === false) {
-			fs.writeFileSync(this.inputsFile, '');
+		if (!fs.existsSync(this.inputsFile)) {
+			fs.writeFileSync(this.inputsFile, array);
 		}
-		if (fs.existsSync(this.inputsNamesFile) === false) {
-			fs.writeFileSync(this.inputsNamesFile, '');
+		if (!fs.existsSync(this.channelsFile)) {
+			fs.writeFileSync(this.channelsFile, array);
 		}
-		if (fs.existsSync(this.inputsTargetVisibilityFile) === false) {
-			fs.writeFileSync(this.inputsTargetVisibilityFile, '');
+		if (!fs.existsSync(this.inputsNamesFile)) {
+			fs.writeFileSync(this.inputsNamesFile, object);
 		}
-		if (fs.existsSync(this.channelsFile) === false) {
-			fs.writeFileSync(this.channelsFile, '');
+		if (!fs.existsSync(this.inputsTargetVisibilityFile)) {
+			fs.writeFileSync(this.inputsTargetVisibilityFile, object);
 		}
 
 		//mqtt client
@@ -243,7 +244,14 @@ class lgwebosTvDevice {
 				this.firmwareRevision = firmwareRevision;
 				this.webOS = webOS;
 
-				const devInfo = JSON.stringify(webOS, null, 2);
+				const obj = {
+					modelName: modelName,
+					productName: productName,
+					serialNumber: serialNumber,
+					firmwareRevision: firmwareRevision,
+					webOS: webOS
+				};
+				const devInfo = JSON.stringify(obj, null, 2);
 				const writeDevInfo = await fsPromises.writeFile(this.devInfoFile, devInfo);
 				const debug = this.enableDebugMode ? this.log(`Device: ${this.host} ${this.name}, saved webOS Info: ${devInfo}`) : false;
 			} catch (error) {
@@ -370,13 +378,13 @@ class lgwebosTvDevice {
 						.updateCharacteristic(Characteristic.Volume, volume)
 						.updateCharacteristic(Characteristic.Mute, mute);
 
-					if (this.volumeService && this.volumeControl === 1) {
+					if (this.volumeService) {
 						this.volumeService
 							.updateCharacteristic(Characteristic.Brightness, volume)
 							.updateCharacteristic(Characteristic.On, !mute);
 					};
 
-					if (this.volumeServiceFan && this.volumeControl === 2) {
+					if (this.volumeServiceFan) {
 						this.volumeServiceFan
 							.updateCharacteristic(Characteristic.RotationSpeed, volume)
 							.updateCharacteristic(Characteristic.On, !mute);
@@ -472,7 +480,8 @@ class lgwebosTvDevice {
 	//Prepare accessory
 	prepareAccessory() {
 		this.log.debug('prepareAccessory');
-		const webOS = fs.readFileSync(this.devInfoFile) !== undefined ? fs.readFileSync(this.devInfoFile) : this.webOS;
+		const devInfo = fs.readFileSync(this.devInfoFile).length > 2 ? JSON.parse(fs.readFileSync(this.devInfoFile)) : false;
+		const webOS = devInfo.webOS ? devInfo.webOS : this.webOS;
 
 		//accessory
 		const accessoryName = this.name;
@@ -535,18 +544,22 @@ class lgwebosTvDevice {
 					const inputName = this.inputsName[inputIdentifier];
 					const inputMode = this.inputsMode[inputIdentifier];
 					const inputReference = this.inputsReference[inputIdentifier];
-					const inputId = (inputMode === 0) ? inputReference : 'com.webos.app.livetv';
-					const payload = {
-						id: inputId
+
+					if (this.power && inputReference) {
+						switch (inputMode) {
+							case 0: case 1:
+								const inputId = [inputReference, 'com.webos.app.livetv'][inputMode];
+								await this.lgtv.send('request', CONSTANS.ApiUrls.LaunchApp, { id: inputId });
+								break;
+							case 1:
+								await this.lgtv.send('request', CONSTANS.ApiUrls.OpenChannel, { channelId: inputReference })
+								break;
+						}
 					}
-					const payload1 = {
-						channelId: inputReference
-					}
-					const setInput = (this.power && inputReference) ? await this.lgtv.send('request', CONSTANS.ApiUrls.LaunchApp, payload) : false
-					const setChannel = (this.power && inputReference && inputMode === 1) ? await this.lgtv.send('request', CONSTANS.ApiUrls.OpenChannel, payload1) : false;
+
 					const logInfo = this.disableLogInfo || this.firstRun ? false : this.log(`Device: ${this.host} ${accessoryName}, set ${inputMode === 0 ? 'Input' : 'Channel'}, name: ${inputName}, reference: ${inputReference}`);
 				} catch (error) {
-					this.log.error(`Device: ${this.host} ${accessoryName}, set ${inputMode === 0 ? 'Input' : 'Channel'} error: ${error}`);
+					this.log.error(`Device: ${this.host} ${accessoryName}, set Input or Channel error: ${error}`);
 				};
 			});
 
@@ -740,9 +753,9 @@ class lgwebosTvDevice {
 		accessory.addService(this.speakerService);
 
 		//Prepare volume service
-		if (this.volumeControl >= 1) {
+		if (this.volumeControl >= 0) {
 			this.log.debug('prepareVolumeService');
-			if (this.volumeControl === 1) {
+			if (this.volumeControl === 0) {
 				this.volumeService = new Service.Lightbulb(`${accessoryName} Volume`, 'Volume');
 				this.volumeService.getCharacteristic(Characteristic.Brightness)
 					.onGet(async () => {
@@ -763,7 +776,7 @@ class lgwebosTvDevice {
 				accessory.addService(this.volumeService);
 			}
 
-			if (this.volumeControl === 2) {
+			if (this.volumeControl === 1) {
 				this.volumeServiceFan = new Service.Fan(`${accessoryName} Volume`, 'Volume');
 				this.volumeServiceFan.getCharacteristic(Characteristic.RotationSpeed)
 					.onGet(async () => {
@@ -1141,22 +1154,22 @@ class lgwebosTvDevice {
 			const input = inputs[i];
 
 			//get input reference
-			const inputReference = input.reference;
+			const inputReference = input.reference || 'undefined';
 
 			//get input name		
-			const inputName = (savedInputsNames[inputReference]) ? savedInputsNames[inputReference] : input.name;
-
-			//get input type
-			const inputType = (input.type) ? CONSTANS.InputSourceType.indexOf(input.type) : 10;
+			const inputName = savedInputsNames[inputReference] ? savedInputsNames[inputReference] : input.name;
 
 			//get input mode
-			const inputMode = (input.mode) ? input.mode : 0;
+			const inputMode = input.mode ? input.mode : 0;
+
+			//get input type
+			const inputType = 0;
 
 			//get input configured
 			const isConfigured = 1;
 
 			//get input visibility state
-			const currentVisibility = (savedInputsTargetVisibility[inputReference]) ? savedInputsTargetVisibility[inputReference] : 0;
+			const currentVisibility = savedInputsTargetVisibility[inputReference] ? savedInputsTargetVisibility[inputReference] : 0;
 			const targetVisibility = currentVisibility;
 
 			const inputService = new Service.InputSource(inputName, `Input ${i}`);
@@ -1201,7 +1214,6 @@ class lgwebosTvDevice {
 
 			this.inputsReference.push(inputReference);
 			this.inputsName.push(inputName);
-			this.inputsType.push(inputType);
 			this.inputsMode.push(inputMode);
 
 			this.televisionService.addLinkedService(inputService);
@@ -1284,23 +1296,25 @@ class lgwebosTvDevice {
 						})
 						.onSet(async (state) => {
 							try {
-								const appId = [buttonReference, 'com.webos.app.livetv', buttonCommand][buttonMode];
-								const payload = {
-									id: appId
-								}
-								const payload1 = {
-									channelId: buttonReference
-								}
-								const payload2 = {
-									name: buttonCommand
+								if (this.power && state) {
+									;
+									switch (buttonMode) {
+										case 0: case 1:
+											const appId = [buttonReference, 'com.webos.app.livetv'][buttonMode]
+											const setApp = appId !== this.appId ? await this.lgtv.send('request', CONSTANS.ApiUrls.LaunchApp, { id: appId }) : false;
+											this.appId = appId;
+											break;
+										case 1:
+
+											await this.lgtv.send('request', CONSTANS.ApiUrls.OpenChannel, { channelId: buttonReference })
+											break;
+										case 2:
+											const sendButton = this.lgtv.inputSocket ? this.lgtv.inputSocket.send('button', { name: buttonCommand }) : false;
+											break;
+									}
 								}
 
-								const setInput = (state && this.power && buttonMode <= 1 && appId !== this.appId) ? await this.lgtv.send('request', CONSTANS.ApiUrls.LaunchApp, payload) : false;
-								const setChannel = (state && this.power && buttonMode === 1) ? await this.lgtv.send('request', CONSTANS.ApiUrls.OpenChannel, payload1) : false;
-								const setCommand = (state && this.power && buttonMode === 2 && this.lgtv.inputSocket) ? this.lgtv.inputSocket.send('button', payload2) : false;
 								const logInfo = this.disableLogInfo || this.firstRun ? false : this.log(`Device: ${this.host} ${accessoryName}, set ${['Input', 'Channel', 'Command'][buttonMode]} name: ${buttonName}, reference: ${[buttonReference, buttonReference, buttonCommand][buttonMode]}`);
-								this.appId = appId;
-
 								await new Promise(resolve => setTimeout(resolve, 300));
 								const setChar = (state && this.power) ? buttonService.updateCharacteristic(Characteristic.On, false) : false;
 							} catch (error) {

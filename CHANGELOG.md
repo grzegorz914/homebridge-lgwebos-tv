@@ -2,6 +2,15 @@
 All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+## [2.7.0] - (13.02.2023)
+## Changes
+- standarize function of display type and volume control, now volume control -1 None/Disabled, 0 Slider, 1 Fan, please see in readme
+- removed inputs.type, not used anymore
+- config.schema updated
+- fix expose extra input tile in homekit app
+- other small fixes and improvements
+- cleanup
+
 ## [2.6.0] - (09.02.2023)
 ## Changes
 - added heartbeat to keep alive sockets

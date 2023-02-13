@@ -69,80 +69,6 @@
                     "description": "Here set the Input/App, Channel reference.",
                     "required": true
                   },
-                  "type": {
-                    "title": "Type",
-                    "type": "string",
-                    "description": "Here select the source type.",
-                    "oneOf": [
-                      {
-                        "title": "Other",
-                        "enum": [
-                          "OTHER"
-                        ]
-                      },
-                      {
-                        "title": "Home screen",
-                        "enum": [
-                          "HOME_SCREEN"
-                        ]
-                      },
-                      {
-                        "title": "Tuner",
-                        "enum": [
-                          "TUNER"
-                        ]
-                      },
-                      {
-                        "title": "HDMI",
-                        "enum": [
-                          "HDMI"
-                        ]
-                      },
-                      {
-                        "title": "Composite video",
-                        "enum": [
-                          "COMPOSITE_VIDEO"
-                        ]
-                      },
-                      {
-                        "title": "S Video",
-                        "enum": [
-                          "S_VIDEO"
-                        ]
-                      },
-                      {
-                        "title": "Component video",
-                        "enum": [
-                          "COMPONENT_VIDEO"
-                        ]
-                      },
-                      {
-                        "title": "Digital video input",
-                        "enum": [
-                          "DVI"
-                        ]
-                      },
-                      {
-                        "title": "Airplay",
-                        "enum": [
-                          "AIRPLAY"
-                        ]
-                      },
-                      {
-                        "title": "USB",
-                        "enum": [
-                          "USB"
-                        ]
-                      },
-                      {
-                        "title": "Application",
-                        "enum": [
-                          "APPLICATION"
-                        ]
-                      }
-                    ],
-                    "required": true
-                  },
                   "mode": {
                     "title": "Mode",
                     "type": "integer",
@@ -561,7 +487,7 @@
                     "type": "integer",
                     "oneOf": [
                       {
-                        "title": "None",
+                        "title": "None/Disabled",
                         "enum": [
                           -1
                         ]
@@ -660,7 +586,7 @@
                     "type": "integer",
                     "oneOf": [
                       {
-                        "title": "None",
+                        "title": "None/Disabled",
                         "enum": [
                           -1
                         ]
@@ -987,29 +913,27 @@
             "volumeControl": {
               "title": "Volume Control",
               "type": "integer",
-              "minimum": 0,
-              "maximum": 2,
               "oneOf": [
                 {
-                  "title": "None",
+                  "title": "None/Disabled",
                   "enum": [
-                    0
+                    -1
                   ]
                 },
                 {
                   "title": "Slider",
                   "enum": [
-                    1
+                    0
                   ]
                 },
                 {
                   "title": "Fan",
                   "enum": [
-                    2
+                    1
                   ]
                 }
               ],
-              "description": "Here select what a volume control mode You want to use. If select *None* only hardware buttons in RC app can be used to control volume.",
+              "description": "Here select what a volume control mode You want to use. If select *None/Disabled* only hardware buttons in RC app can be used to control volume.",
               "required": true
             },
             "enableMqtt": {
@@ -1120,7 +1044,6 @@
               "items": [
                 "devices[].inputs[].name",
                 "devices[].inputs[].reference",
-                "devices[].inputs[].type",
                 "devices[].inputs[].mode"
               ],
               "condition": {
@@ -1174,7 +1097,7 @@
                 {
                   "key": "devices[].sensorInputs",
                   "type": "tabarray",
-                  "title": "{{ value.name || 'new input sensor' }}",
+                  "title": "{{ value.name || 'new sensor' }}",
                   "items": [
                     "devices[].sensorInputs[].name",
                     "devices[].sensorInputs[].reference",

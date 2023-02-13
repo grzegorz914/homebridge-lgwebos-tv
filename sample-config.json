@@ -22,48 +22,28 @@
                     "name": "LG TV",
                     "host": "192.168.1.8",
                     "mac": "ab:cd:ef:fe:dc:ba",
-                    "volumeControl": 0,
-                    "infoButtonCommand": "MENU",
                     "getInputsFromDevice": false,
                     "filterSystemApps": false,
-                    "turnScreenOnOff": false,
-                    "sensorPower": false,
-                    "sensorVolume": false,
-                    "sensorMute": false,
-                    "sensorInput": false,
-                    "sensorChannel": false,
-                    "sensorScreenOnOff": false,
-                    "sensorScreenSaver": false,
                     "inputs": [
                         {
                             "name": "HDMI 3",
                             "reference": "com.webos.app.hdmi3",
-                            "type": "HDMI",
                             "mode": 0
                         },
                         {
                             "name": "HDMI 4",
                             "reference": "com.webos.app.hdmi4",
-                            "type": "HDMI",
                             "mode": 0
                         },
                         {
                             "name": "Netflix",
                             "reference": "netflix",
-                            "type": "APPLICATION",
                             "mode": 0
                         },
                         {
                             "name": "BBC ONE HD",
                             "reference": "1_45_101_101_16521_17540_9018",
                             "mode": 1
-                        }
-                    ],
-                    "sensorInputs": [
-                        {
-                            "name": "HDMI 1",
-                            "reference": "com.webos.app.hdmi1",
-                            "displayType": -1
                         }
                     ],
                     "buttons": [
@@ -86,18 +66,35 @@
                             "displayType": 0
                         }
                     ],
+                    "sensorPower": false,
+                    "sensorVolume": false,
+                    "sensorMute": false,
+                    "sensorInput": false,
+                    "sensorChannel": false,
+                    "sensorScreenOnOff": false,
+                    "sensorScreenSaver": false,
+                    "sensorInputs": [
+                        {
+                            "name": "HDMI 1",
+                            "reference": "com.webos.app.hdmi1",
+                            "displayType": -1
+                        }
+                    ],
                     "enableDebugMode": false,
                     "disableLogInfo": false,
                     "disableLogDeviceInfo": false,
+                    "turnScreenOnOff": false,
                     "sslWebSocket": false,
+                    "infoButtonCommand": "MENU",
+                    "volumeControl": 0,
                     "enableMqtt": false,
+                    "mqttDebug": false,
                     "mqttHost": "192.168.1.33",
                     "mqttPort": 1883,
                     "mqttPrefix": "home/lg",
                     "mqttAuth": false,
                     "mqttUser": "user",
-                    "mqttPass": "password",
-                    "mqttDebug": false
+                    "mqttPass": "password"
                 }
             ]
         }

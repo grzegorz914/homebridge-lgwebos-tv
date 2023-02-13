@@ -14,9 +14,8 @@ class LGTV extends EventEmitter {
         const debugLog = config.debugLog;
         const mqttEnabled = config.mqttEnabled;
         const sslWebSocket = config.sslWebSocket;
-        const savedKey = fs.readFileSync(keyFile);
 
-        this.savedPairingKey = savedKey.toString();
+        this.savedPairingKey = fs.readFileSync(keyFile).length > 0 ? (fs.readFileSync(keyFile)).toString() : '';
         this.startPrepareAccessory = true;
         this.isConnected = false;
         this.inputSocket = false;
@@ -307,7 +306,7 @@ class LGTV extends EventEmitter {
                 client.emit('disconnect');
 
                 //Prepare accessory
-                if (!this.savedPairingKey.length === 0 || !this.startPrepareAccessory) {
+                if (!this.startPrepareAccessory) {
                     return;
                 };
 
