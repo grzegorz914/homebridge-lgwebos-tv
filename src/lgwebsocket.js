@@ -18,7 +18,6 @@ class LGTV extends EventEmitter {
         this.savedPairingKey = fs.readFileSync(keyFile).length > 0 ? (fs.readFileSync(keyFile)).toString() : '';
         this.startPrepareAccessory = true;
         this.isConnected = false;
-        this.inputSocket = false;
 
         this.connect = () => {
             const client = sslWebSocket ? new WebSocket(url, { rejectUnauthorized: false }) : new WebSocket(url);
@@ -126,7 +125,7 @@ class LGTV extends EventEmitter {
                             specialClient.on('close', () => {
                                 const debug = debugLog ? this.emit('debug', 'Specialized socket closed.') : false;
                                 clearInterval(heartbeat);
-                                this.inputSocket = false;
+                                this.inputSocket.close();
                             })
                         }).on('error', (error) => {
                             this.emit('error', `Specialized socket error: ${error}.`);
@@ -347,6 +346,22 @@ class LGTV extends EventEmitter {
 
             resolve(cid);
             this.client.send(json);
+        });
+    };
+
+    sendInputSocket(type, payload) {
+        return new Promise((resolve, reject) => {
+            try {
+                if (!this.inputSocket) {
+                    reject('Input socket not connected!!!');
+                    return;
+                };
+
+                this.inputSocket.send(type, payload);
+                resolve();
+            } catch (error) {
+                reject(error);
+            };
         });
     };
 };

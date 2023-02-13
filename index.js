@@ -612,7 +612,7 @@ class lgwebosTvDevice {
 						name: command
 					}
 
-					const setCommand = (this.power && this.lgtv.inputSocket) ? this.lgtv.inputSocket.send('button', payload) : false;
+					const setCommand = this.power ? await this.lgtv.sendInputSocket('button', payload) : false;
 					const logInfo = this.disableLogInfo || this.firstRun ? false : this.log(`Device: ${this.host} ${accessoryName}, set Remote Key, command: ${command}`);
 				} catch (error) {
 					this.log.error(`Device: ${this.host} ${accessoryName}, set Remote Key error: ${error}`);
@@ -674,7 +674,7 @@ class lgwebosTvDevice {
 					const payload = {
 						name: command
 					};
-					const setCommand = (this.power && this.lgtv.inputSocket) ? this.lgtv.inputSocket.send('button', payload) : false;
+					const setCommand = this.power ? await this.lgtv.sendInputSocket('button', payload) : false;
 					const logInfo = this.disableLogInfo || this.firstRun ? false : this.log(`Device: ${this.host} ${accessoryName}, set Power Mode Selection: ${command}`);
 				} catch (error) {
 					this.log.error(`Device: ${this.host} ${accessoryName}, set Power Mode Selection error: ${error}`);
@@ -703,7 +703,7 @@ class lgwebosTvDevice {
 					const payload = {
 						name: command
 					};
-					const setCommand = (this.power && this.lgtv.inputSocket) ? this.lgtv.inputSocket.send('button', payload) : false;
+					const setCommand = this.power ? await this.lgtv.sendInputSocket('button', payload) : false;
 					const logInfo = this.disableLogInfo || this.firstRun ? false : this.log(`Device: ${this.host} ${accessoryName}, set Volume Selector: ${command}`);
 				} catch (error) {
 					this.log.error(`Device: ${this.host} ${accessoryName} , set Volume Selector error: ${error}`);
@@ -1124,16 +1124,16 @@ class lgwebosTvDevice {
 
 		//Prepare inputs service
 		this.log.debug('prepareInputsService');
-		const savedInputs = fs.readFileSync(this.inputsFile).length > 0 ? JSON.parse(fs.readFileSync(this.inputsFile)) : this.inputs;
+		const savedInputs = fs.readFileSync(this.inputsFile).length > 2 ? JSON.parse(fs.readFileSync(this.inputsFile)) : this.inputs;
 		const debug = this.enableDebugMode ? this.log(`Device: ${this.host} ${accessoryName}, read saved Inputs: ${JSON.stringify(savedInputs, null, 2)}`) : false;
 
-		const savedChannels = fs.readFileSync(this.channelsFile).length > 0 ? JSON.parse(fs.readFileSync(this.channelsFile)) : [];
+		const savedChannels = fs.readFileSync(this.channelsFile).length > 2 ? JSON.parse(fs.readFileSync(this.channelsFile)) : [];
 		const debug1 = this.enableDebugMode ? this.log(`Device: ${this.host} ${accessoryName}, read saved Channels: ${JSON.stringify(savedChannels, null, 2)}`) : false;
 
-		const savedInputsNames = fs.readFileSync(this.inputsNamesFile).length > 0 ? JSON.parse(fs.readFileSync(this.inputsNamesFile)) : {};
+		const savedInputsNames = fs.readFileSync(this.inputsNamesFile).length > 2 ? JSON.parse(fs.readFileSync(this.inputsNamesFile)) : {};
 		const debug2 = this.enableDebugMode ? this.log(`Device: ${this.host} ${accessoryName}, read saved Inputs/Channels names: ${JSON.stringify(savedInputsNames, null, 2)}`) : false;
 
-		const savedInputsTargetVisibility = ((fs.readFileSync(this.inputsTargetVisibilityFile)).length > 0) ? JSON.parse(fs.readFileSync(this.inputsTargetVisibilityFile)) : {};
+		const savedInputsTargetVisibility = fs.readFileSync(this.inputsTargetVisibilityFile).length > 2 ? JSON.parse(fs.readFileSync(this.inputsTargetVisibilityFile)) : {};
 		const debug3 = this.enableDebugMode ? this.log(`Device: ${this.host} ${accessoryName}, read saved Inputs/Channels Target Visibility states: ${JSON.stringify(savedInputsTargetVisibility, null, 2)}`) : false;
 
 
@@ -1297,26 +1297,22 @@ class lgwebosTvDevice {
 						.onSet(async (state) => {
 							try {
 								if (this.power && state) {
-									;
 									switch (buttonMode) {
 										case 0: case 1:
 											const appId = [buttonReference, 'com.webos.app.livetv'][buttonMode]
-											const setApp = appId !== this.appId ? await this.lgtv.send('request', CONSTANS.ApiUrls.LaunchApp, { id: appId }) : false;
-											this.appId = appId;
+											await this.lgtv.send('request', CONSTANS.ApiUrls.LaunchApp, { id: appId });
 											break;
 										case 1:
-
 											await this.lgtv.send('request', CONSTANS.ApiUrls.OpenChannel, { channelId: buttonReference })
 											break;
 										case 2:
-											const sendButton = this.lgtv.inputSocket ? this.lgtv.inputSocket.send('button', { name: buttonCommand }) : false;
+											await this.lgtv.sendInputSocket('button', { name: buttonCommand });
 											break;
 									}
+									const logInfo = this.disableLogInfo || this.firstRun ? false : this.log(`Device: ${this.host} ${accessoryName}, set ${['Input', 'Channel', 'Command'][buttonMode]} name: ${buttonName}, reference: ${[buttonReference, buttonReference, buttonCommand][buttonMode]}`);
 								}
-
-								const logInfo = this.disableLogInfo || this.firstRun ? false : this.log(`Device: ${this.host} ${accessoryName}, set ${['Input', 'Channel', 'Command'][buttonMode]} name: ${buttonName}, reference: ${[buttonReference, buttonReference, buttonCommand][buttonMode]}`);
 								await new Promise(resolve => setTimeout(resolve, 300));
-								const setChar = (state && this.power) ? buttonService.updateCharacteristic(Characteristic.On, false) : false;
+								const setChar = this.power && state ? buttonService.updateCharacteristic(Characteristic.On, false) : false;
 							} catch (error) {
 								this.log.error(`Device: ${this.host} ${accessoryName}, set ${['Input', 'Channel', 'Command'][buttonMode]} error: ${error}`);
 							};
