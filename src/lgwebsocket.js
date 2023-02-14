@@ -328,9 +328,9 @@ class LGTV extends EventEmitter {
     send(type, uri, payload) {
         return new Promise((resolve, reject) => {
 
-            switch (type) {
-                case 'button':
-                    try {
+            try {
+                switch (type) {
+                    case 'button':
                         if (!this.specialClient) {
                             reject('Input socket not connected!!!');
                             return;
@@ -343,12 +343,8 @@ class LGTV extends EventEmitter {
 
                         this.specialClient.send(message);
                         resolve();
-                    } catch (error) {
-                        reject(error);
-                    };
-                    break;
-                default:
-                    try {
+                        break;
+                    default:
                         if (!this.isConnected) {
                             reject('TV not connected!!!');
                             return;
@@ -356,7 +352,7 @@ class LGTV extends EventEmitter {
 
                         let cidCount = 0;
                         const cid = (`0000000${Math.floor(Math.random() * 0xFFFFFFFF).toString(16)}`).slice(-8) + (`000${(cidCount++).toString(16)}`).slice(-4);
-                        const message = JSON.stringify({
+                        const message1 = JSON.stringify({
                             id: cid,
                             type: type,
                             uri: uri,
@@ -364,11 +360,11 @@ class LGTV extends EventEmitter {
                         });
 
                         resolve(cid);
-                        this.client.send(message);
-                    } catch (error) {
-                        reject(error);
-                    };
-                    break
+                        this.client.send(message1);
+                        break
+                };
+            } catch (error) {
+                reject(error);
             };
         });
     };

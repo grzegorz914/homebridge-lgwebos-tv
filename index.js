@@ -91,7 +91,7 @@ class lgwebosTvDevice {
 		this.turnScreenOnOff = config.turnScreenOnOff || false;
 		this.sslWebSocket = config.sslWebSocket || false;
 		this.infoButtonCommand = config.infoButtonCommand || 'INFO';
-		this.volumeControl = config.volumeControl || -1;
+		this.volumeControl = config.volumeControl >= 0 ? config.volumeControl : -1;
 		this.mqttEnabled = config.enableMqtt || false;
 		this.mqttDebug = config.mqttDebug || false;
 		this.mqttHost = config.mqttHost;
