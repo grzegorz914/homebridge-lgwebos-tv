@@ -2,6 +2,13 @@
 All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+## [2.8.0] - (14.02.2023)
+## Changes
+- rbuild code of specjal socket client to better RC performance
+- config.schema updated
+- stability and performance improvements
+- cleanup
+
 ## [2.7.0] - (13.02.2023)
 ## Changes
 - standarize function of display type and volume control, now volume control -1 None/Disabled, 0 Slider, 1 Fan, please see in readme

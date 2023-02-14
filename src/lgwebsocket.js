@@ -3,7 +3,6 @@ const fs = require('fs');
 const fsPromises = fs.promises;
 const EventEmitter = require('events');
 const WebSocket = require('ws');
-const WebSocketSpecialized = require('./lgwebsocketspecialized');
 const CONSTANS = require('./constans.json');
 
 class LGTV extends EventEmitter {
@@ -105,7 +104,7 @@ class LGTV extends EventEmitter {
                         const specialClient = sslWebSocket ? new WebSocket(socketPath, { rejectUnauthorized: false }) : new WebSocket(socketPath);
                         specialClient.on('open', () => {
                             const debug = debugLog ? this.emit('debug', `Specialized socket connected.`) : false;
-                            this.inputSocket = new WebSocketSpecialized(specialClient);
+                            this.specialClient = specialClient;
 
                             specialClient.on('pong', () => {
                                 const debug = debugLog ? this.emit('debug', `Specialized socket received heartbeat.`) : false;
@@ -125,8 +124,8 @@ class LGTV extends EventEmitter {
                             specialClient.on('close', () => {
                                 const debug = debugLog ? this.emit('debug', 'Specialized socket closed.') : false;
                                 clearInterval(heartbeat);
-                                this.inputSocket.close();
                             })
+
                         }).on('error', (error) => {
                             this.emit('error', `Specialized socket error: ${error}.`);
                         });
@@ -327,40 +326,49 @@ class LGTV extends EventEmitter {
     };
 
     send(type, uri, payload) {
-        return new Promise(async (resolve, reject) => {
-            if (!this.isConnected) {
-                reject({
-                    status: 'TV not connected!',
-                });
-                return;
-            };
-
-            let cidCount = 0;
-            const cid = (`0000000${Math.floor(Math.random() * 0xFFFFFFFF).toString(16)}`).slice(-8) + (`000${(cidCount++).toString(16)}`).slice(-4);
-            const json = JSON.stringify({
-                id: cid,
-                type: type,
-                uri: uri,
-                payload: payload
-            });
-
-            resolve(cid);
-            this.client.send(json);
-        });
-    };
-
-    sendInputSocket(type, payload) {
         return new Promise((resolve, reject) => {
-            try {
-                if (!this.inputSocket) {
-                    reject('Input socket not connected!!!');
-                    return;
-                };
 
-                this.inputSocket.send(type, payload);
-                resolve();
-            } catch (error) {
-                reject(error);
+            switch (type) {
+                case 'button':
+                    try {
+                        if (!this.specialClient) {
+                            reject('Input socket not connected!!!');
+                            return;
+                        };
+
+                        payload = uri
+                        const message = Object.keys(payload).reduce((acc, k) => {
+                            return (acc.concat([`${k}:${payload[k]}`]));
+                        }, [`type:${type}`]).join('\n') + '\n\n';
+
+                        this.specialClient.send(message);
+                        resolve();
+                    } catch (error) {
+                        reject(error);
+                    };
+                    break;
+                default:
+                    try {
+                        if (!this.isConnected) {
+                            reject('TV not connected!!!');
+                            return;
+                        };
+
+                        let cidCount = 0;
+                        const cid = (`0000000${Math.floor(Math.random() * 0xFFFFFFFF).toString(16)}`).slice(-8) + (`000${(cidCount++).toString(16)}`).slice(-4);
+                        const message = JSON.stringify({
+                            id: cid,
+                            type: type,
+                            uri: uri,
+                            payload: payload
+                        });
+
+                        resolve(cid);
+                        this.client.send(message);
+                    } catch (error) {
+                        reject(error);
+                    };
+                    break
             };
         });
     };

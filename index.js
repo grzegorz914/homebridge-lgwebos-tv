@@ -67,8 +67,10 @@ class lgwebosTvDevice {
 		this.name = config.name;
 		this.host = config.host;
 		this.mac = config.mac;
-		this.volumeControl = config.volumeControl || -1;
-		this.infoButtonCommand = config.infoButtonCommand || 'INFO';
+		this.getInputsFromDevice = config.getInputsFromDevice || false;
+		this.filterSystemApps = config.filterSystemApps || false;
+		this.inputs = config.inputs || [];
+		this.buttons = config.buttons || [];
 		this.sensorPower = config.sensorPower || false;
 		this.sensorVolume = config.sensorVolume || false;
 		this.sensorMute = config.sensorMute || false;
@@ -77,29 +79,27 @@ class lgwebosTvDevice {
 		this.sensorScreenOnOff = config.sensorScreenOnOff || false;
 		this.sensorScreenSaver = config.sensorScreenSaver || false;
 		this.sensorInputs = config.sensorInputs || [];
-		this.disableLogInfo = config.disableLogInfo || false;
-		this.disableLogDeviceInfo = config.disableLogDeviceInfo || false;
-		this.enableDebugMode = config.enableDebugMode || false;
-		this.getInputsFromDevice = config.getInputsFromDevice || false;
-		this.filterSystemApps = config.filterSystemApps || false;
-		this.inputs = config.inputs || [];
-		this.buttons = config.buttons || [];
 		this.brightnessControl = config.brightnessControl || false;
 		this.backlightControl = config.backlightControl || false;
 		this.contrastControl = config.contrastControl || false;
 		this.colorControl = config.colorControl || false;
 		this.pictureModeControl = config.pictureModeControl || false;
 		this.pictureModes = config.pictureModes || [];
+		this.enableDebugMode = config.enableDebugMode || false;
+		this.disableLogInfo = config.disableLogInfo || false;
+		this.disableLogDeviceInfo = config.disableLogDeviceInfo || false;
 		this.turnScreenOnOff = config.turnScreenOnOff || false;
 		this.sslWebSocket = config.sslWebSocket || false;
+		this.infoButtonCommand = config.infoButtonCommand || 'INFO';
+		this.volumeControl = config.volumeControl || -1;
 		this.mqttEnabled = config.enableMqtt || false;
+		this.mqttDebug = config.mqttDebug || false;
 		this.mqttHost = config.mqttHost;
 		this.mqttPort = config.mqttPort || 1883;
 		this.mqttPrefix = config.mqttPrefix;
 		this.mqttAuth = config.mqttAuth || false;
 		this.mqttUser = config.mqttUser;
 		this.mqttPasswd = config.mqttPasswd;
-		this.mqttDebug = config.mqttDebug || false;
 
 		//add configured inputs to the default inputs
 		this.inputs = [...CONSTANS.DefaultInputs, ...this.inputs];
@@ -612,7 +612,7 @@ class lgwebosTvDevice {
 						name: command
 					}
 
-					const setCommand = this.power ? await this.lgtv.sendInputSocket('button', payload) : false;
+					const setCommand = this.power ? await this.lgtv.send('button', payload) : false;
 					const logInfo = this.disableLogInfo || this.firstRun ? false : this.log(`Device: ${this.host} ${accessoryName}, set Remote Key, command: ${command}`);
 				} catch (error) {
 					this.log.error(`Device: ${this.host} ${accessoryName}, set Remote Key error: ${error}`);
@@ -674,7 +674,7 @@ class lgwebosTvDevice {
 					const payload = {
 						name: command
 					};
-					const setCommand = this.power ? await this.lgtv.sendInputSocket('button', payload) : false;
+					const setCommand = this.power ? await this.lgtv.send('button', payload) : false;
 					const logInfo = this.disableLogInfo || this.firstRun ? false : this.log(`Device: ${this.host} ${accessoryName}, set Power Mode Selection: ${command}`);
 				} catch (error) {
 					this.log.error(`Device: ${this.host} ${accessoryName}, set Power Mode Selection error: ${error}`);
@@ -703,7 +703,7 @@ class lgwebosTvDevice {
 					const payload = {
 						name: command
 					};
-					const setCommand = this.power ? await this.lgtv.sendInputSocket('button', payload) : false;
+					const setCommand = this.power ? await this.lgtv.send('button', payload) : false;
 					const logInfo = this.disableLogInfo || this.firstRun ? false : this.log(`Device: ${this.host} ${accessoryName}, set Volume Selector: ${command}`);
 				} catch (error) {
 					this.log.error(`Device: ${this.host} ${accessoryName} , set Volume Selector error: ${error}`);
@@ -1306,7 +1306,7 @@ class lgwebosTvDevice {
 											await this.lgtv.send('request', CONSTANS.ApiUrls.OpenChannel, { channelId: buttonReference })
 											break;
 										case 2:
-											await this.lgtv.sendInputSocket('button', { name: buttonCommand });
+											await this.lgtv.send('button', { name: buttonCommand });
 											break;
 									}
 									const logInfo = this.disableLogInfo || this.firstRun ? false : this.log(`Device: ${this.host} ${accessoryName}, set ${['Input', 'Channel', 'Command'][buttonMode]} name: ${buttonName}, reference: ${[buttonReference, buttonReference, buttonCommand][buttonMode]}`);
