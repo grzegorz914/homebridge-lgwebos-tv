@@ -1191,7 +1191,7 @@ class lgwebosTvDevice {
 						const newCustomName = JSON.stringify(savedInputsNames, null, 2);
 
 						fs.writeFileSync(this.inputsNamesFile, newCustomName);
-						const logInfo = this.enableDebugMode || this.firstRun ? false : this.log(`Device: ${this.host} ${accessoryName}, saved new ${inputMode === 0 ? 'Input' : 'Channel'} name: ${name}, reference: ${inputReference}`);
+						const logInfo = this.enableDebugMode ? this.log(`Device: ${this.host} ${accessoryName}, saved new ${inputMode === 0 ? 'Input' : 'Channel'} name: ${name}, reference: ${inputReference}`) : false;
 					} catch (error) {
 						this.log.error(`Device: ${this.host} ${accessoryName}, new Input name save error: ${error}`);
 					}
@@ -1204,7 +1204,7 @@ class lgwebosTvDevice {
 						const newTargetVisibility = JSON.stringify(savedInputsTargetVisibility, null, 2);
 
 						fs.writeFileSync(this.inputsTargetVisibilityFile, newTargetVisibility);
-						const logInfo = this.enableDebugMode || this.firstRun ? false : this.log(`Device: ${this.host} ${accessoryName}, saved new ${inputMode === 0 ? 'Input' : 'Channel'}: ${inputName}, target visibility state: ${state ? 'HIDEN' : 'SHOWN'}`);
+						const logInfo = this.enableDebugMode ? this.log(`Device: ${this.host} ${accessoryName}, saved new ${inputMode === 0 ? 'Input' : 'Channel'}: ${inputName}, target visibility state: ${state ? 'HIDEN' : 'SHOWN'}`) : false;
 						inputService.setCharacteristic(Characteristic.CurrentVisibilityState, state);
 					} catch (error) {
 						this.log.error(`Device: ${this.host} ${accessoryName}, new target visibility state save error: ${error}`);
@@ -1308,7 +1308,7 @@ class lgwebosTvDevice {
 											await this.lgtv.send('button', { name: buttonCommand });
 											break;
 									}
-									const logInfo = this.enableDebugMode || this.firstRun ? false : this.log(`Device: ${this.host} ${accessoryName}, set ${['Input', 'Channel', 'Command'][buttonMode]} name: ${buttonName}, reference: ${[buttonReference, buttonReference, buttonCommand][buttonMode]}`);
+									const logInfo = this.enableDebugMode ? this.log(`Device: ${this.host} ${accessoryName}, set ${['Input', 'Channel', 'Command'][buttonMode]} name: ${buttonName}, reference: ${[buttonReference, buttonReference, buttonCommand][buttonMode]}`) : false;
 								}
 								await new Promise(resolve => setTimeout(resolve, 300));
 								const setChar = this.power && state ? buttonService.updateCharacteristic(Characteristic.On, false) : false;
