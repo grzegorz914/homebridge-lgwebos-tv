@@ -449,6 +449,14 @@ class lgwebosTvDevice {
 						.updateCharacteristic(Characteristic.On, power)
 						.updateCharacteristic(Characteristic.Brightness, color);
 				};
+				if (this.pictureModesServices) {
+					const servicesCount = this.pictureModesServices.length;
+					for (let i = 0; i < servicesCount; i++) {
+						const state = this.power ? (this.pictureModes[i].reference === pictureMode) : false;
+						this.pictureModesServices[i]
+							.updateCharacteristic(Characteristic.On, state);
+					};
+				};
 				if (this.televisionService) {
 					this.televisionService
 						.updateCharacteristic(Characteristic.PictureMode, pictureMode);
@@ -927,47 +935,42 @@ class lgwebosTvDevice {
 			//Picture mode
 			if (this.pictureModeControl) {
 				this.log.debug('preparePictureModeService');
+				this.pictureModesServices = [];
 				const pictureModes = this.pictureModes;
 				const pictureModesCount = pictureModes.length;
 				for (let i = 0; i < pictureModesCount; i++) {
 					const pictureModeName = pictureModes[i].name;
 					const pictureModeReference = pictureModes[i].reference;
-
-					this.pictureModeService = new Service.Switch(`${accessoryName} ${pictureModeName}`, `Picture Mode ${i}`);
-					this.pictureModeService.getCharacteristic(Characteristic.On)
+					const pictureModeService = new Service.Switch(`${accessoryName} ${pictureModeName}`, `Picture Mode ${i}`);
+					pictureModeService.getCharacteristic(Characteristic.On)
 						.onGet(async () => {
-							const state = false;
-							const logInfo = this.disableLogInfo || this.firstRun ? false : this.log(`Device: ${this.host} ${accessoryName}, Picture mode: ${state}`);
+							const state = this.power ? (this.pictureMode === pictureModeReference) : false;
+							const logInfo = this.disableLogInfo || this.firstRun ? false : this.log(`Device: ${this.host} ${accessoryName}, Picture mode: ${pictureModeName}`);
 							return state;
 						})
 						.onSet(async (state) => {
 							try {
 								const payload = {
-									'dimension': {
+									category: 'picture',
+									settings: {
 										'pictureMode': pictureModeReference
-									},
-									'settings': {
-										'brightness': this.brightness,
-										'contrast': this.contrast,
 									}
-								};
-								const setPictureMode = (state && this.power) ? await this.lgtv.send('request', CONSTANS.ApiUrls.SetSystemSettings, payload) : false;
-								const logInfo = this.disableLogInfo || this.firstRun ? false : this.log(`Device: ${this.host} ${accessoryName}, set Picture mode: ${pictureModeName}`);
+								}
 
-								setTimeout(() => {
-									const setChar = this.pictureModeService.updateCharacteristic(Characteristic.On, false);
-								}, 300)
+								const setPictureMode = this.power && state ? await this.lgtv.send('request', CONSTANS.ApiUrls.SetSystemSettings, payload) : false;
+								const logInfo = this.disableLogInfo || this.firstRun ? false : this.log(`Device: ${this.host} ${accessoryName}, set Picture mode: ${pictureModeName}`);
 							} catch (error) {
 								this.log.error(`Device: ${this.host} ${accessoryName}, set Picture Mode error: ${error}`);
 							};
 						});
 
-					accessory.addService(this.pictureModeService);
+					this.pictureModesServices.push(pictureModeService);
+					accessory.addService(this.pictureModesServices[i]);
 				}
 
 				this.televisionService.getCharacteristic(Characteristic.PictureMode)
 					.onGet(async () => {
-						const value = 3;
+						const value = this.pictureMode;
 						const logInfo = this.disableLogInfo || this.firstRun ? false : this.log(`Device: ${this.host} ${accessoryName}, Picture mode: ${value}`);
 						return value;
 					})
@@ -1154,13 +1157,13 @@ class lgwebosTvDevice {
 			const input = inputs[i];
 
 			//get input reference
-			const inputReference = input.reference || 'undefined';
+			const inputReference = input.reference;
 
 			//get input name		
-			const inputName = savedInputsNames[inputReference] ? savedInputsNames[inputReference] : input.name;
+			const inputName = savedInputsNames[inputReference] || input.name;
 
 			//get input mode
-			const inputMode = input.mode ? input.mode : 0;
+			const inputMode = input.mode || 0;
 
 			//get input type
 			const inputType = 0;
@@ -1169,7 +1172,7 @@ class lgwebosTvDevice {
 			const isConfigured = 1;
 
 			//get input visibility state
-			const currentVisibility = savedInputsTargetVisibility[inputReference] ? savedInputsTargetVisibility[inputReference] : 0;
+			const currentVisibility = savedInputsTargetVisibility[inputReference] || 0;
 			const targetVisibility = currentVisibility;
 
 			const inputService = new Service.InputSource(inputName, `Input ${i}`);
@@ -1181,31 +1184,27 @@ class lgwebosTvDevice {
 				.setCharacteristic(Characteristic.CurrentVisibilityState, currentVisibility)
 				.setCharacteristic(Characteristic.TargetVisibilityState, targetVisibility);
 
-			inputService
-				.getCharacteristic(Characteristic.ConfiguredName)
+			inputService.getCharacteristic(Characteristic.ConfiguredName)
 				.onSet(async (name) => {
 					try {
-						const nameIdentifier = (inputReference) ? inputReference : false;
-						savedInputsNames[nameIdentifier] = name;
+						savedInputsNames[inputReference] = name;
 						const newCustomName = JSON.stringify(savedInputsNames, null, 2);
 
-						const writeNewCustomName = (nameIdentifier !== false) ? await fsPromises.writeFile(this.inputsNamesFile, newCustomName) : false;
-						const logInfo = this.disableLogInfo || this.firstRun ? false : this.log(`Device: ${this.host} ${accessoryName}, saved new ${inputMode === 0 ? 'Input' : 'Channel'} name: ${name}, reference: ${inputReference}`);
+						fs.writeFileSync(this.inputsNamesFile, newCustomName);
+						const logInfo = this.enableDebugMode || this.firstRun ? false : this.log(`Device: ${this.host} ${accessoryName}, saved new ${inputMode === 0 ? 'Input' : 'Channel'} name: ${name}, reference: ${inputReference}`);
 					} catch (error) {
 						this.log.error(`Device: ${this.host} ${accessoryName}, new Input name save error: ${error}`);
 					}
 				});
 
-			inputService
-				.getCharacteristic(Characteristic.TargetVisibilityState)
+			inputService.getCharacteristic(Characteristic.TargetVisibilityState)
 				.onSet(async (state) => {
 					try {
-						const targetVisibilityIdentifier = (inputReference) ? inputReference : false;
-						savedInputsTargetVisibility[targetVisibilityIdentifier] = state;
+						savedInputsTargetVisibility[inputReference] = state;
 						const newTargetVisibility = JSON.stringify(savedInputsTargetVisibility, null, 2);
 
-						const writeNewTargetVisibility = (targetVisibilityIdentifier !== false) ? await fsPromises.writeFile(this.inputsTargetVisibilityFile, newTargetVisibility) : false;
-						const logInfo = this.disableLogInfo || this.firstRun ? false : this.log(`Device: ${this.host} ${accessoryName}, saved new ${inputMode === 0 ? 'Input' : 'Channel'}: ${inputName}, target visibility state: ${state ? 'HIDEN' : 'SHOWN'}`);
+						fs.writeFileSync(this.inputsTargetVisibilityFile, newTargetVisibility);
+						const logInfo = this.enableDebugMode || this.firstRun ? false : this.log(`Device: ${this.host} ${accessoryName}, saved new ${inputMode === 0 ? 'Input' : 'Channel'}: ${inputName}, target visibility state: ${state ? 'HIDEN' : 'SHOWN'}`);
 						inputService.setCharacteristic(Characteristic.CurrentVisibilityState, state);
 					} catch (error) {
 						this.log.error(`Device: ${this.host} ${accessoryName}, new target visibility state save error: ${error}`);
@@ -1309,7 +1308,7 @@ class lgwebosTvDevice {
 											await this.lgtv.send('button', { name: buttonCommand });
 											break;
 									}
-									const logInfo = this.disableLogInfo || this.firstRun ? false : this.log(`Device: ${this.host} ${accessoryName}, set ${['Input', 'Channel', 'Command'][buttonMode]} name: ${buttonName}, reference: ${[buttonReference, buttonReference, buttonCommand][buttonMode]}`);
+									const logInfo = this.enableDebugMode || this.firstRun ? false : this.log(`Device: ${this.host} ${accessoryName}, set ${['Input', 'Channel', 'Command'][buttonMode]} name: ${buttonName}, reference: ${[buttonReference, buttonReference, buttonCommand][buttonMode]}`);
 								}
 								await new Promise(resolve => setTimeout(resolve, 300));
 								const setChar = this.power && state ? buttonService.updateCharacteristic(Characteristic.On, false) : false;

@@ -272,7 +272,7 @@ class LGTV extends EventEmitter {
                 } catch (error) {
                     this.emit('error', `Subscribe Inputs and Channels list error: ${error}`)
                 };
-            }).on('prepareAccessory', () => {
+            }).on('prepareAccessory', async () => {
                 const debug = debugLog ? this.emit('debug', `Prepare accessory.`) : false;
                 const prepareAccessory = this.startPrepareAccessory ? this.emit('prepareAccessory') : false;
                 this.startPrepareAccessory = false;
@@ -302,20 +302,17 @@ class LGTV extends EventEmitter {
             }).on('error', (error) => {
                 const debug = debugLog ? this.emit('debug', `Socket connect error: ${error}, update TV state.`) : false;
                 client.emit('disconnect');
-
-                //Prepare accessory
-                if (!this.startPrepareAccessory) {
-                    return;
-                };
-
-                this.emit('prepareAccessory');
-                this.startPrepareAccessory = false;
             }).on('disconnect', async () => {
                 const emitMessage = this.isConnected ? this.emit('message', 'Disconnected.') : false;
                 this.isConnected = false;
                 this.emit('powerState', false, false, false, false);
                 this.emit('audioState', undefined, true, undefined);
                 this.emit('pictureSettings', 0, 0, 0, 0, 3, false)
+
+                //Prepare accessory
+                if (this.savedPairingKey.length > 10 && this.startPrepareAccessory) {
+                    client.emit('prepareAccessory');
+                };
 
                 await new Promise(resolve => setTimeout(resolve, 5000));
                 this.connect();
