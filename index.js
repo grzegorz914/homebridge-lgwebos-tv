@@ -1190,7 +1190,7 @@ class lgwebosTvDevice {
 						savedInputsNames[inputReference] = name;
 						const newCustomName = JSON.stringify(savedInputsNames, null, 2);
 
-						fs.writeFileSync(this.inputsNamesFile, newCustomName);
+						await fsPromises.writeFile(this.inputsNamesFile, newCustomName);
 						const logDebug = this.enableDebugMode ? this.log(`Device: ${this.host} ${accessoryName}, saved new ${inputMode === 0 ? 'Input' : 'Channel'} name: ${name}, reference: ${inputReference}`) : false;
 					} catch (error) {
 						this.log.error(`Device: ${this.host} ${accessoryName}, new Input name save error: ${error}`);
@@ -1203,7 +1203,7 @@ class lgwebosTvDevice {
 						savedInputsTargetVisibility[inputReference] = state;
 						const newTargetVisibility = JSON.stringify(savedInputsTargetVisibility, null, 2);
 
-						fs.writeFileSync(this.inputsTargetVisibilityFile, newTargetVisibility);
+						await fsPromises.writeFile(this.inputsTargetVisibilityFile, newTargetVisibility);
 						const logDebug = this.enableDebugMode ? this.log(`Device: ${this.host} ${accessoryName}, saved new ${inputMode === 0 ? 'Input' : 'Channel'}: ${inputName}, target visibility state: ${state ? 'HIDEN' : 'SHOWN'}`) : false;
 						inputService.setCharacteristic(Characteristic.CurrentVisibilityState, state);
 					} catch (error) {
