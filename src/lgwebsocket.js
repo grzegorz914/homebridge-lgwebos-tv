@@ -235,7 +235,7 @@ class LGTV extends EventEmitter {
                         break;
                     case this.audioStateId:
                         const debug7 = debugLog ? this.emit('debug', `Audio: ${stringifyMessage}`) : false;
-                        const volume = messageData.volume;
+                        const volume = messageData.volume < 0 ? 0 : messageData.volume;
                         const mute = messageData.mute;
                         const audioOutput = this.webOS >= 5 ? messageData.volumeStatus.soundOutput : messageData.scenario;
 
@@ -305,9 +305,10 @@ class LGTV extends EventEmitter {
             }).on('disconnect', async () => {
                 const emitMessage = this.isConnected ? this.emit('message', 'Disconnected.') : false;
                 this.isConnected = false;
+                this.power = false;
                 this.emit('powerState', false, false, false, false);
                 this.emit('audioState', undefined, true, undefined);
-                this.emit('pictureSettings', 0, 0, 0, 0, 3, false)
+                this.emit('pictureSettings', 0, 0, 0, 0, 3, false);
 
                 //Prepare accessory
                 if (this.savedPairingKey.length > 10 && this.startPrepareAccessory) {
@@ -329,7 +330,7 @@ class LGTV extends EventEmitter {
                 switch (type) {
                     case 'button':
                         if (!this.specialClient) {
-                            reject('Input socket not connected!!!');
+                            reject('Specjalized socket not connected.');
                             return;
                         };
 
@@ -343,7 +344,7 @@ class LGTV extends EventEmitter {
                         break;
                     default:
                         if (!this.isConnected) {
-                            reject('TV not connected!!!');
+                            reject('Socket not connected.');
                             return;
                         };
 
