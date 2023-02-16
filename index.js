@@ -148,8 +148,10 @@ class lgwebosTvDevice {
 		this.prefDir = path.join(api.user.storagePath(), 'lgwebosTv');
 		this.keyFile = `${this.prefDir}/key_${this.host.split('.').join('')}`;
 		this.devInfoFile = `${this.prefDir}/devInfo_${this.host.split('.').join('')}`;
+		this.inputsFile = `${this.prefDir}/inputs_${this.host.split('.').join('')}`;
 		this.inputsNamesFile = `${this.prefDir}/inputsNames_${this.host.split('.').join('')}`;
 		this.inputsTargetVisibilityFile = `${this.prefDir}/inputsTargetVisibility_${this.host.split('.').join('')}`;
+		this.channelsFile = `${this.prefDir}/channels_${this.host.split('.').join('')}`;
 
 		const object = JSON.stringify({});
 		const array = JSON.stringify([]);
@@ -162,6 +164,12 @@ class lgwebosTvDevice {
 		}
 		if (!fs.existsSync(this.devInfoFile)) {
 			fs.writeFileSync(this.devInfoFile, object);
+		}
+		if (!fs.existsSync(this.inputsFile)) {
+			fs.writeFileSync(this.inputsFile, array);
+		}
+		if (!fs.existsSync(this.channelsFile)) {
+			fs.writeFileSync(this.channelsFile, array);
 		}
 		if (!fs.existsSync(this.inputsNamesFile)) {
 			fs.writeFileSync(this.inputsNamesFile, object);
@@ -251,38 +259,47 @@ class lgwebosTvDevice {
 			}
 		})
 			.on('channelList', async (channelList) => {
-				const channelsArr = [];
-				for (const channell of channelList) {
-					const name = channell.channelName;
-					const reference = channell.channelId;
-					const number = channell.channelNumber;
-					const channelsObj = {
-						'name': name,
-						'reference': reference,
-						'number': number,
-						'type': 'TUNER',
-						'mode': 1
-					}
-					channelsArr.push(channelsObj);
-				};
-
-				this.channels = channelsArr;
+				try {
+					const channelsArr = [];
+					for (const channell of channelList) {
+						const name = channell.channelName;
+						const reference = channell.channelId;
+						const number = channell.channelNumber;
+						const channelsObj = {
+							'name': name,
+							'reference': reference,
+							'number': number,
+							'mode': 1
+						}
+						channelsArr.push(channelsObj);
+					};
+					const obj = JSON.stringify(channelsArr, null, 2);
+					const writeChannels = await fsPromises.writeFile(this.channelsFile, obj);
+					const debug = this.enableDebugMode ? this.log(`Device: ${this.host} ${this.name}, channels list saved: ${obj}`) : false;
+				} catch (error) {
+					this.log.error(`Device: ${this.host} ${this.name}, save channels list error: ${error}`);
+				}
 			})
 			.on('appsList', async (appsList) => {
-				const appsArr = [];
-				for (const app of appsList) {
-					const name = app.title;
-					const reference = app.id;
-					const inputsObj = {
-						'name': name,
-						'reference': reference,
-						'type': 'APPLICATION',
-						'mode': 0
-					}
-					appsArr.push(inputsObj);
-				};
-
-				this.inputs = this.getInputsFromDevice ? appsArr : this.inputs;
+				try {
+					const appsArr = [];
+					for (const app of appsList) {
+						const name = app.title;
+						const reference = app.id;
+						const inputsObj = {
+							'name': name,
+							'reference': reference,
+							'mode': 0
+						}
+						appsArr.push(inputsObj);
+					};
+					const allInputsArr = this.getInputsFromDevice ? appsArr : this.inputs;
+					const inputs = JSON.stringify(allInputsArr, null, 2)
+					const writeInputs = await fsPromises.writeFile(this.inputsFile, inputs);
+					const debug = this.enableDebugMode ? this.log(`Device: ${this.host} ${this.name}, apps list saved: ${obj}`) : false;
+				} catch (error) {
+					this.log.error(`Device: ${this.host} ${this.name}, save apps list error: ${error}`);
+				}
 			})
 			.on('powerState', (power, pixelRefresh, screenState, tvScreenState) => {
 
@@ -1106,6 +1123,12 @@ class lgwebosTvDevice {
 
 		//Prepare inputs service
 		this.log.debug('prepareInputsService');
+		const savedInputs = fs.readFileSync(this.inputsFile).length > 2 ? JSON.parse(fs.readFileSync(this.inputsFile)) : this.inputs;
+		const debug = this.enableDebugMode ? this.log(`Device: ${this.host} ${accessoryName}, read saved Inputs: ${JSON.stringify(savedInputs, null, 2)}`) : false;
+
+		const savedChannels = fs.readFileSync(this.channelsFile).length > 2 ? JSON.parse(fs.readFileSync(this.channelsFile)) : [];
+		const debug1 = this.enableDebugMode ? this.log(`Device: ${this.host} ${accessoryName}, read saved Channels: ${JSON.stringify(savedChannels, null, 2)}`) : false;
+
 		const savedInputsNames = fs.readFileSync(this.inputsNamesFile).length > 2 ? JSON.parse(fs.readFileSync(this.inputsNamesFile)) : {};
 		const debug2 = this.enableDebugMode ? this.log(`Device: ${this.host} ${accessoryName}, read saved Inputs/Channels names: ${JSON.stringify(savedInputsNames, null, 2)}`) : false;
 
@@ -1115,7 +1138,7 @@ class lgwebosTvDevice {
 
 		//check possible inputs and filter custom unnecessary inputs
 		const filteredInputsArr = [];
-		for (const input of this.inputs) {
+		for (const input of savedInputs) {
 			const reference = input.reference;
 			const filterSystemApps = this.filterSystemApps ? CONSTANS.SystemApps.includes(reference) : false;
 			const push = this.getInputsFromDevice ? (!filterSystemApps) ? filteredInputsArr.push(input) : false : filteredInputsArr.push(input);
