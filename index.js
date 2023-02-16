@@ -1221,7 +1221,7 @@ class lgwebosTvDevice {
 				this.televisionService.addLinkedService(inputService);
 				accessory.addService(inputService);
 			} else {
-				this.log(`Device: ${this.host} ${accessoryName}, ${!inputName ? 'name: Missing' : 'name: OK'}, ${!inputReference ? 'reference: Missing' : 'reference: OK'}, ${!inputMode ? 'mode: Missing' : 'mode: OK'}, check your Inputs config!!!`);
+				this.log(`Device: ${this.host} ${accessoryName}, Input name: ${inputName ? inputName : 'Missing'}, reference: ${inputReference ? inputReference : 'Missing'}, mode: ${inputMode ? inputMode : 'Missing'}.`);
 
 			};
 		}
