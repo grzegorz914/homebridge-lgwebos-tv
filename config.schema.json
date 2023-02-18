@@ -1162,13 +1162,13 @@
           "expanded": false,
           "items": [
             "devices[].enableMqtt",
+            "devices[].mqttDebug",
             "devices[].mqttHost",
             "devices[].mqttPort",
             "devices[].mqttPrefix",
             "devices[].mqttAuth",
             "devices[].mqttUser",
-            "devices[].mqttPasswd",
-            "devices[].mqttDebug"
+            "devices[].mqttPasswd"
           ]
         }
       ]
