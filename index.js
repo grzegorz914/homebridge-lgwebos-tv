@@ -113,6 +113,7 @@ class lgwebosTvDevice {
 		this.webOS = 2;
 
 		//setup variables
+		this.services = [];
 		this.inputsReference = [];
 		this.inputsName = [];
 		this.inputsMode = [];
@@ -317,20 +318,20 @@ class lgwebosTvDevice {
 
 				if (this.sensorPowerService) {
 					this.sensorPowerService
-						.updateCharacteristic(Characteristic.MotionDetected, power)
+						.updateCharacteristic(Characteristic.ContactSensorState, power)
 				}
 
 				if (this.sensorScreenOnOffService) {
 					const state = power ? (tvScreenState === 'Screen Off') : false;
 					this.sensorScreenOnOffService
-						.updateCharacteristic(Characteristic.MotionDetected, state)
+						.updateCharacteristic(Characteristic.ContactSensorState, state)
 					this.screenOnOff = state;
 				}
 
 				if (this.sensorScreenSaverService) {
 					const state = power ? (tvScreenState === 'Screen Saver') : false;
 					this.sensorScreenSaverService
-						.updateCharacteristic(Characteristic.MotionDetected, state)
+						.updateCharacteristic(Characteristic.ContactSensorState, state)
 					this.screenSaver = state;
 				}
 
@@ -350,7 +351,7 @@ class lgwebosTvDevice {
 				if (this.sensorInputService) {
 					const state = this.power ? (this.inputIdentifier !== inputIdentifier) : false;
 					this.sensorInputService
-						.updateCharacteristic(Characteristic.MotionDetected, state)
+						.updateCharacteristic(Characteristic.ContactSensorState, state)
 					this.sensorInputState = state;
 				}
 
@@ -393,14 +394,14 @@ class lgwebosTvDevice {
 				if (this.sensorVolumeService) {
 					const state = this.power ? (this.volume !== volume) : false;
 					this.sensorVolumeService
-						.updateCharacteristic(Characteristic.MotionDetected, state)
+						.updateCharacteristic(Characteristic.ContactSensorState, state)
 					this.sensorVolumeState = state;
 				}
 
 				if (this.sensorMuteService) {
 					const state = this.power ? mute : false;
 					this.sensorMuteService
-						.updateCharacteristic(Characteristic.MotionDetected, state)
+						.updateCharacteristic(Characteristic.ContactSensorState, state)
 				}
 
 				this.volume = volume;
@@ -418,7 +419,7 @@ class lgwebosTvDevice {
 				if (this.sensorChannelService) {
 					const state = this.power ? (this.inputIdentifier !== inputIdentifier) : false;
 					this.sensorChannelService
-						.updateCharacteristic(Characteristic.MotionDetected, state)
+						.updateCharacteristic(Characteristic.ContactSensorState, state)
 					this.sensorChannelState = state;
 				}
 
@@ -427,6 +428,12 @@ class lgwebosTvDevice {
 				this.inputIdentifier = inputIdentifier;
 			})
 			.on('pictureSettings', (brightness, backlight, contrast, color, pictureMode, power) => {
+
+				if (this.televisionService) {
+					this.televisionService
+						.updateCharacteristic(Characteristic.Brightness, brightness)
+						.updateCharacteristic(Characteristic.PictureMode, pictureMode);
+				};
 
 				if (this.brightnessService) {
 					this.brightnessService
@@ -455,10 +462,6 @@ class lgwebosTvDevice {
 						this.pictureModesServices[i]
 							.updateCharacteristic(Characteristic.On, state);
 					};
-				};
-				if (this.televisionService) {
-					this.televisionService
-						.updateCharacteristic(Characteristic.PictureMode, pictureMode);
 				};
 
 				this.brightness = brightness;
@@ -503,6 +506,7 @@ class lgwebosTvDevice {
 			.setCharacteristic(Characteristic.Model, this.modelName)
 			.setCharacteristic(Characteristic.SerialNumber, this.serialNumber)
 			.setCharacteristic(Characteristic.FirmwareRevision, this.firmwareRevision);
+		this.services.push(this.informationService);
 
 		//prepare television service 
 		this.log.debug('prepareTelevisionService');
@@ -706,6 +710,77 @@ class lgwebosTvDevice {
 					this.log.error(`Device: ${this.host} ${accessoryName}, set Power Mode Selection error: ${error}`);
 				};
 			});
+
+		if (webOS >= 4) {
+			this.televisionService.getCharacteristic(Characteristic.Brightness)
+				.onGet(async () => {
+					const brightness = this.brightness;
+					return brightness;
+				})
+				.onSet(async (value) => {
+					try {
+						const payload = {
+							'settings': {
+								'brightness': value
+							}
+						};
+						await this.lgtv.send('request', CONSTANS.ApiUrls.SetSystemSettings, payload);
+						const logInfo = this.disableLogInfo || this.firstRun ? false : this.log(`Device: ${this.host} ${accessoryName}, set Brightness: ${value}`);
+					} catch (error) {
+						this.log.error(`Device: ${this.host} ${accessoryName}, set Brightness error: ${error}`);
+					};
+				});
+
+			this.televisionService.getCharacteristic(Characteristic.PictureMode)
+				.onGet(async () => {
+					const value = this.pictureMode;
+					const logInfo = this.disableLogInfo || this.firstRun ? false : this.log(`Device: ${this.host} ${accessoryName}, Picture Mode: ${value}`);
+					return value;
+				})
+				.onSet(async (command) => {
+					try {
+						switch (command) {
+							case Characteristic.PictureMode.OTHER:
+								command = 'cinema';
+								break;
+							case Characteristic.PictureMode.STANDARD:
+								command = 'normal';
+								break;
+							case Characteristic.PictureMode.CALIBRATED:
+								command = 'expert1';
+								break;
+							case Characteristic.PictureMode.CALIBRATED_DARK:
+								command = 'expert2';
+								break;
+							case Characteristic.PictureMode.VIVID:
+								command = 'vivid';
+								break;
+							case Characteristic.PictureMode.GAME:
+								command = 'game';
+								break;
+							case Characteristic.PictureMode.COMPUTER:
+								command = 'photo';
+								break;
+							case Characteristic.PictureMode.CUSTOM:
+								command = 'sport';
+								break;
+						};
+
+						const payload = {
+							category: 'picture',
+							settings: {
+								'pictureMode': command
+							}
+						};
+						await this.lgtv.send('request', CONSTANS.ApiUrls.SetSystemSettings, payload);
+						const logInfo = this.disableLogInfo || this.firstRun ? false : this.log(`Device: ${this.host} ${accessoryName}, set Picture Mode: ${command}`);
+					} catch (error) {
+						this.log.errorthis.log(`Device: ${this.host} ${accessoryName}, set Picture Mode error: ${error}`);
+					};
+				});
+		};
+
+		this.services.push(this.televisionService);
 		accessory.addService(this.televisionService);
 
 		//Prepare speaker service
@@ -787,6 +862,7 @@ class lgwebosTvDevice {
 					this.log.error(`Device: ${this.host} ${accessoryName} , set Mute error: ${error}`);
 				};
 			});
+		this.services.push(this.tvSpeakerService);
 		accessory.addService(this.speakerService);
 
 		//Prepare volume service
@@ -810,6 +886,8 @@ class lgwebosTvDevice {
 					.onSet(async (state) => {
 						this.speakerService.setCharacteristic(Characteristic.Mute, !state);
 					});
+
+				this.services.push(this.volumeService);
 				accessory.addService(this.volumeService);
 			}
 
@@ -831,6 +909,8 @@ class lgwebosTvDevice {
 					.onSet(async (state) => {
 						this.speakerService.setCharacteristic(Characteristic.Mute, !state);
 					});
+
+				this.services.push(this.volumeServiceFan);
 				accessory.addService(this.volumeServiceFan);
 			}
 		}
@@ -865,6 +945,8 @@ class lgwebosTvDevice {
 							this.log.error(`Device: ${this.host} ${accessoryName}, set Backlight error: ${error}`);
 						};
 					});
+
+				this.services.push(this.backlightService);
 				accessory.addService(this.backlightService);
 			}
 
@@ -896,6 +978,8 @@ class lgwebosTvDevice {
 							this.log.error(`Device: ${this.host} ${accessoryName}, set Brightness error: ${error}`);
 						};
 					});
+
+				this.services.push(this.brightnessService);
 				accessory.addService(this.brightnessService);
 			}
 
@@ -927,6 +1011,8 @@ class lgwebosTvDevice {
 							this.log.error(`Device: ${this.host} ${accessoryName}, set Contrast error: ${error}`);
 						};
 					});
+
+				this.services.push(this.contrastService);
 				accessory.addService(this.contrastService);
 			}
 
@@ -958,6 +1044,8 @@ class lgwebosTvDevice {
 							this.log.error(`Device: ${this.host} ${accessoryName}, set Color error: ${error}`);
 						};
 					});
+
+				this.services.push(this.colorService);
 				accessory.addService(this.colorService);
 			}
 
@@ -993,56 +1081,9 @@ class lgwebosTvDevice {
 						});
 
 					this.pictureModesServices.push(pictureModeService);
+					this.services.push(pictureModeService);
 					accessory.addService(this.pictureModesServices[i]);
 				}
-
-				this.televisionService.getCharacteristic(Characteristic.PictureMode)
-					.onGet(async () => {
-						const value = this.pictureMode;
-						const logInfo = this.disableLogInfo || this.firstRun ? false : this.log(`Device: ${this.host} ${accessoryName}, Picture Mode: ${value}`);
-						return value;
-					})
-					.onSet(async (command) => {
-						try {
-							switch (command) {
-								case Characteristic.PictureMode.OTHER:
-									command = 'cinema';
-									break;
-								case Characteristic.PictureMode.STANDARD:
-									command = 'normal';
-									break;
-								case Characteristic.PictureMode.CALIBRATED:
-									command = 'expert1';
-									break;
-								case Characteristic.PictureMode.CALIBRATED_DARK:
-									command = 'expert2';
-									break;
-								case Characteristic.PictureMode.VIVID:
-									command = 'vivid';
-									break;
-								case Characteristic.PictureMode.GAME:
-									command = 'game';
-									break;
-								case Characteristic.PictureMode.COMPUTER:
-									command = 'photo';
-									break;
-								case Characteristic.PictureMode.CUSTOM:
-									command = 'sport';
-									break;
-							};
-
-							const payload = {
-								category: 'picture',
-								settings: {
-									'pictureMode': command
-								}
-							};
-							await this.lgtv.send('request', CONSTANS.ApiUrls.SetSystemSettings, payload);
-							const logInfo = this.disableLogInfo || this.firstRun ? false : this.log(`Device: ${this.host} ${accessoryName}, set Picture Mode: ${command}`);
-						} catch (error) {
-							this.log.errorthis.log(`Device: ${this.host} ${accessoryName}, set Picture Mode error: ${error}`);
-						};
-					});
 			}
 
 			//turn screen ON/OFF
@@ -1069,6 +1110,8 @@ class lgwebosTvDevice {
 							this.log.error(`Device: ${this.host} ${accessoryName}, Turn Screen ${state ? 'ON' : 'OFF'}, error: ${error}`);
 						};
 					});
+
+				this.services.push(this.turnScreenOnOffService);
 				accessory.addService(this.turnScreenOnOffService);
 			};
 		}
@@ -1076,78 +1119,92 @@ class lgwebosTvDevice {
 		//prepare sensor service
 		if (this.sensorPower) {
 			this.log.debug('prepareSensorPowerService')
-			this.sensorPowerService = new Service.MotionSensor(`${accessoryName} Power Sensor`, `Power Sensor`);
-			this.sensorPowerService.getCharacteristic(Characteristic.MotionDetected)
+			this.sensorPowerService = new Service.ContactSensor(`${accessoryName} Power Sensor`, `Power Sensor`);
+			this.sensorPowerService.getCharacteristic(Characteristic.ContactSensorState)
 				.onGet(async () => {
 					const state = this.power;
 					return state;
 				});
+
+			this.services.push(this.sensorPowerService);
 			accessory.addService(this.sensorPowerService);
 		};
 
 		if (this.sensorVolume) {
 			this.log.debug('prepareSensorVolumeService')
-			this.sensorVolumeService = new Service.MotionSensor(`${accessoryName} Volume Sensor`, `Volume Sensor`);
-			this.sensorVolumeService.getCharacteristic(Characteristic.MotionDetected)
+			this.sensorVolumeService = new Service.ContactSensor(`${accessoryName} Volume Sensor`, `Volume Sensor`);
+			this.sensorVolumeService.getCharacteristic(Characteristic.ContactSensorState)
 				.onGet(async () => {
 					const state = this.sensorVolumeState;
 					return state;
 				});
+
+			this.services.push(this.sensorVolumeService);
 			accessory.addService(this.sensorVolumeService);
 		};
 
 		if (this.sensorMute) {
 			this.log.debug('prepareSensorMuteService')
-			this.sensorMuteService = new Service.MotionSensor(`${accessoryName} Mute Sensor`, `Mute Sensor`);
-			this.sensorMuteService.getCharacteristic(Characteristic.MotionDetected)
+			this.sensorMuteService = new Service.ContactSensor(`${accessoryName} Mute Sensor`, `Mute Sensor`);
+			this.sensorMuteService.getCharacteristic(Characteristic.ContactSensorState)
 				.onGet(async () => {
 					const state = this.power ? this.mute : false;
 					return state;
 				});
+
+			this.services.push(this.sensorMuteService);
 			accessory.addService(this.sensorMuteService);
 		};
 
 		if (this.sensorInput) {
 			this.log.debug('prepareSensorInputService')
-			this.sensorInputService = new Service.MotionSensor(`${accessoryName} Input Sensor`, `Input Sensor`);
-			this.sensorInputService.getCharacteristic(Characteristic.MotionDetected)
+			this.sensorInputService = new Service.ContactSensor(`${accessoryName} Input Sensor`, `Input Sensor`);
+			this.sensorInputService.getCharacteristic(Characteristic.ContactSensorState)
 				.onGet(async () => {
 					const state = this.sensorInputState;
 					return state;
 				});
+
+			this.services.push(this.sensorInputService);
 			accessory.addService(this.sensorInputService);
 		};
 
 		if (this.sensorChannel) {
 			this.log.debug('prepareSensorChannelService')
-			this.sensorChannelService = new Service.MotionSensor(`${accessoryName} Channel Sensor`, `Channel Sensor`);
-			this.sensorChannelService.getCharacteristic(Characteristic.MotionDetected)
+			this.sensorChannelService = new Service.ContactSensor(`${accessoryName} Channel Sensor`, `Channel Sensor`);
+			this.sensorChannelService.getCharacteristic(Characteristic.ContactSensorState)
 				.onGet(async () => {
 					const state = this.sensorChannelState;
 					return state;
 				});
+
+			this.services.push(this.sensorChannelService);
 			accessory.addService(this.sensorChannelService);
 		};
 
 		if (this.sensorScreenOnOff && webOS >= 4) {
 			this.log.debug('prepareSensorScreenOnOffService')
-			this.sensorScreenOnOffService = new Service.MotionSensor(`${accessoryName} Screen On/Off Sensor`, `Screen On/Off Sensor`);
-			this.sensorScreenOnOffService.getCharacteristic(Characteristic.MotionDetected)
+			this.sensorScreenOnOffService = new Service.ContactSensor(`${accessoryName} Screen On/Off Sensor`, `Screen On/Off Sensor`);
+			this.sensorScreenOnOffService.getCharacteristic(Characteristic.ContactSensorState)
 				.onGet(async () => {
 					const state = this.power ? this.screenOnOff : false;
 					return state;
 				});
+
+			this.services.push(this.sensorScreenOnOffService);
 			accessory.addService(this.sensorScreenOnOffService);
 		};
 
 		if (this.sensorScreenSaver) {
 			this.log.debug('prepareSensorScreenSaverService')
-			this.sensorScreenSaverService = new Service.MotionSensor(`${accessoryName} Screen Saver Sensor`, `Screen Saver Sensor`);
-			this.sensorScreenSaverService.getCharacteristic(Characteristic.MotionDetected)
+			this.sensorScreenSaverService = new Service.ContactSensor(`${accessoryName} Screen Saver Sensor`, `Screen Saver Sensor`);
+			this.sensorScreenSaverService.getCharacteristic(Characteristic.ContactSensorState)
 				.onGet(async () => {
 					const state = this.power ? this.screenSaver : false;
 					return state;
 				});
+
+			this.services.push(this.sensorScreenSaverService);
 			accessory.addService(this.sensorScreenSaverService);
 		};
 
@@ -1177,7 +1234,8 @@ class lgwebosTvDevice {
 		//check possible inputs and possible inputs count (max 90)
 		const inputs = filteredInputsArr;
 		const inputsCount = inputs.length;
-		const maxInputsCount = inputsCount < 80 ? inputsCount : 80;
+		const possibleInputsCount = 90 - this.services.length;
+		const maxInputsCount = inputsCount >= possibleInputsCount ? possibleInputsCount : inputsCount;
 		for (let i = 0; i < maxInputsCount; i++) {
 			//input
 			const input = inputs[i];
@@ -1249,6 +1307,7 @@ class lgwebosTvDevice {
 				this.inputsMode.push(inputMode);
 
 				this.televisionService.addLinkedService(inputService);
+				this.services.push(inputService);
 				accessory.addService(inputService);
 			} else {
 				this.log(`Device: ${this.host} ${accessoryName}, Input Name: ${inputName ? inputName : 'Missing'}, Reference: ${inputReference ? inputReference : 'Missing'}, Mode: ${inputMode ? inputMode : 'Missing'}.`);
@@ -1259,8 +1318,8 @@ class lgwebosTvDevice {
 		//prepare sonsor service
 		const sensorInputs = this.sensorInputs;
 		const sensorInputsCount = sensorInputs.length;
-		const possibleSensorInputsCount = 80 - this.inputsReference.length;
-		const maxSensorInputsCount = possibleSensorInputsCount >= sensorInputsCount ? sensorInputsCount : possibleSensorInputsCount;
+		const possibleSensorInputsCount = 90 - this.services.length;
+		const maxSensorInputsCount = sensorInputsCount >= possibleSensorInputsCount ? possibleSensorInputsCount : sensorInputsCount;
 		if (maxSensorInputsCount > 0) {
 			this.log.debug('prepareSensorInputsServices');
 			for (let i = 0; i < maxSensorInputsCount; i++) {
@@ -1280,8 +1339,8 @@ class lgwebosTvDevice {
 					if (sensorInputName && sensorInputReference) {
 						const serviceType = [Service.MotionSensor, Service.OccupancySensor, Service.ContactSensor][sensorInputDisplayType];
 						const characteristicType = [Characteristic.MotionDetected, Characteristic.OccupancyDetected, Characteristic.ContactSensorState][sensorInputDisplayType];
-						const sensorInputsService = new serviceType(`${accessoryName} ${sensorInputName}`, `Sensor ${i}`);
-						sensorInputsService.getCharacteristic(characteristicType)
+						const sensorInputService = new serviceType(`${accessoryName} ${sensorInputName}`, `Sensor ${i}`);
+						sensorInputService.getCharacteristic(characteristicType)
 							.onGet(async () => {
 								const state = this.power ? (sensorInputReference === this.reference) : false;
 								return state;
@@ -1289,7 +1348,8 @@ class lgwebosTvDevice {
 
 						this.sensorInputsReference.push(sensorInputReference);
 						this.sensorInputsDisplayType.push(sensorInputDisplayType);
-						this.sensorInputsServices.push(sensorInputsService);
+						this.sensorInputsServices.push(sensorInputService);
+						this.services.push(sensorInputService);
 						accessory.addService(this.sensorInputsServices[i]);
 					} else {
 						this.log(`Device: ${this.host} ${accessoryName}, Sensor Name: ${sensorInputName ? sensorInputName : 'Missing'}, Reference: ${sensorInputReference ? sensorInputReference : 'Missing'}.`);
@@ -1301,8 +1361,8 @@ class lgwebosTvDevice {
 		//Prepare inputs button services
 		const buttons = this.buttons;
 		const buttonsCount = buttons.length;
-		const possibleButtonsCount = 80 - (this.inputsReference.length + this.sensorInputsServices.length);
-		const maxButtonsCount = possibleButtonsCount >= buttonsCount ? buttonsCount : possibleButtonsCount;
+		const possibleButtonsCount = 90 - this.services.length;
+		const maxButtonsCount = buttonsCount >= possibleButtonsCount ? possibleButtonsCount : buttonsCount;
 		if (maxButtonsCount > 0) {
 			this.log.debug('prepareInputsButtonService');
 			for (let i = 0; i < maxButtonsCount; i++) {
@@ -1360,6 +1420,7 @@ class lgwebosTvDevice {
 								};
 							});
 						this.buttonsServices.push(buttonService);
+						this.services.push(buttonService);
 						accessory.addService(this.buttonsServices[i]);
 					} else {
 						this.log(`Device: ${this.host} ${accessoryName}, Button Name: ${buttonName ? buttonName : 'Missing'}, ${buttonMode ? 'Command:' : 'Reference:'} ${buttonReferenceCommand ? buttonReferenceCommand : 'Missing'}, Mode: ${buttonMode ? buttonMode : 'Missing'}..`);
