@@ -117,6 +117,7 @@ class lgwebosTvDevice {
 		this.inputsName = [];
 		this.inputsMode = [];
 
+		this.pictureModesServices = [];
 		this.sensorInputsServices = [];
 		this.sensorInputsReference = [];
 		this.sensorInputsDisplayType = [];
@@ -633,10 +634,10 @@ class lgwebosTvDevice {
 							command = this.infoButtonCommand;
 							break;
 					}
+
 					const payload = {
 						name: command
-					}
-
+					};
 					await this.lgtv.send('button', payload);
 					const logInfo = this.disableLogInfo || this.firstRun ? false : this.log(`Device: ${this.host} ${accessoryName}, set Remote Key: ${command}`);
 				} catch (error) {
@@ -723,6 +724,7 @@ class lgwebosTvDevice {
 				const state = 3; //none, relative, relative with current, absolute
 				return state;
 			});
+
 		this.speakerService.getCharacteristic(Characteristic.VolumeSelector)
 			.onSet(async (command) => {
 				try {
@@ -779,7 +781,7 @@ class lgwebosTvDevice {
 					const payload = {
 						mute: state
 					};
-					const toggleMute = this.mute !== state ? await this.lgtv.send('request', CONSTANS.ApiUrls.SetMute, payload) : false;
+					await this.lgtv.send('request', CONSTANS.ApiUrls.SetMute, payload);
 					const logInfo = this.disableLogInfo || this.firstRun ? false : this.log(`Device: ${this.host} ${accessoryName}, set Mute: ${state ? 'ON' : 'OFF'}`);
 				} catch (error) {
 					this.log.error(`Device: ${this.host} ${accessoryName} , set Mute error: ${error}`);
@@ -888,7 +890,7 @@ class lgwebosTvDevice {
 									'brightness': value
 								}
 							};
-							const setBrightness = this.power ? await this.lgtv.send('request', CONSTANS.ApiUrls.SetSystemSettings, payload) : false;
+							await this.lgtv.send('request', CONSTANS.ApiUrls.SetSystemSettings, payload);
 							const logInfo = this.disableLogInfo || this.firstRun ? false : this.log(`Device: ${this.host} ${accessoryName}, set Brightness: ${value}`);
 						} catch (error) {
 							this.log.error(`Device: ${this.host} ${accessoryName}, set Brightness error: ${error}`);
@@ -962,7 +964,6 @@ class lgwebosTvDevice {
 			//Picture mode
 			if (this.pictureModeControl) {
 				this.log.debug('preparePictureModeService');
-				this.pictureModesServices = [];
 				const pictureModes = this.pictureModes;
 				const pictureModesCount = pictureModes.length;
 				for (let i = 0; i < pictureModesCount; i++) {
@@ -1061,9 +1062,7 @@ class lgwebosTvDevice {
 									'energySaving': mode
 								}
 							}
-							const webOS5 = webOS <= 5 ? state ? CONSTANS.ApiUrls.TurnOnScreen : CONSTANS.ApiUrls.TurnOffScreen : false;
-							const webOS6 = webOS > 5 ? state ? CONSTANS.ApiUrls.TurnOnScreen5 : CONSTANS.ApiUrls.TurnOffScreen5 : false;
-							const url = webOS <= 5 ? webOS5 : webOS6;
+							const url = webOS <= 5 ? (state ? CONSTANS.ApiUrls.TurnOnScreen : CONSTANS.ApiUrls.TurnOffScreen) : (state ? CONSTANS.ApiUrls.TurnOnScreen5 : CONSTANS.ApiUrls.TurnOffScreen5);
 							await this.lgtv.send('request', url);
 							const logInfo = this.disableLogInfo || this.firstRun ? false : this.log(`Device: ${this.host} ${accessoryName}, Turn Screen ${state ? 'ON' : 'OFF'}.`);
 						} catch (error) {
@@ -1222,7 +1221,7 @@ class lgwebosTvDevice {
 
 							await fsPromises.writeFile(this.inputsNamesFile, newCustomName);
 							const logDebug = this.enableDebugMode ? this.log(`Device: ${this.host} ${accessoryName}, saved ${inputMode === 0 ? 'Input' : 'Channel'} Name: ${value}, Reference: ${inputReference}`) : false;
-							inputService.setCharacteristic(Characteristic.Name, inputName);
+							inputService.setCharacteristic(Characteristic.Name, value);
 						} catch (error) {
 							this.log.error(`Device: ${this.host} ${accessoryName}, save Input error: ${error}`);
 						}
@@ -1269,28 +1268,32 @@ class lgwebosTvDevice {
 				const sensorInput = sensorInputs[i];
 
 				//get sensor name		
-				const sensorInputName = sensorInput.name || 'Not set';
+				const sensorInputName = sensorInput.name;
 
 				//get sensor reference
-				const sensorInputReference = sensorInput.reference || 'Not set';
+				const sensorInputReference = sensorInput.reference;
 
 				//get sensor display type
 				const sensorInputDisplayType = sensorInput.displayType >= 0 ? sensorInput.displayType : -1;
 
 				if (sensorInputDisplayType >= 0) {
-					const serviceType = [Service.MotionSensor, Service.OccupancySensor, Service.ContactSensor][sensorInputDisplayType];
-					const characteristicType = [Characteristic.MotionDetected, Characteristic.OccupancyDetected, Characteristic.ContactSensorState][sensorInputDisplayType];
-					const sensorInputsService = new serviceType(`${accessoryName} ${sensorInputName}`, `Sensor ${i}`);
-					sensorInputsService.getCharacteristic(characteristicType)
-						.onGet(async () => {
-							const state = this.power ? (sensorInputReference === this.reference) : false;
-							return state;
-						});
+					if (sensorInputName && sensorInputReference) {
+						const serviceType = [Service.MotionSensor, Service.OccupancySensor, Service.ContactSensor][sensorInputDisplayType];
+						const characteristicType = [Characteristic.MotionDetected, Characteristic.OccupancyDetected, Characteristic.ContactSensorState][sensorInputDisplayType];
+						const sensorInputsService = new serviceType(`${accessoryName} ${sensorInputName}`, `Sensor ${i}`);
+						sensorInputsService.getCharacteristic(characteristicType)
+							.onGet(async () => {
+								const state = this.power ? (sensorInputReference === this.reference) : false;
+								return state;
+							});
 
-					this.sensorInputsReference.push(sensorInputReference);
-					this.sensorInputsDisplayType.push(sensorInputDisplayType);
-					this.sensorInputsServices.push(sensorInputsService);
-					accessory.addService(this.sensorInputsServices[i]);
+						this.sensorInputsReference.push(sensorInputReference);
+						this.sensorInputsDisplayType.push(sensorInputDisplayType);
+						this.sensorInputsServices.push(sensorInputsService);
+						accessory.addService(this.sensorInputsServices[i]);
+					} else {
+						this.log(`Device: ${this.host} ${accessoryName}, Sensor Name: ${sensorInputName ? sensorInputName : 'Missing'}, Reference: ${sensorInputReference ? sensorInputReference : 'Missing'}.`);
+					};
 				}
 			}
 		}
@@ -1307,53 +1310,60 @@ class lgwebosTvDevice {
 				const button = buttons[i];
 
 				//get button name
-				const buttonName = button.name || 'Not set';
+				const buttonName = button.name;
 
 				//get button mode
-				const buttonMode = button.mode || 0;
+				const buttonMode = button.mode;
 
 				//get button reference
-				const buttonReference = button.reference || 'Not set';
+				const buttonReference = button.reference;
 
 				//get button command
-				const buttonCommand = button.command || 'Not set';
+				const buttonCommand = button.command;
+
+				//get button reference/command
+				const buttonReferenceCommand = [buttonReference, 'com.webos.app.livetv', buttonCommand][buttonMode];
 
 				//get button display type
 				const buttonDisplayType = button.displayType >= 0 ? button.displayType : -1;
 
 				if (buttonDisplayType >= 0) {
-					const serviceType = [Service.Outlet, Service.Switch][buttonDisplayType];
-					const buttonService = new serviceType(`${accessoryName} ${buttonName}`, `Button ${i}`);
-					buttonService.getCharacteristic(Characteristic.On)
-						.onGet(async () => {
-							const state = false;
-							return state;
-						})
-						.onSet(async (state) => {
-							try {
-								if (this.power && state) {
-									switch (buttonMode) {
-										case 0: case 1:
-											const appId = [buttonReference, 'com.webos.app.livetv'][buttonMode]
-											await this.lgtv.send('request', CONSTANS.ApiUrls.LaunchApp, { id: appId });
-											break;
-										case 1:
-											await this.lgtv.send('request', CONSTANS.ApiUrls.OpenChannel, { channelId: buttonReference })
-											break;
-										case 2:
-											await this.lgtv.send('button', { name: buttonCommand });
-											break;
+					if (buttonName && buttonReferenceCommand && buttonMode) {
+						const serviceType = [Service.Outlet, Service.Switch][buttonDisplayType];
+						const buttonService = new serviceType(`${accessoryName} ${buttonName}`, `Button ${i}`);
+						buttonService.getCharacteristic(Characteristic.On)
+							.onGet(async () => {
+								const state = false;
+								return state;
+							})
+							.onSet(async (state) => {
+								try {
+									if (this.power && state) {
+										switch (buttonMode) {
+											case 0: case 1:
+												const appId = [buttonReference, 'com.webos.app.livetv'][buttonMode]
+												await this.lgtv.send('request', CONSTANS.ApiUrls.LaunchApp, { id: appId });
+												break;
+											case 1:
+												await this.lgtv.send('request', CONSTANS.ApiUrls.OpenChannel, { channelId: buttonReference })
+												break;
+											case 2:
+												await this.lgtv.send('button', { name: buttonCommand });
+												break;
+										}
+										const logDebug = this.enableDebugMode ? this.log(`Device: ${this.host} ${accessoryName}, set ${['Input', 'Channel', 'Command'][buttonMode]} Name: ${buttonName}, Reference: ${[buttonReference, buttonReference, buttonCommand][buttonMode]}`) : false;
 									}
-									const logDebug = this.enableDebugMode ? this.log(`Device: ${this.host} ${accessoryName}, set ${['Input', 'Channel', 'Command'][buttonMode]} Name: ${buttonName}, Reference: ${[buttonReference, buttonReference, buttonCommand][buttonMode]}`) : false;
-								}
-								await new Promise(resolve => setTimeout(resolve, 300));
-								const setChar = state ? buttonService.updateCharacteristic(Characteristic.On, false) : false;
-							} catch (error) {
-								this.log.error(`Device: ${this.host} ${accessoryName}, set ${['Input', 'Channel', 'Command'][buttonMode]} error: ${error}`);
-							};
-						});
-					this.buttonsServices.push(buttonService);
-					accessory.addService(this.buttonsServices[i]);
+									await new Promise(resolve => setTimeout(resolve, 300));
+									const setChar = state ? buttonService.updateCharacteristic(Characteristic.On, false) : false;
+								} catch (error) {
+									this.log.error(`Device: ${this.host} ${accessoryName}, set ${['Input', 'Channel', 'Command'][buttonMode]} error: ${error}`);
+								};
+							});
+						this.buttonsServices.push(buttonService);
+						accessory.addService(this.buttonsServices[i]);
+					} else {
+						this.log(`Device: ${this.host} ${accessoryName}, Button Name: ${buttonName ? buttonName : 'Missing'}, ${buttonMode ? 'Command:' : 'Reference:'} ${buttonReferenceCommand ? buttonReferenceCommand : 'Missing'}, Mode: ${buttonMode ? buttonMode : 'Missing'}..`);
+					};
 				};
 			};
 		};
