@@ -187,8 +187,7 @@ class lgwebosTvDevice {
 			this.mqtt = new Mqtt({
 				host: this.mqttHost,
 				port: this.mqttPort,
-				prefix: this.mqttPrefix,
-				topic: this.name,
+				prefix: `${this.mqttPrefi}/${this.name}`,
 				auth: this.mqttAuth,
 				user: this.mqttUser,
 				passwd: this.mqttPasswd,
