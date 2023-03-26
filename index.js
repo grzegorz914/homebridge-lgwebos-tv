@@ -85,6 +85,8 @@ class lgwebosTvDevice {
 		this.colorControl = config.colorControl || false;
 		this.pictureModeControl = config.pictureModeControl || false;
 		this.pictureModes = config.pictureModes || [];
+		this.soundModeControl = config.soundModeControl || false;
+		this.soundModes = config.soundModes || [];
 		this.enableDebugMode = config.enableDebugMode || false;
 		this.disableLogInfo = config.disableLogInfo || false;
 		this.disableLogDeviceInfo = config.disableLogDeviceInfo || false;
@@ -145,6 +147,7 @@ class lgwebosTvDevice {
 		this.contrast = 0;
 		this.color = 0;
 		this.pictureMode = 3;
+		this.soundMode = '';
 		this.sensorVolumeState = false;
 		this.sensorInputState = false;
 		this.sensorChannelState = false;
@@ -233,6 +236,18 @@ class lgwebosTvDevice {
 					this.log(`----------------------------------`);
 				};
 
+				const savedInfo = fs.readFileSync(this.devInfoFile).length > 2 ? JSON.parse(fs.readFileSync(this.devInfoFile)) : undefined;
+				const infoHasNotchanged =
+					modelName === savedInfo.modelName
+					&& productName === savedInfo.productName
+					&& serialNumber === savedInfo.serialNumber
+					&& firmwareRevision === savedInfo.firmwareRevision
+					&& webOS === savedInfo.webOS;
+
+				if (infoHasNotchanged) {
+					return;
+				};
+
 				if (this.informationService) {
 					this.informationService
 						.setCharacteristic(Characteristic.Manufacturer, this.manufacturer)
@@ -241,7 +256,7 @@ class lgwebosTvDevice {
 						.setCharacteristic(Characteristic.FirmwareRevision, firmwareRevision);
 				};
 
-				this.modelName = modelName;
+				this.modelName = modelName
 				this.productName = productName;
 				this.serialNumber = serialNumber;
 				this.firmwareRevision = firmwareRevision;
@@ -457,7 +472,7 @@ class lgwebosTvDevice {
 				if (this.pictureModesServices) {
 					const servicesCount = this.pictureModesServices.length;
 					for (let i = 0; i < servicesCount; i++) {
-						const state = this.power ? (this.pictureModes[i].reference === pictureMode) : false;
+						const state = power ? (this.pictureModes[i].reference === pictureMode) : false;
 						this.pictureModesServices[i]
 							.updateCharacteristic(Characteristic.On, state);
 					};
@@ -468,6 +483,19 @@ class lgwebosTvDevice {
 				this.contrast = contrast;
 				this.color = color;
 				this.pictureMode = pictureMode;
+			})
+			.on('soundMode', (soundMode, power) => {
+
+				if (this.soundModesServices) {
+					const servicesCount = this.soundModesServices.length;
+					for (let i = 0; i < servicesCount; i++) {
+						const state = power ? (this.soundModes[i].reference === soundMode) : false;
+						this.soundModesServices[i]
+							.updateCharacteristic(Characteristic.On, state);
+					};
+				};
+
+				this.soundMode = soundMode;
 			})
 			.on('error', (error) => {
 				this.log.error(`Device: ${this.host} ${this.name}, ${JSON.stringify(error, null, 2)}`);
@@ -495,8 +523,8 @@ class lgwebosTvDevice {
 		return new Promise((resolve, reject) => {
 			this.log.debug('prepareAccessory');
 			try {
-				const devInfo = fs.readFileSync(this.devInfoFile).length > 2 ? JSON.parse(fs.readFileSync(this.devInfoFile)) : false;
-				const webOS = devInfo.webOS ? devInfo.webOS : this.webOS;
+				const savedInfo = fs.readFileSync(this.devInfoFile).length > 2 ? JSON.parse(fs.readFileSync(this.devInfoFile)) : undefined;
+				const webOS = savedInfo.webOS ?? this.webOS;
 
 				//accessory
 				const accessoryName = this.name;
@@ -508,9 +536,9 @@ class lgwebosTvDevice {
 				this.log.debug('prepareInformationService');
 				this.informationService = accessory.getService(Service.AccessoryInformation)
 					.setCharacteristic(Characteristic.Manufacturer, this.manufacturer)
-					.setCharacteristic(Characteristic.Model, this.modelName)
-					.setCharacteristic(Characteristic.SerialNumber, this.serialNumber)
-					.setCharacteristic(Characteristic.FirmwareRevision, this.firmwareRevision);
+					.setCharacteristic(Characteristic.Model, savedInfo.modelName ?? this.modelName)
+					.setCharacteristic(Characteristic.SerialNumber, savedInfo.serialNumber ?? this.serialNumber)
+					.setCharacteristic(Characteristic.FirmwareRevision, savedInfo.firmwareRevision ?? this.firmwareRevision);
 				this.services.push(this.informationService);
 
 				//prepare television service 
@@ -1088,6 +1116,43 @@ class lgwebosTvDevice {
 							this.pictureModesServices.push(pictureModeService);
 							this.services.push(pictureModeService);
 							accessory.addService(this.pictureModesServices[i]);
+						}
+					}
+
+					//Sound mode
+					if (this.soundModeControl && webOS >= 6) {
+						this.log.debug('prepareSoundeModeService');
+						const soundModes = this.soundModes;
+						const soundModesCount = soundModes.length;
+						for (let i = 0; i < soundModesCount; i++) {
+							const soundModeName = soundModes[i].name;
+							const soundModeReference = soundModes[i].reference;
+							const soundModeService = new Service.Switch(`${accessoryName} ${soundModeName}`, `Sound Mode ${i}`);
+							soundModeService.getCharacteristic(Characteristic.On)
+								.onGet(async () => {
+									const state = this.power ? (this.soundMode === soundModeReference) : false;
+									const logInfo = this.disableLogInfo || this.firstRun ? false : this.log(`Device: ${this.host} ${accessoryName}, Sound Mode: ${soundModeName}`);
+									return state;
+								})
+								.onSet(async (state) => {
+									try {
+										const payload = {
+											category: 'sound',
+											settings: {
+												'soundMode': soundModeReference
+											}
+										}
+
+										await this.lgtv.send('request', CONSTANS.ApiUrls.SetSystemSettings, payload);
+										const logInfo = this.disableLogInfo || this.firstRun ? false : this.log(`Device: ${this.host} ${accessoryName}, set Sound Mode: ${soundModeName}`);
+									} catch (error) {
+										this.log.error(`Device: ${this.host} ${accessoryName}, set Sound Mode error: ${error}`);
+									};
+								});
+
+							this.soundModesServices.push(soundModeService);
+							this.services.push(soundModeService);
+							accessory.addService(this.soundModesServices[i]);
 						}
 					}
 

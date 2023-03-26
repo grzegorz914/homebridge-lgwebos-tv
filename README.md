@@ -31,6 +31,7 @@ Tested with OLED65G6V, 32LM6300PLA, 49SK8500, OLED65C7T, 55SK800PLB, OLED48CX.
 * Legacy Volume and Mute control is possible throught extra `lightbulb`/`fan` (slider).
 * Inputs can be changed using Inputs selector in HomeKit.app, additionally can create separate tile.
 * Channels can be changed using Channels selector in HomeKit app, additionally can create separate tile.
+* Brightness, Contrast, Backlight, Color, Picture Mode and Sound Mode can be changed using extra tile.
 * Siri can be used for all functions, some times need create legacy buttons/switches/sensors.
 * Automations can be used for all functions, some times need create legacy buttons/switches/sensors.
 * MQTT publisch topic *System Info*, *Software Info*, *Channels*, *Apps*, *Power*, *Audio*, *Current App*, *Current Channel*, *Picture Settings* as payload JSON data.
@@ -45,10 +46,9 @@ Tested with OLED65G6V, 32LM6300PLA, 49SK8500, OLED65C7T, 55SK800PLB, OLED48CX.
 ## Configuration
 * [First please configure LG Connect Apps](https://www.lg.com/ca_en/support/product-help/CT20098005-1437129879355-others)
 * Run this plugin as a [Child Bridge](https://github.com/homebridge/homebridge/wiki/Child-Bridges) (Highly Recommended), this prevent crash Homebridge if plugin crashes.
-* Install and use [Homebridge Config UI X](https://github.com/oznu/homebridge-config-ui-x/wiki) to configure this plugin (Highly Recommended). 
-* The sample configuration can be edited and used manually as an alternative. 
-* See the `sample-config.json` file in this repository or copy the example below into your config.json file, making the apporpriate changes before saving it. 
-* Be sure to always make a backup copy of your config.json file before making any changes to it.saving it.
+* Install and use [Homebridge Config UI X](https://github.com/oznu/homebridge-config-ui-x/wiki) to configure this plugin. 
+* See the `sample-config.json` file or copy the example making the apporpriate changes before saving it. 
+* Be sure to always make a backup copy of your config.json file before making any changes to it.
 
 <p align="left">
   <a href="https://github.com/grzegorz914/homebridge-lgwebos-tv"><img src="https://raw.githubusercontent.com/grzegorz914/homebridge-lgwebos-tv/main/graphics/ustawienia.png" width="840"></a>
@@ -98,89 +98,3 @@ Tested with OLED65G6V, 32LM6300PLA, 49SK8500, OLED65C7T, 55SK800PLB, OLED48CX.
 | `Volume Control` | -1 - `None/Disabled`, 0 - `Slider`, 1 - `Fan`.|
 | `Display Type Inputs/Buttons` | -1 - `None/Disabled`, 0 - `Outlet`, 1 - `Switch`.|
 | `Display Type Sensors` | -1 - `None/Disabled`, 0 - `Motion Sensor`, 1 - `Occupancy Sensor`, 2 - `Contact Sensor`.|
-
-
-```json
-{
-    "platform": "LgWebOsTv",
-    "devices": [
-        {
-            "name": "LG TV",
-            "host": "192.168.1.8",
-            "mac": "ab:cd:ef:fe:dc:ba",
-            "getInputsFromDevice": false,
-            "filterSystemApps": false,
-            "inputs": [
-                {
-                    "name": "HDMI 3",
-                    "reference": "com.webos.app.hdmi3",
-                    "mode": 0
-                },
-                {
-                    "name": "HDMI 4",
-                    "reference": "com.webos.app.hdmi4",
-                    "mode": 0
-                },
-                {
-                    "name": "Netflix",
-                    "reference": "netflix",
-                    "mode": 0
-                },
-                {
-                    "name": "BBC ONE HD",
-                    "reference": "1_45_101_101_16521_17540_9018",
-                    "mode": 1
-                }
-           ],
-           "buttons": [{
-                    "name": "HDMI 3",
-                    "reference": "com.webos.app.hdmi3",
-                    "mode": 0,
-                    "displayType": 0
-               },
-               {
-                    "name": "BBC ONE HD",
-                    "reference": "1_45_101_101_16521_17540_9018",
-                    "mode": 1,
-                    "displayType": 0
-               },
-               {
-                    "name": "Menu Up",
-                    "mode": 2,
-                    "command": "UP",
-                    "displayType": 0
-               }
-          ],
-            "sensorPower": false,
-            "sensorVolume": false,
-            "sensorMute": false,
-            "sensorInput": false,
-            "sensorChannel": false,
-            "sensorScreenOnOff": false,
-            "sensorScreenSaver": false,
-            "sensorInputs": [
-                {
-                    "name": "HDMI 1",
-                    "reference": "com.webos.app.hdmi1",
-                    "displayType": -1
-                }
-           ],
-            "enableDebugMode": false,
-            "disableLogInfo": false,
-            "disableLogDeviceInfo": false,
-            "turnScreenOnOff": false,
-            "sslWebSocket": false,
-            "infoButtonCommand": "MENU",
-            "volumeControl": 0,
-            "enableMqtt": false,
-            "mqttDebug": false,
-            "mqttHost": "192.168.1.33",
-            "mqttPort": 1883,
-            "mqttPrefix": "home/lg",
-            "mqttAuth": false,
-            "mqttUser": "user",
-            "mqttPass": "password"
-        }
-    ]
-}
-```

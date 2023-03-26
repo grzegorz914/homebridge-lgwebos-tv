@@ -648,7 +648,7 @@
               "title": "Picture Modes",
               "type": "boolean",
               "default": false,
-              "description": "This enable possibility change the Picture Mode.",
+              "description": "This enable possibility change the Picture Mode, only for webOS >= 4.0.",
               "required": false
             },
             "pictureModes": {
@@ -819,6 +819,111 @@
                 }
               }
             },
+            "volumeControl": {
+              "title": "Volume",
+              "type": "integer",
+              "oneOf": [
+                {
+                  "title": "None/Disabled",
+                  "enum": [
+                    -1
+                  ]
+                },
+                {
+                  "title": "Slider",
+                  "enum": [
+                    0
+                  ]
+                },
+                {
+                  "title": "Fan",
+                  "enum": [
+                    1
+                  ]
+                }
+              ],
+              "description": "Here select what a volume control mode You want to use. If select *None/Disabled* only hardware buttons in RC app can be used to control volume.",
+              "required": true
+            },
+            "soundModeControl": {
+              "title": "Sound Modes",
+              "type": "boolean",
+              "default": false,
+              "description": "This enable possibility change the Sound Mode, only for webOS >= 6.0.",
+              "required": false
+            },
+            "soundModes": {
+              "title": "Sound Mode",
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "title": "Name",
+                    "type": "string",
+                    "placeholder": "Sound Mode Name",
+                    "description": "Here set Your own Sound Mode name.",
+                    "required": true
+                  },
+                  "reference": {
+                    "title": "Mode",
+                    "type": "string",
+                    "description": "Here choice the Sound Mode.",
+                    "oneOf": [
+                      {
+                        "title": "Ai Sound",
+                        "enum": [
+                          "aiSoundPlus"
+                        ]
+                      },
+                      {
+                        "title": "Standard",
+                        "enum": [
+                          "Standard"
+                        ]
+                      },
+                      {
+                        "title": "Cinema",
+                        "enum": [
+                          "movie"
+                        ]
+                      },
+                      {
+                        "title": "ClearVoice",
+                        "enum": [
+                          "clearVoice"
+                        ]
+                      },
+                      {
+                        "title": "News",
+                        "enum": [
+                          "news"
+                        ]
+                      },
+                      {
+                        "title": "Sports",
+                        "enum": [
+                          "sports"
+                        ]
+                      },
+                      {
+                        "title": "Music",
+                        "enum": [
+                          "music"
+                        ]
+                      },
+                      {
+                        "title": "Game",
+                        "enum": [
+                          "game"
+                        ]
+                      }
+                    ],
+                    "required": true
+                  }
+                }
+              }
+            },
             "enableDebugMode": {
               "title": "Debug",
               "type": "boolean",
@@ -908,32 +1013,6 @@
                 }
               ],
               "description": "Here select the function of info button in RC.",
-              "required": true
-            },
-            "volumeControl": {
-              "title": "Volume Control",
-              "type": "integer",
-              "oneOf": [
-                {
-                  "title": "None/Disabled",
-                  "enum": [
-                    -1
-                  ]
-                },
-                {
-                  "title": "Slider",
-                  "enum": [
-                    0
-                  ]
-                },
-                {
-                  "title": "Fan",
-                  "enum": [
-                    1
-                  ]
-                }
-              ],
-              "description": "Here select what a volume control mode You want to use. If select *None/Disabled* only hardware buttons in RC app can be used to control volume.",
               "required": true
             },
             "enableMqtt": {
@@ -1141,6 +1220,33 @@
         {
           "key": "devices[]",
           "type": "section",
+          "title": "Sound Control",
+          "expandable": true,
+          "expanded": false,
+          "items": [
+            "devices[].volumeControl",
+            "devices[].soundModeControl",
+            {
+              "items": [
+                {
+                  "key": "devices[].soundModes",
+                  "type": "tabarray",
+                  "title": "{{ value.name || 'new mode' }}",
+                  "items": [
+                    "devices[].soundModes[].name",
+                    "devices[].soundModes[].reference"
+                  ],
+                  "condition": {
+                    "functionBody": "return model.devices[arrayIndices].soundModeControl === true;"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "key": "devices[]",
+          "type": "section",
           "title": "Advanced Settings",
           "expandable": true,
           "expanded": false,
@@ -1150,8 +1256,7 @@
             "devices[].disableLogDeviceInfo",
             "devices[].turnScreenOnOff",
             "devices[].sslWebSocket",
-            "devices[].infoButtonCommand",
-            "devices[].volumeControl"
+            "devices[].infoButtonCommand"
           ]
         },
         {

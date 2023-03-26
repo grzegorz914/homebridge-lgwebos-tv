@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+## [2.9.0] - (26.03.2023)
+## Changes
+- added sound mode control, only for webOS >= 6.0
+- config.schema updated
+- cleanup
+
 ## [2.8.0] - (14.02.2023)
 ## Changes
 - rbuild code of specjal socket client to better RC performance

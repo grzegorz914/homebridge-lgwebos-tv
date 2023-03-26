@@ -60,7 +60,7 @@ class LGTV extends EventEmitter {
                 const messageId = parsedMessage.id;
                 const messageData = parsedMessage.payload;
                 const messageType = parsedMessage.type;
-                const returnValue = (messageData.returnValue === true);
+                const returnValue = messageData.returnValue === true;
                 const stringifyMessage = JSON.stringify(messageData, null, 2);
                 const debug1 = debugLog ? this.emit('debug', `Message Id: ${messageId}, Data: ${stringifyMessage}`) : false;
 
@@ -157,7 +157,7 @@ class LGTV extends EventEmitter {
                         await new Promise(resolve => setTimeout(resolve, 2500));
                         client.emit('prepareAccessory');
                         await new Promise(resolve => setTimeout(resolve, 1500));
-                        client.emit('subscribeTvState');
+                        client.emit('subscribeTvState', this.webOS);
                         break;
                     case this.channelsId:
                         const debug3 = debugLog ? this.emit('debug', `Channels List: ${stringifyMessage}`) : false;
@@ -260,7 +260,14 @@ class LGTV extends EventEmitter {
                         const pictureMode = 3;
 
                         this.emit('pictureSettings', brightness, backlight, contrast, color, pictureMode, this.power);
-                        const mqtt9 = mqttEnabled ? this.emit('mqtt', 'Picture', stringifyMessage) : false;
+                        const mqtt9 = mqttEnabled ? this.emit('mqtt', 'Picture Mode', stringifyMessage) : false;
+                        break;
+                    case this.soundModeId:
+                        const debug11 = debugLog ? this.emit('debug', `Sound Mode: ${stringifyMessage}`) : false;
+                        const soundMode = messageData.settings.soundMode;
+
+                        this.emit('soundMode', soundMode, this.power);
+                        const mqtt10 = mqttEnabled ? this.emit('mqtt', 'Sound Mode', stringifyMessage) : false;
                         break;
                 };
 
@@ -276,7 +283,7 @@ class LGTV extends EventEmitter {
                 const debug = debugLog ? this.emit('debug', `Prepare accessory.`) : false;
                 const prepareAccessory = this.startPrepareAccessory ? this.emit('prepareAccessory') : false;
                 this.startPrepareAccessory = false;
-            }).on('subscribeTvState', async () => {
+            }).on('subscribeTvState', async (webOS) => {
                 const debug = debugLog ? this.emit('debug', `Subscribe TV state.`) : false;
                 try {
                     this.powerStateId = await this.send('subscribe', CONSTANS.ApiUrls.GetPowerState);
@@ -287,15 +294,23 @@ class LGTV extends EventEmitter {
                     await new Promise(resolve => setTimeout(resolve, 250));
                     this.currentChannelId = await this.send('subscribe', CONSTANS.ApiUrls.GetCurrentChannel);
 
-                    if (this.webOS < 4) {
-                        return;
+                    //picture mode
+                    if (webOS >= 4) {
+                        const payload = {
+                            category: 'picture',
+                            keys: ['brightness', 'backlight', 'contrast', 'color']
+                        }
+                        this.pictureSettingsId = await this.send('subscribe', CONSTANS.ApiUrls.GetSystemSettings, payload);
                     };
 
-                    const payload = {
-                        category: 'picture',
-                        keys: ['brightness', 'backlight', 'contrast', 'color']
+                    //sound mode
+                    if (webOS >= 6) {
+                        const payload = {
+                            category: 'sound',
+                            keys: ['soundMode']
+                        }
+                        this.soundModeId = await this.send('subscribe', CONSTANS.ApiUrls.GetSystemSettings, payload);
                     }
-                    this.pictureSettingsId = await this.send('subscribe', CONSTANS.ApiUrls.GetSystemSettings, payload);
                 } catch (error) {
                     this.emit('error', `Subscribe TV states error: ${error}`)
                 };
@@ -309,6 +324,7 @@ class LGTV extends EventEmitter {
                 this.emit('powerState', false, false, false, false);
                 this.emit('audioState', undefined, true, undefined);
                 this.emit('pictureSettings', 0, 0, 0, 0, 3, false);
+                this.emit('soundMode', undefined, false);
 
                 //Prepare accessory
                 if (this.savedPairingKey.length > 10 && this.startPrepareAccessory) {

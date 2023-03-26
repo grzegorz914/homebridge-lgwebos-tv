@@ -66,6 +66,25 @@
                             "displayType": 0
                         }
                     ],
+                    "backlightControl": false,
+                    "brightnessControl": false,
+                    "contrastControl": false,
+                    "colorControl": false,
+                    "pictureModeControl": false,
+                    "pictureModes": [
+                        {
+                            "name": "Cinema",
+                            "reference": "cinema"
+                        }
+                    ],
+                    "volumeControl": 0,
+                    "soundModeControl": false,
+                    "soundModes": [
+                        {
+                            "name": "Cinema",
+                            "reference": "movie"
+                        }
+                    ],
                     "sensorPower": false,
                     "sensorVolume": false,
                     "sensorMute": false,
@@ -86,7 +105,6 @@
                     "turnScreenOnOff": false,
                     "sslWebSocket": false,
                     "infoButtonCommand": "MENU",
-                    "volumeControl": 0,
                     "enableMqtt": false,
                     "mqttDebug": false,
                     "mqttHost": "192.168.1.33",
