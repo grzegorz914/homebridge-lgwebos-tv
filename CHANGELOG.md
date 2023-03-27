@@ -2,6 +2,13 @@
 All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+## [2.9.1] - (27.03.2023)
+## Changes
+- fixed [#165](https://github.com/grzegorz914/homebridge-lgwebos-tv/issues/165)
+- added Sound Mode Contact Sensor, only for webOS >= 6.0
+- config.schema updated
+- cleanup
+
 ## [2.9.0] - (26.03.2023)
 ## Changes
 - added sound mode control, only for webOS >= 6.0

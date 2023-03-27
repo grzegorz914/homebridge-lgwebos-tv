@@ -5,11 +5,7 @@ const fsPromises = fs.promises;
 const wol = require('@mi-sec/wol');
 const LgTv = require('./src/lgwebsocket');
 const Mqtt = require('./src/mqtt.js');
-
-const PLUGIN_NAME = 'homebridge-lgwebos-tv';
-const PLATFORM_NAME = 'LgWebOsTv';
 const CONSTANS = require('./src/constans.json');
-
 let Accessory, Characteristic, Service, Categories, UUID;
 
 module.exports = (api) => {
@@ -18,20 +14,19 @@ module.exports = (api) => {
 	Service = api.hap.Service;
 	Categories = api.hap.Categories;
 	UUID = api.hap.uuid;
-	api.registerPlatform(PLUGIN_NAME, PLATFORM_NAME, lgwebosTvPlatform, true);
+	api.registerPlatform(CONSTANS.PluginName, CONSTANS.PlatformName, lgwebosTvPlatform, true);
 };
 
 class lgwebosTvPlatform {
 	constructor(log, config, api) {
 		// only load if configured
 		if (!config || !Array.isArray(config.devices)) {
-			log(`No configuration found for ${PLUGIN_NAME}`);
+			log(`No configuration found for ${CONSTANS.PluginName}`);
 			return;
 		};
 
 		this.log = log;
 		this.api = api;
-		this.accessories = [];
 		const devices = config.devices;
 
 		this.api.on('didFinishLaunching', () => {
@@ -46,22 +41,17 @@ class lgwebosTvPlatform {
 		});
 	}
 
-	configureAccessory(accessory) {
-		this.log.debug('configureAccessory');
-		this.accessories.push(accessory);
-	}
-
 	removeAccessory(accessory) {
 		this.log.debug('removeAccessory');
-		this.api.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
+		this.api.unregisterPlatformAccessories(CONSTANS.PluginName, CONSTANS.PlatformName, [accessory]);
 	}
 }
 
 class lgwebosTvDevice {
 	constructor(log, config, api) {
 		this.log = log;
-		this.config = config;
 		this.api = api;
+		this.accessories = [];
 
 		//device configuration
 		this.name = config.name;
@@ -76,6 +66,7 @@ class lgwebosTvDevice {
 		this.sensorMute = config.sensorMute || false;
 		this.sensorInput = config.sensorInput || false;
 		this.sensorChannel = config.sensorChannel || false;
+		this.sensorSoundMode = config.sensorScreenSaver || false;
 		this.sensorScreenOnOff = config.sensorScreenOnOff || false;
 		this.sensorScreenSaver = config.sensorScreenSaver || false;
 		this.sensorInputs = config.sensorInputs || [];
@@ -105,14 +96,6 @@ class lgwebosTvDevice {
 
 		//add configured inputs to the default inputs
 		this.inputs = [...CONSTANS.DefaultInputs, ...this.inputs];
-
-		//device info
-		this.manufacturer = 'LG Electronics';
-		this.modelName = 'Model Name';
-		this.serialNumber = 'Serial Number';
-		this.firmwareRevision = 'Firmware Revision';
-		this.productName = 'webOS';
-		this.webOS = 2;
 
 		//setup variables
 		this.services = [];
@@ -151,6 +134,7 @@ class lgwebosTvDevice {
 		this.sensorVolumeState = false;
 		this.sensorInputState = false;
 		this.sensorChannelState = false;
+		this.sensorSoundModeState = false;
 
 		this.prefDir = path.join(api.user.storagePath(), 'lgwebosTv');
 		this.keyFile = `${this.prefDir}/key_${this.host.split('.').join('')}`;
@@ -228,7 +212,7 @@ class lgwebosTvDevice {
 			try {
 				if (!this.disableLogDeviceInfo) {
 					this.log(`-------- ${this.name} --------`);
-					this.log(`Manufacturer: ${this.manufacturer}`);
+					this.log(`Manufacturer: LG Electronics`);
 					this.log(`Model: ${modelName}`);
 					this.log(`System: ${productName}`);
 					this.log(`Serialnr: ${serialNumber}`);
@@ -236,7 +220,7 @@ class lgwebosTvDevice {
 					this.log(`----------------------------------`);
 				};
 
-				const savedInfo = fs.readFileSync(this.devInfoFile).length > 2 ? JSON.parse(fs.readFileSync(this.devInfoFile)) : undefined;
+				const savedInfo = fs.readFileSync(this.devInfoFile).length > 2 ? JSON.parse(fs.readFileSync(this.devInfoFile)) : {};
 				const infoHasNotchanged =
 					modelName === savedInfo.modelName
 					&& productName === savedInfo.productName
@@ -250,17 +234,11 @@ class lgwebosTvDevice {
 
 				if (this.informationService) {
 					this.informationService
-						.setCharacteristic(Characteristic.Manufacturer, this.manufacturer)
+						.setCharacteristic(Characteristic.Manufacturer, 'LG Electronics')
 						.setCharacteristic(Characteristic.Model, modelName)
 						.setCharacteristic(Characteristic.SerialNumber, serialNumber)
 						.setCharacteristic(Characteristic.FirmwareRevision, firmwareRevision);
 				};
-
-				this.modelName = modelName
-				this.productName = productName;
-				this.serialNumber = serialNumber;
-				this.firmwareRevision = firmwareRevision;
-				this.webOS = webOS;
 
 				const obj = {
 					modelName: modelName,
@@ -271,9 +249,9 @@ class lgwebosTvDevice {
 				};
 				const devInfo = JSON.stringify(obj, null, 2);
 				await fsPromises.writeFile(this.devInfoFile, devInfo);
-				const debug = this.enableDebugMode ? this.log(`Device: ${this.host} ${this.name}, saved webOS Info: ${devInfo}`) : false;
+				const debug = this.enableDebugMode ? this.log(`Device: ${this.host} ${this.name}, saved device info: ${devInfo}`) : false;
 			} catch (error) {
-				this.log.error(`Device: ${this.host} ${this.name}, save webOS Info error: ${error}`);
+				this.log.error(`Device: ${this.host} ${this.name}, save device info error: ${error}`);
 			}
 		})
 			.on('channelList', async (channelList) => {
@@ -495,6 +473,13 @@ class lgwebosTvDevice {
 					};
 				};
 
+				if (this.soundModeService) {
+					const state = this.power ? (this.soundMode !== soundMode) : false;
+					this.soundModeService
+						.updateCharacteristic(Characteristic.ContactSensorState, state)
+					this.sensorSoundModeState = state;
+				}
+
 				this.soundMode = soundMode;
 			})
 			.on('error', (error) => {
@@ -512,6 +497,8 @@ class lgwebosTvDevice {
 			.on('prepareAccessory', async () => {
 				try {
 					await this.prepareAccessory();
+					this.api.publishExternalAccessories(CONSTANS.PluginName, this.accessories);
+					const debug = this.enableDebugMode ? this.log(`Device: ${this.host} ${this.name}, published as external accessory.`) : false;
 				} catch (error) {
 					this.log.error(`Device: ${this.host} ${this.name}, prepare accessory error: ${error}`);
 				};
@@ -523,8 +510,8 @@ class lgwebosTvDevice {
 		return new Promise((resolve, reject) => {
 			this.log.debug('prepareAccessory');
 			try {
-				const savedInfo = fs.readFileSync(this.devInfoFile).length > 2 ? JSON.parse(fs.readFileSync(this.devInfoFile)) : undefined;
-				const webOS = savedInfo.webOS ?? this.webOS;
+				const savedInfo = fs.readFileSync(this.devInfoFile).length > 2 ? JSON.parse(fs.readFileSync(this.devInfoFile)) : {};
+				const webOS = savedInfo.webOS ?? 2;
 
 				//accessory
 				const accessoryName = this.name;
@@ -535,10 +522,10 @@ class lgwebosTvDevice {
 				//information service
 				this.log.debug('prepareInformationService');
 				this.informationService = accessory.getService(Service.AccessoryInformation)
-					.setCharacteristic(Characteristic.Manufacturer, this.manufacturer)
-					.setCharacteristic(Characteristic.Model, savedInfo.modelName ?? this.modelName)
-					.setCharacteristic(Characteristic.SerialNumber, savedInfo.serialNumber ?? this.serialNumber)
-					.setCharacteristic(Characteristic.FirmwareRevision, savedInfo.firmwareRevision ?? this.firmwareRevision);
+					.setCharacteristic(Characteristic.Manufacturer, 'LG Electronics')
+					.setCharacteristic(Characteristic.Model, savedInfo.modelName ?? 'Model Name')
+					.setCharacteristic(Characteristic.SerialNumber, savedInfo.serialNumber ?? 'Serial Number')
+					.setCharacteristic(Characteristic.FirmwareRevision, savedInfo.firmwareRevision ?? 'Firmware Revision');
 				this.services.push(this.informationService);
 
 				//prepare television service 
@@ -610,11 +597,12 @@ class lgwebosTvDevice {
 
 							if (this.power && inputReference) {
 								switch (inputMode) {
-									case 0: case 1:
-										const inputId = [inputReference, 'com.webos.app.livetv'][inputMode];
-										await this.lgtv.send('request', CONSTANS.ApiUrls.LaunchApp, { id: inputId });
+									case 0:
+										await this.lgtv.send('request', CONSTANS.ApiUrls.LaunchApp, { id: inputReference });
 										break;
 									case 1:
+										const liveTv = 'com.webos.app.livetv';
+										const openLiveTv = this.reference !== liveTv ? await this.lgtv.send('request', CONSTANS.ApiUrls.LaunchApp, { id: liveTv }) : false;
 										await this.lgtv.send('request', CONSTANS.ApiUrls.OpenChannel, { channelId: inputReference })
 										break;
 								}
@@ -1278,6 +1266,19 @@ class lgwebosTvDevice {
 					accessory.addService(this.sensorScreenSaverService);
 				};
 
+				if (this.sensorSoundMode && webOS >= 6) {
+					this.log.debug('prepareSensorSoundModeService')
+					this.sensorSoundModeService = new Service.ContactSensor(`${accessoryName} Sound Mode Sensor`, `Sound Mode Sensor`);
+					this.sensorSoundModeService.getCharacteristic(Characteristic.ContactSensorState)
+						.onGet(async () => {
+							const state = this.power ? this.soundModeState : false;
+							return state;
+						});
+
+					this.services.push(this.sensorSoundModeService);
+					accessory.addService(this.sensorSoundModeService);
+				};
+
 				//Prepare inputs service
 				this.log.debug('prepareInputsService');
 				const savedInputs = fs.readFileSync(this.inputsFile).length > 2 ? JSON.parse(fs.readFileSync(this.inputsFile)) : this.inputs;
@@ -1470,11 +1471,12 @@ class lgwebosTvDevice {
 										try {
 											if (this.power && state) {
 												switch (buttonMode) {
-													case 0: case 1:
-														const appId = [buttonReference, 'com.webos.app.livetv'][buttonMode]
-														await this.lgtv.send('request', CONSTANS.ApiUrls.LaunchApp, { id: appId });
+													case 0:
+														await this.lgtv.send('request', CONSTANS.ApiUrls.LaunchApp, { id: buttonReference });
 														break;
 													case 1:
+														const liveTv = 'com.webos.app.livetv';
+														const openLiveTv = this.reference !== liveTv ? await this.lgtv.send('request', CONSTANS.ApiUrls.LaunchApp, { id: liveTv }) : false;
 														await this.lgtv.send('request', CONSTANS.ApiUrls.OpenChannel, { channelId: buttonReference })
 														break;
 													case 2:
@@ -1499,8 +1501,7 @@ class lgwebosTvDevice {
 					};
 				};
 
-				this.api.publishExternalAccessories(PLUGIN_NAME, [accessory]);
-				const debug4 = this.enableDebugMode ? this.log(`Device: ${this.host} ${accessoryName}, published as external accessory.`) : false;
+				this.accessories.push(accessory);
 				resolve();
 			} catch (error) {
 				reject(error)

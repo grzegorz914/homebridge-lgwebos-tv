@@ -90,6 +90,7 @@
                     "sensorMute": false,
                     "sensorInput": false,
                     "sensorChannel": false,
+                    "sensorSoundMode": false,
                     "sensorScreenOnOff": false,
                     "sensorScreenSaver": false,
                     "sensorInputs": [

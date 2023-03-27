@@ -546,6 +546,13 @@
               "description": "This expose Channel as a Motion Sensor to use with automations.",
               "required": false
             },
+            "sensorSoundMode": {
+              "title": "Sound Mode",
+              "type": "boolean",
+              "default": false,
+              "description": "This expose Sound Mode as a Motion Sensor to use with automations, only for webOS >= 6.0.",
+              "required": false
+            },
             "sensorScreenOnOff": {
               "title": "Screen On/Off",
               "type": "boolean",
@@ -615,6 +622,13 @@
                   }
                 }
               }
+            },
+            "turnScreenOnOff": {
+              "title": "Turn Screen ON/OFF",
+              "type": "boolean",
+              "default": false,
+              "description": "This enable possibility turn ON/OFF screen, only for webOS >= 4.0.",
+              "required": false
             },
             "brightnessControl": {
               "title": "Brightness",
@@ -945,13 +959,6 @@
               "description": "This disable log device info by every connections device to the network.",
               "required": false
             },
-            "turnScreenOnOff": {
-              "title": "Turn Screen ON/OFF",
-              "type": "boolean",
-              "default": false,
-              "description": "This enable possibility turn ON/OFF screen, only for webOS >= 4.0.",
-              "required": false
-            },
             "sslWebSocket": {
               "title": "SSL WebSocket",
               "type": "boolean",
@@ -1164,6 +1171,7 @@
             "devices[].sensorMute",
             "devices[].sensorInput",
             "devices[].sensorChannel",
+            "devices[].sensorSoundMode",
             "devices[].sensorScreenOnOff",
             "devices[].sensorScreenSaver",
             {
@@ -1190,10 +1198,11 @@
         {
           "key": "devices[]",
           "type": "section",
-          "title": "Picture Control",
+          "title": "Picture / Screen Control",
           "expandable": true,
           "expanded": false,
           "items": [
+            "devices[].turnScreenOnOff",
             "devices[].brightnessControl",
             "devices[].backlightControl",
             "devices[].contrastControl",
@@ -1220,7 +1229,7 @@
         {
           "key": "devices[]",
           "type": "section",
-          "title": "Sound Control",
+          "title": "Sound / Volume Control",
           "expandable": true,
           "expanded": false,
           "items": [
@@ -1254,7 +1263,6 @@
             "devices[].enableDebugMode",
             "devices[].disableLogInfo",
             "devices[].disableLogDeviceInfo",
-            "devices[].turnScreenOnOff",
             "devices[].sslWebSocket",
             "devices[].infoButtonCommand"
           ]

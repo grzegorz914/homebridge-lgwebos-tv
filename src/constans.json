@@ -1,4 +1,6 @@
 {
+    "PlatformName": "LgWebOsTv",
+    "PluginName": "homebridge-lgwebos-tv",
     "DefaultInputs": [
         {
             "name": "Live TV",
