@@ -6,7 +6,7 @@ const WebSocket = require('ws');
 const CONSTANS = require('./constans.json');
 let modelName, power, webOS
 
-class LGTV extends EventEmitter {
+class LgWebOsSocket extends EventEmitter {
     constructor(config) {
         super();
         const url = config.url;
@@ -320,6 +320,7 @@ class LGTV extends EventEmitter {
             }).on('disconnect', async () => {
                 const emitMessage = this.isConnected ? this.emit('message', 'Disconnected.') : false;
                 this.isConnected = false;
+                power = false;
                 this.emit('powerState', false, false, false, false);
                 this.emit('audioState', undefined, true, undefined);
                 this.emit('pictureSettings', 0, 0, 0, 0, 3, false);
@@ -382,4 +383,4 @@ class LGTV extends EventEmitter {
         });
     };
 };
-module.exports = LGTV;
+module.exports = LgWebOsSocket;
