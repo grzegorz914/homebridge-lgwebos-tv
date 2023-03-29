@@ -237,9 +237,9 @@ class LgWebOsDevice extends EventEmitter {
                         }
                         channelsArr.push(channelsObj);
                     };
-                    const obj = JSON.stringify(channelsArr, null, 2);
-                    await fsPromises.writeFile(this.channelsFile, obj);
-                    const debug = this.enableDebugMode ? this.log(`Device: ${this.host} ${this.name}, channels list saved: ${obj}`) : false;
+                    const channels = JSON.stringify(channelsArr, null, 2);
+                    await fsPromises.writeFile(this.channelsFile, channels);
+                    const debug = this.enableDebugMode ? this.log(`Device: ${this.host} ${this.name}, channels list saved: ${channels}`) : false;
                 } catch (error) {
                     this.log.error(`Device: ${this.host} ${this.name}, save channels list error: ${error}`);
                 }
@@ -260,7 +260,7 @@ class LgWebOsDevice extends EventEmitter {
                     const allInputsArr = this.getInputsFromDevice ? appsArr : this.inputs;
                     const inputs = JSON.stringify(allInputsArr, null, 2)
                     await fsPromises.writeFile(this.inputsFile, inputs);
-                    const debug = this.enableDebugMode ? this.log(`Device: ${this.host} ${this.name}, apps list saved: ${obj}`) : false;
+                    const debug = this.enableDebugMode ? this.log(`Device: ${this.host} ${this.name}, apps list saved: ${inputs}`) : false;
                 } catch (error) {
                     this.log.error(`Device: ${this.host} ${this.name}, save apps list error: ${error}`);
                 }
