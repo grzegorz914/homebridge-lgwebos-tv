@@ -3,6 +3,7 @@ const path = require('path');
 const fs = require('fs');
 const fsPromises = fs.promises;
 const EventEmitter = require('events');
+const wol = require('@mi-sec/wol');
 const Mqtt = require('./mqtt.js');
 const LgWebOsSocket = require('./lgwebossocket');
 const CONSTANS = require('./constans.json');
