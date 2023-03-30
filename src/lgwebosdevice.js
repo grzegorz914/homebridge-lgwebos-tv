@@ -538,9 +538,8 @@ class LgWebOsDevice extends EventEmitter {
                                 interval: 100,
                                 port: 9
                             }
-                            const setPower = state ? await wol(this.mac, options) : await this.lgWebOsSocket.send('request', CONSTANS.ApiUrls.TurnOff);
+                            const setPower = state ? await wol(this.mac, options) : this.power ? await this.lgWebOsSocket.send('request', CONSTANS.ApiUrls.TurnOff) : false;
                             const logInfo = this.disableLogInfo || this.firstRun ? false : this.log(`Device: ${this.host} ${accessoryName}, set Power: ${state ? 'ON' : 'OFF'}`);
-                            await new Promise(resolve => setTimeout(resolve, 2000));
                         } catch (error) {
                             this.log.error(`Device: ${this.host} ${accessoryName}, set Power error:  ${error}`);
                         }
