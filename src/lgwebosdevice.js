@@ -1,5 +1,4 @@
 'use strict';
-const path = require('path');
 const fs = require('fs');
 const fsPromises = fs.promises;
 const EventEmitter = require('events');
@@ -10,7 +9,7 @@ const CONSTANS = require('./constans.json');
 let Accessory, Characteristic, Service, Categories, UUID;
 
 class LgWebOsDevice extends EventEmitter {
-    constructor(api, config) {
+    constructor(api, prefDir, config) {
         super();
 
         Accessory = api.platformAccessory;
@@ -102,20 +101,16 @@ class LgWebOsDevice extends EventEmitter {
         this.sensorChannelState = false;
         this.sensorSoundModeState = false;
 
-        this.prefDir = path.join(api.user.storagePath(), 'lgwebosTv');
-        this.keyFile = `${this.prefDir}/key_${this.host.split('.').join('')}`;
-        this.devInfoFile = `${this.prefDir}/devInfo_${this.host.split('.').join('')}`;
-        this.inputsFile = `${this.prefDir}/inputs_${this.host.split('.').join('')}`;
-        this.inputsNamesFile = `${this.prefDir}/inputsNames_${this.host.split('.').join('')}`;
-        this.inputsTargetVisibilityFile = `${this.prefDir}/inputsTargetVisibility_${this.host.split('.').join('')}`;
-        this.channelsFile = `${this.prefDir}/channels_${this.host.split('.').join('')}`;
+        this.keyFile = `${prefDir}/key_${this.host.split('.').join('')}`;
+        this.devInfoFile = `${prefDir}/devInfo_${this.host.split('.').join('')}`;
+        this.inputsFile = `${prefDir}/inputs_${this.host.split('.').join('')}`;
+        this.inputsNamesFile = `${prefDir}/inputsNames_${this.host.split('.').join('')}`;
+        this.inputsTargetVisibilityFile = `${prefDir}/inputsTargetVisibility_${this.host.split('.').join('')}`;
+        this.channelsFile = `${prefDir}/channels_${this.host.split('.').join('')}`;
 
         const object = JSON.stringify({});
         const array = JSON.stringify([]);
-        //check if the directory exists, if not then create it
-        if (!fs.existsSync(this.prefDir)) {
-            fs.mkdirSync(this.prefDir);
-        }
+        //check if files exist if not then create it
         if (!fs.existsSync(this.keyFile)) {
             fs.writeFileSync(this.keyFile, '');
         }
