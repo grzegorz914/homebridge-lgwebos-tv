@@ -108,9 +108,9 @@ class LgWebOsDevice extends EventEmitter {
         this.inputsTargetVisibilityFile = `${prefDir}/inputsTargetVisibility_${this.host.split('.').join('')}`;
         this.channelsFile = `${prefDir}/channels_${this.host.split('.').join('')}`;
 
+        // Create files if it doesn't exist
         const object = JSON.stringify({});
         const array = JSON.stringify([]);
-        //check if files exist if not then create it
         if (!fs.existsSync(this.keyFile)) {
             fs.writeFileSync(this.keyFile, '');
         }
