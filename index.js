@@ -14,7 +14,7 @@ class LgWebOsPlatform {
 		this.accessories = [];
 
 		//check if prefs directory exist
-		const prefDir = path.join(api.user.storagePath(), 'openwebifTv');
+		const prefDir = path.join(api.user.storagePath(), 'lgwebosTv');
 		if (!fs.existsSync(prefDir)) {
 			fs.mkdirSync(prefDir);
 		};
