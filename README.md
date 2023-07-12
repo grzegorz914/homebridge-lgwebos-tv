@@ -83,6 +83,7 @@ Tested with OLED65G6V, 32LM6300PLA, 49SK8500, OLED65C7T, 55SK800PLB, OLED48CX.
 | `enableDebugMode` | If enabled, deep log will be present in homebridge console. |
 | `disableLogInfo` | If enabled, disable log info, all values and state will not be displayed in Homebridge log console. |
 | `disableLogDeviceInfo` | If enabled, add ability to disable log device info by every connections device to the network. |
+| `disableTvService` | If enabled, TV service will be disabled and prevent display double services if TV already support HomeKit native. |
 | `turnScreenOnOff` | This enable possibility turn the screen ON/OFF, only for webOS >= 4.0. |
 | `sslWebSocket` | If enabled, SSL WebSocket will support TV with new firmware. |
 | `infoButtonCommand` | Here select the function of `I` button in RC app. |

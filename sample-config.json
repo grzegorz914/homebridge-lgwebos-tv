@@ -103,6 +103,7 @@
                     "enableDebugMode": false,
                     "disableLogInfo": false,
                     "disableLogDeviceInfo": false,
+                    "disableTvService": false,
                     "turnScreenOnOff": false,
                     "sslWebSocket": false,
                     "infoButtonCommand": "MENU",

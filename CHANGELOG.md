@@ -2,6 +2,13 @@
 All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+## [2.10.0] - (xx.06.2023)
+## Changes
+- decrease heartbeat time [#172](https://github.com/grzegorz914/homebridge-lgwebos-tv/issues/172)
+- added possibilty to disable TV services [#169](https://github.com/grzegorz914/homebridge-lgwebos-tv/issues/169)
+- config.schema updated
+- cleanup
+
 ## [2.9.1] - (27.03.2023)
 ## Changes
 - fixed [#165](https://github.com/grzegorz914/homebridge-lgwebos-tv/issues/165)

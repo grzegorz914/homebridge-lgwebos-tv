@@ -40,7 +40,7 @@ class LgWebOsSocket extends EventEmitter {
                     if (client.readyState === WebSocket.CLOSED) {
                         clearInterval(heartbeat);
                     }
-                }, 5000);
+                }, 2500);
 
                 client.on('close', () => {
                     const debug = debugLog ? this.emit('debug', `Socked closed.`) : false;
@@ -92,8 +92,8 @@ class LgWebOsSocket extends EventEmitter {
 
                         //Request specjalized socket and system info data
                         try {
-                            this.socketId = await this.send('request', CONSTANS.ApiUrls.SocketUrl);
                             this.systemInfoId = await this.send('request', CONSTANS.ApiUrls.GetSystemInfo);
+                            this.socketId = await this.send('request', CONSTANS.ApiUrls.SocketUrl);
                         } catch (error) {
                             this.emit('error', `Request system info or socked error: ${error}`)
                         };
@@ -120,15 +120,17 @@ class LgWebOsSocket extends EventEmitter {
                                 if (specialClient.readyState === WebSocket.CLOSED) {
                                     clearInterval(heartbeat);
                                 }
-                            }, 5000);
+                            }, 2500);
 
                             specialClient.on('close', () => {
                                 const debug = debugLog ? this.emit('debug', 'Specialized socket closed.') : false;
                                 clearInterval(heartbeat);
                             })
 
-                        }).on('error', (error) => {
-                            this.emit('error', `Specialized socket error: ${error}.`);
+                        }).on('error', async (error) => {
+                            this.emit('error', `Specialized socket error: ${error} trying to reconnect.`);
+                            await new Promise(resolve => setTimeout(resolve, 2500));
+                            this.socketId = await this.send('request', CONSTANS.ApiUrls.SocketUrl);
                         });
                         break;
                     case this.systemInfoId:
@@ -148,16 +150,16 @@ class LgWebOsSocket extends EventEmitter {
                         const productName = messageData.product_name;
                         const serialNumber = messageData.device_id;
                         const firmwareRevision = `${messageData.major_ver}.${messageData.minor_ver}`;
-                        webOS = productName.slice(8, -2);
+                        webOS = productName.slice(-3).split('.').join('');
 
                         this.emit('message', 'Connected.');
                         this.emit('deviceInfo', modelName, productName, serialNumber, firmwareRevision, webOS);
                         const mqtt2 = mqttEnabled ? this.emit('mqtt', 'Software Info', stringifyMessage) : false;
 
                         client.emit('subscribeInputsChannelsList');
-                        await new Promise(resolve => setTimeout(resolve, 2500));
+                        await new Promise(resolve => setTimeout(resolve, 3500));
                         client.emit('prepareAccessory');
-                        await new Promise(resolve => setTimeout(resolve, 1500));
+                        await new Promise(resolve => setTimeout(resolve, 2000));
                         client.emit('subscribeTvState');
                         break;
                     case this.channelsId:
@@ -221,7 +223,7 @@ class LgWebOsSocket extends EventEmitter {
                                 screenState = false;
                                 pixelRefresh = false;
                         }
-                        power = (webOS >= 3) ? (this.isConnected && power) : this.isConnected;
+                        power = webOS >= 30 ? (this.isConnected && power) : this.isConnected;
 
                         this.emit('powerState', power, pixelRefresh, screenState, tvScreenState);
                         const mqtt5 = mqttEnabled ? this.emit('mqtt', 'Power', stringifyMessage) : false;
@@ -237,7 +239,7 @@ class LgWebOsSocket extends EventEmitter {
                         const debug7 = debugLog ? this.emit('debug', `Audio: ${stringifyMessage}`) : false;
                         const volume = messageData.volume < 0 ? 0 : messageData.volume;
                         const mute = messageData.mute;
-                        const audioOutput = webOS >= 5 ? messageData.volumeStatus.soundOutput : messageData.scenario;
+                        const audioOutput = webOS >= 50 ? messageData.volumeStatus.soundOutput : messageData.scenario;
 
                         this.emit('audioState', volume, mute, audioOutput);
                         const mqtt7 = mqttEnabled ? this.emit('mqtt', 'Audio', stringifyMessage) : false;
@@ -290,21 +292,23 @@ class LgWebOsSocket extends EventEmitter {
                     await new Promise(resolve => setTimeout(resolve, 250));
                     this.currentAppId = await this.send('subscribe', CONSTANS.ApiUrls.GetForegroundAppInfo);
                     await new Promise(resolve => setTimeout(resolve, 250));
-                    this.audioStateId = await this.send('subscribe', CONSTANS.ApiUrls.GetAudioStatus);
-                    await new Promise(resolve => setTimeout(resolve, 250));
                     this.currentChannelId = await this.send('subscribe', CONSTANS.ApiUrls.GetCurrentChannel);
+                    await new Promise(resolve => setTimeout(resolve, 250));
+                    this.audioStateId = await this.send('subscribe', CONSTANS.ApiUrls.GetAudioStatus);
+                    await new Promise(resolve => setTimeout(resolve, 350));
 
                     //picture mode
-                    if (webOS >= 4) {
+                    if (webOS >= 40) {
                         const payload = {
                             category: 'picture',
                             keys: ['brightness', 'backlight', 'contrast', 'color']
                         }
                         this.pictureSettingsId = await this.send('subscribe', CONSTANS.ApiUrls.GetSystemSettings, payload);
                     };
+                    await new Promise(resolve => setTimeout(resolve, 350));
 
                     //sound mode
-                    if (webOS >= 6) {
+                    if (webOS >= 60) {
                         const payload = {
                             category: 'sound',
                             keys: ['soundMode']
@@ -331,7 +335,7 @@ class LgWebOsSocket extends EventEmitter {
                     client.emit('prepareAccessory');
                 };
 
-                await new Promise(resolve => setTimeout(resolve, 5000));
+                await new Promise(resolve => setTimeout(resolve, 2500));
                 this.connect();
             });
         }
