@@ -15,9 +15,9 @@ class LgWebOsSocket extends EventEmitter {
         const mqttEnabled = config.mqttEnabled;
         const sslWebSocket = config.sslWebSocket;
 
-        this.savedPairingKey = fs.readFileSync(keyFile).length > 0 ? (fs.readFileSync(keyFile)).toString() : '';
         this.startPrepareAccessory = true;
         this.isConnected = false;
+        this.pairingKey = '';
 
         this.connect = () => {
             const client = sslWebSocket ? new WebSocket(url, { rejectUnauthorized: false }) : new WebSocket(url);
@@ -49,7 +49,8 @@ class LgWebOsSocket extends EventEmitter {
                 });
 
                 try {
-                    CONSTANS.Pairing['client-key'] = this.savedPairingKey;
+                    const pairingKey = await this.readPairingKey(keyFile);
+                    CONSTANS.Pairing['client-key'] = pairingKey;
                     this.registerId = await this.send('register', undefined, CONSTANS.Pairing);
                 } catch (error) {
                     this.emit('error', `Register error: ${error}`);
@@ -80,11 +81,10 @@ class LgWebOsSocket extends EventEmitter {
                             return;
                         };
 
-                        if (pairingKey !== this.savedPairingKey) {
+                        if (pairingKey !== this.pairingKey) {
                             try {
-                                const writeKey = await fsPromises.writeFile(keyFile, pairingKey);
+                                await this.savePairingKey(keyFile, pairingKey);
                                 this.emit('message', 'Pairing key saved.')
-                                this.savedPairingKey = pairingKey;
                             } catch (error) {
                                 this.emit('error', `Pairing key saved error: ${error}`)
                             };
@@ -325,12 +325,14 @@ class LgWebOsSocket extends EventEmitter {
                 this.isConnected = false;
                 power = false;
                 this.emit('powerState', false, false, false, false);
-                this.emit('audioState', undefined, true, undefined);
+                this.emit('audioState', undefined, true);
                 this.emit('pictureSettings', 0, 0, 0, 0, 3, false);
                 this.emit('soundMode', undefined, false);
 
                 //Prepare accessory
-                if (this.savedPairingKey.length > 10 && this.startPrepareAccessory) {
+                const key = await this.readPairingKey(keyFile);
+                const pairingKeyExist = key.length > 10;
+                if (pairingKeyExist && this.startPrepareAccessory) {
                     client.emit('prepareAccessory');
                 };
 
@@ -341,6 +343,29 @@ class LgWebOsSocket extends EventEmitter {
 
         this.connect();
     };
+
+    readPairingKey(path) {
+        return new Promise(async (resolve, reject) => {
+            try {
+                const key = await fsPromises.readFile(path);
+                this.pairingKey = key.toString();
+                resolve(this.pairingKey);
+            } catch (error) {
+                reject(error);
+            }
+        });
+    }
+
+    savePairingKey(path, pairingKey) {
+        return new Promise(async (resolve, reject) => {
+            try {
+                await fsPromises.writeFile(path, pairingKey);
+                resolve();
+            } catch (error) {
+                reject(error);
+            }
+        });
+    }
 
     send(type, uri, payload) {
         return new Promise((resolve, reject) => {
