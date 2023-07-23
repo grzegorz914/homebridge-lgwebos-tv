@@ -239,9 +239,8 @@ class LgWebOsSocket extends EventEmitter {
                         const debug7 = debugLog ? this.emit('debug', `Audio: ${stringifyMessage}`) : false;
                         const volume = messageData.volume < 0 ? 0 : messageData.volume;
                         const mute = messageData.mute;
-                        const audioOutput = webOS >= 50 ? messageData.volumeStatus.soundOutput : messageData.scenario;
 
-                        this.emit('audioState', volume, mute, audioOutput);
+                        this.emit('audioState', volume, mute);
                         const mqtt7 = mqttEnabled ? this.emit('mqtt', 'Audio', stringifyMessage) : false;
                         break;
                     case this.currentChannelId:
