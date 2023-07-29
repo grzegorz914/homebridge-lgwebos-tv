@@ -3,6 +3,7 @@ const fs = require('fs');
 const fsPromises = fs.promises;
 const EventEmitter = require('events');
 const wol = require('@mi-sec/wol');
+const RestFul = require('./restful.js');
 const Mqtt = require('./mqtt.js');
 const LgWebOsSocket = require('./lgwebossocket');
 const CONSTANS = require('./constans.json');
@@ -51,6 +52,9 @@ class LgWebOsDevice extends EventEmitter {
         this.sslWebSocket = config.sslWebSocket || false;
         this.infoButtonCommand = config.infoButtonCommand || 'INFO';
         this.volumeControl = config.volumeControl >= 0 ? config.volumeControl : -1;
+        this.restFulEnabled = config.enableRestFul || false;
+        this.restFulPort = config.restFulPort || 3000;
+        this.restFulDebug = config.restFulDebug || false;
         this.mqttEnabled = config.enableMqtt || false;
         this.mqttDebug = config.mqttDebug || false;
         this.mqttHost = config.mqttHost;
@@ -76,6 +80,8 @@ class LgWebOsDevice extends EventEmitter {
         this.buttonsServices = [];
 
         this.firstRun = true;
+        this.restFulConnected = false;
+        this.mqttConnected = false;
         this.power = false;
         this.pixelRefresh = false;
         this.screenState = false;
@@ -129,12 +135,31 @@ class LgWebOsDevice extends EventEmitter {
             this.emit('error', `prepare files error: ${error}`);
         }
 
-        //mqtt client
+        //RESTFul server
+        if (this.restFulEnabled) {
+            this.restFul = new RestFul({
+                port: this.restFulPort,
+                debug: this.restFulDebug
+            });
+
+            this.restFul.on('connected', (message) => {
+                this.emit('message', `${message}`);
+                this.restFulConnected = true;
+            })
+                .on('error', (error) => {
+                    this.emit('error', error);
+                })
+                .on('debug', (debug) => {
+                    this.emit('debug', debug);
+                });
+        }
+
+        //MQTT client
         if (this.mqttEnabled) {
             this.mqtt = new Mqtt({
                 host: this.mqttHost,
                 port: this.mqttPort,
-                prefix: `${this.mqttPrefi}/${this.name}`,
+                prefix: `${this.mqttPrefix}/${this.name}`,
                 auth: this.mqttAuth,
                 user: this.mqttUser,
                 passwd: this.mqttPasswd,
@@ -143,6 +168,7 @@ class LgWebOsDevice extends EventEmitter {
 
             this.mqtt.on('connected', (message) => {
                 this.emit('message', message);
+                this.mqttConnected = true;
             })
                 .on('debug', (debug) => {
                     this.emit('debug', debug);
@@ -158,6 +184,7 @@ class LgWebOsDevice extends EventEmitter {
             url: url,
             keyFile: this.keyFile,
             debugLog: this.enableDebugMode,
+            restFulEnabled: this.restFulEnabled,
             mqttEnabled: this.mqttEnabled,
             sslWebSocket: this.sslWebSocket
         });
@@ -458,8 +485,11 @@ class LgWebOsDevice extends EventEmitter {
             .on('error', (error) => {
                 this.emit('error', error);
             })
+            .on('restFul', (path, data) => {
+                const restFul = this.restFulConnected ? this.restFul.update(path, data) : false;
+            })
             .on('mqtt', (topic, message) => {
-                this.mqtt.send(topic, message);
+                const mqtt = this.mqttConnected ? this.mqtt.send(topic, message) : false;
             });
     };
 

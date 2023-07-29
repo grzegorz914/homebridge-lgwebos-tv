@@ -34,7 +34,13 @@ Tested with OLED65G6V, 32LM6300PLA, 49SK8500, OLED65C7T, 55SK800PLB, OLED48CX.
 * Brightness, Contrast, Backlight, Color, Picture Mode and Sound Mode can be changed using extra tile.
 * Siri can be used for all functions, some times need create legacy buttons/switches/sensors.
 * Automations can be used for all functions, some times need create legacy buttons/switches/sensors.
-* MQTT publisch topic *System Info*, *Software Info*, *Channels*, *Apps*, *Power*, *Audio*, *Current App*, *Current Channel*, *Picture Settings* as payload JSON data.
+* RESTful server:
+  * Request: `http//homebridge_ip_address:port/path`.
+  * Path: `systemnfo`, `softwareinfo`, `channels`, `apps`, `power`, `audio`, `currentapp`, `currentchannel`, `picturesettings`, `soundmode`.
+  * Respone as JSON data.
+* MQTT client:
+  * Topic: `System Info`, `Software Info`, `Channels`, `Apps`, `Power`, `Audio`, `Current App`, `Current Channel`, `Picture Settings`, `Sound Mode`.
+  * Publish as JSON data.
 
 
 <p align="left">
@@ -88,6 +94,9 @@ Tested with OLED65G6V, 32LM6300PLA, 49SK8500, OLED65C7T, 55SK800PLB, OLED48CX.
 | `sslWebSocket` | If enabled, SSL WebSocket will support TV with new firmware. |
 | `infoButtonCommand` | Here select the function of `I` button in RC app. |
 | `volumeControl` | Here select volume control mode `None/Disabled`, `Slider`, `Fan`. |
+| `enableRestFul` | If enabled, RESTful server will start automatically and respond to any path request. |
+| `restFulPort` | Here set the listening `Port` for RESTful server, every device need own port. |
+| `restFulDebug` | If enabled, deep log will be present in homebridge console for RESTFul server. |
 | `enableMqtt` | If enabled, MQTT Broker will start automatically and publish all awailable PV installation data. |
 | `mqttHost` | Here set the *IP Address* or *Hostname* for MQTT Broker.) |
 | `mqttPort` | Here set the *Port* for MQTT Broker, default 1883.) |
