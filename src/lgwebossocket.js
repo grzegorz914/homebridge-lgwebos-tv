@@ -261,7 +261,7 @@ class LgWebOsSocket extends EventEmitter {
                         this.emit('currentApp', appId);
 
                         //restFul
-                        const restFul6 = restFulEnabled ? this.emit('restFul', 'currenapp', messageData) : false;
+                        const restFul6 = restFulEnabled ? this.emit('restFul', 'currentapp', messageData) : false;
 
                         //mqtt
                         const mqtt6 = mqttEnabled ? this.emit('mqtt', 'Current App', messageData) : false;
