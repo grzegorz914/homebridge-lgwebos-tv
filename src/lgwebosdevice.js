@@ -464,7 +464,8 @@ class LgWebOsDevice extends EventEmitter {
             .on('prepareAccessory', async () => {
                 try {
                     try {
-                        this.savedInfo = await fsPromises.readFile(this.devInfoFile).length > 5 ? JSON.parse(await fsPromises.readFile(this.devInfoFile)) : {};
+                        const data = await fsPromises.readFile(this.devInfoFile);
+                        this.savedInfo = data.length > 5 ? JSON.parse(data) : {};
                         this.webOS = this.savedInfo.webOS ?? 20;
                     } catch (error) {
                         this.emit('error', `read device info error: ${error}`);
