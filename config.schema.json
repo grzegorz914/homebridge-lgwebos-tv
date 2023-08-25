@@ -1031,32 +1031,32 @@
               "required": true
             },
             "enableRestFul": {
-							"title": "Enable",
-							"type": "boolean",
-							"default": false,
-							"required": false,
-							"description": "This enable RESTful server."
-						},
-						"restFulDebug": {
-							"title": "Debug",
-							"type": "boolean",
-							"default": false,
-							"required": false,
-							"description": "This enable debug mode for RESTFul.",
-							"condition": {
-								"functionBody": "return model.devices[arrayIndices].enableRestFul === true;"
-							}
-						},
-						"restFulPort": {
-							"title": "Port",
-							"type": "integer",
-							"placeholder": 3000,
-							"required": true,
-							"description": "Here set the listening Port for RESTful server, every device need own port.",
-							"condition": {
-								"functionBody": "return model.devices[arrayIndices].enableRestFul === true;"
-							}
-						},
+              "title": "Enable",
+              "type": "boolean",
+              "default": false,
+              "required": false,
+              "description": "This enable RESTful server."
+            },
+            "restFulDebug": {
+              "title": "Debug",
+              "type": "boolean",
+              "default": false,
+              "required": false,
+              "description": "This enable debug mode for RESTFul.",
+              "condition": {
+                "functionBody": "return model.devices[arrayIndices].enableRestFul === true;"
+              }
+            },
+            "restFulPort": {
+              "title": "Port",
+              "type": "integer",
+              "placeholder": 3000,
+              "required": true,
+              "description": "Here set the listening Port for RESTful server, every device need own port.",
+              "condition": {
+                "functionBody": "return model.devices[arrayIndices].enableRestFul === true;"
+              }
+            },
             "enableMqtt": {
               "title": "Enable",
               "type": "boolean",
@@ -1304,32 +1304,42 @@
           ]
         },
         {
-					"key": "devices[]",
-					"type": "section",
-					"title": "RESTful",
-					"expandable": true,
-					"expanded": false,
-					"items": [
-						"devices[].enableRestFul",
-						"devices[].restFulDebug",
-						"devices[].restFulPort"
-					]
-				},
-        {
           "key": "devices[]",
           "type": "section",
-          "title": "MQTT",
+          "title": "External Integrations",
           "expandable": true,
           "expanded": false,
           "items": [
-            "devices[].enableMqtt",
-            "devices[].mqttDebug",
-            "devices[].mqttHost",
-            "devices[].mqttPort",
-            "devices[].mqttPrefix",
-            "devices[].mqttAuth",
-            "devices[].mqttUser",
-            "devices[].mqttPasswd"
+            {
+              "key": "devices[]",
+              "type": "tabarray",
+              "title": "{{ value.title }}",
+              "items": [
+                {
+                  "key": "devices[]",
+                  "title": "RESTFul",
+                  "items": [
+                    "devices[].enableRestFul",
+                    "devices[].restFulDebug",
+                    "devices[].restFulPort"
+                  ]
+                },
+                {
+                  "key": "devices[]",
+                  "title": "MQTT",
+                  "items": [
+                    "devices[].enableMqtt",
+                    "devices[].mqttDebug",
+                    "devices[].mqttHost",
+                    "devices[].mqttPort",
+                    "devices[].mqttPrefix",
+                    "devices[].mqttAuth",
+                    "devices[].mqttUser",
+                    "devices[].mqttPasswd"
+                  ]
+                }
+              ]
+            }
           ]
         }
       ]

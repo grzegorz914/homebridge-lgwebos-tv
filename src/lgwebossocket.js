@@ -156,7 +156,7 @@ class LgWebOsSocket extends EventEmitter {
                         const productName = messageData.product_name;
                         const serialNumber = messageData.device_id;
                         const firmwareRevision = `${messageData.major_ver}.${messageData.minor_ver}`;
-                        webOS = productName.slice(-3).split('.').join('');
+                        webOS = parseInt(productName.slice(-3).split('.').join(''));
 
                         this.emit('message', 'Connected.');
                         this.emit('deviceInfo', modelName, productName, serialNumber, firmwareRevision, webOS);
