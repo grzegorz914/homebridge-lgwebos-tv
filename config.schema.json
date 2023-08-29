@@ -1197,110 +1197,120 @@
         {
           "key": "devices[]",
           "type": "section",
-          "title": "Sensors",
-          "expandable": true,
-          "expanded": false,
-          "items": [
-            "devices[].sensorPower",
-            "devices[].sensorVolume",
-            "devices[].sensorMute",
-            "devices[].sensorInput",
-            "devices[].sensorChannel",
-            "devices[].sensorSoundMode",
-            "devices[].sensorScreenOnOff",
-            "devices[].sensorScreenSaver",
-            {
-              "key": "devices[]",
-              "type": "section",
-              "title": "Custom Inputs",
-              "expandable": true,
-              "expanded": false,
-              "items": [
-                {
-                  "key": "devices[].sensorInputs",
-                  "type": "tabarray",
-                  "title": "{{ value.name || 'new sensor' }}",
-                  "items": [
-                    "devices[].sensorInputs[].name",
-                    "devices[].sensorInputs[].reference",
-                    "devices[].sensorInputs[].displayType"
-                  ]
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "key": "devices[]",
-          "type": "section",
-          "title": "Picture / Screen Control",
-          "expandable": true,
-          "expanded": false,
-          "items": [
-            "devices[].turnScreenOnOff",
-            "devices[].brightnessControl",
-            "devices[].backlightControl",
-            "devices[].contrastControl",
-            "devices[].colorControl",
-            "devices[].pictureModeControl",
-            {
-              "items": [
-                {
-                  "key": "devices[].pictureModes",
-                  "type": "tabarray",
-                  "title": "{{ value.name || 'new mode' }}",
-                  "items": [
-                    "devices[].pictureModes[].name",
-                    "devices[].pictureModes[].reference"
-                  ],
-                  "condition": {
-                    "functionBody": "return model.devices[arrayIndices].pictureModeControl === true;"
-                  }
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "key": "devices[]",
-          "type": "section",
-          "title": "Sound / Volume Control",
-          "expandable": true,
-          "expanded": false,
-          "items": [
-            "devices[].volumeControl",
-            "devices[].soundModeControl",
-            {
-              "items": [
-                {
-                  "key": "devices[].soundModes",
-                  "type": "tabarray",
-                  "title": "{{ value.name || 'new mode' }}",
-                  "items": [
-                    "devices[].soundModes[].name",
-                    "devices[].soundModes[].reference"
-                  ],
-                  "condition": {
-                    "functionBody": "return model.devices[arrayIndices].soundModeControl === true;"
-                  }
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "key": "devices[]",
-          "type": "section",
           "title": "Advanced Settings",
           "expandable": true,
           "expanded": false,
           "items": [
-            "devices[].enableDebugMode",
-            "devices[].disableLogInfo",
-            "devices[].disableLogDeviceInfo",
-            "devices[].disableTvService",
-            "devices[].sslWebSocket",
-            "devices[].infoButtonCommand"
+            {
+              "key": "devices[]",
+              "type": "tabarray",
+              "title": "{{ value.title }}",
+              "items": [
+                {
+                  "key": "devices[]",
+                  "title": "Sensors",
+                  "items": [
+                    "devices[].sensorPower",
+                    "devices[].sensorVolume",
+                    "devices[].sensorMute",
+                    "devices[].sensorInput",
+                    "devices[].sensorChannel",
+                    "devices[].sensorSoundMode",
+                    "devices[].sensorScreenOnOff",
+                    "devices[].sensorScreenSaver",
+                    {
+                      "key": "devices[]",
+                      "type": "section",
+                      "title": "Custom Inputs",
+                      "expandable": true,
+                      "expanded": false,
+                      "items": [
+                        {
+                          "key": "devices[].sensorInputs",
+                          "type": "tabarray",
+                          "title": "{{ value.name || 'new sensor' }}",
+                          "items": [
+                            "devices[].sensorInputs[].name",
+                            "devices[].sensorInputs[].reference",
+                            "devices[].sensorInputs[].displayType"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "key": "devices[]",
+                  "title": "Picture / Screen",
+                  "items": [
+                    "devices[].turnScreenOnOff",
+                    "devices[].brightnessControl",
+                    "devices[].backlightControl",
+                    "devices[].contrastControl",
+                    "devices[].colorControl",
+                    "devices[].pictureModeControl",
+                    {
+                      "items": [
+                        {
+                          "key": "devices[].pictureModes",
+                          "type": "tabarray",
+                          "title": "{{ value.name || 'new mode' }}",
+                          "items": [
+                            "devices[].pictureModes[].name",
+                            "devices[].pictureModes[].reference"
+                          ],
+                          "condition": {
+                            "functionBody": "return model.devices[arrayIndices].pictureModeControl === true;"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "key": "devices[]",
+                  "title": "Sound / Volume",
+                  "items": [
+                    "devices[].volumeControl",
+                    "devices[].soundModeControl",
+                    {
+                      "items": [
+                        {
+                          "key": "devices[].soundModes",
+                          "type": "tabarray",
+                          "title": "{{ value.name || 'new mode' }}",
+                          "items": [
+                            "devices[].soundModes[].name",
+                            "devices[].soundModes[].reference"
+                          ],
+                          "condition": {
+                            "functionBody": "return model.devices[arrayIndices].soundModeControl === true;"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "key": "devices[]",
+                  "title": "Device",
+                  "items": [
+                    "devices[].sslWebSocket",
+                    "devices[].infoButtonCommand"
+                  ]
+                },
+                {
+                  "key": "devices[]",
+                  "title": "System",
+                  "items": [
+                    "devices[].enableDebugMode",
+                    "devices[].disableLogInfo",
+                    "devices[].disableLogDeviceInfo",
+                    "devices[].disableTvService"
+                  ]
+                }
+              ]
+            }
           ]
         },
         {
