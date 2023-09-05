@@ -108,6 +108,7 @@ class LgWebOsDevice extends EventEmitter {
         this.sensorInputState = false;
         this.sensorChannelState = false;
         this.sensorSoundModeState = false;
+        this.sensorPicturedModeState = false;
 
         //check files exists, if not then create it
         const postFix = this.host.split('.').join('');
@@ -446,7 +447,7 @@ class LgWebOsDevice extends EventEmitter {
                     const state = this.power ? (this.pictureMode !== pictureMode) : false;
                     this.sensorPicturedModeService
                         .updateCharacteristic(Characteristic.ContactSensorState, state)
-                    this.sensorSoundModeState = state;
+                    this.sensorPicturedModeState = state;
                 }
 
                 this.brightness = brightness;
