@@ -374,11 +374,11 @@ class LgWebOsSocket extends EventEmitter {
             }).on('disconnect', async () => {
                 const emitMessage = this.isConnected ? this.emit('message', 'Disconnected.') : false;
                 this.isConnected = false;
-                power = false;
                 this.emit('powerState', false, false, false, false);
                 this.emit('audioState', undefined, true);
                 this.emit('pictureSettings', 0, 0, 0, 0, 3, false);
                 this.emit('soundMode', undefined, false);
+                power = false;
 
                 //Prepare accessory
                 const key = await this.readPairingKey(keyFile);

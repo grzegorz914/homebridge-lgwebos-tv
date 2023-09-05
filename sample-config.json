@@ -86,11 +86,13 @@
                         }
                     ],
                     "sensorPower": false,
+                    "sensorPixelRefresh": false,
                     "sensorVolume": false,
                     "sensorMute": false,
                     "sensorInput": false,
                     "sensorChannel": false,
                     "sensorSoundMode": false,
+                    "sensorPictureMode": false,
                     "sensorScreenOnOff": false,
                     "sensorScreenSaver": false,
                     "sensorInputs": [

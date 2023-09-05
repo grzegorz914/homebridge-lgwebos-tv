@@ -28,11 +28,13 @@ class LgWebOsDevice extends EventEmitter {
         this.inputs = config.inputs || [];
         this.buttons = config.buttons || [];
         this.sensorPower = config.sensorPower || false;
+        this.sensorPixelRefresh = config.sensorPixelRefresh || false;
         this.sensorVolume = config.sensorVolume || false;
         this.sensorMute = config.sensorMute || false;
         this.sensorInput = config.sensorInput || false;
         this.sensorChannel = config.sensorChannel || false;
-        this.sensorSoundMode = config.sensorScreenSaver || false;
+        this.sensorSoundMode = config.sensorSoundMode || false;
+        this.sensorPictureMode = config.sensorPictureMode || false;
         this.sensorScreenOnOff = config.sensorScreenOnOff || false;
         this.sensorScreenSaver = config.sensorScreenSaver || false;
         this.sensorInputs = config.sensorInputs || [];
@@ -294,6 +296,11 @@ class LgWebOsDevice extends EventEmitter {
                         .updateCharacteristic(Characteristic.ContactSensorState, power)
                 }
 
+                if (this.sensorPixelRefreshService) {
+                    this.sensorPixelRefreshService
+                        .updateCharacteristic(Characteristic.ContactSensorState, pixelRefresh)
+                }
+
                 if (this.sensorScreenOnOffService) {
                     const state = power ? (tvScreenState === 'Screen Off') : false;
                     this.sensorScreenOnOffService
@@ -435,6 +442,13 @@ class LgWebOsDevice extends EventEmitter {
                     };
                 };
 
+                if (this.sensorPicturedModeService) {
+                    const state = this.power ? (this.pictureMode !== pictureMode) : false;
+                    this.sensorPicturedModeService
+                        .updateCharacteristic(Characteristic.ContactSensorState, state)
+                    this.sensorSoundModeState = state;
+                }
+
                 this.brightness = brightness;
                 this.backlight = backlight;
                 this.contrast = contrast;
@@ -452,9 +466,9 @@ class LgWebOsDevice extends EventEmitter {
                     };
                 };
 
-                if (this.soundModeService) {
+                if (this.sensorSoundModeService) {
                     const state = this.power ? (this.soundMode !== soundMode) : false;
-                    this.soundModeService
+                    this.sensorSoundModeService
                         .updateCharacteristic(Characteristic.ContactSensorState, state)
                     this.sensorSoundModeState = state;
                 }
@@ -1346,6 +1360,21 @@ class LgWebOsDevice extends EventEmitter {
                     accessory.addService(this.sensorPowerService);
                 };
 
+                if (this.sensorPixelRefresh) {
+                    const debug = !this.enableDebugMode ? false : this.emit('debug', `Prepare pixel refresh sensor service`);
+                    this.sensorPixelRefreshService = new Service.ContactSensor(`${accessoryName} Pixel Refresh Sensor`, `Pixel Refresh Sensor`);
+                    this.sensorPixelRefreshService.addOptionalCharacteristic(Characteristic.ConfiguredName);
+                    this.sensorPixelRefreshService.setCharacteristic(Characteristic.ConfiguredName, `${accessoryName} Pixel Refresh Sensor`);
+                    this.sensorPixelRefreshService.getCharacteristic(Characteristic.ContactSensorState)
+                        .onGet(async () => {
+                            const state = this.pixelRefresh;
+                            return state;
+                        });
+
+                    this.services.push(this.sensorPixelRefreshService);
+                    accessory.addService(this.sensorPixelRefreshService);
+                };
+
                 if (this.sensorVolume) {
                     const debug = !this.enableDebugMode ? false : this.emit('debug', `Prepare volume sensor service`);
                     this.sensorVolumeService = new Service.ContactSensor(`${accessoryName} Volume Sensor`, `Volume Sensor`);
@@ -1449,6 +1478,21 @@ class LgWebOsDevice extends EventEmitter {
 
                     this.services.push(this.sensorSoundModeService);
                     accessory.addService(this.sensorSoundModeService);
+                };
+
+                if (this.sensorPictureMode && this.webOS >= 40) {
+                    const debug = !this.enableDebugMode ? false : this.emit('debug', `Prepare picture mode sensor service`);
+                    this.sensorPictureModeService = new Service.ContactSensor(`${accessoryName} Picture Mode Sensor`, `Picture Mode Sensor`);
+                    this.sensorPictureModeService.addOptionalCharacteristic(Characteristic.ConfiguredName);
+                    this.sensorPictureModeService.setCharacteristic(Characteristic.ConfiguredName, `${accessoryName} Picture Mode Sensor`);
+                    this.sensorPictureModeService.getCharacteristic(Characteristic.ContactSensorState)
+                        .onGet(async () => {
+                            const state = this.power ? this.pictureMode : false;
+                            return state;
+                        });
+
+                    this.services.push(this.sensorPictureModeService);
+                    accessory.addService(this.sensorPictureModeService);
                 };
 
                 //prepare sonsor service

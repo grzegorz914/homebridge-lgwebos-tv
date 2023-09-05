@@ -519,6 +519,13 @@
               "description": "This expose Power as a Motion Sensor to use with automations.",
               "required": false
             },
+            "sensorPixelRefresh": {
+              "title": "Pixel Refresh",
+              "type": "boolean",
+              "default": false,
+              "description": "This expose Pixel Refresh as a Motion Sensor to use with automations.",
+              "required": false
+            },
             "sensorVolume": {
               "title": "Volume",
               "type": "boolean",
@@ -552,6 +559,13 @@
               "type": "boolean",
               "default": false,
               "description": "This expose Sound Mode as a Motion Sensor to use with automations, only for webOS >= 6.0.",
+              "required": false
+            },
+            "sensorPictureMode": {
+              "title": "Picture Mode",
+              "type": "boolean",
+              "default": false,
+              "description": "This expose Picture Mode as a Motion Sensor to use with automations, only for webOS >= 4.0.",
               "required": false
             },
             "sensorScreenOnOff": {
@@ -1216,8 +1230,10 @@
                     "devices[].sensorInput",
                     "devices[].sensorChannel",
                     "devices[].sensorSoundMode",
+                    "devices[].sensorPictureMode",
                     "devices[].sensorScreenOnOff",
                     "devices[].sensorScreenSaver",
+                    "devices[].sensorPixelRefresh",
                     {
                       "key": "devices[]",
                       "type": "section",

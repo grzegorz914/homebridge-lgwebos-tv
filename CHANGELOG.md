@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+## [2.12.0] - (05.09.2023)
+## Changes
+- added pixel refresh sensor
+- added picture mode sensor
+- fix sound mode sensor
+
 ## [2.11.0] - (29.07.2023)
 ## Changes
 - added RESTFul server
