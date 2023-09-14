@@ -100,9 +100,10 @@ Tested with OLED65G6V, 32LM6300PLA, 49SK8500, OLED65C7T, 55SK800PLB, OLED48CX.
 | `restFulPort` | Here set the listening `Port` for RESTful server, every device need own port. |
 | `restFulDebug` | If enabled, deep log will be present in homebridge console for RESTFul server. |
 | `enableMqtt` | If enabled, MQTT Broker will start automatically and publish all awailable PV installation data. |
-| `mqttHost` | Here set the *IP Address* or *Hostname* for MQTT Broker.) |
-| `mqttPort` | Here set the *Port* for MQTT Broker, default 1883.) |
-| `mqttPrefix` | Here set the *Prefix* for *Topic* or leave empty.) |
+| `mqttHost` | Here set the `IP Address` or `Hostname` for MQTT Broker. |
+| `mqttPort` | Here set the `Port` for MQTT Broker, default 1883. |
+| `mqttClientId` | Here optional set the `Client Id` of MQTT Broker. |
+| `mqttPrefix` | Here set the `Prefix` for `Topic` or leave empty. |
 | `mqttAuth` | If enabled, MQTT Broker will use authorization credentials. |
 | `mqttUser` | Here set the MQTT Broker user. |
 | `mqttPasswd` | Here set the MQTT Broker password. |
