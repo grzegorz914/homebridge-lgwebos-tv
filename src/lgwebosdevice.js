@@ -82,7 +82,6 @@ class LgWebOsDevice extends EventEmitter {
         this.sensorInputsDisplayType = [];
         this.buttonsServices = [];
 
-        this.firstRun = true;
         this.restFulConnected = false;
         this.mqttConnected = false;
         this.power = false;
@@ -320,7 +319,6 @@ class LgWebOsDevice extends EventEmitter {
                 this.power = power;
                 this.screenState = screenState;
                 this.pixelRefresh = pixelRefresh;
-                this.firstRun = false;
             })
             .on('currentApp', (reference) => {
                 const inputIdentifier = this.inputsReference.includes(reference) ? this.inputsReference.findIndex(index => index === reference) : this.inputIdentifier;
@@ -565,7 +563,7 @@ class LgWebOsDevice extends EventEmitter {
                     this.televisionService.getCharacteristic(Characteristic.Active)
                         .onGet(async () => {
                             const state = this.power;
-                            const info = this.disableLogInfo || this.firstRun ? false : this.emit('message', `Power: ${state ? 'ON' : 'OFF'}`);
+                            const info = this.disableLogInfo ? false : this.emit('message', `Power: ${state ? 'ON' : 'OFF'}`);
                             return state;
                         })
                         .onSet(async (state) => {
@@ -576,8 +574,8 @@ class LgWebOsDevice extends EventEmitter {
                                     interval: 100,
                                     port: 9
                                 }
-                                const setPower = state ? await wol(this.mac, options) : this.power ? await this.lgWebOsSocket.send('request', CONSTANS.ApiUrls.TurnOff) : false;
-                                const info = this.disableLogInfo || this.firstRun ? false : this.emit('message', `set Power: ${state ? 'ON' : 'OFF'}`);
+                                const setPower = state != this.power ? !this.power ? await wol(this.mac, options) : await this.lgWebOsSocket.send('request', CONSTANS.ApiUrls.TurnOff) : false;
+                                const info = this.disableLogInfo || (state == this.power) ? false : this.emit('message', `set Power: ${state ? 'ON' : 'OFF'}`);
                             } catch (error) {
                                 this.emit('error', `set Power error:  ${error}`);
                             }
@@ -589,7 +587,7 @@ class LgWebOsDevice extends EventEmitter {
                             const inputName = this.inputsName[inputIdentifier];
                             const inputReference = this.inputsReference[inputIdentifier];
                             const inputMode = this.inputsMode[inputIdentifier];
-                            const info = this.disableLogInfo || this.firstRun ? false : this.emit('message', `${inputMode === 0 ? 'Input' : 'Channel'}, Name: ${inputName}, Reference: ${inputReference}`);
+                            const info = this.disableLogInfo ? false : this.emit('message', `${inputMode === 0 ? 'Input' : 'Channel'}, Name: ${inputName}, Reference: ${inputReference}`);
                             return inputIdentifier;
                         })
                         .onSet(async (inputIdentifier) => {
@@ -598,20 +596,26 @@ class LgWebOsDevice extends EventEmitter {
                                 const inputMode = this.inputsMode[inputIdentifier];
                                 const inputReference = this.inputsReference[inputIdentifier];
 
-                                if (this.power && inputReference) {
-                                    switch (inputMode) {
-                                        case 0:
-                                            await this.lgWebOsSocket.send('request', CONSTANS.ApiUrls.LaunchApp, { id: inputReference });
-                                            break;
-                                        case 1:
-                                            const liveTv = 'com.webos.app.livetv';
-                                            const openLiveTv = this.reference !== liveTv ? await this.lgWebOsSocket.send('request', CONSTANS.ApiUrls.LaunchApp, { id: liveTv }) : false;
-                                            await this.lgWebOsSocket.send('request', CONSTANS.ApiUrls.OpenChannel, { channelId: inputReference })
-                                            break;
-                                    }
-                                }
+                                switch (this.power) {
+                                    case false:
+                                        await new Promise(resolve => setTimeout(resolve, 3000));
+                                        this.televisionService.setCharacteristic(Characteristic.ActiveIdentifier, inputIdentifier);
+                                        break;
+                                    case true:
+                                        switch (inputMode) {
+                                            case 0:
+                                                await this.lgWebOsSocket.send('request', CONSTANS.ApiUrls.LaunchApp, { id: inputReference });
+                                                break;
+                                            case 1:
+                                                const liveTv = 'com.webos.app.livetv';
+                                                const openLiveTv = this.reference !== liveTv ? await this.lgWebOsSocket.send('request', CONSTANS.ApiUrls.LaunchApp, { id: liveTv }) : false;
+                                                await this.lgWebOsSocket.send('request', CONSTANS.ApiUrls.OpenChannel, { channelId: inputReference })
+                                                break;
+                                        }
 
-                                const info = this.disableLogInfo || this.firstRun ? false : this.emit('message', `set ${inputMode === 0 ? 'Input' : 'Channel'}, Name: ${inputName}, Reference: ${inputReference}`);
+                                        const info = this.disableLogInfo ? false : this.emit('message', `set ${inputMode === 0 ? 'Input' : 'Channel'}, Name: ${inputName}, Reference: ${inputReference}`);
+                                        break;
+                                }
                             } catch (error) {
                                 this.emit('error', `set Input or Channel error: ${error}`);
                             };
@@ -667,7 +671,7 @@ class LgWebOsDevice extends EventEmitter {
                                     name: command
                                 };
                                 await this.lgWebOsSocket.send('button', payload);
-                                const info = this.disableLogInfo || this.firstRun ? false : this.emit('message', `set Remote Key: ${command}`);
+                                const info = this.disableLogInfo ? false : this.emit('message', `set Remote Key: ${command}`);
                             } catch (error) {
                                 this.emit('error', `set Remote Key error: ${error}`);
                             };
@@ -677,12 +681,12 @@ class LgWebOsDevice extends EventEmitter {
                     this.televisionService.getCharacteristic(Characteristic.ClosedCaptions)
                         .onGet(async () => {
                             const state = 0;
-                            const info = this.disableLogInfo || this.firstRun ? false : this.emit('message', `Closed Captions: ${state}`);
+                            const info = this.disableLogInfo ? false : this.emit('message', `Closed Captions: ${state}`);
                             return state;
                         })
                         .onSet(async (state) => {
                             try {
-                                const info = this.disableLogInfo || this.firstRun ? false : this.emit('message', `set Closed Captions: ${state}`);
+                                const info = this.disableLogInfo ? false : this.emit('message', `set Closed Captions: ${state}`);
                             } catch (error) {
                                 this.emit('error', `set Closed Captions error: ${error}`);
                             };
@@ -692,7 +696,7 @@ class LgWebOsDevice extends EventEmitter {
                         .onGet(async () => {
                             //0 - PLAY, 1 - PAUSE, 2 - STOP, 3 - LOADING, 4 - INTERRUPTED
                             const value = 2;
-                            const info = this.disableLogInfo || this.firstRun ? false : this.emit('message', `Media: ${['PLAY', 'PAUSE', 'STOP', 'LOADING', 'INTERRUPTED'][value]}`);
+                            const info = this.disableLogInfo ? false : this.emit('message', `Media: ${['PLAY', 'PAUSE', 'STOP', 'LOADING', 'INTERRUPTED'][value]}`);
                             return value;
                         });
 
@@ -700,14 +704,14 @@ class LgWebOsDevice extends EventEmitter {
                         .onGet(async () => {
                             //0 - PLAY, 1 - PAUSE, 2 - STOP
                             const value = 2;
-                            const info = this.disableLogInfo || this.firstRun ? false : this.emit('message', `Target Media: ${['PLAY', 'PAUSE', 'STOP', 'LOADING', 'INTERRUPTED'][value]}`);
+                            const info = this.disableLogInfo ? false : this.emit('message', `Target Media: ${['PLAY', 'PAUSE', 'STOP', 'LOADING', 'INTERRUPTED'][value]}`);
                             return value;
                         })
                         .onSet(async (value) => {
                             try {
                                 const newMediaState = [CONSTANS.ApiUrls.SetMediaPlay, CONSTANS.ApiUrls.SetMediaPause, CONSTANS.ApiUrls.SetMediaStop][value]
                                 await this.lgWebOsSocket.send('request', newMediaState);
-                                const info = this.disableLogInfo || this.firstRun ? false : this.emit('message', `set Media: ${['PLAY', 'PAUSE', 'STOP', 'LOADING', 'INTERRUPTED'][value]}`);
+                                const info = this.disableLogInfo ? false : this.emit('message', `set Media: ${['PLAY', 'PAUSE', 'STOP', 'LOADING', 'INTERRUPTED'][value]}`);
                             } catch (error) {
                                 this.emit('error', `set Media error: ${error}`);
                             };
@@ -729,7 +733,7 @@ class LgWebOsDevice extends EventEmitter {
                                     name: command
                                 };
                                 await this.lgWebOsSocket.send('button', payload);
-                                const info = this.disableLogInfo || this.firstRun ? false : this.emit('message', `set Power Mode Selection: ${command === 'MENU' ? 'SHOW' : 'HIDE'}`);
+                                const info = this.disableLogInfo ? false : this.emit('message', `set Power Mode Selection: ${command === 'MENU' ? 'SHOW' : 'HIDE'}`);
                             } catch (error) {
                                 this.emit('error', `set Power Mode Selection error: ${error}`);
                             };
@@ -749,7 +753,7 @@ class LgWebOsDevice extends EventEmitter {
                                         }
                                     };
                                     await this.lgWebOsSocket.send('request', CONSTANS.ApiUrls.SetSystemSettings, payload);
-                                    const info = this.disableLogInfo || this.firstRun ? false : this.emit('message', `set Brightness: ${value}`);
+                                    const info = this.disableLogInfo ? false : this.emit('message', `set Brightness: ${value}`);
                                 } catch (error) {
                                     this.emit('error', `set Brightness error: ${error}`);
                                 };
@@ -758,7 +762,7 @@ class LgWebOsDevice extends EventEmitter {
                         this.televisionService.getCharacteristic(Characteristic.PictureMode)
                             .onGet(async () => {
                                 const value = this.pictureMode;
-                                const info = this.disableLogInfo || this.firstRun ? false : this.emit('message', `Picture Mode: ${value}`);
+                                const info = this.disableLogInfo ? false : this.emit('message', `Picture Mode: ${value}`);
                                 return value;
                             })
                             .onSet(async (command) => {
@@ -797,7 +801,7 @@ class LgWebOsDevice extends EventEmitter {
                                         }
                                     };
                                     await this.lgWebOsSocket.send('request', CONSTANS.ApiUrls.SetSystemSettings, payload);
-                                    const info = this.disableLogInfo || this.firstRun ? false : this.emit('message', `set Picture Mode: ${command}`);
+                                    const info = this.disableLogInfo ? false : this.emit('message', `set Picture Mode: ${command}`);
                                 } catch (error) {
                                     this.emit('error', `set Picture Mode error: ${error}`);
                                 };
@@ -840,7 +844,7 @@ class LgWebOsDevice extends EventEmitter {
                                     name: command
                                 };
                                 await this.lgWebOsSocket.send('button', payload);
-                                const info = this.disableLogInfo || this.firstRun ? false : this.emit('message', `set Volume Selector: ${command}`);
+                                const info = this.disableLogInfo ? false : this.emit('message', `set Volume Selector: ${command}`);
                             } catch (error) {
                                 this.emit('error', `set Volume Selector error: ${error}`);
                             };
@@ -849,7 +853,7 @@ class LgWebOsDevice extends EventEmitter {
                     this.speakerService.getCharacteristic(Characteristic.Volume)
                         .onGet(async () => {
                             const volume = this.volume;
-                            const info = this.disableLogInfo || this.firstRun ? false : this.emit('message', `Volume: ${volume}`);
+                            const info = this.disableLogInfo ? false : this.emit('message', `Volume: ${volume}`);
                             return volume;
                         })
                         .onSet(async (volume) => {
@@ -863,7 +867,7 @@ class LgWebOsDevice extends EventEmitter {
                                     soundOutput: this.soundOutput
                                 };
                                 await this.lgWebOsSocket.send('request', CONSTANS.ApiUrls.SetVolume, payload);
-                                const info = this.disableLogInfo || this.firstRun ? false : this.emit('message', `set Volume: ${volume}`);
+                                const info = this.disableLogInfo ? false : this.emit('message', `set Volume: ${volume}`);
                             } catch (error) {
                                 this.emit('error', `set Volume error: ${error}`);
                             };
@@ -872,7 +876,7 @@ class LgWebOsDevice extends EventEmitter {
                     this.speakerService.getCharacteristic(Characteristic.Mute)
                         .onGet(async () => {
                             const state = this.power ? this.mute : true;
-                            const info = this.disableLogInfo || this.firstRun ? false : this.emit('message', `Mute: ${state ? 'ON' : 'OFF'}`);
+                            const info = this.disableLogInfo ? false : this.emit('message', `Mute: ${state ? 'ON' : 'OFF'}`);
                             return state;
                         })
                         .onSet(async (state) => {
@@ -881,7 +885,7 @@ class LgWebOsDevice extends EventEmitter {
                                     mute: state
                                 };
                                 await this.lgWebOsSocket.send('request', CONSTANS.ApiUrls.SetMute, payload);
-                                const info = this.disableLogInfo || this.firstRun ? false : this.emit('message', `set Mute: ${state ? 'ON' : 'OFF'}`);
+                                const info = this.disableLogInfo ? false : this.emit('message', `set Mute: ${state ? 'ON' : 'OFF'}`);
                             } catch (error) {
                                 this.emit('error', `set Mute error: ${error}`);
                             };
@@ -1020,7 +1024,7 @@ class LgWebOsDevice extends EventEmitter {
                                         soundOutput: this.soundOutput
                                     };
                                     await this.lgWebOsSocket.send('request', CONSTANS.ApiUrls.SetVolume, payload);
-                                    const info = this.disableLogInfo || this.firstRun ? false : this.emit('message', `set Volume: ${volume}`);
+                                    const info = this.disableLogInfo ? false : this.emit('message', `set Volume: ${volume}`);
                                 } catch (error) {
                                     this.emit('error', `set Volume error: ${error}`);
                                 };
@@ -1036,7 +1040,7 @@ class LgWebOsDevice extends EventEmitter {
                                         mute: !state
                                     };
                                     await this.lgWebOsSocket.send('request', CONSTANS.ApiUrls.SetMute, payload);
-                                    const info = this.disableLogInfo || this.firstRun ? false : this.emit('message', `set Mute: ${!state ? 'ON' : 'OFF'}`);
+                                    const info = this.disableLogInfo ? false : this.emit('message', `set Mute: ${!state ? 'ON' : 'OFF'}`);
                                 } catch (error) {
                                     this.emit('error', `set Mute error: ${error}`);
                                 };
@@ -1066,7 +1070,7 @@ class LgWebOsDevice extends EventEmitter {
                                         soundOutput: this.soundOutput
                                     };
                                     await this.lgWebOsSocket.send('request', CONSTANS.ApiUrls.SetVolume, payload);
-                                    const info = this.disableLogInfo || this.firstRun ? false : this.emit('message', `set Volume: ${volume}`);
+                                    const info = this.disableLogInfo ? false : this.emit('message', `set Volume: ${volume}`);
                                 } catch (error) {
                                     this.emit('error', `set Volume error: ${error}`);
                                 };
@@ -1082,7 +1086,7 @@ class LgWebOsDevice extends EventEmitter {
                                         mute: !state
                                     };
                                     await this.lgWebOsSocket.send('request', CONSTANS.ApiUrls.SetMute, payload);
-                                    const info = this.disableLogInfo || this.firstRun ? false : this.emit('message', `set Mute: ${!state ? 'ON' : 'OFF'}`);
+                                    const info = this.disableLogInfo ? false : this.emit('message', `set Mute: ${!state ? 'ON' : 'OFF'}`);
                                 } catch (error) {
                                     this.emit('error', `set Mute error: ${error}`);
                                 };
@@ -1120,7 +1124,7 @@ class LgWebOsDevice extends EventEmitter {
                                         }
                                     };
                                     await this.lgWebOsSocket.send('request', CONSTANS.ApiUrls.SetSystemSettings, payload);
-                                    const info = this.disableLogInfo || this.firstRun ? false : this.emit('message', `set Backlight: ${value}`);
+                                    const info = this.disableLogInfo ? false : this.emit('message', `set Backlight: ${value}`);
                                 } catch (error) {
                                     this.emit('error', `set Backlight error: ${error}`);
                                 };
@@ -1155,7 +1159,7 @@ class LgWebOsDevice extends EventEmitter {
                                         }
                                     };
                                     await this.lgWebOsSocket.send('request', CONSTANS.ApiUrls.SetSystemSettings, payload);
-                                    const info = this.disableLogInfo || this.firstRun ? false : this.emit('message', `set Brightness: ${value}`);
+                                    const info = this.disableLogInfo ? false : this.emit('message', `set Brightness: ${value}`);
                                 } catch (error) {
                                     this.emit('error', `set Brightness error: ${error}`);
                                 };
@@ -1190,7 +1194,7 @@ class LgWebOsDevice extends EventEmitter {
                                         }
                                     };
                                     await this.lgWebOsSocket.send('request', CONSTANS.ApiUrls.SetSystemSettings, payload);
-                                    const info = this.disableLogInfo || this.firstRun ? false : this.emit('message', `set Contrast: ${value}`);
+                                    const info = this.disableLogInfo ? false : this.emit('message', `set Contrast: ${value}`);
                                 } catch (error) {
                                     this.emit('error', `set Contrast error: ${error}`);
                                 };
@@ -1225,7 +1229,7 @@ class LgWebOsDevice extends EventEmitter {
                                         }
                                     };
                                     await this.lgWebOsSocket.send('request', CONSTANS.ApiUrls.SetSystemSettings, payload);
-                                    const info = this.disableLogInfo || this.firstRun ? false : this.emit('message', `set Color: ${value}`);
+                                    const info = this.disableLogInfo ? false : this.emit('message', `set Color: ${value}`);
                                 } catch (error) {
                                     this.emit('error', `set Color error: ${error}`);
                                 };
@@ -1249,7 +1253,7 @@ class LgWebOsDevice extends EventEmitter {
                             pictureModeService.getCharacteristic(Characteristic.On)
                                 .onGet(async () => {
                                     const state = this.power ? (this.pictureMode === pictureModeReference) : false;
-                                    const info = this.disableLogInfo || this.firstRun ? false : this.emit('message', `Picture Mode: ${pictureModeName}`);
+                                    const info = this.disableLogInfo ? false : this.emit('message', `Picture Mode: ${pictureModeName}`);
                                     return state;
                                 })
                                 .onSet(async (state) => {
@@ -1262,7 +1266,7 @@ class LgWebOsDevice extends EventEmitter {
                                         }
 
                                         await this.lgWebOsSocket.send('request', CONSTANS.ApiUrls.SetSystemSettings, payload);
-                                        const info = this.disableLogInfo || this.firstRun ? false : this.emit('message', `set Picture Mode: ${pictureModeName}`);
+                                        const info = this.disableLogInfo ? false : this.emit('message', `set Picture Mode: ${pictureModeName}`);
                                     } catch (error) {
                                         this.emit('error', `set Picture Mode error: ${error}`);
                                     };
@@ -1288,7 +1292,7 @@ class LgWebOsDevice extends EventEmitter {
                             soundModeService.getCharacteristic(Characteristic.On)
                                 .onGet(async () => {
                                     const state = this.power ? (this.soundMode === soundModeReference) : false;
-                                    const info = this.disableLogInfo || this.firstRun ? false : this.emit('message', `Sound Mode: ${soundModeName}`);
+                                    const info = this.disableLogInfo ? false : this.emit('message', `Sound Mode: ${soundModeName}`);
                                     return state;
                                 })
                                 .onSet(async (state) => {
@@ -1301,7 +1305,7 @@ class LgWebOsDevice extends EventEmitter {
                                         }
 
                                         await this.lgWebOsSocket.send('request', CONSTANS.ApiUrls.SetSystemSettings, payload);
-                                        const info = this.disableLogInfo || this.firstRun ? false : this.emit('message', `set Sound Mode: ${soundModeName}`);
+                                        const info = this.disableLogInfo ? false : this.emit('message', `set Sound Mode: ${soundModeName}`);
                                     } catch (error) {
                                         this.emit('error', `set Sound Mode error: ${error}`);
                                     };
@@ -1335,7 +1339,7 @@ class LgWebOsDevice extends EventEmitter {
                                     }
                                     const url = this.webOS <= 50 ? (state ? CONSTANS.ApiUrls.TurnOnScreen : CONSTANS.ApiUrls.TurnOffScreen) : (state ? CONSTANS.ApiUrls.TurnOnScreen5 : CONSTANS.ApiUrls.TurnOffScreen5);
                                     await this.lgWebOsSocket.send('request', url);
-                                    const info = this.disableLogInfo || this.firstRun ? false : this.emit('message', `Turn Screen ${state ? 'ON' : 'OFF'}.`);
+                                    const info = this.disableLogInfo ? false : this.emit('message', `Turn Screen ${state ? 'ON' : 'OFF'}.`);
                                 } catch (error) {
                                     this.emit('error', `Turn Screen ${state ? 'ON' : 'OFF'}, error: ${error}`);
                                 };
