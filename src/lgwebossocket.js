@@ -156,7 +156,8 @@ class LgWebOsSocket extends EventEmitter {
                         const productName = messageData.product_name;
                         const serialNumber = messageData.device_id;
                         const firmwareRevision = `${messageData.major_ver}.${messageData.minor_ver}`;
-                        webOS = parseInt(productName.slice(-3).split('.').join(''));
+                        const match = productName.match(/\d+(\.\d+)?/);
+                        webOS = match ? parseFloat(match[0]) : this.emit('error', `Unknown webOS system: ${match}.`);
 
                         this.emit('message', 'Connected.');
                         this.emit('deviceInfo', modelName, productName, serialNumber, firmwareRevision, webOS);
@@ -244,7 +245,7 @@ class LgWebOsSocket extends EventEmitter {
                                 screenState = false;
                                 pixelRefresh = false;
                         }
-                        power = webOS >= 30 ? (this.isConnected && power) : this.isConnected;
+                        power = webOS >= 3.0 ? this.isConnected && power : this.isConnected;
 
                         this.emit('powerState', power, pixelRefresh, screenState, tvScreenState);
 
@@ -348,7 +349,7 @@ class LgWebOsSocket extends EventEmitter {
                     await new Promise(resolve => setTimeout(resolve, 350));
 
                     //picture mode
-                    if (webOS >= 40) {
+                    if (webOS >= 4.0) {
                         const payload = {
                             category: 'picture',
                             keys: ['brightness', 'backlight', 'contrast', 'color']
@@ -358,7 +359,7 @@ class LgWebOsSocket extends EventEmitter {
                     await new Promise(resolve => setTimeout(resolve, 350));
 
                     //sound mode
-                    if (webOS >= 60) {
+                    if (webOS >= 6.0) {
                         const payload = {
                             category: 'sound',
                             keys: ['soundMode']
