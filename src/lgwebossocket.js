@@ -4,7 +4,6 @@ const fsPromises = fs.promises;
 const EventEmitter = require('events');
 const WebSocket = require('ws');
 const CONSTANS = require('./constans.json');
-let modelName, power, webOS
 
 class LgWebOsSocket extends EventEmitter {
     constructor(config) {
@@ -19,6 +18,9 @@ class LgWebOsSocket extends EventEmitter {
         this.startPrepareAccessory = true;
         this.isConnected = false;
         this.pairingKey = '';
+        this.modelName = 'LG TV'
+        this.power = false;
+        this.webOS = 2.0;
 
         this.connect = () => {
             const client = sslWebSocket ? new WebSocket(url, { rejectUnauthorized: false }) : new WebSocket(url);
@@ -136,7 +138,7 @@ class LgWebOsSocket extends EventEmitter {
                         break;
                     case this.systemInfoId:
                         const debug1 = debugLog ? this.emit('debug', `System Info: ${stringifyMessage}`) : false;
-                        modelName = messageData.modelName || 'ModelName';
+                        this.modelName = messageData.modelName || 'ModelName';
 
                         //restFul
                         const restFul1 = restFulEnabled ? this.emit('restFul', 'systeminfo', messageData) : false;
@@ -157,10 +159,10 @@ class LgWebOsSocket extends EventEmitter {
                         const serialNumber = messageData.device_id;
                         const firmwareRevision = `${messageData.major_ver}.${messageData.minor_ver}`;
                         const match = productName.match(/\d+(\.\d+)?/);
-                        webOS = match ? parseFloat(match[0]) : this.emit('error', `Unknown webOS system: ${match}.`);
+                        this.webOS = match ? parseFloat(match[0]) : this.emit('error', `Unknown webOS system: ${match}.`);
 
                         this.emit('message', 'Connected.');
-                        this.emit('deviceInfo', modelName, productName, serialNumber, firmwareRevision, webOS);
+                        this.emit('deviceInfo', this.modelName, productName, serialNumber, firmwareRevision, this.webOS);
 
                         //restFul
                         const restFul2 = restFulEnabled ? this.emit('restFul', 'softwareinfo', messageData) : false;
@@ -216,38 +218,36 @@ class LgWebOsSocket extends EventEmitter {
                         let pixelRefresh = false;
                         switch (tvScreenState) {
                             case 'Active':
-                                power = true;
+                                this.power = true;
                                 screenState = true;
                                 pixelRefresh = false;
                                 break;
                             case 'Active Standby':
-                                power = false;
+                                this.power = false;
                                 screenState = false;
                                 pixelRefresh = true;
                                 break;
                             case 'Screen Saver':
-                                power = true;
+                                this.power = true;
                                 screenState = true;
                                 pixelRefresh = false;
                                 break;
                             case 'Screen Off':
-                                power = true;
+                                this.power = true;
                                 screenState = false;
                                 pixelRefresh = false;
                                 break;
                             case 'Suspend':
-                                power = false;
+                                this.power = false;
                                 screenState = false;
                                 pixelRefresh = false;
                                 break;
                             default:
-                                power = false;
-                                screenState = false;
-                                pixelRefresh = false;
+                                this.emit('message', `Unknown power state: ${tvScreenState}`);
+                                break;
                         }
-                        power = webOS >= 3.0 ? this.isConnected && power : this.isConnected;
-                        await new Promise(resolve => setTimeout(resolve, 5000));
-                        this.emit('powerState', power, pixelRefresh, screenState, tvScreenState);
+                        this.power = this.webOS >= 3.0 ? this.isConnected && this.power : this.isConnected;
+                        this.emit('powerState', this.power, pixelRefresh, screenState, tvScreenState);
 
                         //restFul
                         const restFul5 = restFulEnabled ? this.emit('restFul', 'power', messageData) : false;
@@ -299,7 +299,7 @@ class LgWebOsSocket extends EventEmitter {
                         const contrast = messageData.settings.contrast;
                         const color = messageData.settings.color;
                         const pictureMode = 3;
-                        this.emit('pictureSettings', brightness, backlight, contrast, color, pictureMode, power);
+                        this.emit('pictureSettings', brightness, backlight, contrast, color, pictureMode, this.power);
 
                         //restFul
                         const restFul9 = restFulEnabled ? this.emit('restFul', 'picturesettings', messageData) : false;
@@ -310,13 +310,16 @@ class LgWebOsSocket extends EventEmitter {
                     case this.soundModeId:
                         const debug10 = debugLog ? this.emit('debug', `Sound Mode: ${stringifyMessage}`) : false;
                         const soundMode = messageData.settings.soundMode;
-                        this.emit('soundMode', soundMode, power);
+                        this.emit('soundMode', soundMode, this.power);
 
                         //restFul
                         const restFul10 = restFulEnabled ? this.emit('restFul', 'soundmode', messageData) : false;
 
                         //mqtt
                         const mqtt10 = mqttEnabled ? this.emit('mqtt', 'Sound Mode', messageData) : false;
+                        break;
+                    default:
+                        this.emit('message', `Unknown message Id: ${messageId}, data: ${stringifyMessage}`);
                         break;
                 };
 
@@ -345,7 +348,7 @@ class LgWebOsSocket extends EventEmitter {
                     await new Promise(resolve => setTimeout(resolve, 350));
 
                     //picture mode
-                    if (webOS >= 4.0) {
+                    if (this.webOS >= 4.0) {
                         const payload = {
                             category: 'picture',
                             keys: ['brightness', 'backlight', 'contrast', 'color']
@@ -355,7 +358,7 @@ class LgWebOsSocket extends EventEmitter {
                     await new Promise(resolve => setTimeout(resolve, 350));
 
                     //sound mode
-                    if (webOS >= 6.0) {
+                    if (this.webOS >= 6.0) {
                         const payload = {
                             category: 'sound',
                             keys: ['soundMode']
@@ -375,7 +378,7 @@ class LgWebOsSocket extends EventEmitter {
                 this.emit('audioState', undefined, true);
                 this.emit('pictureSettings', 0, 0, 0, 0, 3, false);
                 this.emit('soundMode', undefined, false);
-                power = false;
+                this.power = false;
 
                 //Prepare accessory
                 const key = await this.readPairingKey(keyFile);
