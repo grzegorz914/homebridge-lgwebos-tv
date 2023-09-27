@@ -246,7 +246,7 @@ class LgWebOsSocket extends EventEmitter {
                                 pixelRefresh = false;
                         }
                         power = webOS >= 3.0 ? this.isConnected && power : this.isConnected;
-
+                        await new Promise(resolve => setTimeout(resolve, 5000));
                         this.emit('powerState', power, pixelRefresh, screenState, tvScreenState);
 
                         //restFul
@@ -271,7 +271,6 @@ class LgWebOsSocket extends EventEmitter {
                         const debug7 = debugLog ? this.emit('debug', `Audio: ${stringifyMessage}`) : false;
                         const volume = messageData.volume < 0 ? 0 : messageData.volume;
                         const mute = messageData.mute;
-
                         this.emit('audioState', volume, mute);
 
                         //restFul
@@ -285,7 +284,6 @@ class LgWebOsSocket extends EventEmitter {
                         const channelId = messageData.channelId;
                         const channelName = messageData.channelName;
                         const channelNumber = messageData.channelNumber;
-
                         this.emit('currentChannel', channelName, channelNumber, channelId);
 
                         //restFul
@@ -301,7 +299,6 @@ class LgWebOsSocket extends EventEmitter {
                         const contrast = messageData.settings.contrast;
                         const color = messageData.settings.color;
                         const pictureMode = 3;
-
                         this.emit('pictureSettings', brightness, backlight, contrast, color, pictureMode, power);
 
                         //restFul
@@ -313,7 +310,6 @@ class LgWebOsSocket extends EventEmitter {
                     case this.soundModeId:
                         const debug10 = debugLog ? this.emit('debug', `Sound Mode: ${stringifyMessage}`) : false;
                         const soundMode = messageData.settings.soundMode;
-
                         this.emit('soundMode', soundMode, power);
 
                         //restFul
