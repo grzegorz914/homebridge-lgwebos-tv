@@ -321,168 +321,233 @@ class LgWebOsDevice extends EventEmitter {
                 this.pixelRefresh = pixelRefresh;
             })
             .on('currentApp', (reference) => {
-                const inputIdentifier = this.inputsReference.includes(reference) ? this.inputsReference.findIndex(index => index === reference) : this.inputIdentifier;
+                const inputIdentifier = this.inputsReference.includes(reference) ? this.inputsReference.findIndex(index => index === reference) : undefined;
 
-                if (this.televisionService) {
+                if (this.televisionService && inputIdentifier !== undefined) {
                     this.televisionService
                         .updateCharacteristic(Characteristic.ActiveIdentifier, inputIdentifier);
+                    this.inputIdentifier = inputIdentifier;
                 };
 
-                if (this.sensorInputService) {
+                if (this.sensorInputService && inputIdentifier !== undefined) {
                     const state = this.power ? (this.inputIdentifier !== inputIdentifier) : false;
                     this.sensorInputService
                         .updateCharacteristic(Characteristic.ContactSensorState, state)
                     this.sensorInputState = state;
+                    this.inputIdentifier = inputIdentifier;
                 }
 
-                if (this.sensorInputsServices) {
-                    const servicesCount = this.sensorInputsServices.length;
-                    for (let i = 0; i < servicesCount; i++) {
-                        const state = this.power ? (this.sensorInputsReference[i] === reference) : false;
-                        const displayType = this.sensorInputsDisplayType[i];
-                        const characteristicType = [Characteristic.MotionDetected, Characteristic.OccupancyDetected, Characteristic.ContactSensorState][displayType];
-                        this.sensorInputsServices[i]
-                            .updateCharacteristic(characteristicType, state);
+                if (reference) {
+                    if (this.sensorInputsServices) {
+                        const servicesCount = this.sensorInputsServices.length;
+                        for (let i = 0; i < servicesCount; i++) {
+                            const state = this.power ? (this.sensorInputsReference[i] === reference) : false;
+                            const displayType = this.sensorInputsDisplayType[i];
+                            const characteristicType = [Characteristic.MotionDetected, Characteristic.OccupancyDetected, Characteristic.ContactSensorState][displayType];
+                            this.sensorInputsServices[i]
+                                .updateCharacteristic(characteristicType, state);
+                        }
                     }
+                    this.reference = reference;
                 }
-
-                this.reference = reference;
-                this.inputIdentifier = inputIdentifier;
             })
             .on('audioState', (volume, mute) => {
-                volume = volume ? volume : this.volume;
 
                 if (this.speakerService) {
-                    this.speakerService
-                        .updateCharacteristic(Characteristic.Volume, volume)
-                        .updateCharacteristic(Characteristic.Mute, mute);
+                    if (volume) {
+                        this.speakerService
+                            .updateCharacteristic(Characteristic.Volume, volume)
 
-                    if (this.volumeService) {
-                        this.volumeService
-                            .updateCharacteristic(Characteristic.Brightness, volume)
-                            .updateCharacteristic(Characteristic.On, !mute);
+                        if (this.volumeService) {
+                            this.volumeService
+                                .updateCharacteristic(Characteristic.Brightness, volume)
+                        };
+
+                        if (this.volumeServiceFan) {
+                            this.volumeServiceFan
+                                .updateCharacteristic(Characteristic.RotationSpeed, volume)
+                        };
+                        this.volume = volume;
                     };
 
-                    if (this.volumeServiceFan) {
-                        this.volumeServiceFan
-                            .updateCharacteristic(Characteristic.RotationSpeed, volume)
-                            .updateCharacteristic(Characteristic.On, !mute);
+                    if (mute) {
+                        this.speakerService
+                            .updateCharacteristic(Characteristic.Mute, mute);
+
+                        if (this.volumeService) {
+                            this.volumeService
+                                .updateCharacteristic(Characteristic.On, !mute);
+                        };
+
+                        if (this.volumeServiceFan) {
+                            this.volumeServiceFan
+                                .updateCharacteristic(Characteristic.On, !mute);
+                        };
+                        this.mute = mute;
                     };
                 };
 
-                if (this.sensorVolumeService) {
+                if (this.sensorVolumeService && volume) {
                     const state = this.power ? (this.volume !== volume) : false;
                     this.sensorVolumeService
                         .updateCharacteristic(Characteristic.ContactSensorState, state)
                     this.sensorVolumeState = state;
+                    this.volume = volume;
                 }
 
-                if (this.sensorMuteService) {
+                if (this.sensorMuteService && mute) {
                     const state = this.power ? mute : false;
                     this.sensorMuteService
-                        .updateCharacteristic(Characteristic.ContactSensorState, state)
+                        .updateCharacteristic(Characteristic.ContactSensorState, state);
+                    this.mute = mute;
                 }
-
-                this.volume = volume;
-                this.mute = mute;
             })
             .on('currentChannel', (channelName, channelNumber, channelId) => {
-                const inputIdentifier = this.inputsReference.includes(channelId) ? this.inputsReference.findIndex(index => index === channelId) : this.inputIdentifier;
+                const inputIdentifier = this.inputsReference.includes(channelId) ? this.inputsReference.findIndex(index => index === channelId) : undefined;
 
-                if (this.televisionService) {
+                if (this.televisionService && inputIdentifier !== undefined) {
                     this.televisionService
                         .updateCharacteristic(Characteristic.ActiveIdentifier, inputIdentifier);
+                    this.inputIdentifier = inputIdentifier;
                 };
 
-                if (this.sensorChannelService) {
+                if (this.sensorChannelService && inputIdentifier !== undefined) {
                     const state = this.power ? (this.inputIdentifier !== inputIdentifier) : false;
                     this.sensorChannelService
                         .updateCharacteristic(Characteristic.ContactSensorState, state)
                     this.sensorChannelState = state;
+                    this.inputIdentifier = inputIdentifier;
                 }
 
-                this.channelName = channelName;
-                this.channelNumber = channelNumber;
-                this.inputIdentifier = inputIdentifier;
+                if (channelName && channelNumber) {
+                    this.channelName = channelName;
+                    this.channelNumber = channelNumber;
+                }
             })
             .on('pictureSettings', (brightness, backlight, contrast, color, pictureMode, power) => {
 
                 if (this.televisionService) {
-                    this.televisionService
-                        .updateCharacteristic(Characteristic.Brightness, brightness)
-                        .updateCharacteristic(Characteristic.PictureMode, pictureMode);
+                    if (brightness) {
+                        this.televisionService
+                            .updateCharacteristic(Characteristic.PictureMode, pictureMode);
+                        this.brightness = brightness;
+                    };
+                    if (pictureMode) {
+                        this.televisionService
+                            .updateCharacteristic(Characteristic.PictureMode, pictureMode);
+                        this.pictureMode = pictureMode;
+                    };
                 };
 
-                if (this.brightnessService) {
+                if (this.brightnessService && brightness) {
                     this.brightnessService
-                        .updateCharacteristic(Characteristic.On, power)
                         .updateCharacteristic(Characteristic.Brightness, brightness);
+                    this.brightness = brightness;
                 };
-                if (this.backlightService) {
+
+                if (this.backlightService && backlight) {
                     this.backlightService
-                        .updateCharacteristic(Characteristic.On, power)
                         .updateCharacteristic(Characteristic.Brightness, backlight);
+                    this.backlight = backlight;
                 };
-                if (this.contrastService) {
+
+                if (this.contrastService && contrast) {
                     this.contrastService
-                        .updateCharacteristic(Characteristic.On, power)
                         .updateCharacteristic(Characteristic.Brightness, contrast);
+                    this.contrast = contrast;
                 };
-                if (this.colorService) {
+
+                if (this.colorService && color) {
                     this.colorService
-                        .updateCharacteristic(Characteristic.On, power)
                         .updateCharacteristic(Characteristic.Brightness, color);
+                    this.color = color;
                 };
-                if (this.pictureModesServices) {
+
+                if (this.pictureModesServices && pictureMode) {
                     const servicesCount = this.pictureModesServices.length;
                     for (let i = 0; i < servicesCount; i++) {
                         const state = power ? (this.pictureModes[i].reference === pictureMode) : false;
                         this.pictureModesServices[i]
                             .updateCharacteristic(Characteristic.On, state);
                     };
+                    this.pictureMode = pictureMode;
                 };
 
-                if (this.sensorPicturedModeService) {
-                    const state = this.power ? (this.pictureMode !== pictureMode) : false;
+                if (this.sensorPicturedModeService && pictureMode) {
+                    const state = power ? (this.pictureMode !== pictureMode) : false;
                     this.sensorPicturedModeService
                         .updateCharacteristic(Characteristic.ContactSensorState, state)
                     this.sensorPicturedModeState = state;
+                    this.pictureMode = pictureMode;
                 }
-
-                this.brightness = brightness;
-                this.backlight = backlight;
-                this.contrast = contrast;
-                this.color = color;
-                this.pictureMode = pictureMode;
             })
             .on('soundMode', (soundMode, power) => {
 
-                if (this.soundModesServices) {
+                if (this.soundModesServices && soundMode) {
                     const servicesCount = this.soundModesServices.length;
                     for (let i = 0; i < servicesCount; i++) {
                         const state = power ? (this.soundModes[i].reference === soundMode) : false;
                         this.soundModesServices[i]
                             .updateCharacteristic(Characteristic.On, state);
                     };
+                    this.soundMode = soundMode;
                 };
 
-                if (this.sensorSoundModeService) {
+                if (this.sensorSoundModeService && soundMode) {
                     const state = this.power ? (this.soundMode !== soundMode) : false;
                     this.sensorSoundModeService
                         .updateCharacteristic(Characteristic.ContactSensorState, state)
                     this.sensorSoundModeState = state;
+                    this.soundMode = soundMode;
                 }
-
-                this.soundMode = soundMode;
             })
             .on('prepareAccessory', async () => {
                 try {
+
+                    //read dev info from file
                     try {
                         const data = await fsPromises.readFile(this.devInfoFile);
                         this.savedInfo = data.length > 5 ? JSON.parse(data) : {};
+                        const debug = this.enableDebugMode ? this.emit('debug', `Read saved Info: ${JSON.stringify(this.savedInfo, null, 2)}`) : false;
                         this.webOS = this.savedInfo.webOS ?? 2;
                     } catch (error) {
-                        this.emit('error', `read device info error: ${error}`);
+                        this.emit('error', `read saved Info error: ${error}`);
+                    };
+
+                    //read inputs file
+                    try {
+                        const data = await fsPromises.readFile(this.inputsFile);
+                        this.savedInputs = data.length > 5 ? JSON.parse(data) : this.inputs;
+                        const debug = this.enableDebugMode ? this.emit('debug', `Read saved Inputs: ${JSON.stringify(this.savedInputs, null, 2)}`) : false;
+                    } catch (error) {
+                        this.emit('error', `read saved Inputs error: ${error}`);
+                    };
+
+                    //read channels from file
+                    try {
+                        const data = await fsPromises.readFile(this.channelsFile);
+                        this.savedChannels = data.length > 5 ? JSON.parse(data) : [];
+                        const debug = this.enableDebugMode ? this.emit('debug', `Read saved Channels: ${JSON.stringify(this.savedChannels, null, 2)}`) : false;
+                    } catch (error) {
+                        this.emit('error', `read saved Channels error: ${error}`);
+                    };
+
+                    //read inputs names from file
+                    try {
+                        const data = await fsPromises.readFile(this.inputsNamesFile);
+                        this.savedInputsNames = data.length > 5 ? JSON.parse(data) : {};
+                        const debug = this.enableDebugMode ? this.emit('debug', `Read saved Inputs/Channels Names: ${JSON.stringify(this.savedInputsNames, null, 2)}`) : false;
+                    } catch (error) {
+                        this.emit('error', `read saved Inputs/Channels Names error: ${error}`);
+                    };
+
+                    //read inputs visibility from file
+                    try {
+                        const data = await fsPromises.readFile(this.inputsTargetVisibilityFile);
+                        this.savedInputsTargetVisibility = data.length > 5 ? JSON.parse(data) : {};
+                        const debug = this.enableDebugMode ? this.emit('debug', `Read saved Inputs/Channels Target Visibility: ${JSON.stringify(this.savedInputsTargetVisibility, null, 2)}`) : false;
+                    } catch (error) {
+                        this.emit('error', `read saved Inputs/Channels Target Visibility error: ${error}`);
                     };
 
                     const accessory = await this.prepareAccessory();
@@ -894,24 +959,9 @@ class LgWebOsDevice extends EventEmitter {
                     accessory.addService(this.speakerService);
 
                     //Prepare inputs service
-                    const debug4 = !this.enableDebugMode ? false : this.emit('debug', `Prepare inputs service`);
-
-                    const savedInputs = fs.readFileSync(this.inputsFile).length > 2 ? JSON.parse(fs.readFileSync(this.inputsFile)) : this.inputs;
-                    const debug5 = this.enableDebugMode ? this.emit('debug', `Read saved Inputs: ${JSON.stringify(savedInputs, null, 2)}`) : false;
-
-                    const savedChannels = fs.readFileSync(this.channelsFile).length > 2 ? JSON.parse(fs.readFileSync(this.channelsFile)) : [];
-                    const debug6 = this.enableDebugMode ? this.emit('debug', `Read saved Channels: ${JSON.stringify(savedChannels, null, 2)}`) : false;
-
-                    const savedInputsNames = fs.readFileSync(this.inputsNamesFile).length > 2 ? JSON.parse(fs.readFileSync(this.inputsNamesFile)) : {};
-                    const debug27 = this.enableDebugMode ? this.emit('debug', `Read saved Inputs/Channels Names: ${JSON.stringify(savedInputsNames, null, 2)}`) : false;
-
-                    const savedInputsTargetVisibility = fs.readFileSync(this.inputsTargetVisibilityFile).length > 2 ? JSON.parse(fs.readFileSync(this.inputsTargetVisibilityFile)) : {};
-                    const debug8 = this.enableDebugMode ? this.emit('debug', `Read saved Inputs/Channels Target Visibility: ${JSON.stringify(savedInputsTargetVisibility, null, 2)}`) : false;
-
-
                     //check possible inputs and filter custom unnecessary inputs
                     const filteredInputsArr = [];
-                    for (const input of savedInputs) {
+                    for (const input of this.savedInputs) {
                         const reference = input.reference;
                         const filterSystemApps = this.filterSystemApps ? CONSTANS.SystemApps.includes(reference) : false;
                         const push = this.getInputsFromDevice ? (!filterSystemApps) ? filteredInputsArr.push(input) : false : filteredInputsArr.push(input);
@@ -930,7 +980,7 @@ class LgWebOsDevice extends EventEmitter {
                         const inputReference = input.reference;
 
                         //get input name		
-                        const inputName = savedInputsNames[inputReference] || input.name;
+                        const inputName = this.savedInputsNames[inputReference] || input.name;
 
                         //get input mode
                         const inputMode = input.mode;
@@ -942,7 +992,7 @@ class LgWebOsDevice extends EventEmitter {
                         const isConfigured = 1;
 
                         //get input visibility state
-                        const currentVisibility = savedInputsTargetVisibility[inputReference] || 0;
+                        const currentVisibility = this.savedInputsTargetVisibility[inputReference] || 0;
                         const targetVisibility = currentVisibility;
 
                         if (inputReference && inputName && inputMode >= 0) {
@@ -960,8 +1010,8 @@ class LgWebOsDevice extends EventEmitter {
                                 })
                                 .onSet(async (value) => {
                                     try {
-                                        savedInputsNames[inputReference] = value;
-                                        const newCustomName = JSON.stringify(savedInputsNames, null, 2);
+                                        this.savedInputsNames[inputReference] = value;
+                                        const newCustomName = JSON.stringify(this.savedInputsNames, null, 2);
 
                                         await fsPromises.writeFile(this.inputsNamesFile, newCustomName);
                                         const debug = this.enableDebugMode ? this.emit('debug', `Saved ${inputMode === 0 ? 'Input' : 'Channel'} Name: ${value}, Reference: ${inputReference}`) : false;
@@ -977,8 +1027,8 @@ class LgWebOsDevice extends EventEmitter {
                                 })
                                 .onSet(async (state) => {
                                     try {
-                                        savedInputsTargetVisibility[inputReference] = state;
-                                        const newTargetVisibility = JSON.stringify(savedInputsTargetVisibility, null, 2);
+                                        this.savedInputsTargetVisibility[inputReference] = state;
+                                        const newTargetVisibility = JSON.stringify(this.savedInputsTargetVisibility, null, 2);
 
                                         await fsPromises.writeFile(this.inputsTargetVisibilityFile, newTargetVisibility);
                                         const debug = this.enableDebugMode ? this.emit('debug', `Saved ${inputMode === 0 ? 'Input' : 'Channel'}: ${inputName}, Target Visibility: ${state ? 'HIDEN' : 'SHOWN'}`) : false;

@@ -22,7 +22,7 @@ class LgWebOsPlatform {
 		api.on('didFinishLaunching', () => {
 			for (const device of config.devices) {
 				if (!device.name || !device.host || !device.mac) {
-					log.warn('Device name, host or mac address missing!');
+					log.warn(`Name: ${device.name ? 'OK' : device.name}, host: ${device.host ? 'OK' : device.host}, mac: ${device.mac ? 'OK' : device.mac} in config missing.`);
 					return;
 				}
 				const debug = device.enableDebugMode ? log(`Device: ${device.host} ${device.name}, did finish launching.`) : false;
