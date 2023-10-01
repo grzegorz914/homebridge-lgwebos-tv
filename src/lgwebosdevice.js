@@ -992,7 +992,7 @@ class LgWebOsDevice extends EventEmitter {
                         const inputReference = input.reference;
 
                         //get input name		
-                        const inputName = this.savedInputsNames[inputReference] || input.name;
+                        const inputName = this.savedInputsNames[inputReference] ?? input.name;
 
                         //get input type
                         const inputType = 0;
@@ -1001,7 +1001,7 @@ class LgWebOsDevice extends EventEmitter {
                         const isConfigured = 1;
 
                         //get input visibility state
-                        const currentVisibility = this.savedInputsTargetVisibility[inputReference] || 0;
+                        const currentVisibility = this.savedInputsTargetVisibility[inputReference] ?? 0;
                         const targetVisibility = currentVisibility;
 
                         if (inputReference && inputName && inputMode >= 0) {
@@ -1014,9 +1014,6 @@ class LgWebOsDevice extends EventEmitter {
                                 .setCharacteristic(Characteristic.CurrentVisibilityState, currentVisibility)
 
                             inputService.getCharacteristic(Characteristic.ConfiguredName)
-                                .onGet(async () => {
-                                    return inputName;
-                                })
                                 .onSet(async (value) => {
                                     try {
                                         this.savedInputsNames[inputReference] = value;
