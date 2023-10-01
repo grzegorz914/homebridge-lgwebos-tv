@@ -133,7 +133,7 @@ class LgWebOsDevice extends EventEmitter {
 
             files.forEach((file) => {
                 if (!fs.existsSync(file)) {
-                    fs.writeFileSync(file, '0');
+                    fs.writeFileSync(file, ' ');
                 }
             });
         } catch (error) {
@@ -184,9 +184,8 @@ class LgWebOsDevice extends EventEmitter {
         }
 
         //lg tv client
-        const url = this.sslWebSocket ? CONSTANS.ApiUrls.WssUrl.replace('lgwebostv', this.host) : CONSTANS.ApiUrls.WsUrl.replace('lgwebostv', this.host);
         this.lgWebOsSocket = new LgWebOsSocket({
-            url: url,
+            host: this.host,
             keyFile: this.keyFile,
             debugLog: this.enableDebugMode,
             restFulEnabled: this.restFulEnabled,
@@ -194,14 +193,14 @@ class LgWebOsDevice extends EventEmitter {
             sslWebSocket: this.sslWebSocket
         });
 
-        this.lgWebOsSocket.on('deviceInfo', async (modelName, productName, serialNumber, firmwareRevision, webOS) => {
+        this.lgWebOsSocket.on('deviceInfo', async (modelName, productName, deviceId, firmwareRevision, webOS) => {
             try {
                 if (!this.disableLogDeviceInfo) {
                     this.emit('devInfo', `-------- ${this.name} --------`);
                     this.emit('devInfo', `Manufacturer: LG Electronics`);
                     this.emit('devInfo', `Model: ${modelName}`);
                     this.emit('devInfo', `System: ${productName}`);
-                    this.emit('devInfo', `Serialnr: ${serialNumber}`);
+                    this.emit('devInfo', `Serialnr: ${deviceId}`);
                     this.emit('devInfo', `Firmware: ${firmwareRevision}`);
                     this.emit('devInfo', `----------------------------------`);
                 };
@@ -211,7 +210,7 @@ class LgWebOsDevice extends EventEmitter {
                 const infoHasNotchanged =
                     modelName === savedInfo.modelName
                     && productName === savedInfo.productName
-                    && serialNumber === savedInfo.serialNumber
+                    && deviceId === savedInfo.deviceId
                     && firmwareRevision === savedInfo.firmwareRevision
                     && webOS === savedInfo.webOS;
 
@@ -223,14 +222,14 @@ class LgWebOsDevice extends EventEmitter {
                     this.informationService
                         .setCharacteristic(Characteristic.Manufacturer, 'LG Electronics')
                         .setCharacteristic(Characteristic.Model, modelName)
-                        .setCharacteristic(Characteristic.SerialNumber, serialNumber)
+                        .setCharacteristic(Characteristic.SerialNumber, deviceId)
                         .setCharacteristic(Characteristic.FirmwareRevision, firmwareRevision);
                 };
 
                 const obj = {
                     modelName: modelName,
                     productName: productName,
-                    serialNumber: serialNumber,
+                    deviceId: deviceId,
                     firmwareRevision: firmwareRevision,
                     webOS: webOS
                 };
@@ -600,7 +599,7 @@ class LgWebOsDevice extends EventEmitter {
                 this.informationService = accessory.getService(Service.AccessoryInformation)
                     .setCharacteristic(Characteristic.Manufacturer, 'LG Electronics')
                     .setCharacteristic(Characteristic.Model, this.savedInfo.modelName ?? 'Model Name')
-                    .setCharacteristic(Characteristic.SerialNumber, this.savedInfo.serialNumber ?? 'Serial Number')
+                    .setCharacteristic(Characteristic.SerialNumber, this.savedInfo.deviceId ?? 'Serial Number')
                     .setCharacteristic(Characteristic.FirmwareRevision, this.savedInfo.firmwareRevision ?? 'Firmware Revision');
                 this.allServices.push(this.informationService);
 

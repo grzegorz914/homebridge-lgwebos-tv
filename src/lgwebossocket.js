@@ -8,7 +8,7 @@ const CONSTANS = require('./constans.json');
 class LgWebOsSocket extends EventEmitter {
     constructor(config) {
         super();
-        const url = config.url;
+        const host = config.host;
         const keyFile = config.keyFile;
         const debugLog = config.debugLog;
         const restFulEnabled = config.restFulEnabled;
@@ -24,6 +24,7 @@ class LgWebOsSocket extends EventEmitter {
         this.debugLog = debugLog;
 
         this.connect = () => {
+            const url = sslWebSocket ? CONSTANS.ApiUrls.WssUrl.replace('lgwebostv', host) : CONSTANS.ApiUrls.WsUrl.replace('lgwebostv', host);
             const client = sslWebSocket ? new WebSocket(url, { rejectUnauthorized: false }) : new WebSocket(url);
             client.on('open', async () => {
                 const debug = debugLog ? this.emit('debug', `Socked connected.`) : false;
@@ -171,13 +172,13 @@ class LgWebOsSocket extends EventEmitter {
                                 const debug2 = debugLog ? this.emit('debug', `Software Info: ${stringifyMessage}`) : false;
 
                                 const productName = messageData.product_name;
-                                const serialNumber = messageData.device_id;
+                                const deviceId = messageData.device_id;
                                 const firmwareRevision = `${messageData.major_ver}.${messageData.minor_ver}`;
                                 const match = productName.match(/\d+(\.\d+)?/);
                                 this.webOS = match ? parseFloat(match[0]) : this.emit('error', `Unknown webOS system: ${match}.`);
 
                                 this.emit('message', 'Connected.');
-                                this.emit('deviceInfo', this.modelName, productName, serialNumber, firmwareRevision, this.webOS);
+                                this.emit('deviceInfo', this.modelName, productName, deviceId, firmwareRevision, this.webOS);
 
                                 //restFul
                                 const restFul2 = restFulEnabled ? this.emit('restFul', 'softwareinfo', messageData) : false;
@@ -355,6 +356,7 @@ class LgWebOsSocket extends EventEmitter {
                 //Prepare accessory
                 const key = await this.readPairingKey(keyFile);
                 const prepareAccessory = key.length > 10 && this.startPrepareAccessory ? this.emit('prepareAccessory') : false;
+                this.startPrepareAccessory = false;
 
                 await new Promise(resolve => setTimeout(resolve, 2500));
                 this.connect();
