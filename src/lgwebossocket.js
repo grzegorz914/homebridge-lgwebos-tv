@@ -21,6 +21,7 @@ class LgWebOsSocket extends EventEmitter {
         this.modelName = 'LG TV'
         this.power = false;
         this.webOS = 2.0;
+        this.debugLog = debugLog;
 
         this.connect = () => {
             const client = sslWebSocket ? new WebSocket(url, { rejectUnauthorized: false }) : new WebSocket(url);
@@ -66,10 +67,63 @@ class LgWebOsSocket extends EventEmitter {
                 const stringifyMessage = JSON.stringify(messageData, null, 2);
 
                 switch (messageType) {
+                    case 'registered':
+                        const debug1 = debugLog ? this.emit('debug', `Start TV pairing: ${stringifyMessage}`) : false;
+
+                        const pairingKey = messageData['client-key'];
+                        if (!pairingKey) {
+                            this.emit('message', 'Please accept authorization on TV.');
+                            return;
+                        };
+
+                        if (pairingKey !== this.pairingKey) {
+                            try {
+                                await this.savePairingKey(keyFile, pairingKey);
+                                this.emit('message', 'Pairing key saved.')
+                            } catch (error) {
+                                this.emit('error', `Pairing key saved error: ${error}`)
+                            };
+                        };
+
+                        try {
+                            //Request specjalized socket
+                            await this.requestSocket();
+
+                            //Request ssystem and software info data
+                            await new Promise(resolve => setTimeout(resolve, 1500));
+                            await this.requestSystemInfo();
+                            await this.requestSoftwareInfo();
+                        } catch (error) {
+                            this.emit('error', `Request error: ${error}`)
+                        };
+
+                        try {
+                            //Subscribe channels and inputs list
+                            await new Promise(resolve => setTimeout(resolve, 3500));
+                            await this.subscribeChannelsList();
+                            await this.subscribeInputsList();
+
+                            //Start prepare accessory
+                            await new Promise(resolve => setTimeout(resolve, 1500));
+                            const prepareAccessory = this.startPrepareAccessory ? this.emit('prepareAccessory') : false;
+                            this.startPrepareAccessory = false;
+
+                            //Subscribe TV status
+                            await new Promise(resolve => setTimeout(resolve, 1000));
+                            await this.subscribePowerState();
+                            await this.subscribeCurrentApp();
+                            await this.subscribeCurrentChannel();
+                            await this.subscribeAudioState();
+                            const subscribePictureMode = this.webOS >= 4.0 ? this.subscribePictureSettings() : false;
+                            const subscribeSoundMode = this.webOS >= 6.0 ? this.subscribeSoundMode() : false;
+                        } catch (error) {
+                            this.emit('error', `Subscribe error: ${error}`)
+                        };
+                        break;
                     case 'response':
                         switch (messageId) {
                             case this.socketId:
-                                const debug12 = debugLog ? this.emit('debug', `Socket Path: ${stringifyMessage}`) : false;
+                                const debug = debugLog ? this.emit('debug', `Socket Path: ${stringifyMessage}`) : false;
 
                                 const socketPath = messageData.socketPath;
                                 const specialClient = sslWebSocket ? new WebSocket(socketPath, { rejectUnauthorized: false }) : new WebSocket(socketPath);
@@ -100,7 +154,7 @@ class LgWebOsSocket extends EventEmitter {
                                 }).on('error', async (error) => {
                                     this.emit('error', `Specialized socket error: ${error} trying to reconnect.`);
                                     await new Promise(resolve => setTimeout(resolve, 2500));
-                                    this.socketId = await this.send('request', CONSTANS.ApiUrls.SocketUrl);
+                                    await this.requestSocket();
                                 });
                                 break;
                             case this.systemInfoId:
@@ -112,12 +166,6 @@ class LgWebOsSocket extends EventEmitter {
 
                                 //mqtt
                                 const mqtt1 = mqttEnabled ? this.emit('mqtt', 'System Info', messageData) : false;
-
-                                try {
-                                    this.softwareInfoId = await this.send('request', CONSTANS.ApiUrls.GetSoftwareInfo);
-                                } catch (error) {
-                                    this.emit('error', `Data error: ${error}`)
-                                };
                                 break;
                             case this.softwareInfoId:
                                 const debug2 = debugLog ? this.emit('debug', `Software Info: ${stringifyMessage}`) : false;
@@ -136,12 +184,6 @@ class LgWebOsSocket extends EventEmitter {
 
                                 //mqtt
                                 const mqtt2 = mqttEnabled ? this.emit('mqtt', 'Software Info', messageData) : false;
-
-                                client.emit('subscribeInputsChannelsList');
-                                await new Promise(resolve => setTimeout(resolve, 3500));
-                                client.emit('prepareAccessory');
-                                await new Promise(resolve => setTimeout(resolve, 2000));
-                                client.emit('subscribeTvState');
                                 break;
                             case this.channelsId:
                                 const debug3 = debugLog ? this.emit('debug', `Channels List: ${stringifyMessage}`) : false;
@@ -251,7 +293,7 @@ class LgWebOsSocket extends EventEmitter {
                                 const channelId = messageData.channelId;
                                 const channelName = messageData.channelName;
                                 const channelNumber = messageData.channelNumber;
-                                this.emit('currentChannel', channelName, channelNumber, channelId);
+                                this.emit('currentChannel', channelId, channelName, channelNumber);
 
                                 //restFul
                                 const restFul8 = restFulEnabled ? this.emit('restFul', 'currentchannel', messageData) : false;
@@ -286,89 +328,18 @@ class LgWebOsSocket extends EventEmitter {
                                 const mqtt10 = mqttEnabled ? this.emit('mqtt', 'Sound Mode', messageData) : false;
                                 break;
                             default:
-                                this.emit('message', `Unknown response id: ${messageId}, data: ${stringifyMessage}`);
+                                this.emit('message', `Unknown message type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`);
                                 break;
                         };
                         break;
-                    case 'registered':
-                        const debug1 = debugLog ? this.emit('debug', `Start TV pairing: ${stringifyMessage}`) : false;
-
-                        const pairingKey = messageData['client-key'];
-                        if (!pairingKey) {
-                            this.emit('message', 'Please accept authorization on TV.');
-                            return;
-                        };
-
-                        if (pairingKey !== this.pairingKey) {
-                            try {
-                                await this.savePairingKey(keyFile, pairingKey);
-                                this.emit('message', 'Pairing key saved.')
-                            } catch (error) {
-                                this.emit('error', `Pairing key saved error: ${error}`)
-                            };
-                        };
-
-                        //Request specjalized socket and system info data
-                        try {
-                            this.systemInfoId = await this.send('request', CONSTANS.ApiUrls.GetSystemInfo);
-                            this.socketId = await this.send('request', CONSTANS.ApiUrls.SocketUrl);
-                        } catch (error) {
-                            this.emit('error', `Request system info or socked error: ${error}`)
-                        };
-                        break;
                     case 'error':
-                        const debug = debugLog ? this.emit('debug', `Error message: ${stringifyMessage}`) : false;
+                        const debug = debugLog ? this.emit('debug', `Mssage type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`) : false;
                         break;
                     default:
                         this.emit('message', `Unknown message type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`);
                         break;
                 };
 
-            }).on('subscribeInputsChannelsList', async () => {
-                const debug = debugLog ? this.emit('debug', `Subscribe Inputs and Channels list.`) : false;
-                try {
-                    this.channelsId = await this.send('subscribe', CONSTANS.ApiUrls.GetChannelList);
-                    this.appsId = await this.send('subscribe', CONSTANS.ApiUrls.GetInstalledApps);
-                } catch (error) {
-                    this.emit('error', `Subscribe Inputs and Channels list error: ${error}`)
-                };
-            }).on('prepareAccessory', () => {
-                const debug = debugLog ? this.emit('debug', `Prepare accessory.`) : false;
-                const prepareAccessory = this.startPrepareAccessory ? this.emit('prepareAccessory') : false;
-                this.startPrepareAccessory = false;
-            }).on('subscribeTvState', async () => {
-                const debug = debugLog ? this.emit('debug', `Subscribe TV state.`) : false;
-                try {
-                    this.powerStateId = await this.send('subscribe', CONSTANS.ApiUrls.GetPowerState);
-                    await new Promise(resolve => setTimeout(resolve, 250));
-                    this.currentAppId = await this.send('subscribe', CONSTANS.ApiUrls.GetForegroundAppInfo);
-                    await new Promise(resolve => setTimeout(resolve, 250));
-                    this.currentChannelId = await this.send('subscribe', CONSTANS.ApiUrls.GetCurrentChannel);
-                    await new Promise(resolve => setTimeout(resolve, 250));
-                    this.audioStateId = await this.send('subscribe', CONSTANS.ApiUrls.GetAudioStatus);
-                    await new Promise(resolve => setTimeout(resolve, 350));
-
-                    //picture mode
-                    if (this.webOS >= 4.0) {
-                        const payload = {
-                            category: 'picture',
-                            keys: ['brightness', 'backlight', 'contrast', 'color']
-                        }
-                        this.pictureSettingsId = await this.send('subscribe', CONSTANS.ApiUrls.GetSystemSettings, payload);
-                    };
-                    await new Promise(resolve => setTimeout(resolve, 350));
-
-                    //sound mode
-                    if (this.webOS >= 6.0) {
-                        const payload = {
-                            category: 'sound',
-                            keys: ['soundMode']
-                        }
-                        this.soundModeId = await this.send('subscribe', CONSTANS.ApiUrls.GetSystemSettings, payload);
-                    }
-                } catch (error) {
-                    this.emit('error', `Subscribe TV states error: ${error}`)
-                };
             }).on('error', (error) => {
                 const debug = debugLog ? this.emit('debug', `Socket connect error: ${error}, update TV state.`) : false;
                 client.emit('disconnect');
@@ -383,10 +354,7 @@ class LgWebOsSocket extends EventEmitter {
 
                 //Prepare accessory
                 const key = await this.readPairingKey(keyFile);
-                const pairingKeyExist = key.length > 10;
-                if (pairingKeyExist && this.startPrepareAccessory) {
-                    client.emit('prepareAccessory');
-                };
+                const prepareAccessory = key.length > 10 && this.startPrepareAccessory ? this.emit('prepareAccessory') : false;
 
                 await new Promise(resolve => setTimeout(resolve, 2500));
                 this.connect();
@@ -416,6 +384,147 @@ class LgWebOsSocket extends EventEmitter {
             } catch (error) {
                 reject(error);
             }
+        });
+    }
+
+    requestSocket() {
+        return new Promise(async (resolve, reject) => {
+            const debug = this.debugLog ? this.emit('debug', `Request soocket.`) : false;
+            try {
+                this.socketId = await this.send('request', CONSTANS.ApiUrls.SocketUrl);
+                resolve()
+            } catch (error) {
+                reject(`Request socket error: ${error}`);
+            };
+        });
+    }
+
+
+    requestSystemInfo() {
+        return new Promise(async (resolve, reject) => {
+            const debug = this.debugLog ? this.emit('debug', `Request system info.`) : false;
+            try {
+                this.systemInfoId = await this.send('request', CONSTANS.ApiUrls.GetSystemInfo);
+                resolve()
+            } catch (error) {
+                reject(`Request system info error: ${error}`);
+            };
+        });
+    }
+
+    requestSoftwareInfo() {
+        return new Promise(async (resolve, reject) => {
+            const debug = this.debugLog ? this.emit('debug', `Request software info.`) : false;
+            try {
+                this.softwareInfoId = await this.send('request', CONSTANS.ApiUrls.GetSoftwareInfo);
+                resolve()
+            } catch (error) {
+                reject(`Request software info error: ${error}`);
+            };
+        });
+    }
+
+    subscribeChannelsList() {
+        return new Promise(async (resolve, reject) => {
+            const debug = this.debugLog ? this.emit('debug', `Subscribe Channels list.`) : false;
+            try {
+                this.channelsId = await this.send('subscribe', CONSTANS.ApiUrls.GetChannelList);
+                resolve()
+            } catch (error) {
+                reject(`Subscribe Channels list error: ${error}`);
+            };
+        });
+    }
+
+    subscribeInputsList() {
+        return new Promise(async (resolve, reject) => {
+            const debug = this.debugLog ? this.emit('debug', `Subscribe Inputs list.`) : false;
+            try {
+                this.appsId = await this.send('subscribe', CONSTANS.ApiUrls.GetInstalledApps);
+                resolve();
+            } catch (error) {
+                reject(`Subscribe Inputs list error: ${error}`);
+            };
+        });
+    }
+
+    subscribePowerState() {
+        return new Promise(async (resolve, reject) => {
+            const debug = this.debugLog ? this.emit('debug', `Subscribe Power state.`) : false;
+            try {
+                this.powerStateId = await this.send('subscribe', CONSTANS.ApiUrls.GetPowerState);
+                resolve();
+            } catch (error) {
+                reject(`Subscribe Power state error: ${error}`);
+            };
+        });
+    };
+
+    subscribeCurrentApp() {
+        return new Promise(async (resolve, reject) => {
+            const debug = this.debugLog ? this.emit('debug', `Subscribe current app state.`) : false;
+            try {
+                this.currentAppId = await this.send('subscribe', CONSTANS.ApiUrls.GetForegroundAppInfo);
+                resolve();
+            } catch (error) {
+                reject(`Subscribe current app error: ${error}`);
+            };
+        });
+    }
+
+    subscribeCurrentChannel() {
+        return new Promise(async (resolve, reject) => {
+            const debug = this.debugLog ? this.emit('debug', `Subscribe current channel state.`) : false;
+            try {
+                this.currentChannelId = await this.send('subscribe', CONSTANS.ApiUrls.GetCurrentChannel);
+                resolve();
+            } catch (error) {
+                reject(`Subscribe current channel error: ${error}`);
+            };
+        });
+    }
+
+    subscribeAudioState() {
+        return new Promise(async (resolve, reject) => {
+            const debug = this.debugLog ? this.emit('debug', `Subscribe audio state.`) : false;
+            try {
+                this.audioStateId = await this.send('subscribe', CONSTANS.ApiUrls.GetAudioStatus);
+                resolve();
+            } catch (error) {
+                reject(`Subscribe audio state error: ${error}`);
+            };
+        });
+    }
+
+    subscribePictureSettings() {
+        return new Promise(async (resolve, reject) => {
+            const debug = this.debugLog ? this.emit('debug', `Subscribe picture settings.`) : false;
+            try {
+                const payload = {
+                    category: 'picture',
+                    keys: ['brightness', 'backlight', 'contrast', 'color']
+                }
+                this.pictureSettingsId = await this.send('subscribe', CONSTANS.ApiUrls.GetSystemSettings, payload);
+                resolve();
+            } catch (error) {
+                reject(`Subscribe picture settings error: ${error}`);
+            };
+        });
+    }
+
+    subscribeSoundMode() {
+        return new Promise(async (resolve, reject) => {
+            const debug = this.debugLog ? this.emit('debug', `Subscribe sound mode.`) : false;
+            try {
+                const payload = {
+                    category: 'sound',
+                    keys: ['soundMode']
+                }
+                this.soundModeId = await this.send('subscribe', CONSTANS.ApiUrls.GetSystemSettings, payload);
+                resolve();
+            } catch (error) {
+                reject(`Subscribe sound mode error: ${error}`);
+            };
         });
     }
 
