@@ -645,16 +645,24 @@ class LgWebOsDevice extends EventEmitter {
                         })
                         .onSet(async (state) => {
                             try {
-                                const options = {
-                                    address: '255.255.255.255',
-                                    packets: 3,
-                                    interval: 100,
-                                    port: 9
+                                switch (this.power) {
+                                    case false:
+                                        const options = {
+                                            address: '255.255.255.255',
+                                            packets: 3,
+                                            interval: 100,
+                                            port: 9
+                                        }
+                                        await wol(this.mac, options);
+                                        break;
+                                    case true:
+                                        await this.lgWebOsSocket.send('request', CONSTANS.ApiUrls.TurnOff);
+                                        break;
                                 }
-                                const setPower = state != this.power ? !this.power ? await wol(this.mac, options) : await this.lgWebOsSocket.send('request', CONSTANS.ApiUrls.TurnOff) : false;
                                 const info = this.disableLogInfo || (state == this.power) ? false : this.emit('message', `set Power: ${state ? 'ON' : 'OFF'}`);
+                                await new Promise(resolve => setTimeout(resolve, 2500));
                             } catch (error) {
-                                this.emit('error', `set Power error:  ${error}`);
+                                this.emit('error', `set Power error: ${error}`);
                             }
                         });
 
@@ -675,7 +683,7 @@ class LgWebOsDevice extends EventEmitter {
 
                                 switch (this.power) {
                                     case false:
-                                        await new Promise(resolve => setTimeout(resolve, 3000));
+                                        await new Promise(resolve => setTimeout(resolve, 4000));
                                         this.televisionService.setCharacteristic(Characteristic.ActiveIdentifier, inputIdentifier);
                                         break;
                                     case true:

@@ -329,15 +329,15 @@ class LgWebOsSocket extends EventEmitter {
                                 const mqtt10 = mqttEnabled ? this.emit('mqtt', 'Sound Mode', messageData) : false;
                                 break;
                             default:
-                                this.emit('message', `Unknown message type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`);
+                                const debug11 = debugLog ? this.emit('debug', this.emit('message', `Unknown message type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`)) : false;
                                 break;
                         };
                         break;
                     case 'error':
-                        const debug = debugLog ? this.emit('debug', `Mssage type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`) : false;
+                        const debug12 = debugLog ? this.emit('debug', `Mssage type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`) : false;
                         break;
                     default:
-                        this.emit('message', `Unknown message type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`);
+                        const debug13 = debugLog ? this.emit('debug', this.emit('message', `Unknown message type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`)) : false;
                         break;
                 };
 
@@ -530,7 +530,7 @@ class LgWebOsSocket extends EventEmitter {
         });
     }
 
-    send(type, uri, payload) {
+    send(type, uri, payload, controlType) {
         return new Promise((resolve, reject) => {
 
             try {
