@@ -208,7 +208,8 @@ class LgWebOsDevice extends EventEmitter {
                 const data = await fsPromises.readFile(this.devInfoFile);
                 const savedInfo = data.length > 5 ? JSON.parse(data) : {};
                 const infoHasNotchanged =
-                    modelName === savedInfo.modelName
+                    'LG Electronics' === savedInfo.manufacturer
+                    && modelName === savedInfo.modelName
                     && productName === savedInfo.productName
                     && deviceId === savedInfo.deviceId
                     && firmwareRevision === savedInfo.firmwareRevision
@@ -227,6 +228,7 @@ class LgWebOsDevice extends EventEmitter {
                 };
 
                 const obj = {
+                    manufacturer: 'LG Electronics',
                     modelName: modelName,
                     productName: productName,
                     deviceId: deviceId,
@@ -559,6 +561,7 @@ class LgWebOsDevice extends EventEmitter {
                         this.emit('error', `read saved Inputs/Channels Target Visibility error: ${error}`);
                     };
 
+                    await new Promise(resolve => setTimeout(resolve, 1000));
                     const accessory = await this.prepareAccessory();
                     this.emit('publishAccessory', accessory)
                 } catch (error) {
@@ -597,7 +600,7 @@ class LgWebOsDevice extends EventEmitter {
                 //information service
                 const debug1 = !this.enableDebugMode ? false : this.emit('debug', `Prepare information service`);
                 this.informationService = accessory.getService(Service.AccessoryInformation)
-                    .setCharacteristic(Characteristic.Manufacturer, 'LG Electronics')
+                    .setCharacteristic(Characteristic.Manufacturer, this.savedInfo.manufacturer ?? 'LG Electronics')
                     .setCharacteristic(Characteristic.Model, this.savedInfo.modelName ?? 'Model Name')
                     .setCharacteristic(Characteristic.SerialNumber, this.savedInfo.deviceId ?? 'Serial Number')
                     .setCharacteristic(Characteristic.FirmwareRevision, this.savedInfo.firmwareRevision ?? 'Firmware Revision');
