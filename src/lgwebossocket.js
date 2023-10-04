@@ -15,19 +15,21 @@ class LgWebOsSocket extends EventEmitter {
         const mqttEnabled = config.mqttEnabled;
         const sslWebSocket = config.sslWebSocket;
 
+        this.startPrepareAccessory = true;
         this.socketConnected = false;
         this.specjalizedSocketConnected = false;
         this.pairingKey = '';
-        this.modelName = 'LG TV'
         this.power = false;
-        this.webOS = 2.0;
         this.debugLog = debugLog;
-        this.startPrepareAccessory = true;
         this.cidCount = 0;
+        this.webOS = 2.0;
+        this.modelName = 'LG TV';
 
         this.connect = () => {
             const url = sslWebSocket ? CONSTANS.ApiUrls.WssUrl.replace('lgwebostv', host) : CONSTANS.ApiUrls.WsUrl.replace('lgwebostv', host);
             const socket = sslWebSocket ? new WebSocket(url, { rejectUnauthorized: false }) : new WebSocket(url);
+            const debug = debugLog ? this.emit('debug', `Cconnecting socket.`) : false;
+
             socket.on('open', async () => {
                 const debug = debugLog ? this.emit('debug', `Socked connected.`) : false;
                 this.socket = socket;
@@ -56,8 +58,8 @@ class LgWebOsSocket extends EventEmitter {
                 });
 
                 try {
-                    const pairingKey = await this.readPairingKey(keyFile);
-                    CONSTANS.Pairing['client-key'] = pairingKey;
+                    this.pairingKey = await this.readPairingKey(keyFile);
+                    CONSTANS.Pairing['client-key'] = this.pairingKey;
                     this.registerId = await this.getCid();
                     await this.send('register', undefined, CONSTANS.Pairing, this.registerId);
                 } catch (error) {
@@ -74,7 +76,7 @@ class LgWebOsSocket extends EventEmitter {
                     case 'registered':
                         switch (messageId) {
                             case this.registerId:
-                                const debug1 = debugLog ? this.emit('debug', `Start TV pairing: ${stringifyMessage}`) : false;
+                                const debug1 = debugLog ? this.emit('debug', `Register to TV, key: ${stringifyMessage}`) : false;
 
                                 const pairingKey = messageData['client-key'];
                                 if (!pairingKey) {
@@ -167,12 +169,12 @@ class LgWebOsSocket extends EventEmitter {
                     case 'response':
                         switch (messageId) {
                             case this.specjalizedSockedId:
-                                const debug = debugLog ? this.emit('debug', `Specjalized socket path: ${stringifyMessage}.`) : false;
+                                const debug = debugLog ? this.emit('debug', `Connecting to specjalized socket.`) : false;
 
                                 const socketPath = messageData.socketPath;
                                 const specializedSocket = sslWebSocket ? new WebSocket(socketPath, { rejectUnauthorized: false }) : new WebSocket(socketPath);
                                 specializedSocket.on('open', () => {
-                                    const debug = debugLog ? this.emit('debug', `Specialized socket connected.`) : false;
+                                    const debug = debugLog ? this.emit('debug', `Specialized socket connected, path: ${stringifyMessage}.`) : false;
                                     this.specializedSocket = specializedSocket;
                                     this.specjalizedSocketConnected = true;
 
@@ -216,7 +218,7 @@ class LgWebOsSocket extends EventEmitter {
                                 break;
                             case this.systemInfoId:
                                 const debug1 = debugLog ? this.emit('debug', `System Info: ${stringifyMessage}`) : false;
-                                this.modelName = messageData.modelName || 'ModelName';
+                                this.modelName = messageData.modelName ?? 'LG TV';
 
                                 //restFul
                                 const restFul1 = restFulEnabled ? this.emit('restFul', 'systeminfo', messageData) : false;
