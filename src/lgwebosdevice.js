@@ -644,6 +644,10 @@ class LgWebOsDevice extends EventEmitter {
                             return state;
                         })
                         .onSet(async (state) => {
+                            if (this.power == state) {
+                                return;
+                            }
+
                             try {
                                 switch (this.power) {
                                     case false:
@@ -659,7 +663,7 @@ class LgWebOsDevice extends EventEmitter {
                                         await this.lgWebOsSocket.send('request', CONSTANS.ApiUrls.TurnOff);
                                         break;
                                 }
-                                const info = this.disableLogInfo || (state == this.power) ? false : this.emit('message', `set Power: ${state ? 'ON' : 'OFF'}`);
+                                const info = this.disableLogInfo ? false : this.emit('message', `set Power: ${state ? 'ON' : 'OFF'}`);
                                 await new Promise(resolve => setTimeout(resolve, 2500));
                             } catch (error) {
                                 this.emit('error', `set Power error: ${error}`);
