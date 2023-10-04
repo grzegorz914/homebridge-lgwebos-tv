@@ -25,7 +25,7 @@ class LgWebOsSocket extends EventEmitter {
         this.webOS = 2.0;
         this.modelName = 'LG TV';
 
-        this.connect = () => {
+        this.connectSocket = () => {
             const url = sslWebSocket ? CONSTANS.ApiUrls.WssUrl.replace('lgwebostv', host) : CONSTANS.ApiUrls.WsUrl.replace('lgwebostv', host);
             const socket = sslWebSocket ? new WebSocket(url, { rejectUnauthorized: false }) : new WebSocket(url);
             const debug = debugLog ? this.emit('debug', `Cconnecting socket.`) : false;
@@ -207,13 +207,9 @@ class LgWebOsSocket extends EventEmitter {
                                 }).on('error', (error) => {
                                     const debug = debugLog ? this.emit('debug', `Specjalized socket connect error: ${error}.`) : false;
                                     specializedSocket.emit('disconnect');
-                                }).on('disconnect', async () => {
-                                    const emitMessage = this.specjalizedSocketConnected ? this.emit('message', 'Specjalized socket disconnected, trying to reconnect.') : false;
+                                }).on('disconnect', () => {
+                                    const emitMessage = this.specjalizedSocketConnected ? this.emit('message', 'Specjalized socket disconnected.') : false;
                                     this.specjalizedSocketConnected = false;
-
-                                    await new Promise(resolve => setTimeout(resolve, 5000));
-                                    await this.send('request', CONSTANS.ApiUrls.SocketUrl, undefined, this.specjalizedSockedId);
-
                                 });
                                 break;
                             case this.systemInfoId:
@@ -403,7 +399,7 @@ class LgWebOsSocket extends EventEmitter {
                 const debug = debugLog ? this.emit('debug', `Socket connect error: ${error}.`) : false;
                 socket.emit('disconnect');
             }).on('disconnect', async () => {
-                const emitMessage = this.socketConnected ? this.emit('message', 'Socket disconnected , trying to reconnect.') : false;
+                const emitMessage = this.socketConnected ? this.emit('message', 'Socket disconnected.') : false;
                 this.socketConnected = false;
 
                 //update TV state
@@ -420,11 +416,11 @@ class LgWebOsSocket extends EventEmitter {
                 this.startPrepareAccessory = false;
 
                 await new Promise(resolve => setTimeout(resolve, 3500));
-                this.connect();
+                this.connectSocket();
             });
         }
 
-        this.connect();
+        this.connectSocket();
     };
 
     readPairingKey(path) {
