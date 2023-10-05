@@ -243,6 +243,11 @@ class LgWebOsDevice extends EventEmitter {
             }
         })
             .on('channelList', async (channelList) => {
+                const channelListCount = Array.isArray(channelList) ? channelList.length : 0;
+                if (channelListCount === 0) {
+                    return;
+                };
+
                 try {
                     const channelsArr = [];
                     for (const channell of channelList) {
@@ -265,6 +270,11 @@ class LgWebOsDevice extends EventEmitter {
                 }
             })
             .on('appsList', async (appsList) => {
+                const appsListCount = Array.isArray(appsList) ? appsList.length : 0;
+                if (appsListCount === 0) {
+                    return;
+                };
+
                 try {
                     const appsArr = [];
                     for (const app of appsList) {
@@ -341,7 +351,7 @@ class LgWebOsDevice extends EventEmitter {
                     this.inputIdentifier = inputIdentifier;
                 }
 
-                if (appId) {
+                if (appId !== undefined) {
                     if (this.sensorInputsServices) {
                         const servicesCount = this.sensorInputsServices.length;
                         for (let i = 0; i < servicesCount; i++) {
@@ -357,41 +367,39 @@ class LgWebOsDevice extends EventEmitter {
             })
             .on('audioState', (volume, mute) => {
 
-                if (this.speakerService) {
-                    if (volume) {
-                        this.speakerService
-                            .updateCharacteristic(Characteristic.Volume, volume)
+                if (this.speakerService && volume !== undefined) {
+                    this.speakerService
+                        .updateCharacteristic(Characteristic.Volume, volume)
 
-                        if (this.volumeService) {
-                            this.volumeService
-                                .updateCharacteristic(Characteristic.Brightness, volume)
-                        };
-
-                        if (this.volumeServiceFan) {
-                            this.volumeServiceFan
-                                .updateCharacteristic(Characteristic.RotationSpeed, volume)
-                        };
-                        this.volume = volume;
+                    if (this.volumeService) {
+                        this.volumeService
+                            .updateCharacteristic(Characteristic.Brightness, volume)
                     };
 
-                    if (mute) {
-                        this.speakerService
-                            .updateCharacteristic(Characteristic.Mute, mute);
-
-                        if (this.volumeService) {
-                            this.volumeService
-                                .updateCharacteristic(Characteristic.On, !mute);
-                        };
-
-                        if (this.volumeServiceFan) {
-                            this.volumeServiceFan
-                                .updateCharacteristic(Characteristic.On, !mute);
-                        };
-                        this.mute = mute;
+                    if (this.volumeServiceFan) {
+                        this.volumeServiceFan
+                            .updateCharacteristic(Characteristic.RotationSpeed, volume)
                     };
+                    this.volume = volume;
                 };
 
-                if (this.sensorVolumeService && volume) {
+                if (this.speakerService) {
+                    this.speakerService
+                        .updateCharacteristic(Characteristic.Mute, mute);
+
+                    if (this.volumeService) {
+                        this.volumeService
+                            .updateCharacteristic(Characteristic.On, !mute);
+                    };
+
+                    if (this.volumeServiceFan) {
+                        this.volumeServiceFan
+                            .updateCharacteristic(Characteristic.On, !mute);
+                    };
+                    this.mute = mute;
+                };
+
+                if (this.sensorVolumeService && volume !== undefined) {
                     const state = this.power ? (this.volume !== volume) : false;
                     this.sensorVolumeService
                         .updateCharacteristic(Characteristic.ContactSensorState, state)
@@ -399,7 +407,7 @@ class LgWebOsDevice extends EventEmitter {
                     this.volume = volume;
                 }
 
-                if (this.sensorMuteService && mute) {
+                if (this.sensorMuteService) {
                     const state = this.power ? mute : false;
                     this.sensorMuteService
                         .updateCharacteristic(Characteristic.ContactSensorState, state);
@@ -423,58 +431,53 @@ class LgWebOsDevice extends EventEmitter {
                     this.inputIdentifier = inputIdentifier;
                 }
 
-                if (channelId) {
+                if (channelId !== undefined) {
                     this.channelId = channelId;
                 }
 
-                if (channelName) {
+                if (channelName !== undefined) {
                     this.channelName = channelName;
                 }
 
-                if (channelNumber) {
+                if (channelNumber !== undefined) {
                     this.channelNumber = channelNumber;
                 }
             })
             .on('pictureSettings', (brightness, backlight, contrast, color, pictureMode, power) => {
 
                 if (this.televisionService) {
-                    if (brightness) {
-                        this.televisionService
-                            .updateCharacteristic(Characteristic.PictureMode, pictureMode);
-                        this.brightness = brightness;
-                    };
-                    if (pictureMode) {
-                        this.televisionService
-                            .updateCharacteristic(Characteristic.PictureMode, pictureMode);
-                        this.pictureMode = pictureMode;
-                    };
+                    this.televisionService
+                        .updateCharacteristic(Characteristic.Brightness, brightness)
+                        .updateCharacteristic(Characteristic.PictureMode, pictureMode);
+                    this.brightness = brightness;
+                    this.pictureMode = pictureMode;
                 };
 
-                if (this.brightnessService && brightness) {
+                if (this.brightnessService) {
                     this.brightnessService
                         .updateCharacteristic(Characteristic.Brightness, brightness);
                     this.brightness = brightness;
                 };
 
-                if (this.backlightService && backlight) {
+                if (this.backlightService) {
                     this.backlightService
                         .updateCharacteristic(Characteristic.Brightness, backlight);
                     this.backlight = backlight;
                 };
 
-                if (this.contrastService && contrast) {
+                if (this.contrastService) {
                     this.contrastService
                         .updateCharacteristic(Characteristic.Brightness, contrast);
                     this.contrast = contrast;
                 };
 
-                if (this.colorService && color) {
+                if (this.colorService) {
                     this.colorService
                         .updateCharacteristic(Characteristic.Brightness, color);
                     this.color = color;
                 };
 
-                if (this.pictureModesServices && pictureMode) {
+                if (this.pictureModesServices) {
                     const servicesCount = this.pictureModesServices.length;
                     for (let i = 0; i < servicesCount; i++) {
                         const state = power ? (this.pictureModes[i].reference === pictureMode) : false;
@@ -484,7 +487,7 @@ class LgWebOsDevice extends EventEmitter {
                     this.pictureMode = pictureMode;
                 };
 
-                if (this.sensorPicturedModeService && pictureMode) {
+                if (this.sensorPicturedModeService) {
                     const state = power ? (this.pictureMode !== pictureMode) : false;
                     this.sensorPicturedModeService
                         .updateCharacteristic(Characteristic.ContactSensorState, state)
@@ -494,7 +497,7 @@ class LgWebOsDevice extends EventEmitter {
             })
             .on('soundMode', (soundMode, power) => {
 
-                if (this.soundModesServices && soundMode) {
+                if (this.soundModesServices && soundMode !== undefined) {
                     const servicesCount = this.soundModesServices.length;
                     for (let i = 0; i < servicesCount; i++) {
                         const state = power ? (this.soundModes[i].reference === soundMode) : false;
@@ -504,7 +507,7 @@ class LgWebOsDevice extends EventEmitter {
                     this.soundMode = soundMode;
                 };
 
-                if (this.sensorSoundModeService && soundMode) {
+                if (this.sensorSoundModeService && soundMode !== undefined) {
                     const state = this.power ? (this.soundMode !== soundMode) : false;
                     this.sensorSoundModeService
                         .updateCharacteristic(Characteristic.ContactSensorState, state)
@@ -522,7 +525,7 @@ class LgWebOsDevice extends EventEmitter {
                         const debug = this.enableDebugMode ? this.emit('debug', `Read saved Info: ${JSON.stringify(this.savedInfo, null, 2)}`) : false;
                         this.webOS = this.savedInfo.webOS ?? 2.0;
                     } catch (error) {
-                        this.emit('error', `read saved Info error: ${error}`);
+                        this.emit('error', `Read saved Info error: ${error}`);
                     };
 
                     //read inputs file
@@ -531,7 +534,7 @@ class LgWebOsDevice extends EventEmitter {
                         this.savedInputs = data.length > 5 ? JSON.parse(data) : this.inputs;
                         const debug = this.enableDebugMode ? this.emit('debug', `Read saved Inputs: ${JSON.stringify(this.savedInputs, null, 2)}`) : false;
                     } catch (error) {
-                        this.emit('error', `read saved Inputs error: ${error}`);
+                        this.emit('error', `Read saved Inputs error: ${error}`);
                     };
 
                     //read channels from file
@@ -540,7 +543,7 @@ class LgWebOsDevice extends EventEmitter {
                         this.savedChannels = data.length > 5 ? JSON.parse(data) : [];
                         const debug = this.enableDebugMode ? this.emit('debug', `Read saved Channels: ${JSON.stringify(this.savedChannels, null, 2)}`) : false;
                     } catch (error) {
-                        this.emit('error', `read saved Channels error: ${error}`);
+                        this.emit('error', `Read saved Channels error: ${error}`);
                     };
 
                     //read inputs names from file
@@ -549,7 +552,7 @@ class LgWebOsDevice extends EventEmitter {
                         this.savedInputsNames = data.length > 5 ? JSON.parse(data) : {};
                         const debug = this.enableDebugMode ? this.emit('debug', `Read saved Inputs/Channels Names: ${JSON.stringify(this.savedInputsNames, null, 2)}`) : false;
                     } catch (error) {
-                        this.emit('error', `read saved Inputs/Channels Names error: ${error}`);
+                        this.emit('error', `Read saved Inputs/Channels Names error: ${error}`);
                     };
 
                     //read inputs visibility from file
@@ -558,14 +561,14 @@ class LgWebOsDevice extends EventEmitter {
                         this.savedInputsTargetVisibility = data.length > 5 ? JSON.parse(data) : {};
                         const debug = this.enableDebugMode ? this.emit('debug', `Read saved Inputs/Channels Target Visibility: ${JSON.stringify(this.savedInputsTargetVisibility, null, 2)}`) : false;
                     } catch (error) {
-                        this.emit('error', `read saved Inputs/Channels Target Visibility error: ${error}`);
+                        this.emit('error', `Read saved Inputs/Channels Target Visibility error: ${error}`);
                     };
 
                     await new Promise(resolve => setTimeout(resolve, 1000));
                     const accessory = await this.prepareAccessory();
                     this.emit('publishAccessory', accessory)
                 } catch (error) {
-                    this.emit('error', `prepare accessory error: ${error}`);
+                    this.emit('error', `Prepare accessory error: ${error}`);
                 };
             })
             .on('message', (message) => {

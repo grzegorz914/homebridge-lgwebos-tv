@@ -35,21 +35,17 @@ class LgWebOsSocket extends EventEmitter {
                 this.socket = socket;
                 this.socketConnected = true;
 
+                const heartbeat = setInterval(() => {
+                    if (socket.readyState === socket.OPEN) {
+                        const debug = debugLog && this.power ? this.emit('debug', `Socked send heartbeat.`) : false;
+                        const sendPing = this.power ? socket.ping(null, false, 'UTF-8') : false;
+                        const terminateSocket = !this.power ? socket.terminate() : false;
+                    }
+                }, 3000);
+
                 socket.on('pong', () => {
                     const debug = debugLog ? this.emit('debug', `Socked received heartbeat.`) : false;
-                    this.socketConnected = true;
                 });
-
-                const heartbeat = setInterval(() => {
-                    if (socket.readyState === WebSocket.OPEN) {
-                        const debug = debugLog ? this.emit('debug', `Socked send heartbeat.`) : false;
-                        socket.ping(null, false, 'UTF-8');
-                    }
-
-                    if (socket.readyState === WebSocket.CLOSED) {
-                        clearInterval(heartbeat);
-                    }
-                }, 3500);
 
                 socket.on('close', () => {
                     const debug = debugLog ? this.emit('debug', `Socked closed.`) : false;
@@ -67,16 +63,16 @@ class LgWebOsSocket extends EventEmitter {
                 };
             }).on('message', async (message) => {
                 const parsedMessage = JSON.parse(message);
-                const messageType = parsedMessage.type;
                 const messageId = parsedMessage.id;
+                const messageType = parsedMessage.type;
                 const messageData = parsedMessage.payload;
                 const stringifyMessage = JSON.stringify(messageData, null, 2);
 
-                switch (messageType) {
-                    case 'registered':
-                        switch (messageId) {
-                            case this.registerId:
-                                const debug1 = debugLog ? this.emit('debug', `Register to TV, key: ${stringifyMessage}`) : false;
+                switch (messageId) {
+                    case this.registerId:
+                        switch (messageType) {
+                            case 'registered':
+                                const debug = debugLog ? this.emit('debug', `Register to TV with key: ${stringifyMessage}`) : false;
 
                                 const pairingKey = messageData['client-key'];
                                 if (!pairingKey) {
@@ -100,99 +96,38 @@ class LgWebOsSocket extends EventEmitter {
                                 } catch (error) {
                                     this.emit('error', `Request specjalized socket error: ${error}`)
                                 };
-
-                                //Request system and software info data
-                                await new Promise(resolve => setTimeout(resolve, 1500));
-                                try {
-                                    this.systemInfoId = await this.getCid();
-                                    await this.send('request', CONSTANS.ApiUrls.GetSystemInfo, undefined, this.systemInfoId);
-                                    this.softwareInfoId = await this.getCid();
-                                    await this.send('request', CONSTANS.ApiUrls.GetSoftwareInfo, undefined, this.softwareInfoId);
-                                } catch (error) {
-                                    this.emit('error', `Request system and software info error: ${error}`)
-                                };
-
-                                //Subscribe channels and inputs list
-                                await new Promise(resolve => setTimeout(resolve, 4000));
-                                try {
-                                    this.channelsId = await this.getCid();
-                                    await this.send('subscribe', CONSTANS.ApiUrls.GetChannelList, undefined, this.channelsId);
-                                    this.appsId = await this.getCid();
-                                    await this.send('subscribe', CONSTANS.ApiUrls.GetInstalledApps, undefined, this.appsId);
-                                } catch (error) {
-                                    this.emit('error', `Subscribe channels and inputs error: ${error}`)
-                                };
-
-                                //Start prepare accessory
-                                await new Promise(resolve => setTimeout(resolve, 1500));
-                                const prepareAccessory = this.startPrepareAccessory ? this.emit('prepareAccessory') : false;
-                                this.startPrepareAccessory = false;
-
-                                //Subscribe TV status
-                                await new Promise(resolve => setTimeout(resolve, 1000));
-                                try {
-                                    this.powerStateId = await this.getCid();
-                                    await this.send('subscribe', CONSTANS.ApiUrls.GetPowerState, undefined, this.powerStateId);
-                                    this.currentAppId = await this.getCid();
-                                    await this.send('subscribe', CONSTANS.ApiUrls.GetForegroundAppInfo, undefined, this.currentAppId);
-                                    this.currentChannelId = await this.getCid();
-                                    await this.send('subscribe', CONSTANS.ApiUrls.GetCurrentChannel, undefined, this.currentChannelId);
-                                    this.audioStateId = await this.getCid();
-                                    await this.send('subscribe', CONSTANS.ApiUrls.GetAudioStatus, undefined, this.audioStateId);
-
-                                    if (this.webOS >= 4.0) {
-                                        const payload = {
-                                            category: 'picture',
-                                            keys: ['brightness', 'backlight', 'contrast', 'color']
-                                        }
-                                        this.pictureSettingsId = await this.getCid();
-                                        await this.send('subscribe', CONSTANS.ApiUrls.GetSystemSettings, payload, this.pictureSettingsId);
-                                    }
-
-                                    if (this.webOS >= 6.0) {
-                                        const payload = {
-                                            category: 'sound',
-                                            keys: ['soundMode']
-                                        }
-                                        this.soundModeId = await this.getCid();
-                                        await this.send('subscribe', CONSTANS.ApiUrls.GetSystemSettings, payload, this.soundModeId);
-                                    }
-                                } catch (error) {
-                                    this.emit('error', `Subscribe tv state error: ${error}`)
-                                };
+                                break;
+                            case 'error':
+                                const debug1 = debugLog ? this.emit('debug', `Register to TV error: ${stringifyMessage}`) : false;
                                 break;
                             default:
-                                const debug = debugLog ? this.emit('debug', this.emit('debug', `Registered message id: ${messageId}, data: ${stringifyMessage}`)) : false;
+                                const debug2 = debugLog ? this.emit('debug', this.emit('debug', `Register to TV unknown message type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`)) : false;
                                 break;
                         };
                         break;
-                    case 'response':
-                        switch (messageId) {
-                            case this.specjalizedSockedId:
+                    case this.specjalizedSockedId:
+                        switch (messageType) {
+                            case 'response':
                                 const debug = debugLog ? this.emit('debug', `Connecting to specjalized socket.`) : false;
 
                                 const socketPath = messageData.socketPath;
                                 const specializedSocket = sslWebSocket ? new WebSocket(socketPath, { rejectUnauthorized: false }) : new WebSocket(socketPath);
-                                specializedSocket.on('open', () => {
+                                specializedSocket.on('open', async () => {
                                     const debug = debugLog ? this.emit('debug', `Specialized socket connected, path: ${stringifyMessage}.`) : false;
                                     this.specializedSocket = specializedSocket;
                                     this.specjalizedSocketConnected = true;
 
+                                    const heartbeat = setInterval(() => {
+                                        if (specializedSocket.readyState === specializedSocket.OPEN) {
+                                            const debug = debugLog && this.socketConnected ? this.emit('debug', `Specialized socket send heartbeat.`) : false;
+                                            const sendPing = this.socketConnected ? specializedSocket.ping(null, false, 'UTF-8') : false;
+                                            const terminateSocket = !this.socketConnected ? specializedSocket.terminate() : false;
+                                        }
+                                    }, 3000);
+
                                     specializedSocket.on('pong', () => {
                                         const debug = debugLog ? this.emit('debug', `Specialized socket received heartbeat.`) : false;
-                                        this.specjalizedSocketConnected = true;
                                     });
-
-                                    const heartbeat = setInterval(() => {
-                                        if (specializedSocket.readyState === WebSocket.OPEN) {
-                                            const debug = debugLog ? this.emit('debug', `Specialized socket send heartbeat.`) : false;
-                                            specializedSocket.ping(null, false, 'UTF-8');
-                                        }
-
-                                        if (specializedSocket.readyState === WebSocket.CLOSED) {
-                                            clearInterval(heartbeat);
-                                        }
-                                    }, 5000);
 
                                     specializedSocket.on('close', () => {
                                         const debug = debugLog ? this.emit('debug', 'Specialized socket closed.') : false;
@@ -200,7 +135,15 @@ class LgWebOsSocket extends EventEmitter {
                                         specializedSocket.emit('disconnect');
                                     })
 
-                                }).on('message', async (message) => {
+                                    //Request system info data
+                                    try {
+                                        this.systemInfoId = await this.getCid();
+                                        await this.send('request', CONSTANS.ApiUrls.GetSystemInfo, undefined, this.systemInfoId);
+                                    } catch (error) {
+                                        this.emit('error', `Request system info error: ${error}`)
+                                    };
+
+                                }).on('message', (message) => {
                                     const parsedMessage = JSON.parse(message);
                                     const stringifyMessage = JSON.stringify(parsedMessage, null, 2);
                                     const debug = debugLog ? this.emit('debug', `Specialized socket message: ${stringifyMessage}.`) : false;
@@ -212,18 +155,46 @@ class LgWebOsSocket extends EventEmitter {
                                     this.specjalizedSocketConnected = false;
                                 });
                                 break;
-                            case this.systemInfoId:
-                                const debug1 = debugLog ? this.emit('debug', `System Info: ${stringifyMessage}`) : false;
+                            case 'error':
+                                const debug1 = debugLog ? this.emit('debug', `Connecting to specjalized socket error: ${stringifyMessage}`) : false;
+                                break;
+                            default:
+                                const debug2 = debugLog ? this.emit('debug', this.emit('debug', `Connecting to specjalized socket unknown message type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`)) : false;
+                                break;
+                        };
+                        break;
+                    case this.systemInfoId:
+                        switch (messageType) {
+                            case 'response':
+                                const debug = debugLog ? this.emit('debug', `System info: ${stringifyMessage}`) : false;
                                 this.modelName = messageData.modelName ?? 'LG TV';
 
                                 //restFul
-                                const restFul1 = restFulEnabled ? this.emit('restFul', 'systeminfo', messageData) : false;
+                                const restFul = restFulEnabled ? this.emit('restFul', 'systeminfo', messageData) : false;
 
                                 //mqtt
-                                const mqtt1 = mqttEnabled ? this.emit('mqtt', 'System Info', messageData) : false;
+                                const mqtt = mqttEnabled ? this.emit('mqtt', 'System info', messageData) : false;
+
+                                //Request software info data
+                                try {
+                                    this.softwareInfoId = await this.getCid();
+                                    await this.send('request', CONSTANS.ApiUrls.GetSoftwareInfo, undefined, this.softwareInfoId);
+                                } catch (error) {
+                                    this.emit('error', `Request software info error: ${error}`)
+                                };
                                 break;
-                            case this.softwareInfoId:
-                                const debug2 = debugLog ? this.emit('debug', `Software Info: ${stringifyMessage}`) : false;
+                            case 'error':
+                                const debug1 = debugLog ? this.emit('debug', `System info error: ${stringifyMessage}`) : false;
+                                break;
+                            default:
+                                const debug2 = debugLog ? this.emit('debug', this.emit('debug', `System info unknown message type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`)) : false;
+                                break;
+                        };
+                        break;
+                    case this.softwareInfoId:
+                        switch (messageType) {
+                            case 'response':
+                                const debug = debugLog ? this.emit('debug', `Software Info: ${stringifyMessage}`) : false;
 
                                 const productName = messageData.product_name;
                                 const deviceId = messageData.device_id;
@@ -235,47 +206,111 @@ class LgWebOsSocket extends EventEmitter {
                                 this.emit('deviceInfo', this.modelName, productName, deviceId, firmwareRevision, this.webOS);
 
                                 //restFul
-                                const restFul2 = restFulEnabled ? this.emit('restFul', 'softwareinfo', messageData) : false;
+                                const restFul = restFulEnabled ? this.emit('restFul', 'softwareinfo', messageData) : false;
 
                                 //mqtt
-                                const mqtt2 = mqttEnabled ? this.emit('mqtt', 'Software Info', messageData) : false;
+                                const mqtt = mqttEnabled ? this.emit('mqtt', 'Software info', messageData) : false;
+
+                                //Request channels list
+                                try {
+                                    this.channelsId = await this.getCid();
+                                    await this.send('request', CONSTANS.ApiUrls.GetChannelList, undefined, this.channelsId);
+                                } catch (error) {
+                                    this.emit('error', `Request channels error: ${error}`)
+                                };
                                 break;
-                            case this.channelsId:
-                                const debug3 = debugLog ? this.emit('debug', `Channels List: ${stringifyMessage}`) : false;
+                            case 'error':
+                                const debug1 = debugLog ? this.emit('debug', `Software info error: ${stringifyMessage}`) : false;
+                                break;
+                            default:
+                                const debug2 = debugLog ? this.emit('debug', this.emit('debug', `Software info unknown message type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`)) : false;
+                                break;
+                        };
+                        break;
+                    case this.channelsId:
+                        switch (messageType) {
+                            case 'response':
+                                const debug = debugLog ? this.emit('debug', `Channels list: ${stringifyMessage}`) : false;
 
                                 const channelsList = messageData.channelList;
-                                const channelsListCount = Array.isArray(channelsList) ? channelsList.length : 0;
-                                if (channelsListCount === 0) {
-                                    return;
-                                };
-
                                 this.emit('channelList', channelsList);
 
                                 //restFul
-                                const restFul3 = restFulEnabled ? this.emit('restFul', 'channels', messageData) : false;
+                                const restFul = restFulEnabled ? this.emit('restFul', 'channels', messageData) : false;
 
                                 //mqtt
-                                const mqtt3 = mqttEnabled ? this.emit('mqtt', 'Channels', messageData) : false;
+                                const mqtt = mqttEnabled ? this.emit('mqtt', 'Channels', messageData) : false;
+
+                                //Request apps list
+                                try {
+                                    this.appsId = await this.getCid();
+                                    await this.send('request', CONSTANS.ApiUrls.GetInstalledApps, undefined, this.appsId);
+                                } catch (error) {
+                                    this.emit('error', `Request apps error: ${error}`)
+                                };
                                 break;
-                            case this.appsId:
-                                const debug4 = debugLog ? this.emit('debug', `Apps List: ${stringifyMessage}`) : false;
+                            case 'error':
+                                const debug1 = debugLog ? this.emit('debug', `Channels error: ${stringifyMessage}`) : false;
+
+                                //Request apps list
+                                try {
+                                    this.appsId = await this.getCid();
+                                    await this.send('request', CONSTANS.ApiUrls.GetInstalledApps, undefined, this.appsId);
+                                } catch (error) {
+                                    this.emit('error', `Request apps error: ${error}`)
+                                };
+                                break;
+                            default:
+                                const debug2 = debugLog ? this.emit('debug', this.emit('debug', `Channels unknown message type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`)) : false;
+                                break;
+                        };
+                        break;
+                    case this.appsId:
+                        switch (messageType) {
+                            case 'response':
+                                const debug = debugLog ? this.emit('debug', `Apps list: ${stringifyMessage}`) : false;
 
                                 const appsList = messageData.apps;
-                                const appsListCount = Array.isArray(appsList) ? appsList.length : 0;
-                                if (appsListCount === 0) {
-                                    return;
-                                };
-
                                 this.emit('appsList', appsList);
 
                                 //restFul
-                                const restFul4 = restFulEnabled ? this.emit('restFul', 'apps', messageData) : false;
+                                const restFul = restFulEnabled ? this.emit('restFul', 'apps', messageData) : false;
 
                                 //mqtt
-                                const mqtt4 = mqttEnabled ? this.emit('mqtt', 'Apps', messageData) : false;
+                                const mqtt = mqttEnabled ? this.emit('mqtt', 'Apps', messageData) : false;
+
+                                //Start prepare accessory
+                                const prepareAccessory = this.startPrepareAccessory ? this.emit('prepareAccessory') : false;
+                                this.startPrepareAccessory = false;
+
+                                await new Promise(resolve => setTimeout(resolve, 2000));
+                                //Subscribe tv status
+                                try {
+                                    const debug = debugLog ? this.emit('debug', `Subscirbe tv status.`) : false;
+                                    await this.subscribeTvStatus();
+                                    const debug1 = debugLog ? this.emit('debug', `Subscribe tv status successful.`) : false;
+                                } catch (error) {
+                                    this.emit('error', `Subscribe tv status error: ${error}`);
+                                };
                                 break;
-                            case this.powerStateId:
-                                const debug5 = debugLog ? this.emit('debug', `Power: ${stringifyMessage}`) : false;
+                            case 'error':
+                                const debug1 = debugLog ? this.emit('debug', `Apps list error: ${stringifyMessage}`) : false;
+                                try {
+                                    await this.subscribeTvStatus();
+                                    const debug = debugLog ? this.emit('debug', `Subscriebe tv status successful.`) : false;
+                                } catch (error) {
+                                    this.emit('error', `Subscribe tv status error: ${error}`);
+                                };
+                                break;
+                            default:
+                                const debug2 = debugLog ? this.emit('debug', this.emit('debug', `Apps list unknown message type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`)) : false;
+                                break;
+                        };
+                        break;
+                    case this.powerStateId:
+                        switch (messageType) {
+                            case 'response':
+                                const debug = debugLog ? this.emit('debug', `Power: ${stringifyMessage}`) : false;
 
                                 let tvScreenState = messageData.state;
                                 let screenState = false;
@@ -314,50 +349,90 @@ class LgWebOsSocket extends EventEmitter {
                                 this.emit('powerState', this.power, pixelRefresh, screenState, tvScreenState);
 
                                 //restFul
-                                const restFul5 = restFulEnabled ? this.emit('restFul', 'power', messageData) : false;
+                                const restFul = restFulEnabled ? this.emit('restFul', 'power', messageData) : false;
 
                                 //mqtt
-                                const mqtt5 = mqttEnabled ? this.emit('mqtt', 'Power', messageData) : false;
+                                const mqtt = mqttEnabled ? this.emit('mqtt', 'Power', messageData) : false;
                                 break;
-                            case this.currentAppId:
-                                const debug6 = debugLog ? this.emit('debug', `App: ${stringifyMessage}`) : false;
+                            case 'error':
+                                const debug1 = debugLog ? this.emit('debug', `Power error: ${stringifyMessage}`) : false;
+                                break;
+                            default:
+                                const debug2 = debugLog ? this.emit('debug', this.emit('debug', `Power unknown message type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`)) : false;
+                                break;
+                        };
+                        break;
+                    case this.currentAppId:
+                        switch (messageType) {
+                            case 'response':
+                                const debug = debugLog ? this.emit('debug', `App: ${stringifyMessage}`) : false;
                                 const appId = messageData.appId;
 
                                 this.emit('currentApp', appId);
 
                                 //restFul
-                                const restFul6 = restFulEnabled ? this.emit('restFul', 'currentapp', messageData) : false;
+                                const restFul = restFulEnabled ? this.emit('restFul', 'currentapp', messageData) : false;
 
                                 //mqtt
-                                const mqtt6 = mqttEnabled ? this.emit('mqtt', 'Current App', messageData) : false;
+                                const mqtt = mqttEnabled ? this.emit('mqtt', 'Current App', messageData) : false;
                                 break;
-                            case this.audioStateId:
-                                const debug7 = debugLog ? this.emit('debug', `Audio: ${stringifyMessage}`) : false;
+                            case 'error':
+                                const debug1 = debugLog ? this.emit('debug', `App error: ${stringifyMessage}`) : false;
+                                break;
+                            default:
+                                const debug2 = debugLog ? this.emit('debug', this.emit('debug', `App unknown message type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`)) : false;
+                                break;
+                        };
+                        break;
+                    case this.audioStateId:
+                        switch (messageType) {
+                            case 'response':
+                                const debug = debugLog ? this.emit('debug', `Audio: ${stringifyMessage}`) : false;
                                 const volume = messageData.volume < 0 ? 0 : messageData.volume;
                                 const mute = messageData.mute;
                                 this.emit('audioState', volume, mute);
 
                                 //restFul
-                                const restFul7 = restFulEnabled ? this.emit('restFul', 'audio', messageData) : false;
+                                const restFul = restFulEnabled ? this.emit('restFul', 'audio', messageData) : false;
 
                                 //mqtt
-                                const mqtt7 = mqttEnabled ? this.emit('mqtt', 'Audio', messageData) : false;
+                                const mqtt = mqttEnabled ? this.emit('mqtt', 'Audio', messageData) : false;
                                 break;
-                            case this.currentChannelId:
-                                const debug8 = debugLog ? this.emit('debug', `Channel: ${stringifyMessage}`) : false;
+                            case 'error':
+                                const debug1 = debugLog ? this.emit('debug', `Audio error: ${stringifyMessage}`) : false;
+                                break;
+                            default:
+                                const debug2 = debugLog ? this.emit('debug', this.emit('debug', `Audio unknown message type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`)) : false;
+                                break;
+                        };
+                        break;
+                    case this.currentChannelId:
+                        switch (messageType) {
+                            case 'response':
+                                const debug = debugLog ? this.emit('debug', `Channel: ${stringifyMessage}`) : false;
                                 const channelId = messageData.channelId;
                                 const channelName = messageData.channelName;
                                 const channelNumber = messageData.channelNumber;
                                 this.emit('currentChannel', channelId, channelName, channelNumber);
 
                                 //restFul
-                                const restFul8 = restFulEnabled ? this.emit('restFul', 'currentchannel', messageData) : false;
+                                const restFul = restFulEnabled ? this.emit('restFul', 'currentchannel', messageData) : false;
 
                                 //mqtt
-                                const mqtt8 = mqttEnabled ? this.emit('mqtt', 'Current Channel', messageData) : false;
+                                const mqtt = mqttEnabled ? this.emit('mqtt', 'Current Channel', messageData) : false;
                                 break;
-                            case this.pictureSettingsId:
-                                const debug9 = debugLog ? this.emit('debug', `Picture: ${stringifyMessage}`) : false;
+                            case 'error':
+                                const debug1 = debugLog ? this.emit('debug', `Channel error: ${stringifyMessage}`) : false;
+                                break;
+                            default:
+                                const debug2 = debugLog ? this.emit('debug', this.emit('debug', `Channel unknown message type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`)) : false;
+                                break;
+                        };
+                        break;
+                    case this.pictureSettingsId:
+                        switch (messageType) {
+                            case 'response':
+                                const debug = debugLog ? this.emit('debug', `Picture: ${stringifyMessage}`) : false;
                                 const brightness = messageData.settings.brightness;
                                 const backlight = messageData.settings.backlight;
                                 const contrast = messageData.settings.contrast;
@@ -366,35 +441,44 @@ class LgWebOsSocket extends EventEmitter {
                                 this.emit('pictureSettings', brightness, backlight, contrast, color, pictureMode, this.power);
 
                                 //restFul
-                                const restFul9 = restFulEnabled ? this.emit('restFul', 'picturesettings', messageData) : false;
+                                const restFul = restFulEnabled ? this.emit('restFul', 'picturesettings', messageData) : false;
 
                                 //mqtt
-                                const mqtt9 = mqttEnabled ? this.emit('mqtt', 'Picture Settings', messageData) : false;
+                                const mqtt = mqttEnabled ? this.emit('mqtt', 'Picture Settings', messageData) : false;
                                 break;
-                            case this.soundModeId:
-                                const debug10 = debugLog ? this.emit('debug', `Sound Mode: ${stringifyMessage}`) : false;
+                            case 'error':
+                                const debug1 = debugLog ? this.emit('debug', `Picture error: ${stringifyMessage}`) : false;
+                                break;
+                            default:
+                                const debug2 = debugLog ? this.emit('debug', this.emit('debug', `Picture unknown message type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`)) : false;
+                                break;
+                        };
+                        break;
+                    case this.soundModeId:
+                        switch (messageType) {
+                            case 'response':
+                                const debug = debugLog ? this.emit('debug', `Sound mode: ${stringifyMessage}`) : false;
                                 const soundMode = messageData.settings.soundMode;
                                 this.emit('soundMode', soundMode, this.power);
 
                                 //restFul
-                                const restFul10 = restFulEnabled ? this.emit('restFul', 'soundmode', messageData) : false;
+                                const restFul = restFulEnabled ? this.emit('restFul', 'soundmode', messageData) : false;
 
                                 //mqtt
-                                const mqtt10 = mqttEnabled ? this.emit('mqtt', 'Sound Mode', messageData) : false;
+                                const mqtt = mqttEnabled ? this.emit('mqtt', 'Sound Mode', messageData) : false;
+                                break;
+                            case 'error':
+                                const debug1 = debugLog ? this.emit('debug', `Sound mode error: ${stringifyMessage}`) : false;
                                 break;
                             default:
-                                const debug11 = debugLog ? this.emit('debug', this.emit('debug', `Response message id: ${messageId}, data: ${stringifyMessage}`)) : false;
+                                const debug2 = debugLog ? this.emit('debug', this.emit('debug', `Sound mode unknown message type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`)) : false;
                                 break;
                         };
                         break;
-                    case 'error':
-                        const debug12 = debugLog ? this.emit('debug', `Error message id: ${messageId}, data: ${stringifyMessage}`) : false;
-                        break;
                     default:
-                        const debug13 = debugLog ? this.emit('debug', this.emit('debug', `Unknown message type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`)) : false;
+                        const debug2 = debugLog ? this.emit('debug', `Unknown message type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`) : false;
                         break;
                 };
-
             }).on('error', (error) => {
                 const debug = debugLog ? this.emit('debug', `Socket connect error: ${error}.`) : false;
                 socket.emit('disconnect');
@@ -415,7 +499,7 @@ class LgWebOsSocket extends EventEmitter {
                 const prepareAccessory = key.length > 10 && this.startPrepareAccessory ? this.emit('prepareAccessory') : false;
                 this.startPrepareAccessory = false;
 
-                await new Promise(resolve => setTimeout(resolve, 3500));
+                await new Promise(resolve => setTimeout(resolve, 2000));
                 this.connectSocket();
             });
         }
@@ -443,6 +527,42 @@ class LgWebOsSocket extends EventEmitter {
             } catch (error) {
                 reject(error);
             }
+        });
+    }
+
+    subscribeTvStatus() {
+        return new Promise(async (resolve, reject) => {
+            try {
+                this.powerStateId = await this.getCid();
+                await this.send('subscribe', CONSTANS.ApiUrls.GetPowerState, undefined, this.powerStateId);
+                this.currentAppId = await this.getCid();
+                await this.send('subscribe', CONSTANS.ApiUrls.GetForegroundAppInfo, undefined, this.currentAppId);
+                this.currentChannelId = await this.getCid();
+                await this.send('subscribe', CONSTANS.ApiUrls.GetCurrentChannel, undefined, this.currentChannelId);
+                this.audioStateId = await this.getCid();
+                await this.send('subscribe', CONSTANS.ApiUrls.GetAudioStatus, undefined, this.audioStateId);
+
+                if (this.webOS >= 4.0) {
+                    const payload = {
+                        category: 'picture',
+                        keys: ['brightness', 'backlight', 'contrast', 'color']
+                    }
+                    this.pictureSettingsId = await this.getCid();
+                    await this.send('subscribe', CONSTANS.ApiUrls.GetSystemSettings, payload, this.pictureSettingsId);
+                }
+
+                if (this.webOS >= 6.0) {
+                    const payload = {
+                        category: 'sound',
+                        keys: ['soundMode']
+                    }
+                    this.soundModeId = await this.getCid();
+                    await this.send('subscribe', CONSTANS.ApiUrls.GetSystemSettings, payload, this.soundModeId);
+                }
+                resolve();
+            } catch (error) {
+                reject(error);
+            };
         });
     }
 
