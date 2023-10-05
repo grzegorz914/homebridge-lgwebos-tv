@@ -18,9 +18,7 @@ class LgWebOsSocket extends EventEmitter {
         this.startPrepareAccessory = true;
         this.socketConnected = false;
         this.specjalizedSocketConnected = false;
-        this.pairingKey = '';
         this.power = false;
-        this.debugLog = debugLog;
         this.cidCount = 0;
         this.webOS = 2.0;
         this.modelName = 'LG TV';
@@ -39,6 +37,7 @@ class LgWebOsSocket extends EventEmitter {
                     if (socket.readyState === socket.OPEN) {
                         const debug = debugLog && this.power ? this.emit('debug', `Socked send heartbeat.`) : false;
                         const sendPing = this.power ? socket.ping(null, false, 'UTF-8') : false;
+                        const terminateSpecjalizedSocket = !this.power && this.specjalizedSocketConnected ? this.specializedSocket.terminate() : false;
                         const terminateSocket = !this.power ? socket.terminate() : false;
                     }
                 }, 3000);
@@ -72,7 +71,7 @@ class LgWebOsSocket extends EventEmitter {
                     case this.registerId:
                         switch (messageType) {
                             case 'registered':
-                                const debug = debugLog ? this.emit('debug', `Register to TV with key: ${stringifyMessage}`) : false;
+                                const debug = debugLog ? this.emit('debug', `Register to TV with key: ${stringifyMessage['client-key']}`) : false;
 
                                 const pairingKey = messageData['client-key'];
                                 if (!pairingKey) {
@@ -113,25 +112,12 @@ class LgWebOsSocket extends EventEmitter {
                                 const socketPath = messageData.socketPath;
                                 const specializedSocket = sslWebSocket ? new WebSocket(socketPath, { rejectUnauthorized: false }) : new WebSocket(socketPath);
                                 specializedSocket.on('open', async () => {
-                                    const debug = debugLog ? this.emit('debug', `Specialized socket connected, path: ${stringifyMessage}.`) : false;
+                                    const debug = debugLog ? this.emit('debug', `Specialized socket connected, path: ${socketPath}.`) : false;
                                     this.specializedSocket = specializedSocket;
                                     this.specjalizedSocketConnected = true;
 
-                                    const heartbeat = setInterval(() => {
-                                        if (specializedSocket.readyState === specializedSocket.OPEN) {
-                                            const debug = debugLog && this.socketConnected ? this.emit('debug', `Specialized socket send heartbeat.`) : false;
-                                            const sendPing = this.socketConnected ? specializedSocket.ping(null, false, 'UTF-8') : false;
-                                            const terminateSocket = !this.socketConnected ? specializedSocket.terminate() : false;
-                                        }
-                                    }, 3000);
-
-                                    specializedSocket.on('pong', () => {
-                                        const debug = debugLog ? this.emit('debug', `Specialized socket received heartbeat.`) : false;
-                                    });
-
                                     specializedSocket.on('close', () => {
                                         const debug = debugLog ? this.emit('debug', 'Specialized socket closed.') : false;
-                                        clearInterval(heartbeat);
                                         specializedSocket.emit('disconnect');
                                     })
 
@@ -142,11 +128,6 @@ class LgWebOsSocket extends EventEmitter {
                                     } catch (error) {
                                         this.emit('error', `Request system info error: ${error}`)
                                     };
-
-                                }).on('message', (message) => {
-                                    const parsedMessage = JSON.parse(message);
-                                    const stringifyMessage = JSON.stringify(parsedMessage, null, 2);
-                                    const debug = debugLog ? this.emit('debug', `Specialized socket message: ${stringifyMessage}.`) : false;
                                 }).on('error', (error) => {
                                     const debug = debugLog ? this.emit('debug', `Specjalized socket connect error: ${error}.`) : false;
                                     specializedSocket.emit('disconnect');
@@ -511,8 +492,8 @@ class LgWebOsSocket extends EventEmitter {
         return new Promise(async (resolve, reject) => {
             try {
                 const key = await fsPromises.readFile(path);
-                this.pairingKey = key.toString();
-                resolve(this.pairingKey);
+                const pairingKey = key.length > 10 ? key.toString() : '';
+                resolve(pairingKey);
             } catch (error) {
                 reject(error);
             }
