@@ -23,11 +23,18 @@ class LgWebOsSocket extends EventEmitter {
         this.webOS = 2.0;
         this.modelName = 'LG TV';
 
-        this.connectSocket = () => {
+        this.connectSocket = async () => {
+            //Read pairing key from file
+            try {
+                this.pairingKey = await this.readPairingKey(keyFile);
+            } catch (error) {
+                this.emit('error', `Read pairing key error: ${error}`);
+            };
+
+            //Socket
             const url = sslWebSocket ? CONSTANS.ApiUrls.WssUrl.replace('lgwebostv', host) : CONSTANS.ApiUrls.WsUrl.replace('lgwebostv', host);
             const socket = sslWebSocket ? new WebSocket(url, { rejectUnauthorized: false }) : new WebSocket(url);
             const debug = debugLog ? this.emit('debug', `Cconnecting socket.`) : false;
-
             socket.on('open', async () => {
                 const debug = debugLog ? this.emit('debug', `Socked connected.`) : false;
                 this.socket = socket;
@@ -35,10 +42,8 @@ class LgWebOsSocket extends EventEmitter {
 
                 const heartbeat = setInterval(() => {
                     if (socket.readyState === socket.OPEN) {
-                        const debug = debugLog && this.power ? this.emit('debug', `Socked send heartbeat.`) : false;
-                        const sendPing = this.power ? socket.ping(null, false, 'UTF-8') : false;
-                        const terminateSpecjalizedSocket = !this.power && this.specjalizedSocketConnected ? this.specializedSocket.terminate() : false;
-                        const terminateSocket = !this.power ? socket.terminate() : false;
+                        const debug = debugLog ? this.emit('debug', `Socked send heartbeat.`) : false;
+                        socket.ping(null, false, 'UTF-8');
                     }
                 }, 3000);
 
@@ -52,8 +57,8 @@ class LgWebOsSocket extends EventEmitter {
                     socket.emit('disconnect');
                 });
 
+                //Register to tv
                 try {
-                    this.pairingKey = await this.readPairingKey(keyFile);
                     CONSTANS.Pairing['client-key'] = this.pairingKey;
                     this.registerId = await this.getCid();
                     await this.send('register', undefined, CONSTANS.Pairing, this.registerId);
@@ -70,21 +75,21 @@ class LgWebOsSocket extends EventEmitter {
                 switch (messageId) {
                     case this.registerId:
                         switch (messageType) {
+                            case 'response':
+                                const debug = debugLog ? this.emit('debug', `Start registering to TV: ${stringifyMessage}`) : false;
+                                this.emit('message', 'Please accept authorization on TV.');
+                                break;
                             case 'registered':
-                                const debug = debugLog ? this.emit('debug', `Register to TV with key: ${stringifyMessage['client-key']}`) : false;
+                                const debug1 = debugLog ? this.emit('debug', `Registered to TV with key: ${messageData['client-key']}`) : false;
 
+                                //Save key in file if not saved before
                                 const pairingKey = messageData['client-key'];
-                                if (!pairingKey) {
-                                    this.emit('message', 'Please accept authorization on TV.');
-                                    return;
-                                };
-
                                 if (pairingKey !== this.pairingKey) {
                                     try {
                                         await this.savePairingKey(keyFile, pairingKey);
-                                        this.emit('message', 'Pairing key saved.')
+                                        this.emit('message', 'Pairing key saved.');
                                     } catch (error) {
-                                        this.emit('error', `Pairing key saved error: ${error}`)
+                                        this.emit('error', `Pairing key save error: ${error}`);
                                     };
                                 };
 
@@ -93,14 +98,14 @@ class LgWebOsSocket extends EventEmitter {
                                     this.specjalizedSockedId = await this.getCid();
                                     await this.send('request', CONSTANS.ApiUrls.SocketUrl, undefined, this.specjalizedSockedId);
                                 } catch (error) {
-                                    this.emit('error', `Request specjalized socket error: ${error}`)
+                                    this.emit('error', `Request specjalized socket error: ${error}`);
                                 };
                                 break;
                             case 'error':
-                                const debug1 = debugLog ? this.emit('debug', `Register to TV error: ${stringifyMessage}`) : false;
+                                const debug2 = debugLog ? this.emit('debug', `Register to TV error: ${stringifyMessage}`) : false;
                                 break;
                             default:
-                                const debug2 = debugLog ? this.emit('debug', this.emit('debug', `Register to TV unknown message type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`)) : false;
+                                const debug3 = debugLog ? this.emit('debug', this.emit('debug', `Register to TV unknown message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`)) : false;
                                 break;
                         };
                         break;
@@ -126,13 +131,13 @@ class LgWebOsSocket extends EventEmitter {
                                         this.systemInfoId = await this.getCid();
                                         await this.send('request', CONSTANS.ApiUrls.GetSystemInfo, undefined, this.systemInfoId);
                                     } catch (error) {
-                                        this.emit('error', `Request system info error: ${error}`)
+                                        this.emit('error', `Request system info error: ${error}`);
                                     };
                                 }).on('error', (error) => {
                                     const debug = debugLog ? this.emit('debug', `Specjalized socket connect error: ${error}.`) : false;
                                     specializedSocket.emit('disconnect');
                                 }).on('disconnect', () => {
-                                    const emitMessage = this.specjalizedSocketConnected ? this.emit('message', 'Specjalized socket disconnected.') : false;
+                                    const message = this.specjalizedSocketConnected ? this.emit('message', 'Specjalized socket disconnected.') : false;
                                     this.specjalizedSocketConnected = false;
                                 });
                                 break;
@@ -140,7 +145,7 @@ class LgWebOsSocket extends EventEmitter {
                                 const debug1 = debugLog ? this.emit('debug', `Connecting to specjalized socket error: ${stringifyMessage}`) : false;
                                 break;
                             default:
-                                const debug2 = debugLog ? this.emit('debug', this.emit('debug', `Connecting to specjalized socket unknown message type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`)) : false;
+                                const debug2 = debugLog ? this.emit('debug', this.emit('debug', `Connecting to specjalized socket unknown message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`)) : false;
                                 break;
                         };
                         break;
@@ -161,14 +166,14 @@ class LgWebOsSocket extends EventEmitter {
                                     this.softwareInfoId = await this.getCid();
                                     await this.send('request', CONSTANS.ApiUrls.GetSoftwareInfo, undefined, this.softwareInfoId);
                                 } catch (error) {
-                                    this.emit('error', `Request software info error: ${error}`)
+                                    this.emit('error', `Request software info error: ${error}`);
                                 };
                                 break;
                             case 'error':
                                 const debug1 = debugLog ? this.emit('debug', `System info error: ${stringifyMessage}`) : false;
                                 break;
                             default:
-                                const debug2 = debugLog ? this.emit('debug', this.emit('debug', `System info unknown message type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`)) : false;
+                                const debug2 = debugLog ? this.emit('debug', this.emit('debug', `System info unknown message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`)) : false;
                                 break;
                         };
                         break;
@@ -197,14 +202,14 @@ class LgWebOsSocket extends EventEmitter {
                                     this.channelsId = await this.getCid();
                                     await this.send('request', CONSTANS.ApiUrls.GetChannelList, undefined, this.channelsId);
                                 } catch (error) {
-                                    this.emit('error', `Request channels error: ${error}`)
+                                    this.emit('error', `Request channels error: ${error}`);
                                 };
                                 break;
                             case 'error':
                                 const debug1 = debugLog ? this.emit('debug', `Software info error: ${stringifyMessage}`) : false;
                                 break;
                             default:
-                                const debug2 = debugLog ? this.emit('debug', this.emit('debug', `Software info unknown message type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`)) : false;
+                                const debug2 = debugLog ? this.emit('debug', this.emit('debug', `Software info unknown message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`)) : false;
                                 break;
                         };
                         break;
@@ -227,7 +232,7 @@ class LgWebOsSocket extends EventEmitter {
                                     this.appsId = await this.getCid();
                                     await this.send('request', CONSTANS.ApiUrls.GetInstalledApps, undefined, this.appsId);
                                 } catch (error) {
-                                    this.emit('error', `Request apps error: ${error}`)
+                                    this.emit('error', `Request apps error: ${error}`);
                                 };
                                 break;
                             case 'error':
@@ -238,11 +243,11 @@ class LgWebOsSocket extends EventEmitter {
                                     this.appsId = await this.getCid();
                                     await this.send('request', CONSTANS.ApiUrls.GetInstalledApps, undefined, this.appsId);
                                 } catch (error) {
-                                    this.emit('error', `Request apps error: ${error}`)
+                                    this.emit('error', `Request apps error: ${error}`);
                                 };
                                 break;
                             default:
-                                const debug2 = debugLog ? this.emit('debug', this.emit('debug', `Channels unknown message type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`)) : false;
+                                const debug2 = debugLog ? this.emit('debug', this.emit('debug', `Channels unknown message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`)) : false;
                                 break;
                         };
                         break;
@@ -284,7 +289,7 @@ class LgWebOsSocket extends EventEmitter {
                                 };
                                 break;
                             default:
-                                const debug2 = debugLog ? this.emit('debug', this.emit('debug', `Apps list unknown message type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`)) : false;
+                                const debug2 = debugLog ? this.emit('debug', this.emit('debug', `Apps list unknown message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`)) : false;
                                 break;
                         };
                         break;
@@ -326,8 +331,10 @@ class LgWebOsSocket extends EventEmitter {
                                         this.emit('message', `Unknown power state: ${tvScreenState}`);
                                         break;
                                 }
-                                this.power = this.webOS >= 3.0 ? this.socketConnected && this.power : this.socketConnected;
+                                this.power = this.webOS >= 3.0 ? this.power : this.socketConnected;
+                                this.pixelRefresh = pixelRefresh;
                                 this.emit('powerState', this.power, pixelRefresh, screenState, tvScreenState);
+                                const disconnect = !this.power ? socket.emit('powerOff') : false;
 
                                 //restFul
                                 const restFul = restFulEnabled ? this.emit('restFul', 'power', messageData) : false;
@@ -339,7 +346,7 @@ class LgWebOsSocket extends EventEmitter {
                                 const debug1 = debugLog ? this.emit('debug', `Power error: ${stringifyMessage}`) : false;
                                 break;
                             default:
-                                const debug2 = debugLog ? this.emit('debug', this.emit('debug', `Power unknown message type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`)) : false;
+                                const debug2 = debugLog ? this.emit('debug', this.emit('debug', `Power unknown message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`)) : false;
                                 break;
                         };
                         break;
@@ -361,7 +368,7 @@ class LgWebOsSocket extends EventEmitter {
                                 const debug1 = debugLog ? this.emit('debug', `App error: ${stringifyMessage}`) : false;
                                 break;
                             default:
-                                const debug2 = debugLog ? this.emit('debug', this.emit('debug', `App unknown message type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`)) : false;
+                                const debug2 = debugLog ? this.emit('debug', this.emit('debug', `App unknown message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`)) : false;
                                 break;
                         };
                         break;
@@ -369,9 +376,17 @@ class LgWebOsSocket extends EventEmitter {
                         switch (messageType) {
                             case 'response':
                                 const debug = debugLog ? this.emit('debug', `Audio: ${stringifyMessage}`) : false;
+                                const messageDataKeys = Object.keys(messageData);
+                                const scenarioExist = messageDataKeys.includes('scenario');
+                                const volumeStatusExist = messageDataKeys.includes('volumeStatus');
+                                const volumeStatusKeys = volumeStatusExist ? Object.keys(messageData.volumeStatus) : false;
+                                const soundOutputExist = volumeStatusKeys ? volumeStatusKeys.includes('soundOutput') : false;
+
+                                //data
+                                const audioOutput = scenarioExist ? messageData.scenario : soundOutputExist ? messageData.volumeStatus.soundOutput : undefined;
                                 const volume = messageData.volume < 0 ? 0 : messageData.volume;
                                 const mute = messageData.mute;
-                                this.emit('audioState', volume, mute);
+                                this.emit('audioState', volume, mute, audioOutput);
 
                                 //restFul
                                 const restFul = restFulEnabled ? this.emit('restFul', 'audio', messageData) : false;
@@ -383,7 +398,7 @@ class LgWebOsSocket extends EventEmitter {
                                 const debug1 = debugLog ? this.emit('debug', `Audio error: ${stringifyMessage}`) : false;
                                 break;
                             default:
-                                const debug2 = debugLog ? this.emit('debug', this.emit('debug', `Audio unknown message type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`)) : false;
+                                const debug2 = debugLog ? this.emit('debug', this.emit('debug', `Audio unknown message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`)) : false;
                                 break;
                         };
                         break;
@@ -406,7 +421,7 @@ class LgWebOsSocket extends EventEmitter {
                                 const debug1 = debugLog ? this.emit('debug', `Channel error: ${stringifyMessage}`) : false;
                                 break;
                             default:
-                                const debug2 = debugLog ? this.emit('debug', this.emit('debug', `Channel unknown message type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`)) : false;
+                                const debug2 = debugLog ? this.emit('debug', this.emit('debug', `Channel unknown message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`)) : false;
                                 break;
                         };
                         break;
@@ -431,7 +446,7 @@ class LgWebOsSocket extends EventEmitter {
                                 const debug1 = debugLog ? this.emit('debug', `Picture error: ${stringifyMessage}`) : false;
                                 break;
                             default:
-                                const debug2 = debugLog ? this.emit('debug', this.emit('debug', `Picture unknown message type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`)) : false;
+                                const debug2 = debugLog ? this.emit('debug', this.emit('debug', `Picture unknown message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`)) : false;
                                 break;
                         };
                         break;
@@ -452,7 +467,7 @@ class LgWebOsSocket extends EventEmitter {
                                 const debug1 = debugLog ? this.emit('debug', `Sound mode error: ${stringifyMessage}`) : false;
                                 break;
                             default:
-                                const debug2 = debugLog ? this.emit('debug', this.emit('debug', `Sound mode unknown message type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`)) : false;
+                                const debug2 = debugLog ? this.emit('debug', this.emit('debug', `Sound mode unknown message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`)) : false;
                                 break;
                         };
                         break;
@@ -462,25 +477,32 @@ class LgWebOsSocket extends EventEmitter {
                 };
             }).on('error', (error) => {
                 const debug = debugLog ? this.emit('debug', `Socket connect error: ${error}.`) : false;
+                this.pixelRefresh = false;
                 socket.emit('disconnect');
-            }).on('disconnect', async () => {
-                const emitMessage = this.socketConnected ? this.emit('message', 'Socket disconnected.') : false;
-                this.socketConnected = false;
-
+            }).on('powerOff', async () => {
                 //update TV state
-                this.emit('powerState', false, false, false, false);
+                this.emit('powerState', false, this.pixelRefresh, false, false);
                 this.emit('audioState', undefined, true);
                 this.emit('pictureSettings', 0, 0, 0, 0, 3, false);
                 this.emit('soundMode', undefined, false);
                 this.power = false;
+            }).on('disconnect', async () => {
+                const message = this.socketConnected ? this.emit('message', 'Socket disconnected.') : false;
+                this.socketConnected = false;
                 this.cidCount = 0;
 
+                //update TV state
+                this.emit('powerOff', false, this.pixelRefresh, false, false);
+                this.emit('audioState', undefined, true);
+                this.emit('pictureSettings', 0, 0, 0, 0, 3, false);
+                this.emit('soundMode', undefined, false);
+                this.power = false;
+
                 //Prepare accessory
-                const key = await this.readPairingKey(keyFile);
-                const prepareAccessory = key.length > 10 && this.startPrepareAccessory ? this.emit('prepareAccessory') : false;
+                const prepareAccessory = this.pairingKey.length > 10 && this.startPrepareAccessory ? this.emit('prepareAccessory') : false;
                 this.startPrepareAccessory = false;
 
-                await new Promise(resolve => setTimeout(resolve, 2000));
+                await new Promise(resolve => setTimeout(resolve, 3000));
                 this.connectSocket();
             });
         }
@@ -492,7 +514,7 @@ class LgWebOsSocket extends EventEmitter {
         return new Promise(async (resolve, reject) => {
             try {
                 const key = await fsPromises.readFile(path);
-                const pairingKey = key.length > 10 ? key.toString() : '';
+                const pairingKey = key.length > 10 ? key.toString() : '0';
                 resolve(pairingKey);
             } catch (error) {
                 reject(error);
@@ -551,7 +573,9 @@ class LgWebOsSocket extends EventEmitter {
         return new Promise((resolve, reject) => {
             try {
                 this.cidCount++;
-                const cid = (`0000000${Math.floor(Math.random() * 0xFFFFFFFF).toString(16)}`).slice(-8) + (`000${(this.cidCount).toString(16)}`).slice(-4);
+                const randomPart = (`0000000${Math.floor(Math.random() * 0xFFFFFFFF).toString(16)}`).slice(-8);
+                const counterPart = (`000${(this.cidCount).toString(16)}`).slice(-4);
+                const cid = randomPart + counterPart;
                 resolve(cid);
             } catch (error) {
                 reject(error);
@@ -570,10 +594,9 @@ class LgWebOsSocket extends EventEmitter {
                             return;
                         };
 
-                        payload = uri
-                        const message = Object.keys(payload).reduce((acc, k) => {
-                            return (acc.concat([`${k}:${payload[k]}`]));
-                        }, [`type:${type}`]).join('\n') + '\n\n';
+                        const keyValuePairs = Object.entries(payload).map(([key, value]) => `${key}:${value}`);
+                        keyValuePairs.unshift(`type:${type}`);
+                        const message = keyValuePairs.join('\n') + '\n\n';
 
                         this.specializedSocket.send(message);
                         resolve();
@@ -585,13 +608,14 @@ class LgWebOsSocket extends EventEmitter {
                         };
 
                         cid = cid === undefined ? await this.getCid() : cid;
-                        const message1 = JSON.stringify({
+                        const data = {
                             id: cid,
                             type: type,
                             uri: uri,
                             payload: payload
-                        });
+                        };
 
+                        const message1 = JSON.stringify(data);
                         this.socket.send(message1);
                         resolve();
                         break
