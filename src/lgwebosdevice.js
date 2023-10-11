@@ -74,6 +74,7 @@ class LgWebOsDevice extends EventEmitter {
         //accessory services
         this.allServices = [];
         this.buttonsServices = [];
+        this.soundModesServices = [];
         this.pictureModesServices = [];
         this.sensorInputsServices = [];
 
