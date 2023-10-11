@@ -478,6 +478,7 @@ class LgWebOsSocket extends EventEmitter {
             }).on('error', (error) => {
                 const debug = debugLog ? this.emit('debug', `Socket connect error: ${error}.`) : false;
                 this.pixelRefresh = false;
+                this.power = false;
                 socket.emit('disconnect');
             }).on('powerOff', async () => {
                 //update TV state
@@ -485,18 +486,17 @@ class LgWebOsSocket extends EventEmitter {
                 this.emit('audioState', undefined, true);
                 this.emit('pictureSettings', 0, 0, 0, 0, 3, false);
                 this.emit('soundMode', undefined, false);
-                this.power = false;
             }).on('disconnect', async () => {
                 const message = this.socketConnected ? this.emit('message', 'Socket disconnected.') : false;
                 this.socketConnected = false;
                 this.cidCount = 0;
+                this.power = false;
 
                 //update TV state
                 this.emit('powerOff', false, this.pixelRefresh, false, false);
                 this.emit('audioState', undefined, true);
                 this.emit('pictureSettings', 0, 0, 0, 0, 3, false);
                 this.emit('soundMode', undefined, false);
-                this.power = false;
 
                 //Prepare accessory
                 const prepareAccessory = this.pairingKey.length > 10 && this.startPrepareAccessory ? this.emit('prepareAccessory') : false;
