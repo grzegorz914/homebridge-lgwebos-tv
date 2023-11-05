@@ -24,6 +24,7 @@
                     "mac": "ab:cd:ef:fe:dc:ba",
                     "getInputsFromDevice": false,
                     "filterSystemApps": false,
+                    "disableLoadDefaultInputs": false,
                     "inputs": [
                         {
                             "name": "HDMI 3",

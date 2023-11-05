@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+## [2.14.0] - (05.11.2023)
+## Changes
+- added possibility to disable load defaults inputs
+- fix screen on/off [#177](https://github.com/grzegorz914/homebridge-lgwebos-tv/issues/177)
+- fix plugin stopped responding after some times [#170](https://github.com/grzegorz914/homebridge-lgwebos-tv/issues/170)
+- config schema updated
+- cleanup
+
 ## [2.12.0] - (05.09.2023)
 ## Changes
 - added pixel refresh sensor

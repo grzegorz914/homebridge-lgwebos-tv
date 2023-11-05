@@ -1,6 +1,7 @@
 'use strict';
 const fs = require('fs');
 const fsPromises = fs.promises;
+const Ping = require('ping');
 const EventEmitter = require('events');
 const WebSocket = require('ws');
 const CONSTANS = require('./constans.json');
@@ -19,9 +20,13 @@ class LgWebOsSocket extends EventEmitter {
         this.socketConnected = false;
         this.specjalizedSocketConnected = false;
         this.power = false;
+        this.pixelRefresh = false;
+        this.screenState = false;
+        this.tvScreenState = 'Suspend';
         this.cidCount = 0;
         this.webOS = 2.0;
         this.modelName = 'LG TV';
+        this.keyFile = keyFile;
 
         this.connectSocket = async () => {
             //Read pairing key from file
@@ -39,13 +44,14 @@ class LgWebOsSocket extends EventEmitter {
                 const debug = debugLog ? this.emit('debug', `Socked connected.`) : false;
                 this.socket = socket;
                 this.socketConnected = true;
+                clearInterval(this.pingTv);
 
                 const heartbeat = setInterval(() => {
                     if (socket.readyState === socket.OPEN) {
                         const debug = debugLog ? this.emit('debug', `Socked send heartbeat.`) : false;
                         socket.ping(null, false, 'UTF-8');
                     }
-                }, 3000);
+                }, 5000);
 
                 socket.on('pong', () => {
                     const debug = debugLog ? this.emit('debug', `Socked received heartbeat.`) : false;
@@ -186,7 +192,7 @@ class LgWebOsSocket extends EventEmitter {
                                 const deviceId = messageData.device_id;
                                 const firmwareRevision = `${messageData.major_ver}.${messageData.minor_ver}`;
                                 const match = productName.match(/\d+(\.\d+)?/);
-                                this.webOS = match ? parseFloat(match[0]) : this.emit('error', `Unknown webOS system: ${match}.`);
+                                this.webOS = match ? parseFloat(match[0]) : this.webOS;
 
                                 this.emit('message', 'Connected.');
                                 this.emit('deviceInfo', this.modelName, productName, deviceId, firmwareRevision, this.webOS);
@@ -266,8 +272,11 @@ class LgWebOsSocket extends EventEmitter {
                                 const mqtt = mqttEnabled ? this.emit('mqtt', 'Apps', messageData) : false;
 
                                 //Start prepare accessory
-                                const prepareAccessory = this.startPrepareAccessory ? this.emit('prepareAccessory') : false;
-                                this.startPrepareAccessory = false;
+                                try {
+                                    const prepareAccessory = this.startPrepareAccessory ? await this.prepareAccessory() : false;
+                                } catch (error) {
+                                    this.emit('error', `Prepare accessory error: ${error}.`);
+                                }
 
                                 await new Promise(resolve => setTimeout(resolve, 2000));
                                 //Subscribe tv status
@@ -298,42 +307,44 @@ class LgWebOsSocket extends EventEmitter {
                             case 'response':
                                 const debug = debugLog ? this.emit('debug', `Power: ${stringifyMessage}`) : false;
 
-                                let tvScreenState = messageData.state;
-                                let screenState = false;
-                                let pixelRefresh = false;
-                                switch (tvScreenState) {
+                                switch (messageData.state) {
                                     case 'Active':
                                         this.power = true;
-                                        screenState = true;
-                                        pixelRefresh = false;
+                                        this.screenState = true;
+                                        this.pixelRefresh = false;
+                                        this.tvScreenState = 'Active';
                                         break;
                                     case 'Active Standby':
                                         this.power = false;
-                                        screenState = false;
-                                        pixelRefresh = true;
+                                        this.screenState = false;
+                                        this.pixelRefresh = true;
+                                        this.tvScreenState = 'Active Standby';
                                         break;
                                     case 'Screen Saver':
                                         this.power = true;
-                                        screenState = true;
-                                        pixelRefresh = false;
+                                        this.screenState = true;
+                                        this.pixelRefresh = false;
+                                        this.tvScreenState = 'Screen Saver';
                                         break;
                                     case 'Screen Off':
                                         this.power = true;
-                                        screenState = false;
-                                        pixelRefresh = false;
+                                        this.screenState = false;
+                                        this.pixelRefresh = false;
+                                        this.tvScreenState = 'Screen Off';
                                         break;
                                     case 'Suspend':
                                         this.power = false;
-                                        screenState = false;
-                                        pixelRefresh = false;
+                                        this.screenState = false;
+                                        this.pixelRefresh = false;
+                                        this.tvScreenState = 'Suspend';
                                         break;
                                     default:
-                                        this.emit('message', `Unknown power state: ${tvScreenState}`);
+                                        this.tvScreenState = messageData.state;
+                                        this.emit('message', `Unknown power state: ${this.tvScreenState}`);
                                         break;
                                 }
-                                this.power = this.webOS >= 3.0 ? this.power : this.socketConnected;
-                                this.pixelRefresh = pixelRefresh;
-                                this.emit('powerState', this.power, pixelRefresh, screenState, tvScreenState);
+
+                                this.emit('powerState', this.power, this.pixelRefresh, this.screenState, this.tvScreenState);
                                 const disconnect = !this.power ? socket.emit('powerOff') : false;
 
                                 //restFul
@@ -343,7 +354,15 @@ class LgWebOsSocket extends EventEmitter {
                                 const mqtt = mqttEnabled ? this.emit('mqtt', 'Power', messageData) : false;
                                 break;
                             case 'error':
-                                const debug1 = debugLog ? this.emit('debug', `Power error: ${stringifyMessage}`) : false;
+                                if (this.webOS < 3.0) {
+                                    this.power = this.socketConnected;
+                                    this.tvScreenState = this.socketConnected ? 'Active' : 'Suspend';
+                                    this.emit('powerState', this.power, this.pixelRefresh, this.screenState, this.tvScreenState);
+                                    const disconnect = !this.power ? socket.emit('powerOff') : false;
+                                    const debug1 = debugLog ? this.emit('debug', `Installed system webOS: ${this.webOS}`) : false;
+                                } else {
+                                    const debug1 = debugLog ? this.emit('debug', `Power error: ${stringifyMessage}`) : false;
+                                }
                                 break;
                             default:
                                 const debug2 = debugLog ? this.emit('debug', this.emit('debug', `Power unknown message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`)) : false;
@@ -477,12 +496,10 @@ class LgWebOsSocket extends EventEmitter {
                 };
             }).on('error', (error) => {
                 const debug = debugLog ? this.emit('debug', `Socket connect error: ${error}.`) : false;
-                this.pixelRefresh = false;
-                this.power = false;
                 socket.emit('disconnect');
             }).on('powerOff', async () => {
                 //update TV state
-                this.emit('powerState', false, this.pixelRefresh, false, false);
+                this.emit('powerState', false, this.pixelRefresh, this.screenState, this.tvScreenState);
                 this.emit('audioState', undefined, true);
                 this.emit('pictureSettings', 0, 0, 0, 0, 3, false);
                 this.emit('soundMode', undefined, false);
@@ -491,24 +508,60 @@ class LgWebOsSocket extends EventEmitter {
                 this.socketConnected = false;
                 this.cidCount = 0;
                 this.power = false;
+                this.pixelRefresh = false;
+                this.screenState = false;
+                this.tvScreenState = 'Suspend';
 
                 //update TV state
-                this.emit('powerOff', false, this.pixelRefresh, false, false);
+                this.emit('powerState', false, this.pixelRefresh, this.screenState, this.tvScreenState);
                 this.emit('audioState', undefined, true);
                 this.emit('pictureSettings', 0, 0, 0, 0, 3, false);
                 this.emit('soundMode', undefined, false);
-
-                //Prepare accessory
-                const prepareAccessory = this.pairingKey.length > 10 && this.startPrepareAccessory ? this.emit('prepareAccessory') : false;
-                this.startPrepareAccessory = false;
-
-                await new Promise(resolve => setTimeout(resolve, 3000));
-                this.connectSocket();
             });
         }
 
-        this.connectSocket();
+        //ping tv
+        setInterval(async () => {
+            if (this.socketConnected) {
+                return;
+            }
+
+            const debug = debugLog ? this.emit('debug', `Plugin send heartbeat to TV.`) : false;
+            const state = await Ping.promise.probe(host, { timeout: 2 });
+
+            if (!state.alive || this.socketConnected) {
+                try {
+                    await new Promise(resolve => setTimeout(resolve, 4000));
+                    const prepareAccessory = this.startPrepareAccessory ? await this.prepareAccessory() : false;
+                } catch (error) {
+                    this.emit('error', `Prepare accessory error: ${error}.`);
+                }
+                return;
+            }
+
+            const debug1 = debugLog ? this.emit('debug', `Plugin received heartbeat from TV.`) : false;
+            this.connectSocket();
+        }, 6000);
     };
+
+    prepareAccessory() {
+        return new Promise(async (resolve, reject) => {
+            try {
+                const pairingKey = await this.readPairingKey(this.keyFile);
+                if (pairingKey === '0') {
+                    reject(`Prepare accessory not possible, pairing key: ${pairingKey}.`);
+                    return;
+                }
+
+                this.emit('prepareAccessory');
+                this.startPrepareAccessory = false;
+                resolve();
+            } catch (error) {
+                reject(error);
+            }
+        });
+    }
+
 
     readPairingKey(path) {
         return new Promise(async (resolve, reject) => {
