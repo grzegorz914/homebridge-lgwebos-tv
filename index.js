@@ -21,7 +21,8 @@ class LgWebOsPlatform {
 
 		api.on('didFinishLaunching', () => {
 			for (const device of config.devices) {
-				if (!device.name || !device.host || !device.mac) {
+				const macRegex = /^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$/;
+				if (!device.name || !device.host || !macRegex.test(device.mac)) {
 					log.warn(`Name: ${device.name ? 'OK' : device.name}, host: ${device.host ? 'OK' : device.host}, mac: ${device.mac ? 'OK' : device.mac}, in config missing.`);
 					return;
 				}

@@ -100,6 +100,7 @@ class LgWebOsSocket extends EventEmitter {
                                 };
 
                                 //Request specjalized socket
+                                await new Promise(resolve => setTimeout(resolve, 2000));
                                 try {
                                     this.specjalizedSockedId = await this.getCid();
                                     await this.send('request', CONSTANS.ApiUrls.SocketUrl, undefined, this.specjalizedSockedId);
@@ -179,7 +180,7 @@ class LgWebOsSocket extends EventEmitter {
                                 const debug1 = debugLog ? this.emit('debug', `System info error: ${stringifyMessage}`) : false;
                                 break;
                             default:
-                                const debug2 = debugLog ? this.emit('debug', this.emit('debug', `System info unknown message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`)) : false;
+                                const debug2 = debugLog ? this.emit('debug', this.emit('debug', `System info received message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`)) : false;
                                 break;
                         };
                         break;
@@ -215,7 +216,7 @@ class LgWebOsSocket extends EventEmitter {
                                 const debug1 = debugLog ? this.emit('debug', `Software info error: ${stringifyMessage}`) : false;
                                 break;
                             default:
-                                const debug2 = debugLog ? this.emit('debug', this.emit('debug', `Software info unknown message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`)) : false;
+                                const debug2 = debugLog ? this.emit('debug', this.emit('debug', `Software info received message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`)) : false;
                                 break;
                         };
                         break;
@@ -253,7 +254,7 @@ class LgWebOsSocket extends EventEmitter {
                                 };
                                 break;
                             default:
-                                const debug2 = debugLog ? this.emit('debug', this.emit('debug', `Channels unknown message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`)) : false;
+                                const debug2 = debugLog ? this.emit('debug', this.emit('debug', `Channels list received message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`)) : false;
                                 break;
                         };
                         break;
@@ -298,7 +299,7 @@ class LgWebOsSocket extends EventEmitter {
                                 };
                                 break;
                             default:
-                                const debug2 = debugLog ? this.emit('debug', this.emit('debug', `Apps list unknown message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`)) : false;
+                                const debug2 = debugLog ? this.emit('debug', this.emit('debug', `Apps list received message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`)) : false;
                                 break;
                         };
                         break;
@@ -365,7 +366,7 @@ class LgWebOsSocket extends EventEmitter {
                                 }
                                 break;
                             default:
-                                const debug2 = debugLog ? this.emit('debug', this.emit('debug', `Power unknown message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`)) : false;
+                                const debug2 = debugLog ? this.emit('debug', this.emit('debug', `Power received message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`)) : false;
                                 break;
                         };
                         break;
@@ -387,7 +388,7 @@ class LgWebOsSocket extends EventEmitter {
                                 const debug1 = debugLog ? this.emit('debug', `App error: ${stringifyMessage}`) : false;
                                 break;
                             default:
-                                const debug2 = debugLog ? this.emit('debug', this.emit('debug', `App unknown message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`)) : false;
+                                const debug2 = debugLog ? this.emit('debug', this.emit('debug', `App received message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`)) : false;
                                 break;
                         };
                         break;
@@ -417,7 +418,7 @@ class LgWebOsSocket extends EventEmitter {
                                 const debug1 = debugLog ? this.emit('debug', `Audio error: ${stringifyMessage}`) : false;
                                 break;
                             default:
-                                const debug2 = debugLog ? this.emit('debug', this.emit('debug', `Audio unknown message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`)) : false;
+                                const debug2 = debugLog ? this.emit('debug', this.emit('debug', `Audio received message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`)) : false;
                                 break;
                         };
                         break;
@@ -440,7 +441,7 @@ class LgWebOsSocket extends EventEmitter {
                                 const debug1 = debugLog ? this.emit('debug', `Channel error: ${stringifyMessage}`) : false;
                                 break;
                             default:
-                                const debug2 = debugLog ? this.emit('debug', this.emit('debug', `Channel unknown message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`)) : false;
+                                const debug2 = debugLog ? this.emit('debug', this.emit('debug', `Channel received message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`)) : false;
                                 break;
                         };
                         break;
@@ -465,7 +466,7 @@ class LgWebOsSocket extends EventEmitter {
                                 const debug1 = debugLog ? this.emit('debug', `Picture error: ${stringifyMessage}`) : false;
                                 break;
                             default:
-                                const debug2 = debugLog ? this.emit('debug', this.emit('debug', `Picture unknown message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`)) : false;
+                                const debug2 = debugLog ? this.emit('debug', this.emit('debug', `Picture received message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`)) : false;
                                 break;
                         };
                         break;
@@ -486,12 +487,21 @@ class LgWebOsSocket extends EventEmitter {
                                 const debug1 = debugLog ? this.emit('debug', `Sound mode error: ${stringifyMessage}`) : false;
                                 break;
                             default:
-                                const debug2 = debugLog ? this.emit('debug', this.emit('debug', `Sound mode unknown message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`)) : false;
+                                const debug2 = debugLog ? this.emit('debug', this.emit('debug', `Sound mode received message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`)) : false;
                                 break;
                         };
                         break;
                     default:
-                        const debug2 = debugLog ? this.emit('debug', `Unknown message type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`) : false;
+                        switch (messageType) {
+                            case 'response':
+                                const debug1 = debugLog ? this.emit('debug', `Received response message: ${stringifyMessage}`) : false;
+                            case 'error':
+                                const debug2 = debugLog ? this.emit('debug', `Received error message: ${stringifyMessage}`) : false;
+                                break;
+                            default:
+                                const debug3 = debugLog ? this.emit('debug', `Received message type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`) : false;
+                                break;
+                        };
                         break;
                 };
             }).on('error', (error) => {
@@ -630,6 +640,32 @@ class LgWebOsSocket extends EventEmitter {
                 const counterPart = (`000${(this.cidCount).toString(16)}`).slice(-4);
                 const cid = randomPart + counterPart;
                 resolve(cid);
+            } catch (error) {
+                reject(error);
+            }
+        });
+    }
+
+    getCids(type) {
+        return new Promise((resolve, reject) => {
+            try {
+                switch (type) {
+                    case 'Power':
+                        resolve(this.powerStateId);
+                        break;
+                    case 'App':
+                        resolve(this.currentAppId);
+                        break;
+                    case 'Channel':
+                        resolve(this.currentChannelId);
+                        break;
+                    case 'Audio':
+                        resolve(this.audioStateId);
+                        break;
+                    case 'Picture':
+                        resolve(this.pictureSettingsId);
+                        break;
+                }
             } catch (error) {
                 reject(error);
             }
