@@ -1,7 +1,7 @@
 'use strict';
 const fs = require('fs');
 const fsPromises = fs.promises;
-const Ping = require('ping');
+const tcpp = require('tcp-ping');
 const EventEmitter = require('events');
 const WebSocket = require('ws');
 const CONSTANS = require('./constans.json');
@@ -15,6 +15,8 @@ class LgWebOsSocket extends EventEmitter {
         const restFulEnabled = config.restFulEnabled;
         const mqttEnabled = config.mqttEnabled;
         const sslWebSocket = config.sslWebSocket;
+        const url = sslWebSocket ? CONSTANS.ApiUrls.WssUrl.replace('lgwebostv', host) : CONSTANS.ApiUrls.WsUrl.replace('lgwebostv', host);
+        const webSocketPort = sslWebSocket ? 3001 : 3000;
 
         this.startPrepareAccessory = true;
         this.socketConnected = false;
@@ -37,9 +39,8 @@ class LgWebOsSocket extends EventEmitter {
             };
 
             //Socket
-            const url = sslWebSocket ? CONSTANS.ApiUrls.WssUrl.replace('lgwebostv', host) : CONSTANS.ApiUrls.WsUrl.replace('lgwebostv', host);
+            const debug = debugLog ? this.emit('debug', `Connecting to ${sslWebSocket ? 'secure socket' : 'socket'}.`) : false;
             const socket = sslWebSocket ? new WebSocket(url, { rejectUnauthorized: false }) : new WebSocket(url);
-            const debug = debugLog ? this.emit('debug', `Cconnecting socket.`) : false;
             socket.on('open', async () => {
                 const debug = debugLog ? this.emit('debug', `Socked connected.`) : false;
                 this.socket = socket;
@@ -341,7 +342,7 @@ class LgWebOsSocket extends EventEmitter {
                                         break;
                                     default:
                                         this.tvScreenState = messageData.state;
-                                        this.emit('message', `Unknown power state: ${this.tvScreenState}`);
+                                        this.emit('debug', `Unknown power state: ${this.tvScreenState}`);
                                         break;
                                 }
 
@@ -531,26 +532,29 @@ class LgWebOsSocket extends EventEmitter {
         }
 
         //ping tv
-        setInterval(async () => {
+        setInterval(() => {
             if (this.socketConnected) {
                 return;
             }
 
             const debug = debugLog ? this.emit('debug', `Plugin send heartbeat to TV.`) : false;
-            const state = await Ping.promise.probe(host, { timeout: 2 });
-
-            if (!state.alive || this.socketConnected) {
-                try {
-                    await new Promise(resolve => setTimeout(resolve, 4000));
-                    const prepareAccessory = this.startPrepareAccessory ? await this.prepareAccessory() : false;
-                } catch (error) {
-                    this.emit('error', `Prepare accessory error: ${error}.`);
+            tcpp.probe(host, webSocketPort, (error, online) => {
+                if (online && !this.socketConnected) {
+                    const debug1 = debugLog ? this.emit('debug', `Plugin received heartbeat from TV.`) : false;
+                    this.connectSocket();
+                    return;
                 }
-                return;
-            }
 
-            const debug1 = debugLog ? this.emit('debug', `Plugin received heartbeat from TV.`) : false;
-            this.connectSocket();
+                if (this.startPrepareAccessory) {
+                    setTimeout(async () => {
+                        try {
+                            await this.prepareAccessory();
+                        } catch (error) {
+                            this.emit('error', `Prepare accessory error: ${error}.`);
+                        }
+                    }, 4000);
+                }
+            });
         }, 6000);
     };
 
