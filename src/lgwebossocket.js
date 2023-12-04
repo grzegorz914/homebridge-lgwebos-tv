@@ -278,7 +278,6 @@ class LgWebOsSocket extends EventEmitter {
                                     const prepareAccessory = this.startPrepareAccessory ? await this.prepareAccessory() : false;
                                 } catch (error) {
                                     this.emit('error', `Prepare accessory error: ${error}.`);
-                                    this.startPrepareAccessory = true;
                                 }
 
                                 await new Promise(resolve => setTimeout(resolve, 2000));
@@ -546,15 +545,14 @@ class LgWebOsSocket extends EventEmitter {
                     return;
                 }
 
-                if (this.startPrepareAccessory) {
+                if (this.startPrepareAccessory && !this.socketConnected) {
                     setTimeout(async () => {
                         try {
                             await this.prepareAccessory();
                         } catch (error) {
                             this.emit('error', `Prepare accessory error: ${error}.`);
-                            this.startPrepareAccessory = true;
                         }
-                    }, 4000);
+                    }, 3500);
                 }
             });
         }, 7000);

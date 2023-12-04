@@ -86,6 +86,7 @@ class LgWebOsDevice extends EventEmitter {
         this.inputsReference = [];
         this.inputIdentifier = 0;
 
+        this.startPrepareAccessory = true;
         this.power = false;
         this.pixelRefresh = false;
         this.screenState = false;
@@ -593,8 +594,11 @@ class LgWebOsDevice extends EventEmitter {
                         this.emit('error', `Read saved Inputs/Channels Target Visibility error: ${error}`);
                     };
 
-                    const accessory = await this.prepareAccessory();
-                    this.emit('publishAccessory', accessory)
+                    if (this.startPrepareAccessory) {
+                        const accessory = await this.prepareAccessory();
+                        this.emit('publishAccessory', accessory);
+                        this.startPrepareAccessory = false;
+                    }
                 } catch (error) {
                     this.emit('error', `Prepare accessory error: ${error}`);
                 };
