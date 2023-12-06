@@ -1439,12 +1439,12 @@ class LgWebOsDevice extends EventEmitter {
                             .onSet(async (state) => {
                                 try {
                                     let url;
-                                    switch (this.screenState) {
-                                        case true:
-                                            url = this.webOS < 5.0 ? CONSTANS.ApiUrls.TurnOffScreen : CONSTANS.ApiUrls.TurnOffScreenWebOs5;
-                                            break;
+                                    switch (state) {
                                         case false:
-                                            url = this.webOS < 5.0 ? CONSTANS.ApiUrls.TurnOnScreen : CONSTANS.ApiUrls.TurnOnScreenWebOs5;
+                                            url = this.webOS <= 5.0 ? CONSTANS.ApiUrls.TurnOffScreen : CONSTANS.ApiUrls.TurnOffScreenWebOs5;
+                                            break;
+                                        case true:
+                                            url = this.webOS <= 5.0 ? CONSTANS.ApiUrls.TurnOnScreen : CONSTANS.ApiUrls.TurnOnScreenWebOs5;
                                             break;
                                     }
 
