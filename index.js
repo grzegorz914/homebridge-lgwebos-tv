@@ -23,7 +23,7 @@ class LgWebOsPlatform {
 			for (const device of config.devices) {
 				const macRegex = /^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$/;
 				if (!device.name || !device.host || !macRegex.test(device.mac)) {
-					log.warn(`Name: ${device.name ? 'OK' : device.name}, host: ${device.host ? 'OK' : device.host}, mac: ${device.mac ? 'OK' : device.mac}, in config missing.`);
+					log.warn(`Name: ${device.name ? 'OK' : device.name}, host: ${device.host ? 'OK' : device.host}, mac: ${macRegex.test(device.mac) ? 'OK' : device.mac}, in config missing.`);
 					return;
 				}
 				const debug = device.enableDebugMode ? log(`Device: ${device.host} ${device.name}, did finish launching.`) : false;
