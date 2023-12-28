@@ -7,7 +7,7 @@ const RestFul = require('./restful.js');
 const Mqtt = require('./mqtt.js');
 const LgWebOsSocket = require('./lgwebossocket');
 const CONSTANS = require('./constans.json');
-let Accessory, Characteristic, Service, Categories, UUID;
+let Accessory, Characteristic, Service, Categories, Encode, UUID;
 
 class LgWebOsDevice extends EventEmitter {
     constructor(api, prefDir, config) {
@@ -17,6 +17,7 @@ class LgWebOsDevice extends EventEmitter {
         Characteristic = api.hap.Characteristic;
         Service = api.hap.Service;
         Categories = api.hap.Categories;
+        Encode = api.hap.encode;
         UUID = api.hap.uuid;
 
         //device configuration
@@ -85,6 +86,7 @@ class LgWebOsDevice extends EventEmitter {
         this.inputsName = [];
         this.inputsReference = [];
         this.inputIdentifier = 0;
+        this.displayOrder = [];
 
         this.startPrepareAccessory = true;
         this.power = false;
@@ -598,6 +600,10 @@ class LgWebOsDevice extends EventEmitter {
                         const accessory = await this.prepareAccessory();
                         this.emit('publishAccessory', accessory);
                         this.startPrepareAccessory = false;
+
+                        if (this.televisionService) {
+                            this.televisionService.updateCharacteristic(Characteristic.DisplayOrder, Encode(1, this.displayOrder).toString('base64'));
+                        }
                     }
                 } catch (error) {
                     this.emit('error', `Prepare accessory error: ${error}`);
@@ -1095,6 +1101,7 @@ class LgWebOsDevice extends EventEmitter {
                                     }
                                 });
 
+                            this.displayOrder.push(i + 1);
                             this.inputsMode.push(inputMode);
                             this.inputsName.push(inputName);
                             this.inputsReference.push(inputReference);
