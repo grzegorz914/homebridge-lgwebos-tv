@@ -644,33 +644,10 @@ class LgWebOsDevice extends EventEmitter {
                 //prepare television service 
                 if (!this.disableTvService) {
                     const debug2 = this.enableDebugMode ? this.emit('debug', `Prepare television service`) : false;
-                    this.televisionService = new Service.Television(`${accessoryName} Television`, 'Television');
-                    this.televisionService.getCharacteristic(Characteristic.ConfiguredName)
-                        .onGet(async () => {
-                            const info = this.disableLogInfo ? false : this.emit('message', `Accessory Name: ${accessoryName}.`);
-                            return accessoryName;
-                        })
-                        .onSet(async (value) => {
-                            try {
-                                this.name = value;
-                                const info = this.disableLogInfo ? false : this.emit('message', `set Accessory Name: ${value}`);
-                            } catch (error) {
-                                this.emit('error', `set Brightness error: ${error}`);
-                            };
-                        });
-                    this.televisionService.getCharacteristic(Characteristic.SleepDiscoveryMode)
-                        .onGet(async () => {
-                            const state = 1;
-                            const info = this.disableLogInfo ? false : this.emit('message', `Discovery Mode: ${state ? 'Always discoverable' : 'Not discoverable'}`);
-                            return state;
-                        })
-                        .onSet(async (state) => {
-                            try {
-                                const info = this.disableLogInfo ? false : this.emit('message', `set Discovery Mode: ${state ? 'Always discoverable' : 'Not discoverable'}`);
-                            } catch (error) {
-                                this.emit('error', `set Discovery Mode error: ${error}`);
-                            };
-                        });
+                    const displayOrder = accessory.inputs.map(input => input.config.identifier);
+                    this.televisionService = new Service.Television(`${accessoryName} Television`, 'Television')
+                        .setCharacteristic(Characteristic.ConfiguredName, accessoryName)
+                        .setCharacteristic(Characteristic.SleepDiscoveryMode, 1);
 
                     this.televisionService.getCharacteristic(Characteristic.Active)
                         .onGet(async () => {
@@ -1441,10 +1418,10 @@ class LgWebOsDevice extends EventEmitter {
                                     let url;
                                     switch (state) {
                                         case false:
-                                            url = this.webOS <= 5.0 ? CONSTANS.ApiUrls.TurnOffScreen : CONSTANS.ApiUrls.TurnOffScreenWebOs5;
+                                            url = this.webOS >= 4.5 ? CONSTANS.ApiUrls.TurnOffScreen45 : CONSTANS.ApiUrls.TurnOffScreen;
                                             break;
                                         case true:
-                                            url = this.webOS <= 5.0 ? CONSTANS.ApiUrls.TurnOnScreen : CONSTANS.ApiUrls.TurnOnScreenWebOs5;
+                                            url = this.webOS >= 4.5 ? CONSTANS.ApiUrls.TurnOnScreen45 : CONSTANS.ApiUrls.TurnOnScreen;
                                             break;
                                     }
 

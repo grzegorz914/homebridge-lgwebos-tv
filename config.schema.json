@@ -11,8 +11,8 @@
       "devices": {
         "type": "array",
         "items": {
-          "title": "Device",
           "type": "object",
+          "title": "Device",
           "properties": {
             "name": {
               "title": "Name",
@@ -1196,7 +1196,7 @@
             {
               "key": "devices[].inputs",
               "type": "tabarray",
-              "title": "{{ value.name || 'new input' }}",
+              "title": "{{ value.name || 'input' }}",
               "items": [
                 "devices[].inputs[].name",
                 "devices[].inputs[].reference",
@@ -1218,7 +1218,7 @@
             {
               "key": "devices[].buttons",
               "type": "tabarray",
-              "title": "{{ value.name || 'new button' }}",
+              "title": "{{ value.name || 'button' }}",
               "items": [
                 "devices[].buttons[].name",
                 "devices[].buttons[].mode",
@@ -1265,7 +1265,7 @@
                         {
                           "key": "devices[].sensorInputs",
                           "type": "tabarray",
-                          "title": "{{ value.name || 'new sensor' }}",
+                          "title": "{{ value.name || 'sensor' }}",
                           "items": [
                             "devices[].sensorInputs[].name",
                             "devices[].sensorInputs[].reference",
@@ -1291,7 +1291,7 @@
                         {
                           "key": "devices[].pictureModes",
                           "type": "tabarray",
-                          "title": "{{ value.name || 'new mode' }}",
+                          "title": "{{ value.name || 'mode' }}",
                           "items": [
                             "devices[].pictureModes[].name",
                             "devices[].pictureModes[].reference"
@@ -1315,7 +1315,7 @@
                         {
                           "key": "devices[].soundModes",
                           "type": "tabarray",
-                          "title": "{{ value.name || 'new mode' }}",
+                          "title": "{{ value.name || 'mode' }}",
                           "items": [
                             "devices[].soundModes[].name",
                             "devices[].soundModes[].reference"
