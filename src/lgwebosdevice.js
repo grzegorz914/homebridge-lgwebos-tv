@@ -644,7 +644,6 @@ class LgWebOsDevice extends EventEmitter {
                 //prepare television service 
                 if (!this.disableTvService) {
                     const debug2 = this.enableDebugMode ? this.emit('debug', `Prepare television service`) : false;
-                    const displayOrder = accessory.inputs.map(input => input.config.identifier);
                     this.televisionService = new Service.Television(`${accessoryName} Television`, 'Television')
                         .setCharacteristic(Characteristic.ConfiguredName, accessoryName)
                         .setCharacteristic(Characteristic.SleepDiscoveryMode, 1);
