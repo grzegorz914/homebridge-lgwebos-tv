@@ -644,8 +644,8 @@ class LgWebOsDevice extends EventEmitter {
                 //prepare television service 
                 if (!this.disableTvService) {
                     const debug2 = this.enableDebugMode ? this.emit('debug', `Prepare television service`) : false;
-                    this.televisionService = new Service.Television(`${accessoryName} Television`, 'Television')
-                        .setCharacteristic(Characteristic.ConfiguredName, accessoryName)
+                    this.televisionService = new Service.Television(`${accessoryName} Television`, 'Television');
+                    this.televisionService.setCharacteristic(Characteristic.ConfiguredName, accessoryName)
                         .setCharacteristic(Characteristic.SleepDiscoveryMode, 1);
 
                     this.televisionService.getCharacteristic(Characteristic.Active)
@@ -1015,6 +1015,7 @@ class LgWebOsDevice extends EventEmitter {
                     const inputsCount = inputs.length;
                     const possibleInputsCount = 80 - this.allServices.length;
                     const maxInputsCount = inputsCount >= possibleInputsCount ? possibleInputsCount : inputsCount;
+                    inputs.sort((a, b) => a.name.localeCompare(b.name));
                     for (let i = 0; i < maxInputsCount; i++) {
                         //input
                         const input = inputs[i];
@@ -1026,7 +1027,7 @@ class LgWebOsDevice extends EventEmitter {
                         const inputReference = input.reference;
 
                         //get input name
-                        const name = input.name ?? `App ${i}`;
+                        const name = input.name ?? 'App/Input';
                         const inputName = this.savedInputsNames[inputReference] ?? name;
 
                         //get input type
