@@ -352,20 +352,18 @@ class LgWebOsDevice extends EventEmitter {
                 }
             })
             .on('currentApp', (appId) => {
-                const inputIdentifier = this.inputsConfigured.findIndex(index => index.reference === appId) + 1;
+                const inputIdentifier = this.inputsConfigured.findIndex(index => index.reference === appId) + 1 ?? 0;
 
-                if (this.televisionService && inputIdentifier !== 0) {
-                    this.inputIdentifier = inputIdentifier;
+                if (this.televisionService && inputIdentifier > 0) {
                     this.televisionService
                         .updateCharacteristic(Characteristic.ActiveIdentifier, inputIdentifier);
                 };
 
-                if (this.sensorInputService && inputIdentifier !== 0) {
+                if (this.sensorInputService && inputIdentifier > 0) {
                     const state = this.power ? (this.inputIdentifier !== inputIdentifier) : false;
                     this.sensorInputService
                         .updateCharacteristic(Characteristic.ContactSensorState, state)
                     this.sensorInputState = state;
-                    this.inputIdentifier = inputIdentifier;
                 }
 
                 if (appId !== undefined) {
@@ -381,6 +379,7 @@ class LgWebOsDevice extends EventEmitter {
                         }
                     }
                 }
+                this.inputIdentifier = inputIdentifier > 0 ? inputIdentifier : this.inputIdentifier;
             })
             .on('audioState', (volume, mute, audioOutput) => {
 
@@ -434,17 +433,15 @@ class LgWebOsDevice extends EventEmitter {
                 }
             })
             .on('currentChannel', (channelId, channelName, channelNumber) => {
-                const inputIdentifier = this.inputsConfigured.findIndex(index => index.reference === channelId) + 1;
+                const inputIdentifier = this.inputsConfigured.findIndex(index => index.reference === channelId) + 1 ?? 0;
 
-                if (this.televisionService && inputIdentifier !== 0) {
-                    this.inputIdentifier = inputIdentifier;
+                if (this.televisionService && inputIdentifier > 0) {
                     this.televisionService
                         .updateCharacteristic(Characteristic.ActiveIdentifier, inputIdentifier);
                 };
 
-                if (this.sensorChannelService && inputIdentifier !== 0) {
+                if (this.sensorChannelService && inputIdentifier > 0) {
                     this.sensorChannelState = state;
-                    this.inputIdentifier = inputIdentifier;
 
                     const state = this.power ? (this.inputIdentifier !== inputIdentifier) : false;
                     this.sensorChannelService
@@ -462,6 +459,7 @@ class LgWebOsDevice extends EventEmitter {
                 if (channelNumber !== undefined) {
                     this.channelNumber = channelNumber;
                 }
+                this.inputIdentifier = inputIdentifier > 0 ? inputIdentifier : this.inputIdentifier;
             })
             .on('pictureSettings', (brightness, backlight, contrast, color, pictureMode, power) => {
 
@@ -687,9 +685,10 @@ class LgWebOsDevice extends EventEmitter {
                         })
                         .onSet(async (inputIdentifier) => {
                             try {
-                                const inputMode = this.inputsConfigured[inputIdentifier].mode;
-                                const inputName = this.inputsConfigured[inputIdentifier].name;
-                                const inputReference = this.inputsConfigured[inputIdentifier].reference;
+                                const identifier = inputIdentifier - 1;
+                                const inputMode = this.inputsConfigured[identifier].mode;
+                                const inputName = this.inputsConfigured[identifier].name;
+                                const inputReference = this.inputsConfigured[identifier].reference;
 
                                 switch (this.power) {
                                     case false:
