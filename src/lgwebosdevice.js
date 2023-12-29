@@ -28,6 +28,7 @@ class LgWebOsDevice extends EventEmitter {
         this.filterSystemApps = this.getInputsFromDevice ? config.filterSystemApps : false;
         this.disableLoadDefaultInputs = config.disableLoadDefaultInputs || false;
         this.inputs = config.inputs || [];
+        this.inputsDisplayOrder = config.inputsDisplayOrder || 0;
         this.buttons = config.buttons || [];
         this.sensorPower = config.sensorPower || false;
         this.sensorPixelRefresh = config.sensorPixelRefresh || false;
@@ -82,10 +83,8 @@ class LgWebOsDevice extends EventEmitter {
 
         //tv variable
         this.inputs = this.disableLoadDefaultInputs ? this.inputs : [...CONSTANS.DefaultInputs, ...this.inputs];
-        this.inputsMode = [];
-        this.inputsName = [];
-        this.inputsReference = [];
         this.inputIdentifier = 0;
+        this.inputsConfigured = [];
         this.displayOrder = [];
 
         this.startPrepareAccessory = true;
@@ -109,8 +108,7 @@ class LgWebOsDevice extends EventEmitter {
         this.invertMediaState = false;
 
         //sensors variable
-        this.sensorInputsReference = [];
-        this.sensorInputsDisplayType = [];
+        this.sensorInputs = [];
         this.sensorVolumeState = false;
         this.sensorInputState = false;
         this.sensorChannelState = false;
@@ -354,15 +352,15 @@ class LgWebOsDevice extends EventEmitter {
                 }
             })
             .on('currentApp', (appId) => {
-                const inputIdentifier = this.inputsReference.includes(appId) ? this.inputsReference.findIndex(index => index === appId) : undefined;
+                const inputIdentifier = this.inputsConfigured.findIndex(index => index.reference === appId) + 1;
 
-                if (this.televisionService && inputIdentifier !== undefined) {
+                if (this.televisionService && inputIdentifier !== 0) {
                     this.inputIdentifier = inputIdentifier;
                     this.televisionService
                         .updateCharacteristic(Characteristic.ActiveIdentifier, inputIdentifier);
                 };
 
-                if (this.sensorInputService && inputIdentifier !== undefined) {
+                if (this.sensorInputService && inputIdentifier !== 0) {
                     const state = this.power ? (this.inputIdentifier !== inputIdentifier) : false;
                     this.sensorInputService
                         .updateCharacteristic(Characteristic.ContactSensorState, state)
@@ -375,8 +373,8 @@ class LgWebOsDevice extends EventEmitter {
                     if (this.sensorInputsServices) {
                         const servicesCount = this.sensorInputsServices.length;
                         for (let i = 0; i < servicesCount; i++) {
-                            const state = this.power ? (this.sensorInputsReference[i] === appId) : false;
-                            const displayType = this.sensorInputsDisplayType[i];
+                            const state = this.power ? (this.sensorInputs[i].reference === appId) : false;
+                            const displayType = this.sensorInputs[i].displayType;
                             const characteristicType = [Characteristic.MotionDetected, Characteristic.OccupancyDetected, Characteristic.ContactSensorState][displayType];
                             this.sensorInputsServices[i]
                                 .updateCharacteristic(characteristicType, state);
@@ -436,15 +434,15 @@ class LgWebOsDevice extends EventEmitter {
                 }
             })
             .on('currentChannel', (channelId, channelName, channelNumber) => {
-                const inputIdentifier = this.inputsReference.includes(channelId) ? this.inputsReference.findIndex(index => index === channelId) : undefined;
+                const inputIdentifier = this.inputsConfigured.findIndex(index => index.reference === channelId) + 1;
 
-                if (this.televisionService && inputIdentifier !== undefined) {
+                if (this.televisionService && inputIdentifier !== 0) {
                     this.inputIdentifier = inputIdentifier;
                     this.televisionService
                         .updateCharacteristic(Characteristic.ActiveIdentifier, inputIdentifier);
                 };
 
-                if (this.sensorChannelService && inputIdentifier !== undefined) {
+                if (this.sensorChannelService && inputIdentifier !== 0) {
                     this.sensorChannelState = state;
                     this.inputIdentifier = inputIdentifier;
 
@@ -600,10 +598,6 @@ class LgWebOsDevice extends EventEmitter {
                         const accessory = await this.prepareAccessory();
                         this.emit('publishAccessory', accessory);
                         this.startPrepareAccessory = false;
-
-                        if (this.televisionService) {
-                            this.televisionService.updateCharacteristic(Characteristic.DisplayOrder, Encode(1, this.displayOrder).toString('base64'));
-                        }
                     }
                 } catch (error) {
                     this.emit('error', `Prepare accessory error: ${error}`);
@@ -685,17 +679,17 @@ class LgWebOsDevice extends EventEmitter {
                     this.televisionService.getCharacteristic(Characteristic.ActiveIdentifier)
                         .onGet(async () => {
                             const inputIdentifier = this.inputIdentifier;
-                            const inputMode = this.inputsMode[inputIdentifier];
-                            const inputName = this.inputsName[inputIdentifier];
-                            const inputReference = this.inputsReference[inputIdentifier];
+                            const inputMode = this.inputsConfigured[inputIdentifier].mode;
+                            const inputName = this.inputsConfigured[inputIdentifier].name;
+                            const inputReference = this.inputsConfigured[inputIdentifier].reference;
                             const info = this.disableLogInfo ? false : this.emit('message', `${inputMode === 0 ? 'Input' : 'Channel'}, Name: ${inputName}, Reference: ${inputReference}`);
                             return inputIdentifier;
                         })
                         .onSet(async (inputIdentifier) => {
                             try {
-                                const inputMode = this.inputsMode[inputIdentifier];
-                                const inputName = this.inputsName[inputIdentifier];
-                                const inputReference = this.inputsReference[inputIdentifier];
+                                const inputMode = this.inputsConfigured[inputIdentifier].mode;
+                                const inputName = this.inputsConfigured[inputIdentifier].name;
+                                const inputReference = this.inputsConfigured[inputIdentifier].reference;
 
                                 switch (this.power) {
                                     case false:
@@ -1017,11 +1011,22 @@ class LgWebOsDevice extends EventEmitter {
                     }
 
                     //check possible inputs count (max 80)
-                    const inputs = filteredInputsArr;
+                    let inputs = filteredInputsArr;
+                    switch (this.inputsDisplayOrder) {
+                        case 0:
+                            inputs = inputs
+                            break;
+                        case 1:
+                            inputs.sort((a, b) => a.name.localeCompare(b.name));
+                            break;
+                        case 2:
+                            inputs.sort((a, b) => a.reference.localeCompare(b.reference));
+                            break;
+                    }
+
                     const inputsCount = inputs.length;
                     const possibleInputsCount = 80 - this.allServices.length;
                     const maxInputsCount = inputsCount >= possibleInputsCount ? possibleInputsCount : inputsCount;
-                    inputs.sort((a, b) => a.name.localeCompare(b.name));
                     for (let i = 0; i < maxInputsCount; i++) {
                         //input
                         const input = inputs[i];
@@ -1049,7 +1054,7 @@ class LgWebOsDevice extends EventEmitter {
                         if (inputReference && inputName && inputMode >= 0) {
                             const inputService = new Service.InputSource(`${inputName} ${i}`, `Input ${i}`);
                             inputService
-                                .setCharacteristic(Characteristic.Identifier, i)
+                                .setCharacteristic(Characteristic.Identifier, i + 1)
                                 .setCharacteristic(Characteristic.Name, inputName)
                                 .setCharacteristic(Characteristic.IsConfigured, isConfigured)
                                 .setCharacteristic(Characteristic.InputSourceType, inputType)
@@ -1060,7 +1065,7 @@ class LgWebOsDevice extends EventEmitter {
                                     return inputName;
                                 })
                                 .onSet(async (value) => {
-                                    const valueExist = value === this.savedInputsNames[inputReference];
+                                    const valueExist = value === inputName;
                                     if (valueExist) {
                                         return;
                                     };
@@ -1083,7 +1088,7 @@ class LgWebOsDevice extends EventEmitter {
                                     return targetVisibility;
                                 })
                                 .onSet(async (state) => {
-                                    const stateExist = state === this.savedInputsTargetVisibility[inputReference];
+                                    const stateExist = state === currentVisibility;
                                     if (stateExist) {
                                         return;
                                     };
@@ -1102,9 +1107,7 @@ class LgWebOsDevice extends EventEmitter {
                                 });
 
                             this.displayOrder.push(i + 1);
-                            this.inputsMode.push(inputMode);
-                            this.inputsName.push(inputName);
-                            this.inputsReference.push(inputReference);
+                            this.inputsConfigured.push(input);
 
                             this.televisionService.addLinkedService(inputService);
                             this.allServices.push(inputService);
@@ -1113,6 +1116,7 @@ class LgWebOsDevice extends EventEmitter {
                             this.emit('message', `Input Name: ${inputName ? inputName : 'Missing'}, Reference: ${inputReference ? inputReference : 'Missing'}, Mode: ${inputMode ? inputMode : 'Missing'}.`);
                         };
                     }
+                    this.televisionService.setCharacteristic(Characteristic.DisplayOrder, Encode(1, this.displayOrder).toString('base64'));
                 }
 
                 //Prepare volume service
@@ -1668,8 +1672,7 @@ class LgWebOsDevice extends EventEmitter {
                                         return state;
                                     });
 
-                                this.sensorInputsReference.push(sensorInputReference);
-                                this.sensorInputsDisplayType.push(sensorInputDisplayType);
+                                this.sensorInputs.push(sensorInput);
                                 this.sensorInputsServices.push(sensorInputService);
                                 this.allServices.push(sensorInputService);
                                 accessory.addService(sensorInputService);

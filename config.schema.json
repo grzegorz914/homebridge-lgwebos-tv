@@ -60,6 +60,35 @@
                 "functionBody": "return model.devices[arrayIndices].getInputsFromDevice === true"
               }
             },
+            "inputsDisplayOrder": {
+              "title": "Inputs Display Order",
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 2,
+              "default": 0,
+              "description": "Here select display order of the inputs list.",
+              "oneOf": [
+                {
+                  "title": "None",
+                  "enum": [
+                    0
+                  ]
+                },
+                {
+                  "title": "Alphabetically Name",
+                  "enum": [
+                    1
+                  ]
+                },
+                {
+                  "title": "Alphabetically Reference",
+                  "enum": [
+                    2
+                  ]
+                }
+              ],
+              "required": true
+            },
             "inputs": {
               "type": "array",
               "items": {
@@ -1193,6 +1222,7 @@
             "devices[].getInputsFromDevice",
             "devices[].filterSystemApps",
             "devices[].disableLoadDefaultInputs",
+            "devices[].inputsDisplayOrder",
             {
               "key": "devices[].inputs",
               "type": "tabarray",

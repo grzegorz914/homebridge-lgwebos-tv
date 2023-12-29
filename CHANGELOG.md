@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+## [2.15.0] - (29.12.2023)
+## Changes
+- added possibility to select display inputs order, possible by `None`, `Alphabetically Name`, `Alphabetically Reference`
+- config schema updated
+- cleanup
+
 ## [2.14.0] - (05.11.2023)
 ## Changes
 - added possibility to disable load defaults inputs

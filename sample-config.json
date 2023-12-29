@@ -25,6 +25,7 @@
                     "getInputsFromDevice": false,
                     "filterSystemApps": false,
                     "disableLoadDefaultInputs": false,
+                    "inputsDisplayOrder": 0,
                     "inputs": [
                         {
                             "name": "HDMI 3",
