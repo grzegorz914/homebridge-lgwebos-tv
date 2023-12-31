@@ -25,6 +25,7 @@ class LgWebOsSocket extends EventEmitter {
         this.pixelRefresh = false;
         this.screenState = false;
         this.tvScreenState = 'Suspend';
+        this.appId = '';
         this.cidCount = 0;
         this.webOS = 2.0;
         this.modelName = 'LG TV';
@@ -349,6 +350,9 @@ class LgWebOsSocket extends EventEmitter {
                                 this.emit('powerState', this.power, this.pixelRefresh, this.screenState, this.tvScreenState);
                                 const disconnect = !this.power ? socket.emit('powerOff') : false;
 
+                                //emit screen saver as appId
+                                const emitAppId = this.tvScreenState === 'Screen Saver' ? this.emit('currentApp', 'com.webos.app.screensaver') : this.emit('currentApp', this.appId);
+
                                 //restFul
                                 const restFul = restFulEnabled ? this.emit('restFul', 'power', messageData) : false;
 
@@ -378,6 +382,7 @@ class LgWebOsSocket extends EventEmitter {
                                 const appId = messageData.appId;
 
                                 this.emit('currentApp', appId);
+                                this.appId = appId;
 
                                 //restFul
                                 const restFul = restFulEnabled ? this.emit('restFul', 'currentapp', messageData) : false;
@@ -430,6 +435,7 @@ class LgWebOsSocket extends EventEmitter {
                                 const channelId = messageData.channelId;
                                 const channelName = messageData.channelName;
                                 const channelNumber = messageData.channelNumber;
+
                                 this.emit('currentChannel', channelId, channelName, channelNumber);
 
                                 //restFul
