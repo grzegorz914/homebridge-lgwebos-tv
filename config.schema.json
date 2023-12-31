@@ -64,7 +64,7 @@
               "title": "Inputs Display Order",
               "type": "integer",
               "minimum": 0,
-              "maximum": 2,
+              "maximum": 4,
               "default": 0,
               "description": "Here select display order of the inputs list.",
               "oneOf": [
@@ -75,15 +75,27 @@
                   ]
                 },
                 {
-                  "title": "Alphabetically Name",
+                  "title": "Ascending by Name",
                   "enum": [
                     1
                   ]
                 },
                 {
-                  "title": "Alphabetically Reference",
+                  "title": "Descending by Name",
                   "enum": [
                     2
+                  ]
+                },
+                {
+                  "title": "Ascending by Reference",
+                  "enum": [
+                    3
+                  ]
+                },
+                {
+                  "title": "Descending by Reference",
+                  "enum": [
+                    4
                   ]
                 }
               ],

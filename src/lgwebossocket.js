@@ -280,7 +280,7 @@ class LgWebOsSocket extends EventEmitter {
                                     this.emit('error', `Prepare accessory error: ${error}.`);
                                 }
 
-                                await new Promise(resolve => setTimeout(resolve, 2000));
+                                await new Promise(resolve => setTimeout(resolve, 2500));
                                 //Subscribe tv status
                                 try {
                                     const debug = debugLog ? this.emit('debug', `Subscirbe tv status.`) : false;

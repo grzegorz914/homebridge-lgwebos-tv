@@ -71,7 +71,7 @@ Tested with OLED65G6V, 32LM6300PLA, 49SK8500, OLED65C7T, 55SK800PLB, OLED48CX.
 | `getInputsFromDevice` | This enable load inputs and apps direct from device. |
 | `filterSystemApps` | This enable filter sysem apps, only if `getInputsFromDevice` is `true`. |
 | `disableLoadDefaultInputs` | This function disable load default inputs `Live TV`, `HDMI 1`, `HDMI 2` in to the inputs list. |
-| `inputsDisplayOrder` | Here select display order of the inputs list, `None`, `Alphabetically Name`, `Alphabetically Reference`. |
+| `inputsDisplayOrder` | Here select display order of the inputs list, `None`, `Ascending by Name`, `Descending by Name`, `Ascending by Reference`, `Ascending by Reference`.. |
 | `inputs.name` | Here set *Name* which You want expose to the *Homebridge/HomeKit*. |
 | `inputs.reference` | Here set *Reference*. `Live TV`, `HDMI 1`, `HDMI 2` are created by default. |
 | `inputs.mode` | Here select input mode, `Input/App`, `Live TV Channel`. |
