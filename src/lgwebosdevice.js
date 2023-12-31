@@ -378,6 +378,7 @@ class LgWebOsDevice extends EventEmitter {
                         }
                     }
                 }
+                this.inputIdentifier = inputIdentifier;
             })
             .on('audioState', (volume, mute, audioOutput) => {
 
