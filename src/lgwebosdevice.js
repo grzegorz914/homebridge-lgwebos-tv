@@ -84,7 +84,7 @@ class LgWebOsDevice extends EventEmitter {
         //tv variable
         this.inputs = this.disableLoadDefaultInputs ? this.inputs : [...CONSTANS.DefaultInputs, ...this.inputs];
         this.inputsConfigured = [];
-        this.inputIdentifier = 0;
+        this.inputIdentifier = 1;
 
         this.power = false;
         this.pixelRefresh = false;
