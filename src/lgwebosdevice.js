@@ -673,15 +673,16 @@ class LgWebOsDevice extends EventEmitter {
                     this.televisionService.getCharacteristic(Characteristic.ActiveIdentifier)
                         .onGet(async () => {
                             const inputIdentifier = this.inputIdentifier;
-                            const inputMode = this.inputsConfigured[inputIdentifier].mode;
-                            const inputName = this.inputsConfigured[inputIdentifier].name;
-                            const inputReference = this.inputsConfigured[inputIdentifier].reference;
+                            const index = this.inputsConfigured.findIndex(input => input.identifier === inputIdentifier);
+                            const inputMode = this.inputsConfigured[index].mode;
+                            const inputName = this.inputsConfigured[index].name;
+                            const inputReference = this.inputsConfigured[index].reference;
                             const info = this.disableLogInfo ? false : this.emit('message', `${inputMode === 0 ? 'Input' : 'Channel'}, Name: ${inputName}, Reference: ${inputReference}`);
                             return inputIdentifier;
                         })
-                        .onSet(async (inputIdentifier) => {
+                        .onSet(async (activeIdentifier) => {
                             try {
-                                const index = this.inputsConfigured.findIndex(input => input.identifier === inputIdentifier) ?? this.inputIdentifier;
+                                const index = this.inputsConfigured.findIndex(input => input.identifier === activeIdentifier);
                                 const inputMode = this.inputsConfigured[index].mode;
                                 const inputName = this.inputsConfigured[index].name;
                                 const inputReference = this.inputsConfigured[index].reference;
@@ -689,7 +690,7 @@ class LgWebOsDevice extends EventEmitter {
                                 switch (this.power) {
                                     case false:
                                         await new Promise(resolve => setTimeout(resolve, 4000));
-                                        const tryAgain = this.power ? false : this.televisionService.setCharacteristic(Characteristic.ActiveIdentifier, inputIdentifier);
+                                        const tryAgain = this.power ? this.televisionService.setCharacteristic(Characteristic.ActiveIdentifier, activeIdentifier) : false;
                                         break;
                                     case true:
                                         switch (inputMode) {
@@ -1087,7 +1088,7 @@ class LgWebOsDevice extends EventEmitter {
                                     return inputName;
                                 })
                                 .onSet(async (value) => {
-                                    if (value === this.savedInputsNames[inputReference]) {
+                                    if (value === inputName) {
                                         return;
                                     }
 
@@ -1105,7 +1106,7 @@ class LgWebOsDevice extends EventEmitter {
                                     return targetVisibility;
                                 })
                                 .onSet(async (state) => {
-                                    if (state === this.savedInputsTargetVisibility[inputReference]) {
+                                    if (state === targetVisibility) {
                                         return;
                                     }
 
