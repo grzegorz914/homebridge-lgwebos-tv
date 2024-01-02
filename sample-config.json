@@ -53,19 +53,22 @@
                             "name": "HDMI 3",
                             "reference": "com.webos.app.hdmi3",
                             "mode": 0,
-                            "displayType": 0
+                            "displayType": 0,
+                            "namePrefix": false
                         },
                         {
                             "name": "BBC ONE HD",
                             "reference": "1_45_101_101_16521_17540_9018",
                             "mode": 1,
-                            "displayType": 0
+                            "displayType": 0,
+                            "namePrefix": false
                         },
                         {
                             "name": "Menu Up",
                             "mode": 2,
                             "command": "UP",
-                            "displayType": 0
+                            "displayType": 0,
+                            "namePrefix": false
                         }
                     ],
                     "backlightControl": false,
@@ -76,7 +79,8 @@
                     "pictureModes": [
                         {
                             "name": "Cinema",
-                            "reference": "cinema"
+                            "reference": "cinema",
+                            "namePrefix": false
                         }
                     ],
                     "volumeControl": 0,
@@ -84,7 +88,8 @@
                     "soundModes": [
                         {
                             "name": "Cinema",
-                            "reference": "movie"
+                            "reference": "movie",
+                            "namePrefix": false
                         }
                     ],
                     "sensorPower": false,
@@ -101,7 +106,8 @@
                         {
                             "name": "HDMI 1",
                             "reference": "com.webos.app.hdmi1",
-                            "displayType": -1
+                            "displayType": -1,
+                            "namePrefix": false
                         }
                     ],
                     "enableDebugMode": false,

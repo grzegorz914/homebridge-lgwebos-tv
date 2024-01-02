@@ -1393,9 +1393,11 @@ class LgWebOsDevice extends EventEmitter {
                         for (let i = 0; i < pictureModesCount; i++) {
                             const pictureModeName = pictureModes[i].name;
                             const pictureModeReference = pictureModes[i].reference;
+                            const pictureModeNamePrefix = pictureModes[i].namePrefix;
+                            const name = pictureModeNamePrefix ? `${accessoryName} ${pictureModeName}` : pictureModeName;
                             const pictureModeService = new Service.Switch(`${accessoryName} ${pictureModeName}`, `Picture Mode ${i}`);
                             pictureModeService.addOptionalCharacteristic(Characteristic.ConfiguredName);
-                            pictureModeService.setCharacteristic(Characteristic.ConfiguredName, `${accessoryName} ${pictureModeName}`);
+                            pictureModeService.setCharacteristic(Characteristic.ConfiguredName, name);
                             pictureModeService.getCharacteristic(Characteristic.On)
                                 .onGet(async () => {
                                     const state = this.power ? (this.pictureMode === pictureModeReference) : false;
@@ -1467,11 +1469,14 @@ class LgWebOsDevice extends EventEmitter {
                     const soundModes = this.soundModes;
                     const soundModesCount = soundModes.length;
                     for (let i = 0; i < soundModesCount; i++) {
+                        //get button name prefix
                         const soundModeName = soundModes[i].name;
                         const soundModeReference = soundModes[i].reference;
+                        const soundModeNamePrefix = soundModes[i].namePrefix;
+                        const name = soundModeNamePrefix ? `${accessoryName} ${soundModeName}` : soundModeName;
                         const soundModeService = new Service.Switch(`${accessoryName} ${soundModeName}`, `Sound Mode ${i}`);
                         soundModeService.addOptionalCharacteristic(Characteristic.ConfiguredName);
-                        soundModeService.setCharacteristic(Characteristic.ConfiguredName, `${accessoryName} ${soundModeName}`);
+                        soundModeService.setCharacteristic(Characteristic.ConfiguredName, name);
                         soundModeService.getCharacteristic(Characteristic.On)
                             .onGet(async () => {
                                 const state = this.power ? (this.soundMode === soundModeReference) : false;
@@ -1671,13 +1676,17 @@ class LgWebOsDevice extends EventEmitter {
                         //get sensor display type
                         const sensorInputDisplayType = sensorInput.displayType >= 0 ? sensorInput.displayType : -1;
 
+                        //get sensor name prefix
+                        const namePrefix = sensorInput.namePrefix ?? false;
+
                         if (sensorInputDisplayType >= 0) {
                             if (sensorInputName && sensorInputReference) {
+                                const name = namePrefix ? `${accessoryName} ${sensorInputName}` : sensorInputNa
                                 const serviceType = [Service.MotionSensor, Service.OccupancySensor, Service.ContactSensor][sensorInputDisplayType];
                                 const characteristicType = [Characteristic.MotionDetected, Characteristic.OccupancyDetected, Characteristic.ContactSensorState][sensorInputDisplayType];
                                 const sensorInputService = new serviceType(`${accessoryName} ${sensorInputName}`, `Sensor ${i}`);
                                 sensorInputService.addOptionalCharacteristic(Characteristic.ConfiguredName);
-                                sensorInputService.setCharacteristic(Characteristic.ConfiguredName, `${accessoryName} ${sensorInputName}`);
+                                sensorInputService.setCharacteristic(Characteristic.ConfiguredName, name);
                                 sensorInputService.getCharacteristic(characteristicType)
                                     .onGet(async () => {
                                         const state = this.power ? (sensorInputReference === this.appId) : false;
@@ -1724,12 +1733,16 @@ class LgWebOsDevice extends EventEmitter {
                         //get button display type
                         const buttonDisplayType = button.displayType >= 0 ? button.displayType : -1;
 
+                        //get button name prefix
+                        const namePrefix = button.namePrefix ?? false;
+
                         if (buttonDisplayType >= 0) {
                             if (buttonName && buttonReferenceCommand && buttonMode) {
                                 const serviceType = [Service.Outlet, Service.Switch][buttonDisplayType];
+                                const name = namePrefix ? `${accessoryName} ${buttonName}` : buttonName;
                                 const buttonService = new serviceType(`${accessoryName} ${buttonName}`, `Button ${i}`);
                                 buttonService.addOptionalCharacteristic(Characteristic.ConfiguredName);
-                                buttonService.setCharacteristic(Characteristic.ConfiguredName, `${accessoryName} ${buttonName}`);
+                                buttonService.setCharacteristic(Characteristic.ConfiguredName, name);
                                 buttonService.getCharacteristic(Characteristic.On)
                                     .onGet(async () => {
                                         const state = false;

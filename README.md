@@ -80,6 +80,7 @@ Tested with OLED65G6V, 32LM6300PLA, 49SK8500, OLED65C7T, 55SK800PLB, OLED48CX.
 | `buttons.reference` | Here set *Reference*, only for `Input/App` or `Live TV Channel` mode, in other case leave empty. |
 | `buttons.command` | Here select `Remote Control` command which will be assigned to the button. |
 | `buttons.displayType` | Here select display type in HomeKit app, possible `None/Disabled`, `Outlet`, `Switch`.|
+| `buttons.namePrefix` | Here enable/disable the accessory name as a prefix for button name.|
 | `sensorPower`| If enabled, then the Power will be exposed as a `Contact Sensor` (active on Power ON) to use with automations. |
 | `sensorPixelRefresh`| If enabled, then the PoPixel Refresh will be exposed as a `Contact Sensor` (active on Pixel Refresh ON) to use with automations. |
 | `sensorVolume`| If enabled, then the Volume will be exposed as a `Contact Sensor` (active on every Volume change) to use with automations. |
@@ -93,6 +94,13 @@ Tested with OLED65G6V, 32LM6300PLA, 49SK8500, OLED65C7T, 55SK800PLB, OLED48CX.
 | `sensorInputs.name` | Here set own *Name* which You want expose to the *Homebridge/HomeKit* for this sensor. |
 | `sensorInputs.reference` | Here set *Reference* like `com.webos.app.hdmi1` to be exposed as sensor (active on switch to this Input). |
 | `sensorInputs.displayType` | Here select sensor type to be exposed in HomeKit app, possible `None/Disabled`, `Motion Sensor`, `Occupancy Sensor`, `Contact Sensor`. |
+| `sensorInputs.namePrefix` | Here enable/disable the accessory name as a prefix for sensor name.|
+| `pictureModes.name` | Here set own *Name* which You want expose to the *Homebridge/HomeKit* for this sensor. |
+| `pictureModes.reference` | Here set *Reference* like `com.webos.app.hdmi1` to be exposed as sensor (active on switch to this Input). |
+| `pictureModes.namePrefix` | Here enable/disable the accessory name as a prefix for picture mode.|
+| `soundModes.name` | Here set own *Name* which You want expose to the *Homebridge/HomeKit* for this sensor. |
+| `soundModes.reference` | Here set *Reference* like `com.webos.app.hdmi1` to be exposed as sensor (active on switch to this Input). |
+| `soundModes.namePrefix` | Here enable/disable the accessory name as a prefix for sound mode.|
 | `enableDebugMode` | If enabled, deep log will be present in homebridge console. |
 | `disableLogInfo` | If enabled, disable log info, all values and state will not be displayed in Homebridge log console. |
 | `disableLogDeviceInfo` | If enabled, add ability to disable log device info by every connections device to the network. |

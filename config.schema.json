@@ -559,6 +559,13 @@
                     ],
                     "description": "Here select display type in HomeKit app.",
                     "required": true
+                  },
+                  "namePrefix": {
+                    "title": "Prefix",
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Here enable/disable the accessory name as a prefix for button name.",
+                    "required": true
                   }
                 }
               }
@@ -684,6 +691,13 @@
                       }
                     ],
                     "description": "Here select sensor type to be exposed in HomeKit app.",
+                    "required": true
+                  },
+                  "namePrefix": {
+                    "title": "Prefix",
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Here enable/disable the accessory name as a prefix for sensor name.",
                     "required": true
                   }
                 }
@@ -895,6 +909,13 @@
                       }
                     ],
                     "required": true
+                  },
+                  "namePrefix": {
+                    "title": "Prefix",
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Here enable/disable the accessory name as a prefix for picture mode.",
+                    "required": true
                   }
                 }
               }
@@ -999,6 +1020,13 @@
                         ]
                       }
                     ],
+                    "required": true
+                  },
+                  "namePrefix": {
+                    "title": "Prefix",
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Here enable/disable the accessory name as a prefix for sound mode.",
                     "required": true
                   }
                 }
@@ -1266,7 +1294,8 @@
                 "devices[].buttons[].mode",
                 "devices[].buttons[].reference",
                 "devices[].buttons[].command",
-                "devices[].buttons[].displayType"
+                "devices[].buttons[].displayType",
+                "devices[].buttons[].namePrefix"
               ]
             }
           ]
@@ -1311,7 +1340,8 @@
                           "items": [
                             "devices[].sensorInputs[].name",
                             "devices[].sensorInputs[].reference",
-                            "devices[].sensorInputs[].displayType"
+                            "devices[].sensorInputs[].displayType",
+                            "devices[].sensorInputs[].namePrefix"
                           ]
                         }
                       ]
@@ -1336,7 +1366,8 @@
                           "title": "{{ value.name || 'mode' }}",
                           "items": [
                             "devices[].pictureModes[].name",
-                            "devices[].pictureModes[].reference"
+                            "devices[].pictureModes[].reference",
+                            "devices[].pictureModes[].namePrefix"
                           ],
                           "condition": {
                             "functionBody": "return model.devices[arrayIndices].pictureModeControl === true;"
@@ -1360,7 +1391,8 @@
                           "title": "{{ value.name || 'mode' }}",
                           "items": [
                             "devices[].soundModes[].name",
-                            "devices[].soundModes[].reference"
+                            "devices[].soundModes[].reference",
+                            "devices[].soundModes[].namePrefix"
                           ],
                           "condition": {
                             "functionBody": "return model.devices[arrayIndices].soundModeControl === true;"
