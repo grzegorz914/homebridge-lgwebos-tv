@@ -352,6 +352,10 @@ class LgWebOsDevice extends EventEmitter {
                     this.sensorScreenSaverService
                         .updateCharacteristic(Characteristic.ContactSensorState, state)
                 }
+
+                if (!this.disableLogInfo) {
+                    this.emit('message', `Power: ${power ? 'ON' : 'OFF'}`);
+                };
             })
             .on('currentApp', (appId) => {
                 const index = this.inputsConfigured.findIndex(input => input.reference === appId) ?? -1;
@@ -383,6 +387,11 @@ class LgWebOsDevice extends EventEmitter {
                     }
                 }
                 this.inputIdentifier = inputIdentifier;
+
+                if (!this.disableLogInfo) {
+                    this.emit('message', `Input Name: ${this.inputsConfigured[index].name}`);
+                    this.emit('message', `Reference: ${appId}`);
+                };
             })
             .on('audioState', (volume, mute, audioOutput) => {
 
@@ -434,6 +443,11 @@ class LgWebOsDevice extends EventEmitter {
                     this.sensorMuteService
                         .updateCharacteristic(Characteristic.ContactSensorState, state);
                 }
+
+                if (!this.disableLogInfo) {
+                    this.emit('message', `Volume: ${volume} %`);
+                    this.emit('message', `Mute: ${mute ? 'ON' : 'OFF'}`);
+                };
             })
             .on('currentChannel', (channelId, channelName, channelNumber) => {
                 const index = this.inputsConfigured.findIndex(input => input.reference === channelId) ?? -1;
@@ -464,6 +478,12 @@ class LgWebOsDevice extends EventEmitter {
                     this.channelNumber = channelNumber;
                 }
                 this.inputIdentifier = inputIdentifier;
+
+                if (!this.disableLogInfo) {
+                    this.emit('message', `Channel Number: ${channelNumber}`);
+                    this.emit('message', `Channel Name: ${channelName}`);
+                    this.emit('message', `Reference: ${channelId}`);
+                };
             })
             .on('pictureSettings', (brightness, backlight, contrast, color, pictureMode, power) => {
 
@@ -523,6 +543,14 @@ class LgWebOsDevice extends EventEmitter {
                     this.sensorPicturedModeService
                         .updateCharacteristic(Characteristic.ContactSensorState, state)
                 }
+
+                if (!this.disableLogInfo) {
+                    this.emit('message', `Brightness: ${brightness} %`);
+                    this.emit('message', `Backlight: ${backlight} %`);
+                    this.emit('message', `Contrast: ${contrast} %`);
+                    this.emit('message', `Color: ${color} %`);
+                    this.emit('message', `Picture Mode: ${pictureMode}`);
+                };
             })
             .on('soundMode', (soundMode, power) => {
 
@@ -545,6 +573,10 @@ class LgWebOsDevice extends EventEmitter {
                     this.sensorSoundModeService
                         .updateCharacteristic(Characteristic.ContactSensorState, state)
                 }
+
+                if (!this.disableLogInfo) {
+                    this.emit('message', `Sound Mode: ${soundMode}`);
+                };
             })
             .on('prepareAccessory', async () => {
                 try {
@@ -683,7 +715,6 @@ class LgWebOsDevice extends EventEmitter {
                     this.televisionService.getCharacteristic(Characteristic.Active)
                         .onGet(async () => {
                             const state = this.power;
-                            const info = this.disableLogInfo ? false : this.emit('message', `Power: ${state ? 'ON' : 'OFF'}`);
                             return state;
                         })
                         .onSet(async (state) => {
@@ -711,11 +742,6 @@ class LgWebOsDevice extends EventEmitter {
                     this.televisionService.getCharacteristic(Characteristic.ActiveIdentifier)
                         .onGet(async () => {
                             const inputIdentifier = this.inputIdentifier;
-                            const index = this.inputsConfigured.findIndex(input => input.identifier === inputIdentifier);
-                            const inputMode = this.inputsConfigured[index].mode;
-                            const inputName = this.inputsConfigured[index].name;
-                            const inputReference = this.inputsConfigured[index].reference;
-                            const info = this.disableLogInfo ? false : this.emit('message', `${inputMode === 0 ? 'Input' : 'Channel'}, Name: ${inputName}, Reference: ${inputReference}`);
                             return inputIdentifier;
                         })
                         .onSet(async (activeIdentifier) => {
@@ -813,7 +839,6 @@ class LgWebOsDevice extends EventEmitter {
                     this.televisionService.getCharacteristic(Characteristic.ClosedCaptions)
                         .onGet(async () => {
                             const state = 0;
-                            const info = this.disableLogInfo ? false : this.emit('message', `Closed Captions: ${state}`);
                             return state;
                         })
                         .onSet(async (state) => {
@@ -828,7 +853,6 @@ class LgWebOsDevice extends EventEmitter {
                         .onGet(async () => {
                             //0 - PLAY, 1 - PAUSE, 2 - STOP, 3 - LOADING, 4 - INTERRUPTED
                             const value = 2;
-                            const info = this.disableLogInfo ? false : this.emit('message', `Media: ${['PLAY', 'PAUSE', 'STOP', 'LOADING', 'INTERRUPTED'][value]}`);
                             return value;
                         });
 
@@ -836,7 +860,6 @@ class LgWebOsDevice extends EventEmitter {
                         .onGet(async () => {
                             //0 - PLAY, 1 - PAUSE, 2 - STOP
                             const value = 2;
-                            const info = this.disableLogInfo ? false : this.emit('message', `Target Media: ${['PLAY', 'PAUSE', 'STOP', 'LOADING', 'INTERRUPTED'][value]}`);
                             return value;
                         })
                         .onSet(async (value) => {
@@ -989,7 +1012,6 @@ class LgWebOsDevice extends EventEmitter {
                     this.speakerService.getCharacteristic(Characteristic.Volume)
                         .onGet(async () => {
                             const volume = this.volume;
-                            const info = this.disableLogInfo ? false : this.emit('message', `Volume: ${volume}`);
                             return volume;
                         })
                         .onSet(async (volume) => {
@@ -1014,7 +1036,6 @@ class LgWebOsDevice extends EventEmitter {
                     this.speakerService.getCharacteristic(Characteristic.Mute)
                         .onGet(async () => {
                             const state = this.power ? this.mute : true;
-                            const info = this.disableLogInfo ? false : this.emit('message', `Mute: ${state ? 'ON' : 'OFF'}`);
                             return state;
                         })
                         .onSet(async (state) => {
@@ -1418,7 +1439,6 @@ class LgWebOsDevice extends EventEmitter {
                             pictureModeService.getCharacteristic(Characteristic.On)
                                 .onGet(async () => {
                                     const state = this.power ? (this.pictureMode === pictureModeReference) : false;
-                                    const info = this.disableLogInfo ? false : this.emit('message', `Picture Mode: ${pictureModeName}`);
                                     return state;
                                 })
                                 .onSet(async (state) => {
@@ -1497,7 +1517,6 @@ class LgWebOsDevice extends EventEmitter {
                         soundModeService.getCharacteristic(Characteristic.On)
                             .onGet(async () => {
                                 const state = this.power ? (this.soundMode === soundModeReference) : false;
-                                const info = this.disableLogInfo ? false : this.emit('message', `Sound Mode: ${soundModeName}`);
                                 return state;
                             })
                             .onSet(async (state) => {
