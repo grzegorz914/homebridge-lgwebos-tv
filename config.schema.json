@@ -1247,7 +1247,7 @@
     {
       "key": "devices",
       "type": "tabarray",
-      "title": "{{ value.name || 'new device' }}",
+      "title": "{{ value.name || 'device' }}",
       "items": [
         "devices[].name",
         "devices[].host",
