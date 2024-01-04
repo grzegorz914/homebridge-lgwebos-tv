@@ -445,7 +445,7 @@ class LgWebOsDevice extends EventEmitter {
                 }
 
                 if (!this.disableLogInfo) {
-                    this.emit('message', `Volume: ${volume} %`);
+                    this.emit('message', `Volume: ${volume}%`);
                     this.emit('message', `Mute: ${mute ? 'ON' : 'OFF'}`);
                 };
             })
@@ -545,10 +545,10 @@ class LgWebOsDevice extends EventEmitter {
                 }
 
                 if (!this.disableLogInfo) {
-                    this.emit('message', `Brightness: ${brightness} %`);
-                    this.emit('message', `Backlight: ${backlight} %`);
-                    this.emit('message', `Contrast: ${contrast} %`);
-                    this.emit('message', `Color: ${color} %`);
+                    this.emit('message', `Brightness: ${brightness}%`);
+                    this.emit('message', `Backlight: ${backlight}%`);
+                    this.emit('message', `Contrast: ${contrast}%`);
+                    this.emit('message', `Color: ${color}%`);
                     this.emit('message', `Picture Mode: ${pictureMode}`);
                 };
             })
