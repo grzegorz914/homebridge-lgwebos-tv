@@ -389,7 +389,8 @@ class LgWebOsDevice extends EventEmitter {
                 this.inputIdentifier = inputIdentifier;
 
                 if (!this.disableLogInfo) {
-                    this.emit('message', `Input Name: ${this.inputsConfigured[index].name}`);
+                    const name = index !== -1 ? this.inputsConfigured[index].name : appId;
+                    this.emit('message', `Input Name: ${name}`);
                     this.emit('message', `Reference: ${appId}`);
                 };
             })
