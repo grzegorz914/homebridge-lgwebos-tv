@@ -10,13 +10,23 @@ class LgWebOsSocket extends EventEmitter {
     constructor(config) {
         super();
         const host = config.host;
+        const inputs = config.inputs;
         const keyFile = config.keyFile;
+        const devInfoFile = config.devInfoFile;
+        const inputsFile = config.inputsFile;
+        const channelsFile = config.channelsFile;
+        const getInputsFromDevice = config.getInputsFromDevice;
         const debugLog = config.debugLog;
         const restFulEnabled = config.restFulEnabled;
         const mqttEnabled = config.mqttEnabled;
         const sslWebSocket = config.sslWebSocket;
         const url = sslWebSocket ? CONSTANS.ApiUrls.WssUrl.replace('lgwebostv', host) : CONSTANS.ApiUrls.WsUrl.replace('lgwebostv', host);
         const webSocketPort = sslWebSocket ? 3001 : 3000;
+
+        this.inputs = inputs;
+        this.keyFile = keyFile;
+        this.getInputsFromDevice = getInputsFromDevice;
+        this.debugLog = debugLog;
 
         this.startPrepareAccessory = true;
         this.socketConnected = false;
@@ -29,7 +39,6 @@ class LgWebOsSocket extends EventEmitter {
         this.cidCount = 0;
         this.webOS = 2.0;
         this.modelName = 'LG TV';
-        this.keyFile = keyFile;
 
         this.connectSocket = async () => {
             //Read pairing key from file
@@ -197,8 +206,11 @@ class LgWebOsSocket extends EventEmitter {
                                 const match = productName.match(/\d+(\.\d+)?/);
                                 this.webOS = match ? parseFloat(match[0]) : this.webOS;
 
-                                this.emit('message', 'Connected.');
-                                this.emit('deviceInfo', this.modelName, productName, deviceId, firmwareRevision, this.webOS);
+                                //save device info to the file
+                                await this.saveDevInfo(devInfoFile, this.modelName, productName, deviceId, firmwareRevision, this.webOS);
+
+                                //emit device info
+                                this.emit('deviceInfo', this.modelName, productName, deviceId, firmwareRevision);
 
                                 //restFul
                                 const restFul = restFulEnabled ? this.emit('restFul', 'softwareinfo', messageData) : false;
@@ -213,28 +225,6 @@ class LgWebOsSocket extends EventEmitter {
                                 } catch (error) {
                                     this.emit('error', `Request channels error: ${error}`);
                                 };
-                                break;
-                            case 'error':
-                                const debug1 = debugLog ? this.emit('debug', `Software info error: ${stringifyMessage}`) : false;
-                                break;
-                            default:
-                                const debug2 = debugLog ? this.emit('debug', this.emit('debug', `Software info received message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`)) : false;
-                                break;
-                        };
-                        break;
-                    case this.channelsId:
-                        switch (messageType) {
-                            case 'response':
-                                const debug = debugLog ? this.emit('debug', `Channels list: ${stringifyMessage}`) : false;
-
-                                const channelsList = messageData.channelList;
-                                this.emit('channelList', channelsList);
-
-                                //restFul
-                                const restFul = restFulEnabled ? this.emit('restFul', 'channels', messageData) : false;
-
-                                //mqtt
-                                const mqtt = mqttEnabled ? this.emit('mqtt', 'Channels', messageData) : false;
 
                                 //Request apps list
                                 try {
@@ -243,37 +233,8 @@ class LgWebOsSocket extends EventEmitter {
                                 } catch (error) {
                                     this.emit('error', `Request apps error: ${error}`);
                                 };
-                                break;
-                            case 'error':
-                                const debug1 = debugLog ? this.emit('debug', `Channels error: ${stringifyMessage}`) : false;
 
-                                //Request apps list
-                                try {
-                                    this.appsId = await this.getCid();
-                                    await this.send('request', CONSTANS.ApiUrls.GetInstalledApps, undefined, this.appsId);
-                                } catch (error) {
-                                    this.emit('error', `Request apps error: ${error}`);
-                                };
-                                break;
-                            default:
-                                const debug2 = debugLog ? this.emit('debug', this.emit('debug', `Channels list received message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`)) : false;
-                                break;
-                        };
-                        break;
-                    case this.appsId:
-                        switch (messageType) {
-                            case 'response':
-                                const debug = debugLog ? this.emit('debug', `Apps list: ${stringifyMessage}`) : false;
-
-                                const appsList = messageData.apps;
-                                this.emit('appsList', appsList);
-
-                                //restFul
-                                const restFul = restFulEnabled ? this.emit('restFul', 'apps', messageData) : false;
-
-                                //mqtt
-                                const mqtt = mqttEnabled ? this.emit('mqtt', 'Apps', messageData) : false;
-
+                                await new Promise(resolve => setTimeout(resolve, 1500));
                                 //Start prepare accessory
                                 try {
                                     const prepareAccessory = this.startPrepareAccessory ? await this.prepareAccessory() : false;
@@ -292,13 +253,61 @@ class LgWebOsSocket extends EventEmitter {
                                 };
                                 break;
                             case 'error':
-                                const debug1 = debugLog ? this.emit('debug', `Apps list error: ${stringifyMessage}`) : false;
-                                try {
-                                    await this.subscribeTvStatus();
-                                    const debug = debugLog ? this.emit('debug', `Subscriebe tv status successful.`) : false;
-                                } catch (error) {
-                                    this.emit('error', `Subscribe tv status error: ${error}`);
+                                const debug1 = debugLog ? this.emit('debug', `Software info error: ${stringifyMessage}`) : false;
+                                break;
+                            default:
+                                const debug2 = debugLog ? this.emit('debug', this.emit('debug', `Software info received message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`)) : false;
+                                break;
+                        };
+                        break;
+                    case this.channelsId:
+                        switch (messageType) {
+                            case 'response':
+                                const debug = debugLog ? this.emit('debug', `Channels list: ${stringifyMessage}`) : false;
+                                const channelsList = messageData.channelList;
+                                const channelListExist = Array.isArray(channelsList) ? channelsList.length > 0 : false;
+                                if (!channelListExist) {
+                                    return;
                                 };
+
+                                //save channels to the file
+                                await this.saveChannels(channelsFile, channelsList);
+
+                                //restFul
+                                const restFul = restFulEnabled ? this.emit('restFul', 'channels', messageData) : false;
+
+                                //mqtt
+                                const mqtt = mqttEnabled ? this.emit('mqtt', 'Channels', messageData) : false;
+                                break;
+                            case 'error':
+                                const debug1 = debugLog ? this.emit('debug', `Channels error: ${stringifyMessage}`) : false;
+                                break;
+                            default:
+                                const debug2 = debugLog ? this.emit('debug', this.emit('debug', `Channels list received message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`)) : false;
+                                break;
+                        };
+                        break;
+                    case this.appsId:
+                        switch (messageType) {
+                            case 'response':
+                                const debug = debugLog ? this.emit('debug', `Apps list: ${stringifyMessage}`) : false;
+                                const appsList = messageData.apps;
+                                const appsListExist = Array.isArray(appsList) ? appsList.length > 0 : false;
+                                if (!appsListExist) {
+                                    return;
+                                };
+
+                                //save apps to the file
+                                await this.saveInputs(inputsFile, appsList);
+
+                                //restFul
+                                const restFul = restFulEnabled ? this.emit('restFul', 'apps', messageData) : false;
+
+                                //mqtt
+                                const mqtt = mqttEnabled ? this.emit('mqtt', 'Apps', messageData) : false;
+                                break;
+                            case 'error':
+                                const debug1 = debugLog ? this.emit('debug', `Apps list error: ${stringifyMessage}`) : false;
                                 break;
                             default:
                                 const debug2 = debugLog ? this.emit('debug', this.emit('debug', `Apps list received message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`)) : false;
@@ -564,25 +573,6 @@ class LgWebOsSocket extends EventEmitter {
         }, 7000);
     };
 
-    prepareAccessory() {
-        return new Promise(async (resolve, reject) => {
-            try {
-                const pairingKey = await this.readPairingKey(this.keyFile);
-                if (pairingKey === '0') {
-                    reject(`Prepare accessory not possible, pairing key: ${pairingKey}.`);
-                    return;
-                }
-
-                this.startPrepareAccessory = false;
-                this.emit('prepareAccessory');
-                resolve();
-            } catch (error) {
-                reject(error);
-            }
-        });
-    }
-
-
     readPairingKey(path) {
         return new Promise(async (resolve, reject) => {
             try {
@@ -599,6 +589,99 @@ class LgWebOsSocket extends EventEmitter {
         return new Promise(async (resolve, reject) => {
             try {
                 await fsPromises.writeFile(path, pairingKey);
+                resolve();
+            } catch (error) {
+                reject(error);
+            }
+        });
+    }
+
+    saveDevInfo(path, modelName, productName, deviceId, firmwareRevision, webOS) {
+        return new Promise(async (resolve, reject) => {
+            try {
+                const obj = {
+                    manufacturer: 'LG Electronics',
+                    modelName: modelName,
+                    productName: productName,
+                    deviceId: deviceId,
+                    firmwareRevision: firmwareRevision,
+                    webOS: webOS
+                };
+                const info = JSON.stringify(obj, null, 2);
+                await fsPromises.writeFile(path, info);
+                const debug = this.debugLog ? this.emit('debug', `Saved device info: ${info}`) : false;
+
+                resolve();
+            } catch (error) {
+                reject(error);
+            };
+        });
+    };
+
+    saveChannels(path, channelsList) {
+        return new Promise(async (resolve, reject) => {
+            try {
+                const channelsArr = [];
+                for (const channel of channelsList) {
+                    const name = channel.channelName;
+                    const channelId = channel.channelId;
+                    const number = channel.channelNumber;
+                    const channelsObj = {
+                        'name': name,
+                        'reference': channelId,
+                        'number': number,
+                        'mode': 1
+                    }
+                    channelsArr.push(channelsObj);
+                };
+                const channels = JSON.stringify(channelsArr, null, 2);
+                await fsPromises.writeFile(path, channels);
+                const debug = this.enableDebugMode ? this.emit('debug', `Channels list saved: ${channels}`) : false;
+
+                resolve()
+            } catch (error) {
+                reject(error);
+            }
+        });
+    };
+
+    saveInputs(path, appsList) {
+        return new Promise(async (resolve, reject) => {
+            try {
+                const appsArr = [];
+                for (const app of appsList) {
+                    const name = app.title;
+                    const appId = app.id;
+                    const inputsObj = {
+                        'name': name,
+                        'reference': appId,
+                        'mode': 0
+                    }
+                    appsArr.push(inputsObj);
+                };
+
+                const allInputsArr = this.getInputsFromDevice ? appsArr : this.inputs;
+                const inputs = JSON.stringify(allInputsArr, null, 2)
+                await fsPromises.writeFile(path, inputs);
+                const debug = this.debugLog ? this.emit('debug', `Apps list saved: ${inputs}`) : false;
+
+                resolve()
+            } catch (error) {
+                reject(error);
+            }
+        });
+    };
+
+    prepareAccessory() {
+        return new Promise(async (resolve, reject) => {
+            try {
+                const pairingKey = await this.readPairingKey(this.keyFile);
+                if (pairingKey === '0') {
+                    reject(`Prepare accessory not possible, pairing key: ${pairingKey}.`);
+                }
+
+                this.startPrepareAccessory = false;
+                this.emit('prepareAccessory');
                 resolve();
             } catch (error) {
                 reject(error);
@@ -690,7 +773,6 @@ class LgWebOsSocket extends EventEmitter {
                     case 'button':
                         if (!this.specjalizedSocketConnected) {
                             reject('Specjalized socket not connected.');
-                            return;
                         };
 
                         const keyValuePairs = Object.entries(payload).map(([key, value]) => `${key}:${value}`);
@@ -703,7 +785,6 @@ class LgWebOsSocket extends EventEmitter {
                     default:
                         if (!this.socketConnected) {
                             reject('Socket not connected.');
-                            return;
                         };
 
                         cid = cid === undefined ? await this.getCid() : cid;

@@ -204,116 +204,30 @@ class LgWebOsDevice extends EventEmitter {
         //lg tv client
         this.lgWebOsSocket = new LgWebOsSocket({
             host: this.host,
+            inputs: this.inputs,
             keyFile: this.keyFile,
+            devInfoFile: this.devInfoFile,
+            inputsFile: this.inputsFile,
+            channelsFile: this.channelsFile,
+            getInputsFromDevice: this.getInputsFromDevice,
             debugLog: this.enableDebugMode,
             restFulEnabled: this.restFulEnabled,
             mqttEnabled: this.mqttEnabled,
             sslWebSocket: this.sslWebSocket
         });
 
-        this.lgWebOsSocket.on('deviceInfo', async (modelName, productName, deviceId, firmwareRevision, webOS) => {
-            try {
-                if (!this.disableLogDeviceInfo) {
-                    this.emit('devInfo', `-------- ${this.name} --------`);
-                    this.emit('devInfo', `Manufacturer: LG Electronics`);
-                    this.emit('devInfo', `Model: ${modelName}`);
-                    this.emit('devInfo', `System: ${productName}`);
-                    this.emit('devInfo', `Serialnr: ${deviceId}`);
-                    this.emit('devInfo', `Firmware: ${firmwareRevision}`);
-                    this.emit('devInfo', `----------------------------------`);
-                };
-
-                const data = await fsPromises.readFile(this.devInfoFile);
-                const savedInfo = data.length > 5 ? JSON.parse(data) : {};
-                const infoHasNotchanged =
-                    'LG Electronics' === savedInfo.manufacturer
-                    && modelName === savedInfo.modelName
-                    && productName === savedInfo.productName
-                    && deviceId === savedInfo.deviceId
-                    && firmwareRevision === savedInfo.firmwareRevision
-                    && webOS === savedInfo.webOS;
-
-                if (infoHasNotchanged) {
-                    return;
-                };
-
-                if (this.informationService) {
-                    this.informationService
-                        .setCharacteristic(Characteristic.Manufacturer, 'LG Electronics')
-                        .setCharacteristic(Characteristic.Model, modelName)
-                        .setCharacteristic(Characteristic.SerialNumber, deviceId)
-                        .setCharacteristic(Characteristic.FirmwareRevision, firmwareRevision);
-                };
-
-                const obj = {
-                    manufacturer: 'LG Electronics',
-                    modelName: modelName,
-                    productName: productName,
-                    deviceId: deviceId,
-                    firmwareRevision: firmwareRevision,
-                    webOS: webOS
-                };
-                const devInfo = JSON.stringify(obj, null, 2);
-                await fsPromises.writeFile(this.devInfoFile, devInfo);
-                const debug = this.enableDebugMode ? this.emit('debug', `Saved device info: ${devInfo}`) : false;
-            } catch (error) {
-                this.emit('error', `save device info error: ${error}`);
-            }
+        this.lgWebOsSocket.on('deviceInfo', (modelName, productName, deviceId, firmwareRevision) => {
+            this.emit('message', 'Connected.');
+            if (!this.disableLogDeviceInfo) {
+                this.emit('devInfo', `-------- ${this.name} --------`);
+                this.emit('devInfo', `Manufacturer: LG Electronics`);
+                this.emit('devInfo', `Model: ${modelName}`);
+                this.emit('devInfo', `System: ${productName}`);
+                this.emit('devInfo', `Serialnr: ${deviceId}`);
+                this.emit('devInfo', `Firmware: ${firmwareRevision}`);
+                this.emit('devInfo', `----------------------------------`);
+            };
         })
-            .on('channelList', async (channelList) => {
-                const channelListCount = Array.isArray(channelList) ? channelList.length : 0;
-                if (channelListCount === 0) {
-                    return;
-                };
-
-                try {
-                    const channelsArr = [];
-                    for (const channell of channelList) {
-                        const name = channell.channelName;
-                        const channelId = channell.channelId;
-                        const number = channell.channelNumber;
-                        const channelsObj = {
-                            'name': name,
-                            'reference': channelId,
-                            'number': number,
-                            'mode': 1
-                        }
-                        channelsArr.push(channelsObj);
-                    };
-                    const channels = JSON.stringify(channelsArr, null, 2);
-                    await fsPromises.writeFile(this.channelsFile, channels);
-                    const debug = this.enableDebugMode ? this.emit('debug', `Channels list saved: ${channels}`) : false;
-                } catch (error) {
-                    this.emit('error', `save channels list error: ${error}`);
-                }
-            })
-            .on('appsList', async (appsList) => {
-                const appsListCount = Array.isArray(appsList) ? appsList.length : 0;
-                if (appsListCount === 0) {
-                    return;
-                };
-
-                try {
-                    const appsArr = [];
-                    for (const app of appsList) {
-                        const name = app.title;
-                        const appId = app.id;
-                        const inputsObj = {
-                            'name': name,
-                            'reference': appId,
-                            'mode': 0
-                        }
-                        appsArr.push(inputsObj);
-                    };
-
-                    const allInputsArr = this.getInputsFromDevice ? appsArr : this.inputs;
-                    const inputs = JSON.stringify(allInputsArr, null, 2)
-                    await fsPromises.writeFile(this.inputsFile, inputs);
-                    const debug = this.enableDebugMode ? this.emit('debug', `Apps list saved: ${inputs}`) : false;
-                } catch (error) {
-                    this.emit('error', `save apps list error: ${error}`);
-                }
-            })
             .on('powerState', (power, pixelRefresh, screenState, tvScreenState) => {
                 this.power = power;
                 this.pixelRefresh = pixelRefresh;
@@ -361,12 +275,12 @@ class LgWebOsDevice extends EventEmitter {
                 const index = this.inputsConfigured.findIndex(input => input.reference === appId) ?? -1;
                 const inputIdentifier = index !== -1 ? this.inputsConfigured[index].identifier : this.inputIdentifier;
 
-                if (this.televisionService && inputIdentifier) {
+                if (this.televisionService) {
                     this.televisionService
                         .updateCharacteristic(Characteristic.ActiveIdentifier, inputIdentifier);
                 };
 
-                if (this.sensorInputService && inputIdentifier) {
+                if (this.sensorInputService) {
                     const state = this.power ? (this.inputIdentifier !== inputIdentifier) : false;
                     this.sensorInputService
                         .updateCharacteristic(Characteristic.ContactSensorState, state)
@@ -454,12 +368,12 @@ class LgWebOsDevice extends EventEmitter {
                 const index = this.inputsConfigured.findIndex(input => input.reference === channelId) ?? -1;
                 const inputIdentifier = index !== -1 ? this.inputsConfigured[index].identifier : this.inputIdentifier;
 
-                if (this.televisionService && inputIdentifier) {
+                if (this.televisionService) {
                     this.televisionService
                         .updateCharacteristic(Characteristic.ActiveIdentifier, inputIdentifier);
                 };
 
-                if (this.sensorChannelService && inputIdentifier) {
+                if (this.sensorChannelService) {
                     this.sensorChannelState = state;
 
                     const state = this.power ? (this.inputIdentifier !== inputIdentifier) : false;
