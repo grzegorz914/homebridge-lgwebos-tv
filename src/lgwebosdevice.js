@@ -498,7 +498,7 @@ class LgWebOsDevice extends EventEmitter {
                     //read dev info from file
                     try {
                         const data = await fsPromises.readFile(this.devInfoFile);
-                        this.savedInfo = data.length > 0 ? JSON.parse(data) : {};
+                        this.savedInfo = data.toString().trim() !== '' ? JSON.parse(data) : {};
                         const debug = this.enableDebugMode ? this.emit('debug', `Read saved Info: ${JSON.stringify(this.savedInfo, null, 2)}`) : false;
                         this.webOS = this.savedInfo.webOS ?? 2.0;
                     } catch (error) {
@@ -508,7 +508,7 @@ class LgWebOsDevice extends EventEmitter {
                     //read inputs file
                     try {
                         const data = await fsPromises.readFile(this.inputsFile);
-                        this.savedInputs = this.getInputsFromDevice && data.length > 0 ? JSON.parse(data) : this.inputs;
+                        this.savedInputs = this.getInputsFromDevice && data.toString().trim() !== '' ? JSON.parse(data) : this.inputs;
                         const debug = this.enableDebugMode ? this.emit('debug', `Read saved Inputs: ${JSON.stringify(this.savedInputs, null, 2)}`) : false;
                     } catch (error) {
                         this.emit('error', `Read saved Inputs error: ${error}`);
@@ -517,7 +517,7 @@ class LgWebOsDevice extends EventEmitter {
                     //read channels from file
                     try {
                         const data = await fsPromises.readFile(this.channelsFile);
-                        this.savedChannels = data.length > 0 ? JSON.parse(data) : [];
+                        this.savedChannels = data.toString().trim() !== '' ? JSON.parse(data) : [];
                         const debug = this.enableDebugMode ? this.emit('debug', `Read saved Channels: ${JSON.stringify(this.savedChannels, null, 2)}`) : false;
                     } catch (error) {
                         this.emit('error', `Read saved Channels error: ${error}`);
@@ -526,7 +526,7 @@ class LgWebOsDevice extends EventEmitter {
                     //read inputs names from file
                     try {
                         const data = await fsPromises.readFile(this.inputsNamesFile);
-                        this.savedInputsNames = data.length > 0 ? JSON.parse(data) : {};
+                        this.savedInputsNames = data.toString().trim() !== '' ? JSON.parse(data) : {};
                         const debug = this.enableDebugMode ? this.emit('debug', `Read saved Inputs/Channels Names: ${JSON.stringify(this.savedInputsNames, null, 2)}`) : false;
                     } catch (error) {
                         this.emit('error', `Read saved Inputs/Channels Names error: ${error}`);
@@ -535,7 +535,7 @@ class LgWebOsDevice extends EventEmitter {
                     //read inputs visibility from file
                     try {
                         const data = await fsPromises.readFile(this.inputsTargetVisibilityFile);
-                        this.savedInputsTargetVisibility = data.length > 0 ? JSON.parse(data) : {};
+                        this.savedInputsTargetVisibility = data.toString().trim() !== '' ? JSON.parse(data) : {};
                         const debug = this.enableDebugMode ? this.emit('debug', `Read saved Inputs/Channels Target Visibility: ${JSON.stringify(this.savedInputsTargetVisibility, null, 2)}`) : false;
                     } catch (error) {
                         this.emit('error', `Read saved Inputs/Channels Target Visibility error: ${error}`);
