@@ -563,7 +563,6 @@
                   "namePrefix": {
                     "title": "Prefix",
                     "type": "boolean",
-                    "default": false,
                     "description": "Here enable/disable the accessory name as a prefix for button name.",
                     "required": true
                   }
@@ -696,7 +695,6 @@
                   "namePrefix": {
                     "title": "Prefix",
                     "type": "boolean",
-                    "default": false,
                     "description": "Here enable/disable the accessory name as a prefix for sensor name.",
                     "required": true
                   }
@@ -913,7 +911,6 @@
                   "namePrefix": {
                     "title": "Prefix",
                     "type": "boolean",
-                    "default": false,
                     "description": "Here enable/disable the accessory name as a prefix for picture mode.",
                     "required": true
                   }
@@ -1025,7 +1022,6 @@
                   "namePrefix": {
                     "title": "Prefix",
                     "type": "boolean",
-                    "default": false,
                     "description": "Here enable/disable the accessory name as a prefix for sound mode.",
                     "required": true
                   }
