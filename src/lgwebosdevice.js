@@ -1078,7 +1078,7 @@ class LgWebOsDevice extends EventEmitter {
                     }
 
                     if (this.inputsConfigured.length === 0) {
-                        this.emit('message', `No any inputs are configured, check your config and settings.`);
+                        this.emit('message', `No any input exposed, the accessory will not be published, check your inputs config or report this as issue.`);
                         return;
                     }
                 }

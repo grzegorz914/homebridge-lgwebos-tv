@@ -26,7 +26,10 @@ class LgWebOsPlatform {
 					log.warn(`Name: ${device.name ? 'OK' : device.name}, host: ${device.host ? 'OK' : device.host}, mac: ${macRegex.test(device.mac) ? 'OK' : device.mac}, in config wrong or missing.`);
 					return;
 				}
+
+				//debug config
 				const debug = device.enableDebugMode ? log(`Device: ${device.host} ${device.name}, did finish launching.`) : false;
+				const debug1 = device.enableDebugMode ? log(`Device: ${device.host} ${device.name}, Config: ${JSON.stringify(device, null, 2)}`) : false;
 
 				//webos device
 				const lgWebOsDevice = new LgWebOsDevice(api, prefDir, device);
