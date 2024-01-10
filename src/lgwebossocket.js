@@ -560,17 +560,15 @@ class LgWebOsSocket extends EventEmitter {
                     return;
                 }
 
-                if (this.startPrepareAccessory && !this.socketConnected) {
-                    setTimeout(async () => {
-                        try {
-                            await this.prepareAccessory();
-                        } catch (error) {
-                            this.emit('error', `Prepare accessory error: ${error}.`);
-                        }
-                    }, 3500);
-                }
+                setTimeout(async () => {
+                    try {
+                        const prepare = this.startPrepareAccessory && !this.socketConnected ? await this.prepareAccessory() : false;
+                    } catch (error) {
+                        this.emit('error', `Prepare accessory error: ${error}.`);
+                    }
+                }, 5500);
             });
-        }, 7000);
+        }, 10000);
     };
 
     readPairingKey(path) {
