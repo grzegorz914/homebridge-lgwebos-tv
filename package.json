@@ -1,7 +1,7 @@
 {
   "displayName": "LG webOS TV",
   "name": "homebridge-lgwebos-tv",
-  "version": "2.16.15",
+  "version": "2.16.16",
   "description": "Homebridge plugin to control LG webOS TV.",
   "license": "MIT",
   "author": "grzegorz914",

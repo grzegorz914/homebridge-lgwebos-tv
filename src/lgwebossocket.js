@@ -539,7 +539,7 @@ class LgWebOsSocket extends EventEmitter {
                 this.tvScreenState = 'Suspend';
 
                 //update TV state
-                this.emit('powerState', false, this.pixelRefresh, this.screenState, this.tvScreenState);
+                this.emit('powerState', false, false, false, 'Suspend');
                 this.emit('audioState', undefined, true);
                 this.emit('pictureSettings', 0, 0, 0, 0, 3, false);
                 this.emit('soundMode', undefined, false);
