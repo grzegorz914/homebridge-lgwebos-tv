@@ -106,7 +106,7 @@
                         {
                             "name": "HDMI 1",
                             "reference": "com.webos.app.hdmi1",
-                            "displayType": -1,
+                            "displayType": 0,
                             "namePrefix": false
                         }
                     ],

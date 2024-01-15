@@ -56,7 +56,7 @@ class LgWebOsDevice extends EventEmitter {
         this.turnScreenOnOff = config.turnScreenOnOff || false;
         this.sslWebSocket = config.sslWebSocket || false;
         this.infoButtonCommand = config.infoButtonCommand || 'INFO';
-        this.volumeControl = config.volumeControl >= 0 ? config.volumeControl : -1;
+        this.volumeControl = config.volumeControl || false;
         this.restFulEnabled = config.enableRestFul || false;
         this.restFulPort = config.restFulPort || 3000;
         this.restFulDebug = config.restFulDebug || false;
@@ -292,7 +292,7 @@ class LgWebOsDevice extends EventEmitter {
                     for (let i = 0; i < servicesCount; i++) {
                         const state = this.power ? (this.sensorsInputsConfigured[i].reference === appId) : false;
                         const displayType = this.sensorsInputsConfigured[i].displayType;
-                        const characteristicType = [Characteristic.MotionDetected, Characteristic.OccupancyDetected, Characteristic.ContactSensorState][displayType];
+                        const characteristicType = ['', Characteristic.MotionDetected, Characteristic.OccupancyDetected, Characteristic.ContactSensorState][displayType];
                         this.sensorsInputsServices[i]
                             .updateCharacteristic(characteristicType, state);
                     }
@@ -1051,9 +1051,9 @@ class LgWebOsDevice extends EventEmitter {
 
 
                 //Prepare volume service
-                if (this.volumeControl >= 0) {
+                if (this.volumeControl) {
                     const debug = this.enableDebugMode ? this.emit('debug', `Prepare volume service`) : false;
-                    if (this.volumeControl === 0) {
+                    if (this.volumeControl === 1) {
                         this.volumeService = new Service.Lightbulb(`${accessoryName} Volume`, 'Volume');
                         this.volumeService.addOptionalCharacteristic(Characteristic.ConfiguredName);
                         this.volumeService.setCharacteristic(Characteristic.ConfiguredName, `${accessoryName} Volume`);
@@ -1103,7 +1103,7 @@ class LgWebOsDevice extends EventEmitter {
                         accessory.addService(this.volumeService);
                     }
 
-                    if (this.volumeControl === 1) {
+                    if (this.volumeControl === 2) {
                         this.volumeServiceFan = new Service.Fan(`${accessoryName} Volume`, 'Volume Fan');
                         this.volumeServiceFan.addOptionalCharacteristic(Characteristic.ConfiguredName);
                         this.volumeServiceFan.setCharacteristic(Characteristic.ConfiguredName, `${accessoryName} Volume`);
@@ -1591,16 +1591,16 @@ class LgWebOsDevice extends EventEmitter {
                         const sensorInputReference = sensorInput.reference;
 
                         //get sensor display type
-                        const sensorInputDisplayType = sensorInput.displayType >= 0 ? sensorInput.displayType : -1;
+                        const sensorInputDisplayType = sensorInput.displayType || false;
 
                         //get sensor name prefix
-                        const namePrefix = sensorInput.namePrefix ?? false;
+                        const namePrefix = sensorInput.namePrefix || false;
 
-                        if (sensorInputDisplayType >= 0) {
+                        if (sensorInputDisplayType) {
                             if (sensorInputName && sensorInputReference) {
                                 const serviceName = namePrefix ? `${accessoryName} ${sensorInputName}` : sensorInputName
-                                const serviceType = [Service.MotionSensor, Service.OccupancySensor, Service.ContactSensor][sensorInputDisplayType];
-                                const characteristicType = [Characteristic.MotionDetected, Characteristic.OccupancyDetected, Characteristic.ContactSensorState][sensorInputDisplayType];
+                                const serviceType = ['', Service.MotionSensor, Service.OccupancySensor, Service.ContactSensor][sensorInputDisplayType];
+                                const characteristicType = ['', Characteristic.MotionDetected, Characteristic.OccupancyDetected, Characteristic.ContactSensorState][sensorInputDisplayType];
                                 const sensorInputService = new serviceType(serviceName, `Sensor ${i}`);
                                 sensorInputService.addOptionalCharacteristic(Characteristic.ConfiguredName);
                                 sensorInputService.setCharacteristic(Characteristic.ConfiguredName, serviceName);
@@ -1648,15 +1648,15 @@ class LgWebOsDevice extends EventEmitter {
                         const buttonReferenceCommand = [buttonReference, 'com.webos.app.livetv', buttonCommand][buttonMode];
 
                         //get button display type
-                        const buttonDisplayType = button.displayType >= 0 ? button.displayType : -1;
+                        const buttonDisplayType = button.displayType || false;
 
                         //get button name prefix
-                        const namePrefix = button.namePrefix ?? false;
+                        const namePrefix = button.namePrefix || false;
 
-                        if (buttonDisplayType >= 0) {
-                            if (buttonName && buttonReferenceCommand && buttonMode) {
+                        if (buttonDisplayType) {
+                            if (buttonName && buttonReferenceCommand && buttonMode >= 0) {
                                 const serviceName = namePrefix ? `${accessoryName} ${buttonName}` : buttonName;
-                                const serviceType = [Service.Outlet, Service.Switch][buttonDisplayType];
+                                const serviceType = ['', Service.Outlet, Service.Switch][buttonDisplayType];
                                 const buttonService = new serviceType(serviceName, `Button ${i}`);
                                 buttonService.addOptionalCharacteristic(Characteristic.ConfiguredName);
                                 buttonService.setCharacteristic(Characteristic.ConfiguredName, serviceName);

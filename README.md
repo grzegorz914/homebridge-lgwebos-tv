@@ -71,15 +71,15 @@ Tested with OLED65G6V, 32LM6300PLA, 49SK8500, OLED65C7T, 55SK800PLB, OLED48CX.
 | `getInputsFromDevice` | This enable load inputs and apps direct from device. |
 | `filterSystemApps` | This enable filter sysem apps, only if `getInputsFromDevice` is `true`. |
 | `disableLoadDefaultInputs` | This function disable load default inputs `Live TV`, `HDMI 1`, `HDMI 2` in to the inputs list. |
-| `inputsDisplayOrder` | Here select display order of the inputs list, `None`, `Ascending by Name`, `Descending by Name`, `Ascending by Reference`, `Ascending by Reference`.. |
+| `inputsDisplayOrder` | Here select display order of the inputs list, `0 - None`, `1 - Ascending by Name`, `2 - Descending by Name`, `3 - Ascending by Reference`, `4 - Ascending by Reference`.. |
 | `inputs.name` | Here set *Name* which You want expose to the *Homebridge/HomeKit*. |
 | `inputs.reference` | Here set *Reference*. `Live TV`, `HDMI 1`, `HDMI 2` are created by default. |
-| `inputs.mode` | Here select input mode, `Input/App`, `Live TV Channel`. |
+| `inputs.mode` | Here select input mode, `0 - Input/App`, `1 - Live TV Channel`. |
 | `buttons.name` | Here set *Name* which You want expose to the *Homebridge/HomeKit*. |
-| `buttons.mode` | Here select button mode, `Input/App`, `Live TV Channel` or `Remote Control`. |
+| `buttons.mode` | Here select button mode, `0 - Input/App`, `1 - Live TV Channel`, `2 - Remote Control`. |
 | `buttons.reference` | Here set *Reference*, only for `Input/App` or `Live TV Channel` mode, in other case leave empty. |
 | `buttons.command` | Here select `Remote Control` command which will be assigned to the button. |
-| `buttons.displayType` | Here select display type in HomeKit app, possible `None/Disabled`, `Outlet`, `Switch`.|
+| `buttons.displayType` | Here select display type in HomeKit app, possible `0 - None/Disabled`, `1 - Outlet`, `2 - Switch`.|
 | `buttons.namePrefix` | Here enable/disable the accessory name as a prefix for button name.|
 | `sensorPower`| If enabled, then the Power will be exposed as a `Contact Sensor` (active on Power ON) to use with automations. |
 | `sensorPixelRefresh`| If enabled, then the PoPixel Refresh will be exposed as a `Contact Sensor` (active on Pixel Refresh ON) to use with automations. |
@@ -93,7 +93,7 @@ Tested with OLED65G6V, 32LM6300PLA, 49SK8500, OLED65C7T, 55SK800PLB, OLED48CX.
 | `sensorScreenSaver`| If enabled, then the Screen Saver will be exposed as a `Contact Sensor` (active on Screen Saver ON) to use with automations. |
 | `sensorInputs.name` | Here set own *Name* which You want expose to the *Homebridge/HomeKit* for this sensor. |
 | `sensorInputs.reference` | Here set *Reference* like `com.webos.app.hdmi1` to be exposed as sensor (active on switch to this Input). |
-| `sensorInputs.displayType` | Here select sensor type to be exposed in HomeKit app, possible `None/Disabled`, `Motion Sensor`, `Occupancy Sensor`, `Contact Sensor`. |
+| `sensorInputs.displayType` | Here select sensor type to be exposed in HomeKit app, possible `0 - None/Disabled`, `1 - Motion Sensor`, `2 - Occupancy Sensor`, `3 - Contact Sensor`. |
 | `sensorInputs.namePrefix` | Here enable/disable the accessory name as a prefix for sensor name.|
 | `pictureModes.name` | Here set own *Name* which You want expose to the *Homebridge/HomeKit* for this sensor. |
 | `pictureModes.reference` | Here set *Reference* like `com.webos.app.hdmi1` to be exposed as sensor (active on switch to this Input). |
@@ -108,7 +108,7 @@ Tested with OLED65G6V, 32LM6300PLA, 49SK8500, OLED65C7T, 55SK800PLB, OLED48CX.
 | `turnScreenOnOff` | This enable possibility turn the screen ON/OFF, only for webOS >= 4.0. |
 | `sslWebSocket` | If enabled, SSL WebSocket will support TV with new firmware. |
 | `infoButtonCommand` | Here select the function of `I` button in RC app. |
-| `volumeControl` | Here select volume control mode `None/Disabled`, `Slider`, `Fan`. |
+| `volumeControl` | Here select volume control mode `0 - None/Disabled`, `1 - Slider`, `2 - Fan`. |
 | `enableRestFul` | If enabled, RESTful server will start automatically and respond to any path request. |
 | `restFulPort` | Here set the listening `Port` for RESTful server, every device need own port. |
 | `restFulDebug` | If enabled, deep log will be present in homebridge console for RESTFul server. |
@@ -122,6 +122,3 @@ Tested with OLED65G6V, 32LM6300PLA, 49SK8500, OLED65C7T, 55SK800PLB, OLED48CX.
 | `mqttPasswd` | Here set the MQTT Broker password. |
 | `mqttDebug` | If enabled, deep log will be present in homebridge console for MQTT. |
 | `reference` | All can be found in `homebridge_directory/lgwebosTv`, `inputs_xxx` file, where `reference == id`, or `channels_xxx` file, where `reference == channelId`. | Info |
-| `Volume Control` | -1 - `None/Disabled`, 0 - `Slider`, 1 - `Fan`.|
-| `Display Type Inputs/Buttons` | 0 - `None/Disabled`, 1 - `Outlet`, 2 - `Switch`.|
-| `Display Type Sensors` | 0 - `None/Disabled`, 1 - `Motion Sensor`, 2 - `Occupancy Sensor`, 3 - `Contact Sensor`.|
