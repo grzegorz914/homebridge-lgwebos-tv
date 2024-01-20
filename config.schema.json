@@ -31,6 +31,7 @@
               "title": "Address Mac",
               "type": "string",
               "placeholder": "ab:cd:ef:fe:dc:ba",
+              "pattern": "^([A-Fa-f0-9]{2}:){5}[A-Fa-f0-9]{2}$",
               "required": true
             },
             "getInputsFromDevice": {
