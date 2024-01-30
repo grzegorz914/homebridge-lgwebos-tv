@@ -646,22 +646,32 @@ class LgWebOsSocket extends EventEmitter {
     saveInputs(path, appsList) {
         return new Promise(async (resolve, reject) => {
             try {
-                const appsArr = [];
-                for (const app of appsList) {
+                const inputs = this.getInputsFromDevice ? appsList : this.inputs;
+                const tempInputs = [];
+                const inputsArr = [];
+                for (const app of inputs) {
                     const name = app.title;
-                    const appId = app.id;
-                    const inputsObj = {
+                    const reference = app.id;
+                    const mode = this.getInputsFromDevice ? 0 : app.mode;
+                    const obj = {
                         'name': name,
-                        'reference': appId,
-                        'mode': 0
+                        'reference': reference,
+                        'mode': mode
                     }
-                    appsArr.push(inputsObj);
+                    tempInputs.push(obj);
                 };
 
-                const allInputsArr = this.getInputsFromDevice ? appsArr : this.inputs;
-                const inputs = JSON.stringify(allInputsArr, null, 2)
-                await fsPromises.writeFile(path, inputs);
-                const debug = this.debugLog ? this.emit('debug', `Apps list saved: ${inputs}`) : false;
+                //chack duplicated inputs and convert reference
+                for (const input of tempInputs) {
+                    const inputReference = input.reference;
+                    const duplicatedInput = inputsArr.some(input => input.reference === inputReference);
+                    const push = !duplicatedInput ? inputsArr.push(input) : false;
+                }
+
+                //save inputs
+                const allInputs = JSON.stringify(inputsArr, null, 2);
+                await fsPromises.writeFile(path, allInputs);
+                const debug = this.debugLog ? this.emit('debug', `Apps list saved: ${allInputs}`) : false;
 
                 resolve()
             } catch (error) {
