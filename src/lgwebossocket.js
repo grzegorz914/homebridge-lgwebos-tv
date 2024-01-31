@@ -661,7 +661,7 @@ class LgWebOsSocket extends EventEmitter {
                     tempInputs.push(obj);
                 };
 
-                //chack duplicated inputs and convert reference
+                //chack duplicated inputs
                 for (const input of tempInputs) {
                     const inputReference = input.reference;
                     const duplicatedInput = inputsArr.some(input => input.reference === inputReference);
