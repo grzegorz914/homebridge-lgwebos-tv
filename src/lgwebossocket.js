@@ -649,10 +649,10 @@ class LgWebOsSocket extends EventEmitter {
                 const inputs = this.getInputsFromDevice ? appsList : this.inputs;
                 const tempInputs = [];
                 const inputsArr = [];
-                for (const app of inputs) {
-                    const name = app.title;
-                    const reference = app.id;
-                    const mode = this.getInputsFromDevice ? 0 : app.mode;
+                for (const input of inputs) {
+                    const name = input.title;
+                    const reference = input.id;
+                    const mode = this.getInputsFromDevice ? 0 : input.mode;
                     const obj = {
                         'name': name,
                         'reference': reference,
@@ -663,9 +663,11 @@ class LgWebOsSocket extends EventEmitter {
 
                 //chack duplicated inputs
                 for (const input of tempInputs) {
+                    const inputName = input.name;
                     const inputReference = input.reference;
+                    const inputMode = input.mode ?? 0;
                     const duplicatedInput = inputsArr.some(input => input.reference === inputReference);
-                    const push = !duplicatedInput ? inputsArr.push(input) : false;
+                    const push = inputName && inputReference && inputMode && !duplicatedInput ? inputsArr.push(input) : false;
                 }
 
                 //save inputs

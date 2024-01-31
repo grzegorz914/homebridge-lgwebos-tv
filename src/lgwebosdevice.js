@@ -467,51 +467,32 @@ class LgWebOsDevice extends EventEmitter {
             .on('prepareAccessory', async () => {
                 try {
                     //read dev info from file
-                    try {
-                        const data = await fsPromises.readFile(this.devInfoFile);
-                        this.savedInfo = data.toString().trim() !== '' ? JSON.parse(data) : {};
-                        const debug = this.enableDebugMode ? this.emit('debug', `Read saved Info: ${JSON.stringify(this.savedInfo, null, 2)}`) : false;
-                        this.webOS = this.savedInfo.webOS ?? 2.0;
-                    } catch (error) {
-                        this.emit('error', `Read saved Info error: ${error}`);
-                    };
+                    const savedInfo = await this.readData(this.devInfoFile);
+                    this.savedInfo = savedInfo.toString().trim() !== '' ? JSON.parse(savedInfo) : {};
+                    const debug = this.enableDebugMode ? this.emit('debug', `Read saved Info: ${JSON.stringify(this.savedInfo, null, 2)}`) : false;
+                    this.webOS = this.savedInfo.webOS ?? 2.0;
 
                     //read inputs file
-                    try {
-                        const data = await fsPromises.readFile(this.inputsFile);
-                        this.savedInputs = this.getInputsFromDevice && data.toString().trim() !== '' ? JSON.parse(data) : this.inputs;
-                        const debug = this.enableDebugMode ? this.emit('debug', `Read saved Inputs: ${JSON.stringify(this.savedInputs, null, 2)}`) : false;
-                    } catch (error) {
-                        this.emit('error', `Read saved Inputs error: ${error}`);
-                    };
+                    const savedInputs = await this.readData(this.inputsFile);
+                    this.savedInputs = this.getInputsFromDevice && savedInputs.toString().trim() !== '' ? JSON.parse(savedInputs) : this.inputs;
+                    const debug1 = this.enableDebugMode ? this.emit('debug', `Read saved Inputs: ${JSON.stringify(this.savedInputs, null, 2)}`) : false;
 
                     //read channels from file
-                    try {
-                        const data = await fsPromises.readFile(this.channelsFile);
-                        this.savedChannels = data.toString().trim() !== '' ? JSON.parse(data) : [];
-                        const debug = this.enableDebugMode ? this.emit('debug', `Read saved Channels: ${JSON.stringify(this.savedChannels, null, 2)}`) : false;
-                    } catch (error) {
-                        this.emit('error', `Read saved Channels error: ${error}`);
-                    };
+                    const savedChannels = await this.readData(this.channelsFile);
+                    this.savedChannels = savedChannels.toString().trim() !== '' ? JSON.parse(savedChannels) : [];
+                    const debug2 = this.enableDebugMode ? this.emit('debug', `Read saved Channels: ${JSON.stringify(this.savedChannels, null, 2)}`) : false;
 
                     //read inputs names from file
-                    try {
-                        const data = await fsPromises.readFile(this.inputsNamesFile);
-                        this.savedInputsNames = data.toString().trim() !== '' ? JSON.parse(data) : {};
-                        const debug = this.enableDebugMode ? this.emit('debug', `Read saved Inputs/Channels Names: ${JSON.stringify(this.savedInputsNames, null, 2)}`) : false;
-                    } catch (error) {
-                        this.emit('error', `Read saved Inputs/Channels Names error: ${error}`);
-                    };
+                    const savedInputsNames = await this.readData(this.inputsNamesFile);
+                    this.savedInputsNames = savedInputsNames.toString().trim() !== '' ? JSON.parse(savedInputsNames) : {};
+                    const debug3 = this.enableDebugMode ? this.emit('debug', `Read saved Inputs/Channels Names: ${JSON.stringify(this.savedInputsNames, null, 2)}`) : false;
 
                     //read inputs visibility from file
-                    try {
-                        const data = await fsPromises.readFile(this.inputsTargetVisibilityFile);
-                        this.savedInputsTargetVisibility = data.toString().trim() !== '' ? JSON.parse(data) : {};
-                        const debug = this.enableDebugMode ? this.emit('debug', `Read saved Inputs/Channels Target Visibility: ${JSON.stringify(this.savedInputsTargetVisibility, null, 2)}`) : false;
-                    } catch (error) {
-                        this.emit('error', `Read saved Inputs/Channels Target Visibility error: ${error}`);
-                    };
+                    const savedInputsTargetVisibility = await this.readData(this.inputsTargetVisibilityFile);
+                    this.savedInputsTargetVisibility = savedInputsTargetVisibility.toString().trim() !== '' ? JSON.parse(savedInputsTargetVisibility) : {};
+                    const debug4 = this.enableDebugMode ? this.emit('debug', `Read saved Inputs/Channels Target Visibility: ${JSON.stringify(this.savedInputsTargetVisibility, null, 2)}`) : false;
 
+                    //prepare accessory
                     await new Promise(resolve => setTimeout(resolve, 2000));
                     const accessory = await this.prepareAccessory();
                     this.emit('publishAccessory', accessory);
@@ -566,6 +547,30 @@ class LgWebOsDevice extends EventEmitter {
                 resolve();
             } catch (error) {
                 reject(error);
+            };
+        });
+    }
+
+    saveData(path, data) {
+        return new Promise(async (resolve, reject) => {
+            try {
+                await fsPromises.writeFile(path, JSON.stringify(data, null, 2));
+                const debug = !this.enableDebugMode ? false : this.emit('debug', `Saved data: ${JSON.stringify(data, null, 2)}`);
+                resolve();
+            } catch (error) {
+                reject(error);
+            };
+        });
+    }
+
+    readData(path) {
+        return new Promise(async (resolve, reject) => {
+            try {
+                const data = await fsPromises.readFile(path);
+                const debug = !this.enableDebugMode ? false : this.emit('debug', `Read data: ${JSON.stringify(data, null, 2)}`);
+                resolve(data);
+            } catch (error) {
+                reject(`Read saved data error: ${error}`);
             };
         });
     }
@@ -959,21 +964,16 @@ class LgWebOsDevice extends EventEmitter {
                     for (let i = 0; i < maxInputsCount; i++) {
                         //input
                         const input = inputs[i];
-
-                        //get input identifier
                         const inputIdentifier = i + 1;
 
                         //get input reference
                         const inputReference = input.reference;
 
                         //get input name
-                        const name = input.name ?? `Input ${inputIdentifier}`;
+                        const name = input.name;
                         const savedInputsNames = this.savedInputsNames[inputReference] ?? false;
                         const inputName = savedInputsNames ? savedInputsNames : name;
                         input.name = inputName;
-
-                        //get input mode
-                        const inputMode = input.mode;
 
                         //get input type
                         const inputSourceType = 0;
@@ -989,63 +989,59 @@ class LgWebOsDevice extends EventEmitter {
                         input.identifier = inputIdentifier;
 
                         //input service
-                        if (inputReference && inputName && inputMode >= 0) {
-                            const inputService = new Service.InputSource(`inputName`, `Input ${inputIdentifier}`);
-                            inputService
-                                .setCharacteristic(Characteristic.Identifier, inputIdentifier)
-                                .setCharacteristic(Characteristic.Name, inputName)
-                                .setCharacteristic(Characteristic.IsConfigured, isConfigured)
-                                .setCharacteristic(Characteristic.InputSourceType, inputSourceType)
-                                .setCharacteristic(Characteristic.CurrentVisibilityState, currentVisibility)
+                        const inputService = new Service.InputSource(inputName, `Input ${inputIdentifier}`);
+                        inputService
+                            .setCharacteristic(Characteristic.Identifier, inputIdentifier)
+                            .setCharacteristic(Characteristic.Name, inputName)
+                            .setCharacteristic(Characteristic.IsConfigured, isConfigured)
+                            .setCharacteristic(Characteristic.InputSourceType, inputSourceType)
+                            .setCharacteristic(Characteristic.CurrentVisibilityState, currentVisibility)
 
-                            inputService.getCharacteristic(Characteristic.ConfiguredName)
-                                .onGet(async () => {
-                                    return inputName;
-                                })
-                                .onSet(async (value) => {
-                                    if (value === this.savedInputsNames[inputReference]) {
-                                        return;
-                                    }
+                        inputService.getCharacteristic(Characteristic.ConfiguredName)
+                            .onGet(async () => {
+                                return inputName;
+                            })
+                            .onSet(async (value) => {
+                                if (value === this.savedInputsNames[inputReference]) {
+                                    return;
+                                }
 
-                                    try {
-                                        this.savedInputsNames[inputReference] = value;
-                                        await fsPromises.writeFile(this.inputsNamesFile, JSON.stringify(this.savedInputsNames, null, 2));
-                                        const debug = this.enableDebugMode ? this.emit('debug', `Saved ${inputMode === 0 ? 'Input' : 'Channel'} Name: ${value}, Reference: ${inputReference}`) : false;
+                                try {
+                                    this.savedInputsNames[inputReference] = value;
+                                    await this.saveData(this.inputsNamesFile, this.savedInputsNames);
+                                    const debug = this.enableDebugMode ? this.emit('debug', `Saved ${inputMode === 0 ? 'Input' : 'Channel'} Name: ${value}, Reference: ${inputReference}`) : false;
 
-                                        //sort inputs
-                                        const index = this.inputsConfigured.findIndex(input => input.reference === inputReference);
-                                        this.inputsConfigured[index].name = value;
-                                        await this.displayOrder();
-                                    } catch (error) {
-                                        this.emit('error', `save Input error: ${error}`);
-                                    }
-                                });
+                                    //sort inputs
+                                    const index = this.inputsConfigured.findIndex(input => input.reference === inputReference);
+                                    this.inputsConfigured[index].name = value;
+                                    await this.displayOrder();
+                                } catch (error) {
+                                    this.emit('error', `save Input error: ${error}`);
+                                }
+                            });
 
-                            inputService.getCharacteristic(Characteristic.TargetVisibilityState)
-                                .onGet(async () => {
-                                    return currentVisibility;
-                                })
-                                .onSet(async (state) => {
-                                    if (state === this.savedInputsTargetVisibility[inputReference]) {
-                                        return;
-                                    }
+                        inputService.getCharacteristic(Characteristic.TargetVisibilityState)
+                            .onGet(async () => {
+                                return currentVisibility;
+                            })
+                            .onSet(async (state) => {
+                                if (state === this.savedInputsTargetVisibility[inputReference]) {
+                                    return;
+                                }
 
-                                    try {
-                                        this.savedInputsTargetVisibility[inputReference] = state;
-                                        await fsPromises.writeFile(this.inputsTargetVisibilityFile, JSON.stringify(this.savedInputsTargetVisibility, null, 2));
-                                        const debug = this.enableDebugMode ? this.emit('debug', `Saved ${inputMode === 0 ? 'Input' : 'Channel'}: ${inputName}, Target Visibility: ${state ? 'HIDEN' : 'SHOWN'}`) : false;
-                                    } catch (error) {
-                                        this.emit('error', `save Target Visibility error: ${error}`);
-                                    }
-                                });
+                                try {
+                                    this.savedInputsTargetVisibility[inputReference] = state;
+                                    await this.saveData(this.inputsTargetVisibilityFile, this.savedInputsTargetVisibility);
+                                    const debug = this.enableDebugMode ? this.emit('debug', `Saved ${inputMode === 0 ? 'Input' : 'Channel'}: ${inputName}, Target Visibility: ${state ? 'HIDEN' : 'SHOWN'}`) : false;
+                                } catch (error) {
+                                    this.emit('error', `save Target Visibility error: ${error}`);
+                                }
+                            });
 
-                            this.inputsConfigured.push(input);
-                            this.televisionService.addLinkedService(inputService);
-                            this.allServices.push(inputService);
-                            accessory.addService(inputService);
-                        } else {
-                            this.emit('message', `Input Name: ${inputName ? inputName : 'Missing'}, Reference: ${inputReference ? inputReference : 'Missing'}, Mode: ${inputMode ? inputMode : 'Missing'}.`);
-                        };
+                        this.inputsConfigured.push(input);
+                        this.televisionService.addLinkedService(inputService);
+                        this.allServices.push(inputService);
+                        accessory.addService(inputService);
                     }
                 }
 
