@@ -322,6 +322,11 @@
         "com.webos.exampleapp.qmlapp.search",
         "com.palm.app.firstuse",
         "com.palm.app.remotecontrolguide",
+        "com.webos.app.shoppinghdmi2",
+        "com.webos.app.shoppinghdmi1",
+        "com.webos.app.shoppinghdmi4",
+        "com.webos.app.shoppingoverlay",
+        "com.webos.app.shoppinghdmi3",
         "alibaba.genie",
         "alibaba.genie.view",
         "amazon.alexa.view"

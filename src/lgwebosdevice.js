@@ -210,6 +210,7 @@ class LgWebOsDevice extends EventEmitter {
             inputsFile: this.inputsFile,
             channelsFile: this.channelsFile,
             getInputsFromDevice: this.getInputsFromDevice,
+            filterSystemApps: this.filterSystemApps,
             debugLog: this.enableDebugMode,
             restFulEnabled: this.restFulEnabled,
             mqttEnabled: this.mqttEnabled,
@@ -948,16 +949,8 @@ class LgWebOsDevice extends EventEmitter {
                     //prepare inputs service
                     const debug = this.enableDebugMode ? this.emit('debug', `Prepare inputs service`) : false;
 
-                    //filter unnecessary inputs
-                    const filteredInputsArr = [];
-                    for (const input of this.savedInputs) {
-                        const reference = input.reference;
-                        const filterSystemApps = this.filterSystemApps ? CONSTANS.SystemApps.includes(reference) : false;
-                        const push = filterSystemApps ? false : filteredInputsArr.push(input);
-                    }
-
                     //check possible inputs count (max 85)
-                    const inputs = filteredInputsArr;
+                    const inputs = this.savedInputs;
                     const inputsCount = inputs.length;
                     const possibleInputsCount = 85 - this.allServices.length;
                     const maxInputsCount = inputsCount >= possibleInputsCount ? possibleInputsCount : inputsCount;

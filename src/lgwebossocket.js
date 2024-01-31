@@ -16,6 +16,7 @@ class LgWebOsSocket extends EventEmitter {
         const inputsFile = config.inputsFile;
         const channelsFile = config.channelsFile;
         const getInputsFromDevice = config.getInputsFromDevice;
+        const filterSystemApps = config.filterSystemApps;
         const debugLog = config.debugLog;
         const restFulEnabled = config.restFulEnabled;
         const mqttEnabled = config.mqttEnabled;
@@ -26,6 +27,7 @@ class LgWebOsSocket extends EventEmitter {
         this.inputs = inputs;
         this.keyFile = keyFile;
         this.getInputsFromDevice = getInputsFromDevice;
+        this.filterSystemApps = filterSystemApps;
         this.debugLog = debugLog;
 
         this.startPrepareAccessory = true;
@@ -667,7 +669,8 @@ class LgWebOsSocket extends EventEmitter {
                     const inputReference = input.reference;
                     const inputMode = input.mode ?? 0;
                     const duplicatedInput = inputsArr.some(input => input.reference === inputReference);
-                    const push = inputName && inputReference && !duplicatedInput ? inputsArr.push(input) : false;
+                    const filterSystemApps = this.filterSystemApps ? CONSTANS.SystemApps.includes(inputReference) : false;
+                    const push = inputName && inputReference && !filterSystemApps && !duplicatedInput ? inputsArr.push(input) : false;
                 }
 
                 //save inputs
