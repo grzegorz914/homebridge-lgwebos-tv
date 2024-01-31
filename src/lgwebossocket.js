@@ -667,7 +667,7 @@ class LgWebOsSocket extends EventEmitter {
                     const inputReference = input.reference;
                     const inputMode = input.mode ?? 0;
                     const duplicatedInput = inputsArr.some(input => input.reference === inputReference);
-                    const push = inputName && inputReference && inputMode && !duplicatedInput ? inputsArr.push(input) : false;
+                    const push = inputName && inputReference && !duplicatedInput ? inputsArr.push(input) : false;
                 }
 
                 //save inputs
