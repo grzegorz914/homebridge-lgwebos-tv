@@ -81,16 +81,17 @@ Tested with OLED65G6V, 32LM6300PLA, 49SK8500, OLED65C7T, 55SK800PLB, OLED48CX.
 | `buttons.command` | Here select `Remote Control` command which will be assigned to the button. |
 | `buttons.displayType` | Here select display type in HomeKit app, possible `0 - None/Disabled`, `1 - Outlet`, `2 - Switch`.|
 | `buttons.namePrefix` | Here enable/disable the accessory name as a prefix for button name.|
-| `sensorPower`| If enabled, then the Power will be exposed as a `Contact Sensor` (active on Power ON) to use with automations. |
-| `sensorPixelRefresh`| If enabled, then the PoPixel Refresh will be exposed as a `Contact Sensor` (active on Pixel Refresh ON) to use with automations. |
-| `sensorVolume`| If enabled, then the Volume will be exposed as a `Contact Sensor` (active on every Volume change) to use with automations. |
-| `sensorMute`| If enabled, then the Mute will be exposed as a `Contact Sensor` (active on Mute ON) to use with automations. |
-| `sensorInput`| If enabled, then the Input will be exposed as a `Contact Sensor` (active on every Input change) to use with automations. |
-| `sensorChannel`| If enabled, then the Channel will be exposed as a `Contact Sensor` (active on every Channel change) to use with automations. |
-| `sensorSoundMode`| If enabled, then the Sound Mode will be exposed as a `Contact Sensor` (active on every Sound Mode change) to use with automations. |
-| `sensorPictureMode`| If enabled, then the Picture Mode will be exposed as a `Contact Sensor` (active on every Pictue Mode change) to use with automations. |
-| `sensorScreenOnOff`| If enabled, then the Screen On/Off will be exposed as a `Contact Sensor` (active on Screen OFF) to use with automations. |
-| `sensorScreenSaver`| If enabled, then the Screen Saver will be exposed as a `Contact Sensor` (active on Screen Saver ON) to use with automations. |
+| `sensorPower`| If enabled, then the Power will be exposed as a `Contact Sensor`, fired if Power ON. |
+| `sensorPixelRefresh`| If enabled, then the PoPixel Refresh will be exposed as a `Contact Sensor`, fired if Pixel Refresh ON. |
+| `sensorVolume`| If enabled, then the Volume will be exposed as a `Contact Sensor`, fired on every Volume change. |
+| `sensorMute`| If enabled, then the Mute will be exposed as a `Contact Sensor`, fired if Mmute ON. |
+| `sensorInput`| If enabled, then the Input will be exposed as a `Contact Sensor`, fired on every Input change. |
+| `sensorChannel`| If enabled, then the Channel will be exposed as a `Contact Sensor`, fired on every Channel change. |
+| `sensorSoundMode`| If enabled, then the Sound Mode will be exposed as a `Contact Sensor`, fired on every Sound Mode change. |
+| `sensorPictureMode`| If enabled, then the Picture Mode will be exposed as a `Contact Sensor`, fired on every Picture Mode change. |
+| `sensorScreenOnOff`| If enabled, then the Screen On/Off will be exposed as a `Contact Sensor`, fired on Screen OFF. |
+| `sensorScreenSaver`| If enabled, then the Screen Saver will be exposed as a `Contact Sensor`, fired on Screen Saver ON. |
+| `sensorInputs`| Her create custom Inputs sensor, sensors will be exposed as a `Contact Sensor`, fired if switch to it. |
 | `sensorInputs.name` | Here set own *Name* which You want expose to the *Homebridge/HomeKit* for this sensor. |
 | `sensorInputs.reference` | Here set *Reference* like `com.webos.app.hdmi1` to be exposed as sensor (active on switch to this Input). |
 | `sensorInputs.displayType` | Here select sensor type to be exposed in HomeKit app, possible `0 - None/Disabled`, `1 - Motion Sensor`, `2 - Occupancy Sensor`, `3 - Contact Sensor`. |
