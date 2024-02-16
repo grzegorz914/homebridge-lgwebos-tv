@@ -281,7 +281,7 @@ class LgWebOsDevice extends EventEmitter {
                         .updateCharacteristic(Characteristic.ActiveIdentifier, inputIdentifier);
                 };
 
-                if (this.sensorInputService && inputIdentifier !== this.inputIdentifier) {
+                if (this.sensorInputService && appId !== this.appId) {
                     for (let i = 0; i < 1; i++) {
                         const state = power ? [true, false][i] : false;
                         this.sensorInputService
@@ -290,7 +290,7 @@ class LgWebOsDevice extends EventEmitter {
                     }
                 }
 
-                if (this.sensorsInputsServices && appId !== undefined) {
+                if (this.sensorsInputsServices) {
                     const servicesCount = this.sensorsInputsServices.length;
                     for (let i = 0; i < servicesCount; i++) {
                         const state = this.power ? (this.sensorsInputsConfigured[i].reference === appId) : false;
@@ -302,10 +302,10 @@ class LgWebOsDevice extends EventEmitter {
                 }
 
                 this.inputIdentifier = inputIdentifier;
-                this.appId = appId !== undefined ? appId : this.appId;
+                this.appId = appId;
                 if (!this.disableLogInfo) {
                     this.emit('message', `Input Name: ${inputName}`);
-                    this.emit('message', `Reference: ${this.appId}`);
+                    this.emit('message', `Reference: ${appId}`);
                 };
             })
             .on('audioState', (volume, mute, audioOutput) => {
@@ -354,11 +354,11 @@ class LgWebOsDevice extends EventEmitter {
                         .updateCharacteristic(Characteristic.ContactSensorState, state);
                 }
 
-                this.volume = volume !== undefined ? volume : this.volume;
+                this.volume = volume;
                 this.mute = mute;
                 if (!this.disableLogInfo) {
-                    this.emit('message', `Volume: ${this.volume}%`);
-                    this.emit('message', `Mute: ${this.mute ? 'ON' : 'OFF'}`);
+                    this.emit('message', `Volume: ${volume}%`);
+                    this.emit('message', `Mute: ${mute ? 'ON' : 'OFF'}`);
                 };
             })
             .on('currentChannel', (channelId, channelName, channelNumber) => {
@@ -370,7 +370,7 @@ class LgWebOsDevice extends EventEmitter {
                         .updateCharacteristic(Characteristic.ActiveIdentifier, inputIdentifier);
                 };
 
-                if (this.sensorChannelService && inputIdentifier !== this.inputIdentifier) {
+                if (this.sensorChannelService && channelId !== this.channelId) {
                     for (let i = 0; i < 1; i++) {
                         const state = power ? [true, false][i] : false;
                         this.sensorChannelService
@@ -384,9 +384,9 @@ class LgWebOsDevice extends EventEmitter {
                 this.channelName = channelName !== undefined ? channelName : this.channelName;
                 this.channelNumber = channelNumber !== undefined ? channelNumber : this.channelNumber;
                 if (!this.disableLogInfo) {
-                    this.emit('message', `Channel Number: ${this.channelNumber}`);
-                    this.emit('message', `Channel Name: ${this.channelName}`);
-                    this.emit('message', `Reference: ${this.channelId}`);
+                    this.emit('message', `Channel Number: ${channelNumber}`);
+                    this.emit('message', `Channel Name: ${channelName}`);
+                    this.emit('message', `Reference: ${channelId}`);
                 };
             })
             .on('pictureSettings', (brightness, backlight, contrast, color, pictureMode, power) => {
@@ -448,29 +448,27 @@ class LgWebOsDevice extends EventEmitter {
                 };
             })
             .on('soundMode', (soundMode, power) => {
-                if (soundMode !== undefined) {
-                    if (this.soundsModesServices) {
-                        const servicesCount = this.soundsModesServices.length;
-                        for (let i = 0; i < servicesCount; i++) {
-                            const state = power ? (this.soundModes[i].reference === soundMode) : false;
-                            this.soundsModesServices[i]
-                                .updateCharacteristic(Characteristic.On, state);
-                        };
+                if (this.soundsModesServices) {
+                    const servicesCount = this.soundsModesServices.length;
+                    for (let i = 0; i < servicesCount; i++) {
+                        const state = power ? this.soundModes[i].reference === soundMode : false;
+                        this.soundsModesServices[i]
+                            .updateCharacteristic(Characteristic.On, state);
                     };
+                };
 
-                    if (this.sensorSoundModeService && soundMode !== this.soundMode) {
-                        for (let i = 0; i < 1; i++) {
-                            const state = power ? [true, false][i] : false;
-                            this.sensorSoundModeService
-                                .updateCharacteristic(Characteristic.ContactSensorState, state)
-                            this.sensorSoundModeState = state;
-                        }
+                if (this.sensorSoundModeService && soundMode !== this.soundMode) {
+                    for (let i = 0; i < 1; i++) {
+                        const state = power ? [true, false][i] : false;
+                        this.sensorSoundModeService
+                            .updateCharacteristic(Characteristic.ContactSensorState, state)
+                        this.sensorSoundModeState = state;
                     }
                 }
 
-                this.soundMode = soundMode !== undefined ? soundMode : this.soundMode;
+                this.soundMode = soundMode;
                 if (!this.disableLogInfo) {
-                    this.emit('message', `Sound Mode: ${this.soundMode}`);
+                    this.emit('message', `Sound Mode: ${soundMode}`);
                 };
             })
             .on('prepareAccessory', async () => {
