@@ -420,9 +420,14 @@ class LgWebOsSocket extends EventEmitter {
                                 const soundOutputExist = volumeStatusKeys ? volumeStatusKeys.includes('soundOutput') : false;
 
                                 //data
-                                const audioOutput = scenarioExist ? messageData.scenario : soundOutputExist ? messageData.volumeStatus.soundOutput : undefined;
-                                const volume = messageData.volume < 0 ? 0 : messageData.volume;
-                                const mute = messageData.mute;
+                                const audioOutput = scenarioExist ? messageData.scenario : soundOutputExist ? messageData.volumeStatus.soundOutput : 'Unknown';
+                                const volume = messageData.volume >= 0 ? messageData.volume : false;
+                                const mute = messageData.mute === true;
+
+                                if (!volume) {
+                                    return;
+                                };
+
                                 this.emit('audioState', volume, mute, audioOutput);
 
                                 //restFul
