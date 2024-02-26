@@ -18,8 +18,6 @@ class LgWebOsSocket extends EventEmitter {
         const getInputsFromDevice = config.getInputsFromDevice;
         const filterSystemApps = config.filterSystemApps;
         const debugLog = config.debugLog;
-        const restFulEnabled = config.restFulEnabled;
-        const mqttEnabled = config.mqttEnabled;
         const sslWebSocket = config.sslWebSocket;
         const url = sslWebSocket ? CONSTANS.ApiUrls.WssUrl.replace('lgwebostv', host) : CONSTANS.ApiUrls.WsUrl.replace('lgwebostv', host);
         const webSocketPort = sslWebSocket ? 3001 : 3000;
@@ -176,10 +174,10 @@ class LgWebOsSocket extends EventEmitter {
                                 this.modelName = messageData.modelName ?? 'LG TV';
 
                                 //restFul
-                                const restFul = restFulEnabled ? this.emit('restFul', 'systeminfo', messageData) : false;
+                                this.emit('restFul', 'systeminfo', messageData);
 
                                 //mqtt
-                                const mqtt = mqttEnabled ? this.emit('mqtt', 'System info', messageData) : false;
+                                this.emit('mqtt', 'System info', messageData);
 
                                 //Request software info data
                                 try {
@@ -215,10 +213,10 @@ class LgWebOsSocket extends EventEmitter {
                                 this.emit('deviceInfo', this.modelName, productName, deviceId, firmwareRevision);
 
                                 //restFul
-                                const restFul = restFulEnabled ? this.emit('restFul', 'softwareinfo', messageData) : false;
+                                this.emit('restFul', 'softwareinfo', messageData);
 
                                 //mqtt
-                                const mqtt = mqttEnabled ? this.emit('mqtt', 'Software info', messageData) : false;
+                                this.emit('mqtt', 'Software info', messageData);
 
                                 //Request channels list
                                 try {
@@ -276,10 +274,10 @@ class LgWebOsSocket extends EventEmitter {
                                 await this.saveChannels(channelsFile, channelsList);
 
                                 //restFul
-                                const restFul = restFulEnabled ? this.emit('restFul', 'channels', messageData) : false;
+                                this.emit('restFul', 'channels', messageData);
 
                                 //mqtt
-                                const mqtt = mqttEnabled ? this.emit('mqtt', 'Channels', messageData) : false;
+                                this.emit('mqtt', 'Channels', messageData);
                                 break;
                             case 'error':
                                 const debug1 = debugLog ? this.emit('debug', `Channels error: ${stringifyMessage}`) : false;
@@ -303,10 +301,10 @@ class LgWebOsSocket extends EventEmitter {
                                 await this.saveInputs(inputsFile, appsList);
 
                                 //restFul
-                                const restFul = restFulEnabled ? this.emit('restFul', 'apps', messageData) : false;
+                                this.emit('restFul', 'apps', messageData);
 
                                 //mqtt
-                                const mqtt = mqttEnabled ? this.emit('mqtt', 'Apps', messageData) : false;
+                                this.emit('mqtt', 'Apps', messageData);
                                 break;
                             case 'error':
                                 const debug1 = debugLog ? this.emit('debug', `Apps list error: ${stringifyMessage}`) : false;
@@ -365,10 +363,10 @@ class LgWebOsSocket extends EventEmitter {
                                 const emitAppId = this.tvScreenState === 'Screen Saver' ? this.emit('currentApp', 'com.webos.app.screensaver') : this.emit('currentApp', this.appId);
 
                                 //restFul
-                                const restFul = restFulEnabled ? this.emit('restFul', 'power', messageData) : false;
+                                this.emit('restFul', 'power', messageData);
 
                                 //mqtt
-                                const mqtt = mqttEnabled ? this.emit('mqtt', 'Power', messageData) : false;
+                                this.emit('mqtt', 'Power', messageData);
                                 break;
                             case 'error':
                                 if (this.webOS < 3.0) {
@@ -396,10 +394,10 @@ class LgWebOsSocket extends EventEmitter {
                                 this.appId = appId;
 
                                 //restFul
-                                const restFul = restFulEnabled ? this.emit('restFul', 'currentapp', messageData) : false;
+                                this.emit('restFul', 'currentapp', messageData);
 
                                 //mqtt
-                                const mqtt = mqttEnabled ? this.emit('mqtt', 'Current App', messageData) : false;
+                                this.emit('mqtt', 'Current App', messageData);
                                 break;
                             case 'error':
                                 const debug1 = debugLog ? this.emit('debug', `App error: ${stringifyMessage}`) : false;
@@ -421,7 +419,7 @@ class LgWebOsSocket extends EventEmitter {
 
                                 //data
                                 const audioOutput = scenarioExist ? messageData.scenario : soundOutputExist ? messageData.volumeStatus.soundOutput : 'Unknown';
-                                const volume = messageData.volume >= 0 ? messageData.volume : false;
+                                const volume = messageData.volume ?? false;
                                 const mute = messageData.mute === true;
 
                                 if (!volume) {
@@ -431,10 +429,10 @@ class LgWebOsSocket extends EventEmitter {
                                 this.emit('audioState', volume, mute, audioOutput);
 
                                 //restFul
-                                const restFul = restFulEnabled ? this.emit('restFul', 'audio', messageData) : false;
+                                this.emit('restFul', 'audio', messageData);
 
                                 //mqtt
-                                const mqtt = mqttEnabled ? this.emit('mqtt', 'Audio', messageData) : false;
+                                this.emit('mqtt', 'Audio', messageData);
                                 break;
                             case 'error':
                                 const debug1 = debugLog ? this.emit('debug', `Audio error: ${stringifyMessage}`) : false;
@@ -455,10 +453,10 @@ class LgWebOsSocket extends EventEmitter {
                                 this.emit('currentChannel', channelId, channelName, channelNumber);
 
                                 //restFul
-                                const restFul = restFulEnabled ? this.emit('restFul', 'currentchannel', messageData) : false;
+                                this.emit('restFul', 'currentchannel', messageData);
 
                                 //mqtt
-                                const mqtt = mqttEnabled ? this.emit('mqtt', 'Current Channel', messageData) : false;
+                                this.emit('mqtt', 'Current Channel', messageData);
                                 break;
                             case 'error':
                                 const debug1 = debugLog ? this.emit('debug', `Channel error: ${stringifyMessage}`) : false;
@@ -480,10 +478,10 @@ class LgWebOsSocket extends EventEmitter {
                                 this.emit('pictureSettings', brightness, backlight, contrast, color, pictureMode, this.power);
 
                                 //restFul
-                                const restFul = restFulEnabled ? this.emit('restFul', 'picturesettings', messageData) : false;
+                                this.emit('restFul', 'picturesettings', messageData);
 
                                 //mqtt
-                                const mqtt = mqttEnabled ? this.emit('mqtt', 'Picture Settings', messageData) : false;
+                                this.emit('mqtt', 'Picture Settings', messageData);
                                 break;
                             case 'error':
                                 const debug1 = debugLog ? this.emit('debug', `Picture error: ${stringifyMessage}`) : false;
@@ -501,10 +499,10 @@ class LgWebOsSocket extends EventEmitter {
                                 this.emit('soundMode', soundMode, this.power);
 
                                 //restFul
-                                const restFul = restFulEnabled ? this.emit('restFul', 'soundmode', messageData) : false;
+                                this.emit('restFul', 'soundmode', messageData);
 
                                 //mqtt
-                                const mqtt = mqttEnabled ? this.emit('mqtt', 'Sound Mode', messageData) : false;
+                                this.emit('mqtt', 'Sound Mode', messageData);
                                 break;
                             case 'error':
                                 const debug1 = debugLog ? this.emit('debug', `Sound mode error: ${stringifyMessage}`) : false;

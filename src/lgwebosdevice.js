@@ -3,14 +3,12 @@ const fs = require('fs');
 const fsPromises = fs.promises;
 const EventEmitter = require('events');
 const Wol = require('./wol.js');
-const RestFul = require('./restful.js');
-const Mqtt = require('./mqtt.js');
 const LgWebOsSocket = require('./lgwebossocket');
 const CONSTANS = require('./constans.json');
 let Accessory, Characteristic, Service, Categories, Encode, UUID;
 
 class LgWebOsDevice extends EventEmitter {
-    constructor(api, prefDir, config) {
+    constructor(api, prefDir, device) {
         super();
 
         Accessory = api.platformAccessory;
@@ -21,58 +19,42 @@ class LgWebOsDevice extends EventEmitter {
         UUID = api.hap.uuid;
 
         //device configuration
-        this.name = config.name;
-        this.host = config.host;
-        this.mac = config.mac;
-        this.getInputsFromDevice = config.getInputsFromDevice || false;
-        this.filterSystemApps = this.getInputsFromDevice ? config.filterSystemApps : false;
-        this.disableLoadDefaultInputs = config.disableLoadDefaultInputs || false;
-        this.inputs = config.inputs || [];
-        this.inputsDisplayOrder = config.inputsDisplayOrder || 0;
-        this.buttons = config.buttons || [];
-        this.sensorPower = config.sensorPower || false;
-        this.sensorPixelRefresh = config.sensorPixelRefresh || false;
-        this.sensorVolume = config.sensorVolume || false;
-        this.sensorMute = config.sensorMute || false;
-        this.sensorInput = config.sensorInput || false;
-        this.sensorChannel = config.sensorChannel || false;
-        this.sensorSoundMode = config.sensorSoundMode || false;
-        this.sensorPictureMode = config.sensorPictureMode || false;
-        this.sensorScreenOnOff = config.sensorScreenOnOff || false;
-        this.sensorScreenSaver = config.sensorScreenSaver || false;
-        this.sensorInputs = config.sensorInputs || [];
-        this.brightnessControl = config.brightnessControl || false;
-        this.backlightControl = config.backlightControl || false;
-        this.contrastControl = config.contrastControl || false;
-        this.colorControl = config.colorControl || false;
-        this.pictureModeControl = config.pictureModeControl || false;
-        this.pictureModes = config.pictureModes || [];
-        this.soundModeControl = config.soundModeControl || false;
-        this.soundModes = config.soundModes || [];
-        this.enableDebugMode = config.enableDebugMode || false;
-        this.disableLogInfo = config.disableLogInfo || false;
-        this.disableLogDeviceInfo = config.disableLogDeviceInfo || false;
-        this.disableTvService = config.disableTvService || false;
-        this.turnScreenOnOff = config.turnScreenOnOff || false;
-        this.sslWebSocket = config.sslWebSocket || false;
-        this.infoButtonCommand = config.infoButtonCommand || 'INFO';
-        this.volumeControl = config.volumeControl || false;
-        this.restFulEnabled = config.enableRestFul || false;
-        this.restFulPort = config.restFulPort || 3000;
-        this.restFulDebug = config.restFulDebug || false;
-        this.mqttEnabled = config.enableMqtt || false;
-        this.mqttHost = config.mqttHost;
-        this.mqttPort = config.mqttPort || 1883;
-        this.mqttClientId = config.mqttClientId || `lgwebos_${Math.random().toString(16).slice(3)}`;
-        this.mqttPrefix = config.mqttPrefix;
-        this.mqttAuth = config.mqttAuth || false;
-        this.mqttUser = config.mqttUser;
-        this.mqttPasswd = config.mqttPasswd;
-        this.mqttDebug = config.mqttDebug || false;
-
-        //external integrations variable
-        this.restFulConnected = false;
-        this.mqttConnected = false;
+        this.name = device.name;
+        this.host = device.host;
+        this.mac = device.mac;
+        this.getInputsFromDevice = device.getInputsFromDevice || false;
+        this.filterSystemApps = this.getInputsFromDevice ? device.filterSystemApps : false;
+        this.disableLoadDefaultInputs = device.disableLoadDefaultInputs || false;
+        this.inputs = device.inputs || [];
+        this.inputsDisplayOrder = device.inputsDisplayOrder || 0;
+        this.buttons = device.buttons || [];
+        this.sensorPower = device.sensorPower || false;
+        this.sensorPixelRefresh = device.sensorPixelRefresh || false;
+        this.sensorVolume = device.sensorVolume || false;
+        this.sensorMute = device.sensorMute || false;
+        this.sensorInput = device.sensorInput || false;
+        this.sensorChannel = device.sensorChannel || false;
+        this.sensorSoundMode = device.sensorSoundMode || false;
+        this.sensorPictureMode = device.sensorPictureMode || false;
+        this.sensorScreenOnOff = device.sensorScreenOnOff || false;
+        this.sensorScreenSaver = device.sensorScreenSaver || false;
+        this.sensorInputs = device.sensorInputs || [];
+        this.brightnessControl = device.brightnessControl || false;
+        this.backlightControl = device.backlightControl || false;
+        this.contrastControl = device.contrastControl || false;
+        this.colorControl = device.colorControl || false;
+        this.pictureModeControl = device.pictureModeControl || false;
+        this.pictureModes = device.pictureModes || [];
+        this.soundModeControl = device.soundModeControl || false;
+        this.soundModes = device.soundModes || [];
+        this.enableDebugMode = device.enableDebugMode || false;
+        this.disableLogInfo = device.disableLogInfo || false;
+        this.disableLogDeviceInfo = device.disableLogDeviceInfo || false;
+        this.disableTvService = device.disableTvService || false;
+        this.turnScreenOnOff = device.turnScreenOnOff || false;
+        this.sslWebSocket = device.sslWebSocket || false;
+        this.infoButtonCommand = device.infoButtonCommand || 'INFO';
+        this.volumeControl = device.volumeControl || false;
 
         //accessory services
         this.allServices = [];
@@ -158,49 +140,6 @@ class LgWebOsDevice extends EventEmitter {
                 this.emit('debug', debug);
             });
 
-        //RESTFul server
-        if (this.restFulEnabled) {
-            this.restFul = new RestFul({
-                port: this.restFulPort,
-                debug: this.restFulDebug
-            });
-
-            this.restFul.on('connected', (message) => {
-                this.emit('message', `${message}`);
-                this.restFulConnected = true;
-            })
-                .on('error', (error) => {
-                    this.emit('error', error);
-                })
-                .on('debug', (debug) => {
-                    this.emit('debug', debug);
-                });
-        }
-
-        //MQTT client
-        if (this.mqttEnabled) {
-            this.mqtt = new Mqtt({
-                host: this.mqttHost,
-                port: this.mqttPort,
-                clientId: this.mqttClientId,
-                user: this.mqttUser,
-                passwd: this.mqttPasswd,
-                prefix: `${this.mqttPrefix}/${this.name}`,
-                debug: this.mqttDebug
-            });
-
-            this.mqtt.on('connected', (message) => {
-                this.emit('message', message);
-                this.mqttConnected = true;
-            })
-                .on('debug', (debug) => {
-                    this.emit('debug', debug);
-                })
-                .on('error', (error) => {
-                    this.emit('error', error);
-                });
-        }
-
         //lg tv client
         this.lgWebOsSocket = new LgWebOsSocket({
             host: this.host,
@@ -212,8 +151,6 @@ class LgWebOsDevice extends EventEmitter {
             getInputsFromDevice: this.getInputsFromDevice,
             filterSystemApps: this.filterSystemApps,
             debugLog: this.enableDebugMode,
-            restFulEnabled: this.restFulEnabled,
-            mqttEnabled: this.mqttEnabled,
             sslWebSocket: this.sslWebSocket
         });
 
@@ -282,8 +219,8 @@ class LgWebOsDevice extends EventEmitter {
                 };
 
                 if (this.sensorInputService && appId !== this.appId) {
-                    for (let i = 0; i < 1; i++) {
-                        const state = power ? [true, false][i] : false;
+                    for (let i = 0; i < 2; i++) {
+                        const state = this.power ? [true, false][i] : false;
                         this.sensorInputService
                             .updateCharacteristic(Characteristic.ContactSensorState, state)
                         this.sensorInputState = state;
@@ -340,8 +277,8 @@ class LgWebOsDevice extends EventEmitter {
                 };
 
                 if (this.sensorVolumeService && volume !== this.volume) {
-                    for (let i = 0; i < 1; i++) {
-                        const state = power ? [true, false][i] : false;
+                    for (let i = 0; i < 2; i++) {
+                        const state = this.power ? [true, false][i] : false;
                         this.sensorVolumeService
                             .updateCharacteristic(Characteristic.ContactSensorState, state)
                         this.sensorVolumeState = state;
@@ -371,8 +308,8 @@ class LgWebOsDevice extends EventEmitter {
                 };
 
                 if (this.sensorChannelService && channelId !== this.channelId) {
-                    for (let i = 0; i < 1; i++) {
-                        const state = power ? [true, false][i] : false;
+                    for (let i = 0; i < 2; i++) {
+                        const state = this.power ? [true, false][i] : false;
                         this.sensorChannelService
                             .updateCharacteristic(Characteristic.ContactSensorState, state)
                         this.sensorChannelState = state;
@@ -426,7 +363,7 @@ class LgWebOsDevice extends EventEmitter {
                 };
 
                 if (this.sensorPicturedModeService && pictureMode !== this.pictureMode) {
-                    for (let i = 0; i < 1; i++) {
+                    for (let i = 0; i < 2; i++) {
                         const state = power ? [true, false][i] : false;
                         this.sensorPicturedModeService
                             .updateCharacteristic(Characteristic.ContactSensorState, state)
@@ -458,7 +395,7 @@ class LgWebOsDevice extends EventEmitter {
                 };
 
                 if (this.sensorSoundModeService && soundMode !== this.soundMode) {
-                    for (let i = 0; i < 1; i++) {
+                    for (let i = 0; i < 2; i++) {
                         const state = power ? [true, false][i] : false;
                         this.sensorSoundModeService
                             .updateCharacteristic(Characteristic.ContactSensorState, state)
@@ -520,10 +457,10 @@ class LgWebOsDevice extends EventEmitter {
                 this.emit('error', error);
             })
             .on('restFul', (path, data) => {
-                const restFul = this.restFulConnected ? this.restFul.update(path, data) : false;
+                this.emit('restFul', path, data)
             })
             .on('mqtt', (topic, message) => {
-                const mqtt = this.mqttConnected ? this.mqtt.send(topic, message) : false;
+                this.emit('mqtt', topic, message)
             });
     };
 
