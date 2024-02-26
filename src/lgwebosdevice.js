@@ -246,7 +246,7 @@ class LgWebOsDevice extends EventEmitter {
                 };
             })
             .on('audioState', (volume, mute, audioOutput) => {
-                if (this.speakerService && volume !== undefined) {
+                if (this.speakerService) {
                     this.speakerService
                         .updateCharacteristic(Characteristic.Volume, volume)
 
