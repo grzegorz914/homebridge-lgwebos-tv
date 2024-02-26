@@ -36,6 +36,9 @@ class LgWebOsSocket extends EventEmitter {
         this.screenState = false;
         this.tvScreenState = 'Suspend';
         this.appId = '';
+        this.volume = 0;
+        this.mute = true;
+        this.soundMode = '';
         this.cidCount = 0;
         this.webOS = 2.0;
         this.modelName = 'LG TV';
@@ -425,6 +428,8 @@ class LgWebOsSocket extends EventEmitter {
                                 if (!volume) {
                                     return;
                                 };
+                                this.volume = volume;
+                                this.mute = mute;
 
                                 this.emit('audioState', volume, mute, audioOutput);
 
@@ -495,7 +500,13 @@ class LgWebOsSocket extends EventEmitter {
                         switch (messageType) {
                             case 'response':
                                 const debug = debugLog ? this.emit('debug', `Sound mode: ${stringifyMessage}`) : false;
-                                const soundMode = messageData.settings.soundMode;
+                                const soundMode = messageData.settings.soundMode ?? false;
+                                
+                                if(!soundMode) {
+                                   return;
+                                }
+                                this.soundMode = soundMode;
+
                                 this.emit('soundMode', soundMode, this.power);
 
                                 //restFul
@@ -531,9 +542,9 @@ class LgWebOsSocket extends EventEmitter {
             }).on('powerOff', async () => {
                 //update TV state
                 this.emit('powerState', false, this.pixelRefresh, this.screenState, this.tvScreenState);
-                this.emit('audioState', undefined, true);
+                this.emit('audioState', this.volume, true);
                 this.emit('pictureSettings', 0, 0, 0, 0, 3, false);
-                this.emit('soundMode', undefined, false);
+                this.emit('soundMode', this.soundMode, false);
             }).on('disconnect', async () => {
                 const message = this.socketConnected ? this.emit('message', 'Socket disconnected.') : false;
                 this.socketConnected = false;
@@ -545,9 +556,9 @@ class LgWebOsSocket extends EventEmitter {
 
                 //update TV state
                 this.emit('powerState', false, false, false, 'Suspend');
-                this.emit('audioState', undefined, true);
+                this.emit('audioState', this.volume, true);
                 this.emit('pictureSettings', 0, 0, 0, 0, 3, false);
-                this.emit('soundMode', undefined, false);
+                this.emit('soundMode', this.soundMode, false);
             });
         }
 
