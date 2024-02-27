@@ -391,7 +391,11 @@ class LgWebOsSocket extends EventEmitter {
                         switch (messageType) {
                             case 'response':
                                 const debug = debugLog ? this.emit('debug', `App: ${stringifyMessage}`) : false;
-                                const appId = messageData.appId;
+                                const appId = messageData.appId ?? false;
+
+                                if (!appId) {
+                                    return;
+                                };
 
                                 this.emit('currentApp', appId);
                                 this.appId = appId;
@@ -427,11 +431,11 @@ class LgWebOsSocket extends EventEmitter {
 
                                 if (!volume) {
                                     return;
-                                };
-                                this.volume = volume;
-                                this.mute = mute;
+                                };;
 
                                 this.emit('audioState', volume, mute, audioOutput);
+                                this.volume = volume;
+                                this.mute = mute
 
                                 //restFul
                                 this.emit('restFul', 'audio', messageData);
@@ -451,9 +455,13 @@ class LgWebOsSocket extends EventEmitter {
                         switch (messageType) {
                             case 'response':
                                 const debug = debugLog ? this.emit('debug', `Channel: ${stringifyMessage}`) : false;
-                                const channelId = messageData.channelId;
+                                const channelId = messageData.channelId ?? false;
                                 const channelName = messageData.channelName;
                                 const channelNumber = messageData.channelNumber;
+
+                                if (!channelId) {
+                                    return;
+                                };
 
                                 this.emit('currentChannel', channelId, channelName, channelNumber);
 
@@ -501,13 +509,13 @@ class LgWebOsSocket extends EventEmitter {
                             case 'response':
                                 const debug = debugLog ? this.emit('debug', `Sound mode: ${stringifyMessage}`) : false;
                                 const soundMode = messageData.settings.soundMode ?? false;
-                                
-                                if(!soundMode) {
-                                   return;
+
+                                if (!soundMode) {
+                                    return;
                                 }
-                                this.soundMode = soundMode;
 
                                 this.emit('soundMode', soundMode, this.power);
+                                this.soundMode = soundMode;
 
                                 //restFul
                                 this.emit('restFul', 'soundmode', messageData);

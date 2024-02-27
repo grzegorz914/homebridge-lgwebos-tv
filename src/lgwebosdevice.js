@@ -317,7 +317,7 @@ class LgWebOsDevice extends EventEmitter {
                 }
 
                 this.inputIdentifier = inputIdentifier;
-                this.channelId = channelId !== undefined ? channelId : this.channelId;
+                this.channelId = channelId;
                 this.channelName = channelName !== undefined ? channelName : this.channelName;
                 this.channelNumber = channelNumber !== undefined ? channelNumber : this.channelNumber;
                 if (!this.disableLogInfo) {
