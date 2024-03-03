@@ -2,10 +2,12 @@
 const fs = require('fs');
 const fsPromises = fs.promises;
 const EventEmitter = require('events');
+const RestFul = require('./restful.js');
+const Mqtt = require('./mqtt.js');
 const Wol = require('./wol.js');
 const LgWebOsSocket = require('./lgwebossocket');
 const CONSTANS = require('./constans.json');
-let Accessory, Characteristic, Service, Categories, Encode, UUID;
+let Accessory, Characteristic, Service, Categories, Encode, AccessoryUUID;
 
 class LgWebOsDevice extends EventEmitter {
     constructor(api, prefDir, device) {
@@ -16,7 +18,7 @@ class LgWebOsDevice extends EventEmitter {
         Service = api.hap.Service;
         Categories = api.hap.Categories;
         Encode = api.hap.encode;
-        UUID = api.hap.uuid;
+        AccessoryUUID = api.hap.uuid;
 
         //device configuration
         this.name = device.name;
@@ -55,6 +57,10 @@ class LgWebOsDevice extends EventEmitter {
         this.sslWebSocket = device.sslWebSocket || false;
         this.infoButtonCommand = device.infoButtonCommand || 'INFO';
         this.volumeControl = device.volumeControl || false;
+
+        //external integration
+        this.restFulConnected = false;
+        this.mqttConnected = false;
 
         //accessory services
         this.allServices = [];
@@ -139,6 +145,70 @@ class LgWebOsDevice extends EventEmitter {
             .on('debug', (debug) => {
                 this.emit('debug', debug);
             });
+
+        //RESTFul server
+        const restFulEnabled = device.enableRestFul || false;
+        if (restFulEnabled) {
+            this.restFul = new RestFul({
+                port: device.restFulPort || 3000,
+                debug: device.restFulDebug || false
+            });
+
+            this.restFul.on('connected', (message) => {
+                log(`Device: ${host} ${deviceName}, ${message}`);
+                this.restFulConnected = true;
+            })
+                .on('error', (error) => {
+                    this.emit('error', error);
+                })
+                .on('debug', (debug) => {
+                    this.emit('debug', debug);
+                });
+        }
+
+        //mqtt client
+        const mqttEnabled = device.enableMqtt || false;
+        if (mqttEnabled) {
+            this.mqtt = new Mqtt({
+                host: device.mqttHost,
+                port: device.mqttPort || 1883,
+                clientId: device.mqttClientId || `openwebif_${Math.random().toString(16).slice(3)}`,
+                prefix: `${device.mqttPrefix}/${this.name}`,
+                user: device.mqttUser,
+                passwd: device.mqttPasswd,
+                debug: device.mqttDebug || false
+            });
+
+            this.mqtt.on('connected', (message) => {
+                this.emit('message', message);
+                this.mqttConnected = true;
+            })
+                .on('changeState', (data) => {
+                    const key = Object.keys(data)[0];
+                    const value = Object.values(data)[0];
+                    switch (key) {
+                        case 'Power':
+                            break;
+                        case 'App':
+                            break;
+                        case 'Channel':
+                            break;
+                        case 'Volume':
+                            break;
+                        case 'Mute':
+                            break;
+                        default:
+                            this.emit('message', `MQTT Received unknown key: ${key}, value: ${value}`);
+                            break;
+                    };
+                })
+                .on('debug', (debug) => {
+                    this.emit('debug', debug);
+                })
+                .on('error', (error) => {
+                    this.emit('error', error);
+                });
+        };
 
         //lg tv client
         this.lgWebOsSocket = new LgWebOsSocket({
@@ -457,10 +527,10 @@ class LgWebOsDevice extends EventEmitter {
                 this.emit('error', error);
             })
             .on('restFul', (path, data) => {
-                this.emit('restFul', path, data)
+                const restFul = this.restFulConnected ? this.restFul.update(path, data) : false;
             })
             .on('mqtt', (topic, message) => {
-                this.emit('mqtt', topic, message)
+                const mqtt = this.mqttConnected ? this.mqtt.send(topic, message) : false;
             });
     };
 
@@ -527,7 +597,7 @@ class LgWebOsDevice extends EventEmitter {
                 const debug = this.enableDebugMode ? this.emit('debug', `Prepare accessory`) : false;
 
                 const accessoryName = this.name;
-                const accessoryUUID = UUID.generate(this.mac);
+                const accessoryUUID = AccessoryUUID.generate(this.mac);
                 const accessoryCategory = Categories.TELEVISION;
                 const accessory = new Accessory(accessoryName, accessoryUUID, accessoryCategory);
 
