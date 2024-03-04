@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+## [2.17.0] - (04.03.2024)
+## Changes
+- added support to subscribe MQTT and control device
+- config schema updated
+- cleanup
+
 ## [2.16.0] - (01.01.2023)
 ## Changes
 - added possibility to disable prefix name for buttons, sensors, picture meodes and sound modes

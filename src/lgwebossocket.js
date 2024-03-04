@@ -4,7 +4,7 @@ const fsPromises = fs.promises;
 const tcpp = require('tcp-ping');
 const EventEmitter = require('events');
 const WebSocket = require('ws');
-const CONSTANS = require('./constans.json');
+const CONSTANTS = require('./constants.json');
 
 class LgWebOsSocket extends EventEmitter {
     constructor(config) {
@@ -19,7 +19,7 @@ class LgWebOsSocket extends EventEmitter {
         const filterSystemApps = config.filterSystemApps;
         const debugLog = config.debugLog;
         const sslWebSocket = config.sslWebSocket;
-        const url = sslWebSocket ? CONSTANS.ApiUrls.WssUrl.replace('lgwebostv', host) : CONSTANS.ApiUrls.WsUrl.replace('lgwebostv', host);
+        const url = sslWebSocket ? CONSTANTS.ApiUrls.WssUrl.replace('lgwebostv', host) : CONSTANTS.ApiUrls.WsUrl.replace('lgwebostv', host);
         const webSocketPort = sslWebSocket ? 3001 : 3000;
 
         this.inputs = inputs;
@@ -79,9 +79,9 @@ class LgWebOsSocket extends EventEmitter {
 
                 //Register to tv
                 try {
-                    CONSTANS.Pairing['client-key'] = this.pairingKey;
+                    CONSTANTS.Pairing['client-key'] = this.pairingKey;
                     this.registerId = await this.getCid();
-                    await this.send('register', undefined, CONSTANS.Pairing, this.registerId);
+                    await this.send('register', undefined, CONSTANTS.Pairing, this.registerId);
                 } catch (error) {
                     this.emit('error', `Register error: ${error}`);
                 };
@@ -117,7 +117,7 @@ class LgWebOsSocket extends EventEmitter {
                                 await new Promise(resolve => setTimeout(resolve, 2000));
                                 try {
                                     this.specjalizedSockedId = await this.getCid();
-                                    await this.send('request', CONSTANS.ApiUrls.SocketUrl, undefined, this.specjalizedSockedId);
+                                    await this.send('request', CONSTANTS.ApiUrls.SocketUrl, undefined, this.specjalizedSockedId);
                                 } catch (error) {
                                     this.emit('error', `Request specjalized socket error: ${error}`);
                                 };
@@ -150,7 +150,7 @@ class LgWebOsSocket extends EventEmitter {
                                     //Request system info data
                                     try {
                                         this.systemInfoId = await this.getCid();
-                                        await this.send('request', CONSTANS.ApiUrls.GetSystemInfo, undefined, this.systemInfoId);
+                                        await this.send('request', CONSTANTS.ApiUrls.GetSystemInfo, undefined, this.systemInfoId);
                                     } catch (error) {
                                         this.emit('error', `Request system info error: ${error}`);
                                     };
@@ -185,7 +185,7 @@ class LgWebOsSocket extends EventEmitter {
                                 //Request software info data
                                 try {
                                     this.softwareInfoId = await this.getCid();
-                                    await this.send('request', CONSTANS.ApiUrls.GetSoftwareInfo, undefined, this.softwareInfoId);
+                                    await this.send('request', CONSTANTS.ApiUrls.GetSoftwareInfo, undefined, this.softwareInfoId);
                                 } catch (error) {
                                     this.emit('error', `Request software info error: ${error}`);
                                 };
@@ -224,7 +224,7 @@ class LgWebOsSocket extends EventEmitter {
                                 //Request channels list
                                 try {
                                     this.channelsId = await this.getCid();
-                                    await this.send('request', CONSTANS.ApiUrls.GetChannelList, undefined, this.channelsId);
+                                    await this.send('request', CONSTANTS.ApiUrls.GetChannelList, undefined, this.channelsId);
                                 } catch (error) {
                                     this.emit('error', `Request channels error: ${error}`);
                                 };
@@ -232,7 +232,7 @@ class LgWebOsSocket extends EventEmitter {
                                 //Request apps list
                                 try {
                                     this.appsId = await this.getCid();
-                                    await this.send('request', CONSTANS.ApiUrls.GetInstalledApps, undefined, this.appsId);
+                                    await this.send('request', CONSTANTS.ApiUrls.GetInstalledApps, undefined, this.appsId);
                                 } catch (error) {
                                     this.emit('error', `Request apps error: ${error}`);
                                 };
@@ -691,7 +691,7 @@ class LgWebOsSocket extends EventEmitter {
                     const inputReference = input.reference;
                     const inputMode = input.mode ?? 0;
                     const duplicatedInput = inputsArr.some(input => input.reference === inputReference);
-                    const filterSystemApps = this.filterSystemApps ? CONSTANS.SystemApps.includes(inputReference) : false;
+                    const filterSystemApps = this.filterSystemApps ? CONSTANTS.SystemApps.includes(inputReference) : false;
                     const push = inputName && inputReference && !filterSystemApps && !duplicatedInput ? inputsArr.push(input) : false;
                 }
 
@@ -728,13 +728,13 @@ class LgWebOsSocket extends EventEmitter {
         return new Promise(async (resolve, reject) => {
             try {
                 this.powerStateId = await this.getCid();
-                await this.send('subscribe', CONSTANS.ApiUrls.GetPowerState, undefined, this.powerStateId);
+                await this.send('subscribe', CONSTANTS.ApiUrls.GetPowerState, undefined, this.powerStateId);
                 this.currentAppId = await this.getCid();
-                await this.send('subscribe', CONSTANS.ApiUrls.GetForegroundAppInfo, undefined, this.currentAppId);
+                await this.send('subscribe', CONSTANTS.ApiUrls.GetForegroundAppInfo, undefined, this.currentAppId);
                 this.currentChannelId = await this.getCid();
-                await this.send('subscribe', CONSTANS.ApiUrls.GetCurrentChannel, undefined, this.currentChannelId);
+                await this.send('subscribe', CONSTANTS.ApiUrls.GetCurrentChannel, undefined, this.currentChannelId);
                 this.audioStateId = await this.getCid();
-                await this.send('subscribe', CONSTANS.ApiUrls.GetAudioStatus, undefined, this.audioStateId);
+                await this.send('subscribe', CONSTANTS.ApiUrls.GetAudioStatus, undefined, this.audioStateId);
 
                 if (this.webOS >= 4.0) {
                     const payload = {
@@ -742,7 +742,7 @@ class LgWebOsSocket extends EventEmitter {
                         keys: ['brightness', 'backlight', 'contrast', 'color']
                     }
                     this.pictureSettingsId = await this.getCid();
-                    await this.send('subscribe', CONSTANS.ApiUrls.GetSystemSettings, payload, this.pictureSettingsId);
+                    await this.send('subscribe', CONSTANTS.ApiUrls.GetSystemSettings, payload, this.pictureSettingsId);
                 }
 
                 if (this.webOS >= 6.0) {
@@ -751,7 +751,7 @@ class LgWebOsSocket extends EventEmitter {
                         keys: ['soundMode']
                     }
                     this.soundModeId = await this.getCid();
-                    await this.send('subscribe', CONSTANS.ApiUrls.GetSystemSettings, payload, this.soundModeId);
+                    await this.send('subscribe', CONSTANTS.ApiUrls.GetSystemSettings, payload, this.soundModeId);
                 }
                 resolve();
             } catch (error) {

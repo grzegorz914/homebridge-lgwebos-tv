@@ -2,13 +2,13 @@
 const path = require('path');
 const fs = require('fs');
 const LgWebOsDevice = require('./src/lgwebosdevice.js');
-const CONSTANS = require('./src/constans.json');
+const CONSTANTS = require('./src/constants.json');
 
 class LgWebOsPlatform {
 	constructor(log, config, api) {
 		// only load if configured
 		if (!config || !Array.isArray(config.devices)) {
-			log.warn(`No configuration found for ${CONSTANS.PluginName}`);
+			log.warn(`No configuration found for ${CONSTANTS.PluginName}`);
 			return;
 		};
 		this.accessories = [];
@@ -39,7 +39,7 @@ class LgWebOsPlatform {
 				//webos device
 				const lgWebOsDevice = new LgWebOsDevice(api, prefDir, device);
 				lgWebOsDevice.on('publishAccessory', (accessory) => {
-					api.publishExternalAccessories(CONSTANS.PluginName, [accessory]);
+					api.publishExternalAccessories(CONSTANTS.PluginName, [accessory]);
 					const debug = enableDebugMode ? log(`Device: ${host} ${deviceName}, published as external accessory.`) : false;
 				})
 					.on('devInfo', (devInfo) => {
@@ -64,5 +64,5 @@ class LgWebOsPlatform {
 }
 
 module.exports = (api) => {
-	api.registerPlatform(CONSTANS.PluginName, CONSTANS.PlatformName, LgWebOsPlatform, true);
+	api.registerPlatform(CONSTANTS.PluginName, CONSTANTS.PlatformName, LgWebOsPlatform, true);
 };

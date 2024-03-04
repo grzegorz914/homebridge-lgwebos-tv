@@ -6,7 +6,7 @@ const RestFul = require('./restful.js');
 const Mqtt = require('./mqtt.js');
 const Wol = require('./wol.js');
 const LgWebOsSocket = require('./lgwebossocket');
-const CONSTANS = require('./constans.json');
+const CONSTANTS = require('./constants.json');
 let Accessory, Characteristic, Service, Categories, Encode, AccessoryUUID;
 
 class LgWebOsDevice extends EventEmitter {
@@ -70,7 +70,7 @@ class LgWebOsDevice extends EventEmitter {
         this.sensorsInputsServices = [];
 
         //add configured inputs to the default inputs
-        this.inputs = this.disableLoadDefaultInputs ? this.inputs : [...CONSTANS.DefaultInputs, ...this.inputs];
+        this.inputs = this.disableLoadDefaultInputs ? this.inputs : [...CONSTANTS.DefaultInputs, ...this.inputs];
         this.inputsConfigured = [];
         this.inputIdentifier = 1;
 
@@ -145,70 +145,6 @@ class LgWebOsDevice extends EventEmitter {
             .on('debug', (debug) => {
                 this.emit('debug', debug);
             });
-
-        //RESTFul server
-        const restFulEnabled = device.enableRestFul || false;
-        if (restFulEnabled) {
-            this.restFul = new RestFul({
-                port: device.restFulPort || 3000,
-                debug: device.restFulDebug || false
-            });
-
-            this.restFul.on('connected', (message) => {
-                log(`Device: ${host} ${deviceName}, ${message}`);
-                this.restFulConnected = true;
-            })
-                .on('error', (error) => {
-                    this.emit('error', error);
-                })
-                .on('debug', (debug) => {
-                    this.emit('debug', debug);
-                });
-        }
-
-        //mqtt client
-        const mqttEnabled = device.enableMqtt || false;
-        if (mqttEnabled) {
-            this.mqtt = new Mqtt({
-                host: device.mqttHost,
-                port: device.mqttPort || 1883,
-                clientId: device.mqttClientId || `lgwebos_${Math.random().toString(16).slice(3)}`,
-                prefix: `${device.mqttPrefix}/${this.name}`,
-                user: device.mqttUser,
-                passwd: device.mqttPasswd,
-                debug: device.mqttDebug || false
-            });
-
-            this.mqtt.on('connected', (message) => {
-                this.emit('message', message);
-                this.mqttConnected = true;
-            })
-                .on('changeState', (data) => {
-                    const key = Object.keys(data)[0];
-                    const value = Object.values(data)[0];
-                    switch (key) {
-                        case 'Power':
-                            break;
-                        case 'App':
-                            break;
-                        case 'Channel':
-                            break;
-                        case 'Volume':
-                            break;
-                        case 'Mute':
-                            break;
-                        default:
-                            this.emit('message', `MQTT Received unknown key: ${key}, value: ${value}`);
-                            break;
-                    };
-                })
-                .on('debug', (debug) => {
-                    this.emit('debug', debug);
-                })
-                .on('error', (error) => {
-                    this.emit('error', error);
-                });
-        };
 
         //lg tv client
         this.lgWebOsSocket = new LgWebOsSocket({
@@ -479,6 +415,105 @@ class LgWebOsDevice extends EventEmitter {
                 };
             })
             .on('prepareAccessory', async () => {
+                //RESTFul server
+                const restFulEnabled = device.enableRestFul || false;
+                if (restFulEnabled) {
+                    this.restFul = new RestFul({
+                        port: device.restFulPort || 3000,
+                        debug: device.restFulDebug || false
+                    });
+
+                    this.restFul.on('connected', (message) => {
+                        log(`Device: ${host} ${deviceName}, ${message}`);
+                        this.restFulConnected = true;
+                    })
+                        .on('error', (error) => {
+                            this.emit('error', error);
+                        })
+                        .on('debug', (debug) => {
+                            this.emit('debug', debug);
+                        });
+                }
+
+                //mqtt client
+                const mqttEnabled = device.enableMqtt || false;
+                if (mqttEnabled) {
+                    this.mqtt = new Mqtt({
+                        host: device.mqttHost,
+                        port: device.mqttPort || 1883,
+                        clientId: device.mqttClientId || `lgwebos_${Math.random().toString(16).slice(3)}`,
+                        prefix: `${device.mqttPrefix}/${this.name}`,
+                        user: device.mqttUser,
+                        passwd: device.mqttPasswd,
+                        debug: device.mqttDebug || false
+                    });
+
+                    this.mqtt.on('connected', (message) => {
+                        this.emit('message', message);
+                        this.mqttConnected = true;
+                    })
+                        .on('changeState', async (data) => {
+                            const key = Object.keys(data)[0];
+                            const value = Object.values(data)[0];
+                            try {
+                                switch (key) {
+                                    case 'Power':
+                                        switch (value) {
+                                            case 1:
+                                                await this.wol.wakeOnLan();
+                                                break;
+                                            case 0:
+                                                const cid = await this.lgWebOsSocket.getCids('Power');
+                                                await this.lgWebOsSocket.send('request', CONSTANTS.ApiUrls.TurnOff, undefined, cid);
+                                                break;
+                                        }
+                                        break;
+                                    case 'App':
+                                        const cid = await this.lgWebOsSocket.getCids('App');
+                                        await this.lgWebOsSocket.send('request', CONSTANTS.ApiUrls.LaunchApp, { id: value }, cid);
+                                        break;
+                                    case 'Channel':
+                                        const cid1 = await this.lgWebOsSocket.getCids('Channel');
+                                        await this.lgWebOsSocket.send('request', CONSTANTS.ApiUrls.OpenChannel, { channelId: value }, cid1)
+                                        break;
+                                    case 'Volume':
+                                        const volume = (value === 0 || value === 100) ? this.volume : value;
+                                        const payload = {
+                                            volume: volume,
+                                            soundOutput: this.soundOutput
+                                        };
+                                        const cid2 = await this.lgWebOsSocket.getCids('Audio');
+                                        await this.lgWebOsSocket.send('request', CONSTANTS.ApiUrls.SetVolume, payload, cid2);
+                                        break;
+                                    case 'Mute':
+                                        const payload1 = {
+                                            mute: value
+                                        };
+                                        const cid3 = await this.lgWebOsSocket.getCids('Audio');
+                                        await this.lgWebOsSocket.send('request', CONSTANTS.ApiUrls.SetMute, payload1, cid3);
+                                        break;
+                                    case 'RcControl':
+                                        const payload2 = {
+                                            name: value
+                                        };
+                                        await this.lgWebOsSocket.send('button', undefined, payload2);
+                                        break;
+                                    default:
+                                        this.emit('message', `MQTT Received unknown key: ${key}, value: ${value}`);
+                                        break;
+                                };
+                            } catch (error) {
+                                this.emit('error', `set: ${key}, over MQTT, error: ${error}`);
+                            };
+                        })
+                        .on('debug', (debug) => {
+                            this.emit('debug', debug);
+                        })
+                        .on('error', (error) => {
+                            this.emit('error', error);
+                        });
+                };
+
                 try {
                     //read dev info from file
                     const savedInfo = await this.readData(this.devInfoFile);
@@ -634,7 +669,7 @@ class LgWebOsDevice extends EventEmitter {
                                         break;
                                     case 0:
                                         const cid = await this.lgWebOsSocket.getCids('Power');
-                                        await this.lgWebOsSocket.send('request', CONSTANS.ApiUrls.TurnOff, undefined, cid);
+                                        await this.lgWebOsSocket.send('request', CONSTANTS.ApiUrls.TurnOff, undefined, cid);
                                         break;
                                 }
                                 const info = this.disableLogInfo ? false : this.emit('message', `set Power: ${state ? 'ON' : 'OFF'}`);
@@ -665,14 +700,14 @@ class LgWebOsDevice extends EventEmitter {
                                         switch (inputMode) {
                                             case 0:
                                                 const cid = await this.lgWebOsSocket.getCids('App');
-                                                await this.lgWebOsSocket.send('request', CONSTANS.ApiUrls.LaunchApp, { id: inputReference }, cid);
+                                                await this.lgWebOsSocket.send('request', CONSTANTS.ApiUrls.LaunchApp, { id: inputReference }, cid);
                                                 break;
                                             case 1:
                                                 const liveTv = 'com.webos.app.livetv';
                                                 const cid1 = this.appId !== liveTv ? await this.lgWebOsSocket.getCids('App') : false;
-                                                const openLiveTv = this.appId !== liveTv ? await this.lgWebOsSocket.send('request', CONSTANS.ApiUrls.LaunchApp, { id: liveTv }, cid1) : false;
+                                                const openLiveTv = this.appId !== liveTv ? await this.lgWebOsSocket.send('request', CONSTANTS.ApiUrls.LaunchApp, { id: liveTv }, cid1) : false;
                                                 const cid2 = await this.lgWebOsSocket.getCids('Channel');
-                                                await this.lgWebOsSocket.send('request', CONSTANS.ApiUrls.OpenChannel, { channelId: inputReference }, cid2)
+                                                await this.lgWebOsSocket.send('request', CONSTANTS.ApiUrls.OpenChannel, { channelId: inputReference }, cid2)
                                                 break;
                                         }
 
@@ -769,7 +804,7 @@ class LgWebOsDevice extends EventEmitter {
                         })
                         .onSet(async (value) => {
                             try {
-                                const newMediaState = [CONSTANS.ApiUrls.SetMediaPlay, CONSTANS.ApiUrls.SetMediaPause, CONSTANS.ApiUrls.SetMediaStop][value]
+                                const newMediaState = [CONSTANTS.ApiUrls.SetMediaPlay, CONSTANTS.ApiUrls.SetMediaPause, CONSTANTS.ApiUrls.SetMediaStop][value]
                                 await this.lgWebOsSocket.send('request', newMediaState);
                                 const info = this.disableLogInfo ? false : this.emit('message', `set Media: ${['PLAY', 'PAUSE', 'STOP', 'LOADING', 'INTERRUPTED'][value]}`);
                             } catch (error) {
@@ -814,7 +849,7 @@ class LgWebOsDevice extends EventEmitter {
                                     };
 
                                     const cid = await this.lgWebOsSocket.getCids('Pisture');
-                                    await this.lgWebOsSocket.send('request', CONSTANS.ApiUrls.SetSystemSettings, payload, cid);
+                                    await this.lgWebOsSocket.send('request', CONSTANTS.ApiUrls.SetSystemSettings, payload, cid);
                                     const info = this.disableLogInfo ? false : this.emit('message', `set Brightness: ${value}`);
                                 } catch (error) {
                                     this.emit('error', `set Brightness error: ${error}`);
@@ -864,7 +899,7 @@ class LgWebOsDevice extends EventEmitter {
                                     };
 
                                     const cid = await this.lgWebOsSocket.getCids('Pisture');
-                                    await this.lgWebOsSocket.send('request', CONSTANS.ApiUrls.SetSystemSettings, payload, cid);
+                                    await this.lgWebOsSocket.send('request', CONSTANTS.ApiUrls.SetSystemSettings, payload, cid);
                                     const info = this.disableLogInfo ? false : this.emit('message', `set Picture Mode: ${command}`);
                                 } catch (error) {
                                     this.emit('error', `set Picture Mode error: ${error}`);
@@ -929,7 +964,7 @@ class LgWebOsDevice extends EventEmitter {
                                 };
 
                                 const cid = await this.lgWebOsSocket.getCids('Audio');
-                                await this.lgWebOsSocket.send('request', CONSTANS.ApiUrls.SetVolume, payload, cid);
+                                await this.lgWebOsSocket.send('request', CONSTANTS.ApiUrls.SetVolume, payload, cid);
                                 const info = this.disableLogInfo ? false : this.emit('message', `set Volume: ${volume}`);
                             } catch (error) {
                                 this.emit('error', `set Volume error: ${error}`);
@@ -948,7 +983,7 @@ class LgWebOsDevice extends EventEmitter {
                                 };
 
                                 const cid = await this.lgWebOsSocket.getCids('Audio');
-                                await this.lgWebOsSocket.send('request', CONSTANS.ApiUrls.SetMute, payload, cid);
+                                await this.lgWebOsSocket.send('request', CONSTANTS.ApiUrls.SetMute, payload, cid);
                                 const info = this.disableLogInfo ? false : this.emit('message', `set Mute: ${state ? 'ON' : 'OFF'}`);
                             } catch (error) {
                                 this.emit('error', `set Mute error: ${error}`);
@@ -1071,7 +1106,7 @@ class LgWebOsDevice extends EventEmitter {
                                     };
 
                                     const cid = await this.lgWebOsSocket.getCids('Audio');
-                                    await this.lgWebOsSocket.send('request', CONSTANS.ApiUrls.SetVolume, payload, cid);
+                                    await this.lgWebOsSocket.send('request', CONSTANTS.ApiUrls.SetVolume, payload, cid);
                                     const info = this.disableLogInfo ? false : this.emit('message', `set Volume: ${volume}`);
                                 } catch (error) {
                                     this.emit('error', `set Volume error: ${error}`);
@@ -1089,7 +1124,7 @@ class LgWebOsDevice extends EventEmitter {
                                     };
 
                                     const cid = await this.lgWebOsSocket.getCids('Audio');
-                                    await this.lgWebOsSocket.send('request', CONSTANS.ApiUrls.SetMute, payload, cid);
+                                    await this.lgWebOsSocket.send('request', CONSTANTS.ApiUrls.SetMute, payload, cid);
                                     const info = this.disableLogInfo ? false : this.emit('message', `set Mute: ${!state ? 'ON' : 'OFF'}`);
                                 } catch (error) {
                                     this.emit('error', `set Mute error: ${error}`);
@@ -1119,7 +1154,7 @@ class LgWebOsDevice extends EventEmitter {
                                     };
 
                                     const cid = await this.lgWebOsSocket.getCids('Audio');
-                                    await this.lgWebOsSocket.send('request', CONSTANS.ApiUrls.SetVolume, payload, cid);
+                                    await this.lgWebOsSocket.send('request', CONSTANTS.ApiUrls.SetVolume, payload, cid);
                                     const info = this.disableLogInfo ? false : this.emit('message', `set Volume: ${volume}`);
                                 } catch (error) {
                                     this.emit('error', `set Volume error: ${error}`);
@@ -1137,7 +1172,7 @@ class LgWebOsDevice extends EventEmitter {
                                     };
 
                                     const cid = await this.lgWebOsSocket.getCids('Audio')
-                                    await this.lgWebOsSocket.send('request', CONSTANS.ApiUrls.SetMute, payload, cid);
+                                    await this.lgWebOsSocket.send('request', CONSTANTS.ApiUrls.SetMute, payload, cid);
                                     const info = this.disableLogInfo ? false : this.emit('message', `set Mute: ${!state ? 'ON' : 'OFF'}`);
                                 } catch (error) {
                                     this.emit('error', `set Mute error: ${error}`);
@@ -1175,7 +1210,7 @@ class LgWebOsDevice extends EventEmitter {
                                     };
 
                                     const cid = await this.lgWebOsSocket.getCids('Picture');
-                                    await this.lgWebOsSocket.send('request', CONSTANS.ApiUrls.SetSystemSettings, payload, cid);
+                                    await this.lgWebOsSocket.send('request', CONSTANTS.ApiUrls.SetSystemSettings, payload, cid);
                                     const info = this.disableLogInfo ? false : this.emit('message', `set Backlight: ${value}`);
                                 } catch (error) {
                                     this.emit('error', `set Backlight error: ${error}`);
@@ -1210,7 +1245,7 @@ class LgWebOsDevice extends EventEmitter {
                                     };
 
                                     const cid = await this.lgWebOsSocket.getCids('Picture');
-                                    await this.lgWebOsSocket.send('request', CONSTANS.ApiUrls.SetSystemSettings, payload), cid;
+                                    await this.lgWebOsSocket.send('request', CONSTANTS.ApiUrls.SetSystemSettings, payload), cid;
                                     const info = this.disableLogInfo ? false : this.emit('message', `set Brightness: ${value}`);
                                 } catch (error) {
                                     this.emit('error', `set Brightness error: ${error}`);
@@ -1245,7 +1280,7 @@ class LgWebOsDevice extends EventEmitter {
                                     };
 
                                     const cid = await this.lgWebOsSocket.getCids('Picture');
-                                    await this.lgWebOsSocket.send('request', CONSTANS.ApiUrls.SetSystemSettings, payload, cid);
+                                    await this.lgWebOsSocket.send('request', CONSTANTS.ApiUrls.SetSystemSettings, payload, cid);
                                     const info = this.disableLogInfo ? false : this.emit('message', `set Contrast: ${value}`);
                                 } catch (error) {
                                     this.emit('error', `set Contrast error: ${error}`);
@@ -1280,7 +1315,7 @@ class LgWebOsDevice extends EventEmitter {
                                     };
 
                                     const cid = await this.lgWebOsSocket.getCids('Picture');
-                                    await this.lgWebOsSocket.send('request', CONSTANS.ApiUrls.SetSystemSettings, payload, cid);
+                                    await this.lgWebOsSocket.send('request', CONSTANTS.ApiUrls.SetSystemSettings, payload, cid);
                                     const info = this.disableLogInfo ? false : this.emit('message', `set Color: ${value}`);
                                 } catch (error) {
                                     this.emit('error', `set Color error: ${error}`);
@@ -1317,7 +1352,7 @@ class LgWebOsDevice extends EventEmitter {
                                         }
 
                                         const cid = await this.lgWebOsSocket.getCids('Picture');
-                                        await this.lgWebOsSocket.send('request', CONSTANS.ApiUrls.SetSystemSettings, payload, cid);
+                                        await this.lgWebOsSocket.send('request', CONSTANTS.ApiUrls.SetSystemSettings, payload, cid);
                                         const info = this.disableLogInfo ? false : this.emit('message', `set Picture Mode: ${pictureModeName}`);
                                     } catch (error) {
                                         this.emit('error', `set Picture Mode error: ${error}`);
@@ -1344,10 +1379,10 @@ class LgWebOsDevice extends EventEmitter {
                                     let url;
                                     switch (state) {
                                         case false:
-                                            url = this.webOS >= 4.5 ? CONSTANS.ApiUrls.TurnOffScreen45 : CONSTANS.ApiUrls.TurnOffScreen;
+                                            url = this.webOS >= 4.5 ? CONSTANTS.ApiUrls.TurnOffScreen45 : CONSTANTS.ApiUrls.TurnOffScreen;
                                             break;
                                         case true:
-                                            url = this.webOS >= 4.5 ? CONSTANS.ApiUrls.TurnOnScreen45 : CONSTANS.ApiUrls.TurnOnScreen;
+                                            url = this.webOS >= 4.5 ? CONSTANTS.ApiUrls.TurnOnScreen45 : CONSTANTS.ApiUrls.TurnOnScreen;
                                             break;
                                     }
 
@@ -1390,7 +1425,7 @@ class LgWebOsDevice extends EventEmitter {
                                         }
                                     }
 
-                                    await this.lgWebOsSocket.send('request', CONSTANS.ApiUrls.SetSystemSettings, payload);
+                                    await this.lgWebOsSocket.send('request', CONSTANTS.ApiUrls.SetSystemSettings, payload);
                                     const info = this.disableLogInfo ? false : this.emit('message', `set Sound Mode: ${soundModeName}`);
                                 } catch (error) {
                                     this.emit('error', `set Sound Mode error: ${error}`);
@@ -1628,14 +1663,14 @@ class LgWebOsDevice extends EventEmitter {
                                                 switch (buttonMode) {
                                                     case 0:
                                                         const cid = await this.lgWebOsSocket.getCids('App');
-                                                        await this.lgWebOsSocket.send('request', CONSTANS.ApiUrls.LaunchApp, { id: buttonReference }, cid);
+                                                        await this.lgWebOsSocket.send('request', CONSTANTS.ApiUrls.LaunchApp, { id: buttonReference }, cid);
                                                         break;
                                                     case 1:
                                                         const liveTv = 'com.webos.app.livetv';
                                                         const cid1 = this.appId !== liveTv ? await this.lgWebOsSocket.getCids('App') : false;
-                                                        const openLiveTv = this.appId !== liveTv ? await this.lgWebOsSocket.send('request', CONSTANS.ApiUrls.LaunchApp, { id: liveTv }, cid1) : false;
+                                                        const openLiveTv = this.appId !== liveTv ? await this.lgWebOsSocket.send('request', CONSTANTS.ApiUrls.LaunchApp, { id: liveTv }, cid1) : false;
                                                         const cid2 = await this.lgWebOsSocket.getCids('Channel');
-                                                        await this.lgWebOsSocket.send('request', CONSTANS.ApiUrls.OpenChannel, { channelId: buttonReference }, cid2)
+                                                        await this.lgWebOsSocket.send('request', CONSTANTS.ApiUrls.OpenChannel, { channelId: buttonReference }, cid2)
                                                         break;
                                                     case 2:
                                                         await this.lgWebOsSocket.send('button', undefined, { name: buttonCommand });

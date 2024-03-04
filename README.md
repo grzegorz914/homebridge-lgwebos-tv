@@ -37,13 +37,7 @@ Tested with OLED65G6V, 32LM6300PLA, 49SK8500, OLED65C7T, 55SK800PLB, OLED48CX.
 * Brightness, Contrast, Backlight, Color, Picture Mode and Sound Mode can be changed using extra tile.
 * Siri can be used for all functions, some times need create legacy buttons/switches/sensors.
 * Automations can be used for all functions, some times need create legacy buttons/switches/sensors.
-* RESTful server:
-  * Request: `http//homebridge_ip_address:port/path`.
-  * Path: `systemnfo`, `softwareinfo`, `channels`, `apps`, `power`, `audio`, `currentapp`, `currentchannel`, `picturesettings`, `soundmode`.
-  * Respone as JSON data.
-* MQTT client:
-  * Topic: `System Info`, `Software Info`, `Channels`, `Apps`, `Power`, `Audio`, `Current App`, `Current Channel`, `Picture Settings`, `Sound Mode`.
-  * Publish as JSON data.
+* Support external integrations, [RESTFul](https://github.com/grzegorz914/homebridge-lgwebos-tv?tab=readme-ov-file#restful-integration), [MQTT](https://github.com/grzegorz914/homebridge-lgwebos-tv?tab=readme-ov-file#mqtt-integration).
 
 <p align="center">
   <a href="https://github.com/grzegorz914/homebridge-lgwebos-tv"><img src="https://raw.githubusercontent.com/grzegorz914/homebridge-lgwebos-tv/main/graphics/homekit.png" width="382"></a>
@@ -122,4 +116,27 @@ Tested with OLED65G6V, 32LM6300PLA, 49SK8500, OLED65C7T, 55SK800PLB, OLED48CX.
 | `mqttUser` | Here set the MQTT Broker user. |
 | `mqttPasswd` | Here set the MQTT Broker password. |
 | `mqttDebug` | If enabled, deep log will be present in homebridge console for MQTT. |
-| `reference` | All can be found in `homebridge_directory/lgwebosTv`, `inputs_xxx` file, where `reference == id`, or `channels_xxx` file, where `reference == channelId`. | Info |
+| `reference` | All can be found in `homebridge_directory/lgwebosTv`, `inputs_xxx` file, where `reference == id`, or `channels_xxx` file, where `reference == channelId`. |
+
+### RESTFul Integration
+
+* Request: `http//homebridge_ip_address:port/path`.
+* Path: `systemnfo`, `softwareinfo`, `channels`, `apps`, `power`, `audio`, `currentapp`, `currentchannel`, `picturesettings`, `soundmode`.
+* Respone as JSON data.
+
+### MQTT Integration
+
+| Direction | Topic | Message | Payload Data |
+| --- | --- | --- | --- |
+|  Publish   | `System Info`, `Software Info`, `Channels`, `Apps`, `Power`, `Audio`, `Current App`, `Current Channel`, `Picture Settings`, `Sound Mode` | `{state: Active}` | JSON object. |
+|  Subscribe   | `Set` | `{"Power": true}` | JSON object. |
+
+| Subscribe | Key | Value | Type | Description |
+| --- | --- | --- | --- | --- |
+| LG WebOS|     |     |     |      |
+|     | `Power` | `true`, `false` | boolean | Power state. |
+|     | `Input` | `com.webos.app.hdmi2` | string | Set input. |
+|     | `Channel` | `channel reference` | string | Set channel. |
+|     | `RcControl` | `REWIND` | string | Send RC command. |
+|     | `Volume` | `100` | integer | Set volume. |
+|     | `Mute` | `true`, `false` | boolean | Set mute. |
