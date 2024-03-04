@@ -129,7 +129,7 @@ Tested with OLED65G6V, 32LM6300PLA, 49SK8500, OLED65C7T, 55SK800PLB, OLED48CX.
 | Direction | Topic | Message | Payload Data |
 | --- | --- | --- | --- |
 |  Publish   | `System Info`, `Software Info`, `Channels`, `Apps`, `Power`, `Audio`, `Current App`, `Current Channel`, `Picture Settings`, `Sound Mode` | `{state: Active}` | JSON object. |
-|  Subscribe   | `Set` | `{"Power": true}` | JSON object. |
+|  Subscribe   | `Set` | `{Power: true}` | JSON object. |
 
 | Subscribe | Key | Value | Type | Description |
 | --- | --- | --- | --- | --- |
