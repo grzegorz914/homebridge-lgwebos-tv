@@ -122,7 +122,7 @@ Tested with OLED65G6V, 32LM6300PLA, 49SK8500, OLED65C7T, 55SK800PLB, OLED48CX.
 
 * Request: `http//homebridge_ip_address:port/path`.
 * Path: `systemnfo`, `softwareinfo`, `channels`, `apps`, `power`, `audio`, `currentapp`, `currentchannel`, `picturesettings`, `soundmode`.
-* Respone as JSON data.
+* Respone as JSON object.
 
 ### MQTT Integration
 
