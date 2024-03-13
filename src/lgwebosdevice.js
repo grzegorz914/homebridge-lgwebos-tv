@@ -424,7 +424,7 @@ class LgWebOsDevice extends EventEmitter {
                     });
 
                     this.restFul.on('connected', (message) => {
-                        log(`Device: ${host} ${deviceName}, ${message}`);
+                        this.emit('message', message);
                         this.restFulConnected = true;
                     })
                         .on('error', (error) => {
@@ -859,7 +859,6 @@ class LgWebOsDevice extends EventEmitter {
                         this.televisionService.getCharacteristic(Characteristic.PictureMode)
                             .onGet(async () => {
                                 const value = this.pictureMode;
-                                const info = this.disableLogInfo ? false : this.emit('message', `Picture Mode: ${value}`);
                                 return value;
                             })
                             .onSet(async (command) => {
