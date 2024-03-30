@@ -7,12 +7,8 @@ class WOL extends EventEmitter {
     constructor(config) {
         super();
         this.mac = config.mac;
-        this.host = config.host || '255.255.255.255';
         this.debugLog = config.debugLog;
-
-        const host = this.host.split('.');
-        host[host.length - 1] = '255';
-        this.ipAddress = host.join('.');
+        this.ipAddress = '255.255.255.255';
         this.udpType = Net.isIPv6(this.ipAddress) ? 'udp6' : 'udp4';
     }
 
