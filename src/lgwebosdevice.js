@@ -1093,9 +1093,9 @@ class LgWebOsDevice extends EventEmitter {
                                 const volume = this.volume;
                                 return volume;
                             })
-                            .onSet(async (volume) => {
+                            .onSet(async (value) => {
                                 try {
-                                    volume = (volume <= 0 || volume >= 100) ? this.volume : volume;
+                                    volume = (value <= 0 || value >= 100) ? this.volume : value;
                                     const payload = {
                                         volume: volume,
                                         soundOutput: this.soundOutput
