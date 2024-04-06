@@ -477,7 +477,7 @@ class LgWebOsDevice extends EventEmitter {
                                         await this.lgWebOsSocket.send('request', CONSTANTS.ApiUrls.OpenChannel, { channelId: value }, cid1)
                                         break;
                                     case 'Volume':
-                                        const volume = (value === 0 || value === 100) ? this.volume : value;
+                                        const volume = (value < 0 || value > 100) ? this.volume : value;
                                         const payload = {
                                             volume: volume,
                                             soundOutput: this.soundOutput
@@ -1095,10 +1095,7 @@ class LgWebOsDevice extends EventEmitter {
                             })
                             .onSet(async (volume) => {
                                 try {
-                                    if (volume === 0 || volume === 100) {
-                                        volume = this.volume;
-                                    };
-
+                                    volume = (volume <= 0 || volume >= 100) ? this.volume : volume;
                                     const payload = {
                                         volume: volume,
                                         soundOutput: this.soundOutput
@@ -1143,10 +1140,7 @@ class LgWebOsDevice extends EventEmitter {
                             })
                             .onSet(async (volume) => {
                                 try {
-                                    if (volume === 0 || volume === 100) {
-                                        volume = this.volume;
-                                    };
-
+                                    volume = (volume <= 0 || volume >= 100) ? this.volume : volume;
                                     const payload = {
                                         volume: volume,
                                         soundOutput: this.soundOutput
@@ -1584,12 +1578,12 @@ class LgWebOsDevice extends EventEmitter {
                         const sensorInputReference = sensorInput.reference;
 
                         //get sensor display type
-                        const sensorInputDisplayType = sensorInput.displayType || false;
+                        const sensorInputDisplayType = sensorInput.displayType || 0;
 
                         //get sensor name prefix
                         const namePrefix = sensorInput.namePrefix || false;
 
-                        if (sensorInputDisplayType) {
+                        if (sensorInputDisplayType > 0) {
                             if (sensorInputName && sensorInputReference) {
                                 const serviceName = namePrefix ? `${accessoryName} ${sensorInputName}` : sensorInputName
                                 const characteristicType = ['', Characteristic.MotionDetected, Characteristic.OccupancyDetected, Characteristic.ContactSensorState][sensorInputDisplayType];
@@ -1639,12 +1633,12 @@ class LgWebOsDevice extends EventEmitter {
                         const buttonReferenceCommand = [buttonReference, 'com.webos.app.livetv', buttonCommand][buttonMode];
 
                         //get button display type
-                        const buttonDisplayType = button.displayType || false;
+                        const buttonDisplayType = button.displayType || 0;
 
                         //get button name prefix
                         const namePrefix = button.namePrefix || false;
 
-                        if (buttonDisplayType) {
+                        if (buttonDisplayType > 0) {
                             if (buttonName && buttonReferenceCommand && buttonMode >= 0) {
                                 const serviceName = namePrefix ? `${accessoryName} ${buttonName}` : buttonName;
                                 const serviceType = ['', Service.Outlet, Service.Switch][buttonDisplayType];
