@@ -452,7 +452,10 @@ class LgWebOsDevice extends EventEmitter {
                         this.emit('message', message);
                         this.mqttConnected = true;
                     })
-                        .on('changeState', async (data) => {
+                        .on('subscribed', (message) => {
+                            this.emit('message', message);
+                        })
+                        .on('subscribedMessage', async (data) => {
                             const key = Object.keys(data)[0];
                             const value = Object.values(data)[0];
                             try {
