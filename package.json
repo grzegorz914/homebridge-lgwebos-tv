@@ -39,7 +39,9 @@
     "homebridge-plugin",
     "homekit",
     "webos",
-    "lg"
+    "lg",
+    "mqtt",
+    "restful"
   ],
   "funding": {
     "type": "github",
