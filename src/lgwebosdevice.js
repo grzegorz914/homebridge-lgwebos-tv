@@ -96,6 +96,20 @@ class LgWebOsDevice extends EventEmitter {
 
         //sensors variable
         this.sensorsInputsConfigured = [];
+        for (const sensor of this.sensorInputs) {
+            const sensorInputName = sensor.name ?? false;
+            const sensorInputReference = sensor.reference ?? false;
+            const sensorInputDisplayType = sensor.displayType ?? 0;
+            if (sensorInputName && sensorInputReference && sensorInputDisplayType > 0) {
+                sensor.serviceType = ['', Service.MotionSensor, Service.OccupancySensor, Service.ContactSensor][sensorInputDisplayType];
+                sensor.characteristicType = ['', Characteristic.MotionDetected, Characteristic.OccupancyDetected, Characteristic.ContactSensorState][sensorInputDisplayType];
+                sensor.state = false;
+                this.sensorsInputsConfigured.push(sensor);
+            } else {
+                const log = sensorInputDisplayType === 0 ? false : this.emit('message', `Sensor Name: ${sensorInputName ? sensorInputName : 'Missing'}, Reference: ${sensorInputReference ? sensorInputReference : 'Missing'}.`);
+            };
+        }
+        this.sensorsInputsConfiguredCount = this.sensorsInputsConfigured.length || 0;
         this.sensorVolumeState = false;
         this.sensorInputState = false;
         this.sensorChannelState = false;
@@ -104,24 +118,38 @@ class LgWebOsDevice extends EventEmitter {
 
         //buttons variable
         this.buttonsConfigured = [];
+        for (const button of this.buttons) {
+            const buttonName = button.name ?? false;
+            const buttonMode = button.mode ?? -1;
+            const buttonReferenceCommand = [button.reference, button.reference, button.command][buttonMode] ?? false;
+            const buttonDisplayType = button.displayType ?? 0;
+            if (buttonName && buttonMode >= 0 && buttonReferenceCommand && buttonDisplayType > 0) {
+                button.serviceType = ['', Service.Outlet, Service.Switch][buttonDisplayType];
+                button.state = false;
+                this.buttonsConfigured.push(button);
+            } else {
+                const log = buttonDisplayType === 0 ? false : this.emit('message', `Button Name: ${buttonName ? buttonName : 'Missing'}, ${buttonMode ? 'Command:' : 'Reference:'} ${buttonReferenceCommand ? buttonReferenceCommand : 'Missing'}, Mode: ${buttonMode ? buttonMode : 'Missing'}.`);
+            };
+        }
+        this.buttonsConfiguredCount = this.buttonsConfigured.length || 0;
 
         //check files exists, if not then create it
         const postFix = this.host.split('.').join('');
-        this.keyFile = `${prefDir}/key_${postFix}`;
-        this.devInfoFile = `${prefDir}/devInfo_${postFix}`;
-        this.inputsFile = `${prefDir}/inputs_${postFix}`;
+        const keyFile = `${prefDir}/key_${postFix}`;
+        const devInfoFile = `${prefDir}/devInfo_${postFix}`;
+        const inputsFile = `${prefDir}/inputs_${postFix}`;
+        const channelsFile = `${prefDir}/channels_${postFix}`;
         this.inputsNamesFile = `${prefDir}/inputsNames_${postFix}`;
         this.inputsTargetVisibilityFile = `${prefDir}/inputsTargetVisibility_${postFix}`;
-        this.channelsFile = `${prefDir}/channels_${postFix}`;
 
         try {
             const files = [
-                this.keyFile,
-                this.devInfoFile,
-                this.inputsFile,
+                keyFile,
+                devInfoFile,
+                inputsFile,
+                channelsFile,
                 this.inputsNamesFile,
-                this.inputsTargetVisibilityFile,
-                this.channelsFile
+                this.inputsTargetVisibilityFile
             ];
 
             files.forEach((file) => {
@@ -150,10 +178,10 @@ class LgWebOsDevice extends EventEmitter {
         this.lgWebOsSocket = new LgWebOsSocket({
             host: this.host,
             inputs: this.inputs,
-            keyFile: this.keyFile,
-            devInfoFile: this.devInfoFile,
-            inputsFile: this.inputsFile,
-            channelsFile: this.channelsFile,
+            keyFile: keyFile,
+            devInfoFile: devInfoFile,
+            inputsFile: inputsFile,
+            channelsFile: channelsFile,
             getInputsFromDevice: this.getInputsFromDevice,
             filterSystemApps: this.filterSystemApps,
             debugLog: this.enableDebugMode,
@@ -207,6 +235,15 @@ class LgWebOsDevice extends EventEmitter {
                         .updateCharacteristic(Characteristic.ContactSensorState, state)
                 }
 
+                if (this.buttonsServices && !power) {
+                    for (let i = 0; i < this.buttonsCount; i++) {
+                        const state = false;
+                        this.buttonsConfigured[i].state = state;
+                        this.buttonsServices[i]
+                            .updateCharacteristic(Characteristic.On, state);
+                    }
+                }
+
                 this.power = power;
                 this.pixelRefresh = pixelRefresh;
                 this.screenState = screenState;
@@ -224,7 +261,7 @@ class LgWebOsDevice extends EventEmitter {
                         .updateCharacteristic(Characteristic.ActiveIdentifier, inputIdentifier);
                 };
 
-                if (this.sensorInputService && appId !== this.appId) {
+                if (this.sensorInputService && appId !== appId) {
                     for (let i = 0; i < 2; i++) {
                         const state = this.power ? [true, false][i] : false;
                         this.sensorInputService
@@ -234,13 +271,21 @@ class LgWebOsDevice extends EventEmitter {
                 }
 
                 if (this.sensorsInputsServices) {
-                    const servicesCount = this.sensorsInputsServices.length;
-                    for (let i = 0; i < servicesCount; i++) {
-                        const state = this.power ? (this.sensorsInputsConfigured[i].reference === appId) : false;
-                        const displayType = this.sensorsInputsConfigured[i].displayType;
-                        const characteristicType = ['', Characteristic.MotionDetected, Characteristic.OccupancyDetected, Characteristic.ContactSensorState][displayType];
+                    for (let i = 0; i < this.sensorsInputsConfiguredCount; i++) {
+                        const state = power ? this.sensorsInputsConfigured[i].reference === appId : false;
+                        this.sensorsInputsConfigured[i].state = state;
+                        const characteristicType = this.sensorsInputsConfigured[i].characteristicType;
                         this.sensorsInputsServices[i]
                             .updateCharacteristic(characteristicType, state);
+                    }
+                }
+
+                if (this.buttonsServices) {
+                    for (let i = 0; i < this.buttonsCount; i++) {
+                        const state = this.power ? this.buttonsConfigured[i].reference === appId : false;
+                        this.buttonsConfigured[i].state = state;
+                        this.buttonsServices[i]
+                            .updateCharacteristic(Characteristic.On, state);
                     }
                 }
 
@@ -319,6 +364,15 @@ class LgWebOsDevice extends EventEmitter {
                         this.sensorChannelService
                             .updateCharacteristic(Characteristic.ContactSensorState, state)
                         this.sensorChannelState = state;
+                    }
+                }
+
+                if (this.buttonsServices) {
+                    for (let i = 0; i < this.buttonsConfiguredCount; i++) {
+                        const state = this.power ? this.appId === 'com.webos.app.livetv' && this.buttonsConfigured.reference === channelId : false;
+                        this.buttonsConfigured[i].state = state;
+                        this.buttonsServices[i]
+                            .updateCharacteristic(Characteristic.On, state);
                     }
                 }
 
@@ -517,18 +571,18 @@ class LgWebOsDevice extends EventEmitter {
 
                 try {
                     //read dev info from file
-                    const savedInfo = await this.readData(this.devInfoFile);
+                    const savedInfo = await this.readData(devInfoFile);
                     this.savedInfo = savedInfo.toString().trim() !== '' ? JSON.parse(savedInfo) : {};
                     const debug = this.enableDebugMode ? this.emit('debug', `Read saved Info: ${JSON.stringify(this.savedInfo, null, 2)}`) : false;
                     this.webOS = this.savedInfo.webOS ?? 2.0;
 
                     //read inputs file
-                    const savedInputs = await this.readData(this.inputsFile);
+                    const savedInputs = await this.readData(inputsFile);
                     this.savedInputs = this.getInputsFromDevice && savedInputs.toString().trim() !== '' ? JSON.parse(savedInputs) : this.inputs;
                     const debug1 = this.enableDebugMode ? this.emit('debug', `Read saved Inputs: ${JSON.stringify(this.savedInputs, null, 2)}`) : false;
 
                     //read channels from file
-                    const savedChannels = await this.readData(this.channelsFile);
+                    const savedChannels = await this.readData(channelsFile);
                     this.savedChannels = savedChannels.toString().trim() !== '' ? JSON.parse(savedChannels) : [];
                     const debug2 = this.enableDebugMode ? this.emit('debug', `Read saved Channels: ${JSON.stringify(this.savedChannels, null, 2)}`) : false;
 
@@ -1562,61 +1616,49 @@ class LgWebOsDevice extends EventEmitter {
                 };
 
                 //prepare sonsor service
-                const sensorInputs = this.sensorInputs;
-                const sensorInputsCount = sensorInputs.length;
                 const possibleSensorInputsCount = 99 - this.allServices.length;
-                const maxSensorInputsCount = sensorInputsCount >= possibleSensorInputsCount ? possibleSensorInputsCount : sensorInputsCount;
+                const maxSensorInputsCount = this.sensorsInputsConfiguredCount >= possibleSensorInputsCount ? possibleSensorInputsCount : this.sensorsInputsConfiguredCount;
                 if (maxSensorInputsCount > 0) {
-                    const debug = this.enableDebugMode ? this.emit('debug', `Prepare inputs sensor service`) : false;
+                    const debug = !this.enableDebugMode ? false : this.emit('debug', `Prepare inputs sensors services`);
                     for (let i = 0; i < maxSensorInputsCount; i++) {
                         //get sensor
-                        const sensorInput = sensorInputs[i];
+                        const sensorInput = this.sensorsInputsConfigured[i];
 
                         //get sensor name		
                         const sensorInputName = sensorInput.name;
 
-                        //get sensor reference
-                        const sensorInputReference = sensorInput.reference;
-
-                        //get sensor display type
-                        const sensorInputDisplayType = sensorInput.displayType || 0;
-
                         //get sensor name prefix
                         const namePrefix = sensorInput.namePrefix || false;
 
-                        if (sensorInputDisplayType > 0) {
-                            if (sensorInputName && sensorInputReference) {
-                                const serviceName = namePrefix ? `${accessoryName} ${sensorInputName}` : sensorInputName
-                                const characteristicType = ['', Characteristic.MotionDetected, Characteristic.OccupancyDetected, Characteristic.ContactSensorState][sensorInputDisplayType];
-                                const serviceType = ['', Service.MotionSensor, Service.OccupancySensor, Service.ContactSensor][sensorInputDisplayType];
-                                const sensorInputService = accessory.addService(serviceType, serviceName, `Sensor ${i}`);
-                                sensorInputService.addOptionalCharacteristic(Characteristic.ConfiguredName);
-                                sensorInputService.setCharacteristic(Characteristic.ConfiguredName, serviceName);
-                                sensorInputService.getCharacteristic(characteristicType)
-                                    .onGet(async () => {
-                                        const state = this.power ? (sensorInputReference === this.appId) : false;
-                                        return state;
-                                    });
-                                this.sensorsInputsConfigured.push(sensorInput);
-                                this.sensorsInputsServices.push(sensorInputService);
-                                this.allServices.push(sensorInputService);
-                            } else {
-                                this.emit('message', `Sensor Name: ${sensorInputName ? sensorInputName : 'Missing'}, Reference: ${sensorInputReference ? sensorInputReference : 'Missing'}.`);
-                            };
-                        }
+                        //get service type
+                        const serviceType = sensorInput.serviceType;
+
+                        //get service type
+                        const characteristicType = sensorInput.characteristicType;
+
+                        const serviceName = namePrefix ? `${accessoryName} ${sensorInputName}` : sensorInputName;
+                        const sensorInputService = accessory.addService(serviceType, serviceName, `Sensor ${i}`);
+                        sensorInputService.addOptionalCharacteristic(Characteristic.ConfiguredName);
+                        sensorInputService.setCharacteristic(Characteristic.ConfiguredName, serviceName);
+                        sensorInputService.getCharacteristic(characteristicType)
+                            .onGet(async () => {
+                                const state = sensorInput.state
+                                return state;
+                            });
+                        this.sensorsInputsServices.push(sensorInputService);
+                        this.allServices.push(sensorInputService);
+                        accessory.addService(sensorInputService);
                     }
                 }
 
                 //Prepare inputs button services
-                const buttons = this.buttons;
-                const buttonsCount = buttons.length;
                 const possibleButtonsCount = 99 - this.allServices.length;
-                const maxButtonsCount = buttonsCount >= possibleButtonsCount ? possibleButtonsCount : buttonsCount;
+                const maxButtonsCount = this.buttonsConfiguredCount >= possibleButtonsCount ? possibleButtonsCount : this.buttonsConfiguredCount;
                 if (maxButtonsCount > 0) {
                     const debug = this.enableDebugMode ? this.emit('debug', `Prepare button service`) : false;
                     for (let i = 0; i < maxButtonsCount; i++) {
                         //get button
-                        const button = buttons[i];
+                        const button = this.buttonsConfigured[i];
 
                         //get button name
                         const buttonName = button.name;
@@ -1630,61 +1672,55 @@ class LgWebOsDevice extends EventEmitter {
                         //get button command
                         const buttonCommand = button.command;
 
-                        //get button reference/command
-                        const buttonReferenceCommand = [buttonReference, 'com.webos.app.livetv', buttonCommand][buttonMode];
-
-                        //get button display type
-                        const buttonDisplayType = button.displayType || 0;
-
                         //get button name prefix
                         const namePrefix = button.namePrefix || false;
 
-                        if (buttonDisplayType > 0) {
-                            if (buttonName && buttonReferenceCommand && buttonMode >= 0) {
-                                const serviceName = namePrefix ? `${accessoryName} ${buttonName}` : buttonName;
-                                const serviceType = ['', Service.Outlet, Service.Switch][buttonDisplayType];
-                                const buttonService = accessory.addService(serviceType, serviceName, `Button ${i}`);
-                                buttonService.addOptionalCharacteristic(Characteristic.ConfiguredName);
-                                buttonService.setCharacteristic(Characteristic.ConfiguredName, serviceName);
-                                buttonService.getCharacteristic(Characteristic.On)
-                                    .onGet(async () => {
-                                        const state = false;
-                                        return state;
-                                    })
-                                    .onSet(async (state) => {
-                                        try {
-                                            if (this.power && state) {
-                                                switch (buttonMode) {
-                                                    case 0:
-                                                        const cid = await this.lgWebOsSocket.getCids('App');
-                                                        await this.lgWebOsSocket.send('request', CONSTANTS.ApiUrls.LaunchApp, { id: buttonReference }, cid);
-                                                        break;
-                                                    case 1:
-                                                        const liveTv = 'com.webos.app.livetv';
-                                                        const cid1 = this.appId !== liveTv ? await this.lgWebOsSocket.getCids('App') : false;
-                                                        const openLiveTv = this.appId !== liveTv ? await this.lgWebOsSocket.send('request', CONSTANTS.ApiUrls.LaunchApp, { id: liveTv }, cid1) : false;
-                                                        const cid2 = await this.lgWebOsSocket.getCids('Channel');
-                                                        await this.lgWebOsSocket.send('request', CONSTANTS.ApiUrls.OpenChannel, { channelId: buttonReference }, cid2)
-                                                        break;
-                                                    case 2:
-                                                        await this.lgWebOsSocket.send('button', undefined, { name: buttonCommand });
-                                                        break;
-                                                }
-                                                const debug = this.enableDebugMode ? this.emit('debug', `Set ${['Input', 'Channel', 'Command'][buttonMode]} Name: ${buttonName}, Reference: ${[buttonReference, buttonReference, buttonCommand][buttonMode]}`) : false;
-                                            }
-                                            await new Promise(resolve => setTimeout(resolve, 300));
-                                            const setChar = state ? buttonService.updateCharacteristic(Characteristic.On, false) : false;
-                                        } catch (error) {
-                                            this.emit('error', `set ${['Input', 'Channel', 'Command'][buttonMode]} error: ${error}`);
-                                        };
-                                    });
-                                this.buttonsConfigured.push(button);
-                                this.buttonsServices.push(buttonService);
-                                this.allServices.push(buttonService);
-                            } else {
-                                this.emit('message', `Button Name: ${buttonName ? buttonName : 'Missing'}, ${buttonMode ? 'Command:' : 'Reference:'} ${buttonReferenceCommand ? buttonReferenceCommand : 'Missing'}, Mode: ${buttonMode ? buttonMode : 'Missing'}..`);
-                            };
-                        };
+                        //get service type
+                        const serviceType = button.serviceType;
+
+                        const serviceName = namePrefix ? `${accessoryName} ${buttonName}` : buttonName;
+                        const buttonService = new serviceType(serviceName, `Button ${i}`);
+                        buttonService.addOptionalCharacteristic(Characteristic.ConfiguredName);
+                        buttonService.setCharacteristic(Characteristic.ConfiguredName, serviceName);
+                        buttonService.getCharacteristic(Characteristic.On)
+                            .onGet(async () => {
+                                const state = button.state;
+                                return state;
+                            })
+                            .onSet(async (state) => {
+                                try {
+                                    switch (buttonMode) {
+                                        case 0: //App Control
+                                            const cid = this.power && state ? await this.lgWebOsSocket.getCids('App') : false;
+                                            const send = this.power && state ? await this.lgWebOsSocket.send('request', CONSTANTS.ApiUrls.LaunchApp, { id: buttonReference }, cid) : false;
+                                            const debug = this.power && state && this.enableDebugMode ? this.emit('debug', `Set Input, Name: ${buttonName}, Reference: ${buttonReference}`) : false;
+                                            break;
+                                        case 1: //Channel Control
+                                            const liveTv = 'com.webos.app.livetv';
+                                            const cid1 = this.power && state && this.appId !== liveTv ? await this.lgWebOsSocket.getCids('App') : false;
+                                            const openLiveTv = this.appId !== liveTv ? await this.lgWebOsSocket.send('request', CONSTANTS.ApiUrls.LaunchApp, { id: liveTv }, cid1) : false;
+                                            const cid2 = this.power && state ? await this.lgWebOsSocket.getCids('Channel') : false;
+                                            const send1 = this.power && state ? await this.lgWebOsSocket.send('request', CONSTANTS.ApiUrls.OpenChannel, { channelId: buttonReference }, cid2) : false;
+                                            const debug1 = this.power && state && this.enableDebugMode ? this.emit('debug', `Set Channel, Name: ${buttonName}, Reference: ${buttonReference}`) : false;
+                                            break;
+                                        case 2: //RC Control
+                                            const send2 = state ? await this.lgWebOsSocket.send('button', undefined, { name: buttonCommand }) : false;
+                                            const debug2 = state && this.enableDebugMode ? this.emit('debug', `Set Command, Name: ${buttonName}, Reference: ${buttonCommand}`) : false;
+                                            buttonService.updateCharacteristic(Characteristic.On, false);
+                                            break;
+                                        default:
+                                            const debug3 = this.enableDebugMode ? this.emit('debug', `Set Unknown Button Mode: ${buttonMode}.`) : false;
+                                            buttonService.updateCharacteristic(Characteristic.On, false);
+                                            break;
+                                    }
+                                } catch (error) {
+                                    this.emit('error', `set ${['Input', 'Channel', 'Command'][buttonMode]} error: ${error}`);
+                                    buttonService.updateCharacteristic(Characteristic.On, false);
+                                };
+                            });
+                        this.buttonsServices.push(buttonService);
+                        this.allServices.push(buttonService);
+                        accessory.addService(buttonService);
                     };
                 };
 
