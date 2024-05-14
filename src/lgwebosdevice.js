@@ -1637,7 +1637,7 @@ class LgWebOsDevice extends EventEmitter {
                         const characteristicType = sensorInput.characteristicType;
 
                         const serviceName = namePrefix ? `${accessoryName} ${sensorInputName}` : sensorInputName;
-                        const sensorInputService = accessory.addService(serviceType, serviceName, `Sensor ${i}`);
+                        const sensorInputService = new serviceType(serviceName, `Sensor ${i}`);
                         sensorInputService.addOptionalCharacteristic(Characteristic.ConfiguredName);
                         sensorInputService.setCharacteristic(Characteristic.ConfiguredName, serviceName);
                         sensorInputService.getCharacteristic(characteristicType)
