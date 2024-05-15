@@ -272,18 +272,20 @@ class LgWebOsDevice extends EventEmitter {
 
                 if (this.sensorsInputsServices) {
                     for (let i = 0; i < this.sensorsInputsConfiguredCount; i++) {
-                        const state = power ? this.sensorsInputsConfigured[i].reference === appId : false;
-                        this.sensorsInputsConfigured[i].state = state;
-                        const characteristicType = this.sensorsInputsConfigured[i].characteristicType;
+                        const sensorInput = this.sensorsInputsConfigured[i];
+                        const state = power ? sensorInput.reference === appId : false;
+                        sensorInput.state = state;
+                        const characteristicType = sensorInput.characteristicType;
                         this.sensorsInputsServices[i]
                             .updateCharacteristic(characteristicType, state);
                     }
                 }
 
                 if (this.buttonsServices) {
-                    for (let i = 0; i < this.buttonsCount; i++) {
-                        const state = this.power ? this.buttonsConfigured[i].reference === appId : false;
-                        this.buttonsConfigured[i].state = state;
+                    for (let i = 0; i < this.buttonsConfiguredCount; i++) {
+                        const button = this.buttonsConfigured[i];
+                        const state = this.power ? button.reference === appId : false;
+                        button.state = state;
                         this.buttonsServices[i]
                             .updateCharacteristic(Characteristic.On, state);
                     }
@@ -369,8 +371,9 @@ class LgWebOsDevice extends EventEmitter {
 
                 if (this.buttonsServices) {
                     for (let i = 0; i < this.buttonsConfiguredCount; i++) {
-                        const state = this.power ? this.appId === 'com.webos.app.livetv' && this.buttonsConfigured.reference === channelId : false;
-                        this.buttonsConfigured[i].state = state;
+                        const button = this.buttonsConfigured[i];
+                        const state = this.power ? this.appId === 'com.webos.app.livetv' && button.reference === channelId : false;
+                        button.state = state;
                         this.buttonsServices[i]
                             .updateCharacteristic(Characteristic.On, state);
                     }
@@ -1642,7 +1645,7 @@ class LgWebOsDevice extends EventEmitter {
                         sensorInputService.setCharacteristic(Characteristic.ConfiguredName, serviceName);
                         sensorInputService.getCharacteristic(characteristicType)
                             .onGet(async () => {
-                                const state = sensorInput.state
+                                const state = sensorInput.state;
                                 return state;
                             });
                         this.sensorsInputsServices.push(sensorInputService);
