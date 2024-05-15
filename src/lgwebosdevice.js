@@ -273,7 +273,7 @@ class LgWebOsDevice extends EventEmitter {
                 if (this.sensorsInputsServices) {
                     for (let i = 0; i < this.sensorsInputsConfiguredCount; i++) {
                         const sensorInput = this.sensorsInputsConfigured[i];
-                        const state = power ? sensorInput.reference === appId : false;
+                        const state = this.power ? sensorInput.reference === appId : false;
                         sensorInput.state = state;
                         const characteristicType = sensorInput.characteristicType;
                         this.sensorsInputsServices[i]
