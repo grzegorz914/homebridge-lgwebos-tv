@@ -37,17 +37,18 @@ class LgWebOsSocket extends EventEmitter {
         this.appId = '';
         this.volume = 0;
         this.mute = true;
-        this.soundMode = '';
-        this.soundOutput = '';
-        this.cidCount = 0;
-        this.webOS = 2.0;
-        this.modelName = 'LG TV';
 
         this.brightness = 0;
         this.backlight = 0;
         this.contrast = 0;
         this.color = 0;
-        this.pictureMode = 0;
+        this.picturedMode = '';
+        this.soundMode = '';
+        this.soundOutput = '';
+
+        this.cidCount = 0;
+        this.webOS = 2.0;
+        this.modelName = 'LG TV';
 
         this.connectSocket = async () => {
             //Read pairing key from file
@@ -532,20 +533,19 @@ class LgWebOsSocket extends EventEmitter {
                     case this.pictureSettingsId:
                         switch (messageType) {
                             case 'response':
-                                const debug = debugLog ? this.emit('debug', `Picture: ${stringifyMessage}`) : false;
+                                const debug = debugLog ? this.emit('debug', `Picture settings: ${stringifyMessage}`) : false;
                                 const brightness = messageData.settings.brightness ?? this.brightness;
                                 const backlight = messageData.settings.backlight ?? this.backlight;
                                 const contrast = messageData.settings.contrast ?? this.contrast;
                                 const color = messageData.settings.color ?? this.color;
-                                const pictureMode = 3;
 
                                 this.brightness = brightness;
                                 this.backlight = backlight;
                                 this.contrast = contrast;
                                 this.color = color;
-                                this.pictureMode = pictureMode;
 
-                                this.emit('pictureSettings', brightness, backlight, contrast, color, pictureMode, this.power);
+                                this.emit('pictureSettings', brightness, backlight, contrast, color, this.power);
+                                this.emit('pictureMode', 'Unknown', this.power);
 
                                 //restFul
                                 this.emit('restFul', 'picturesettings', messageData);
@@ -554,10 +554,36 @@ class LgWebOsSocket extends EventEmitter {
                                 this.emit('mqtt', 'Picture Settings', messageData);
                                 break;
                             case 'error':
-                                const debug1 = debugLog ? this.emit('debug', `Picture error: ${stringifyMessage}`) : false;
+                                const debug1 = debugLog ? this.emit('debug', `Picture settings error: ${stringifyMessage}`) : false;
                                 break;
                             default:
-                                const debug2 = debugLog ? this.emit('debug', this.emit('debug', `Picture received message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`)) : false;
+                                const debug2 = debugLog ? this.emit('debug', this.emit('debug', `Picture settings received message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`)) : false;
+                                break;
+                        };
+                        break;
+                    case this.pictureModeId:
+                        switch (messageType) {
+                            case 'response':
+                                const debug = debugLog ? this.emit('debug', `Picture mode: ${stringifyMessage}`) : false;
+                                const pictureMode = stringifyMessage.pictureMode ?? false;
+                                if (!pictureMode) {
+                                    return;
+                                }
+
+                                this.emit('pictureMode', pictureMode, this.power);
+                                this.pictureMode = pictureMode;
+
+                                //restFul
+                                this.emit('restFul', 'picturemode', messageData);
+
+                                //mqtt
+                                this.emit('mqtt', 'Picture Mode', messageData);
+                                break;
+                            case 'error':
+                                const debug1 = debugLog ? this.emit('debug', `Picture mode error: ${stringifyMessage}`) : false;
+                                break;
+                            default:
+                                const debug2 = debugLog ? this.emit('debug', this.emit('debug', `Picture mode received message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`)) : false;
                                 break;
                         };
                         break;
@@ -642,7 +668,8 @@ class LgWebOsSocket extends EventEmitter {
                 //update TV state
                 this.emit('powerState', false, this.screenState);
                 this.emit('audioState', this.volume, true);
-                this.emit('pictureSettings', 0, 0, 0, 0, 3, false);
+                this.emit('pictureSettings', 0, 0, 0, 0, false);
+                this.emit('pictureMode', 'Unknown', false);
                 this.emit('soundMode', this.soundMode, false);
                 this.emit('soundOutput', this.soundOutput, false);
             }).on('disconnect', async () => {
@@ -655,7 +682,8 @@ class LgWebOsSocket extends EventEmitter {
                 //update TV state
                 this.emit('powerState', false, 'Suspend');
                 this.emit('audioState', this.volume, true);
-                this.emit('pictureSettings', 0, 0, 0, 0, 3, false);
+                this.emit('pictureSettings', 0, 0, 0, 0, false);
+                this.emit('pictureMode', this.pictureMode, false);
                 this.emit('soundMode', this.soundMode, false);
                 this.emit('soundOutput', this.soundOutput, false);
             });
@@ -814,6 +842,7 @@ class LgWebOsSocket extends EventEmitter {
                 this.soundOutputId = await this.getCid();
                 await this.send('subscribe', CONSTANTS.ApiUrls.GetSoundOutput, undefined, this.soundOutputId);
 
+                //picture settings
                 if (this.webOS >= 4.0) {
                     const payload = {
                         category: 'picture',
@@ -823,6 +852,17 @@ class LgWebOsSocket extends EventEmitter {
                     await this.send('subscribe', CONSTANTS.ApiUrls.GetSystemSettings, payload, this.pictureSettingsId);
                 }
 
+                //picture mode
+                if (this.webOS >= 4.0) {
+                    const payload = {
+                        category: 'picture',
+                        keys: ['pictureMode']
+                    }
+                    this.pictureModeId = await this.getCid();
+                    //await this.send('alert', CONSTANTS.ApiUrls.GetSystemSettings, payload, this.pictureModeId);
+                }
+
+                //sound mode
                 if (this.webOS >= 6.0) {
                     const payload = {
                         category: 'sound',
@@ -854,8 +894,11 @@ class LgWebOsSocket extends EventEmitter {
                     case 'Audio':
                         resolve(this.audioStateId);
                         break;
-                    case 'Picture':
+                    case 'PictureSettings':
                         resolve(this.pictureSettingsId);
+                        break;
+                    case 'PictureMode':
+                        resolve(this.pictureModeId);
                         break;
                     case 'SoundMode':
                         resolve(this.soundModeId);
@@ -886,6 +929,8 @@ class LgWebOsSocket extends EventEmitter {
             try {
                 payload = payload ?? {};
                 cid = cid ?? await this.getCid();
+                title = title ?? 'Unknown Title';
+                message = message ?? 'Unknown Message';
 
                 switch (type) {
                     case 'button':

@@ -49,6 +49,7 @@
         "GetSoundOutput": "ssap://com.webos.service.apiadapter/audio/getSoundOutput",
         "GetVolume": "ssap://audio/getVolume",
         "GetSystemSettings": "ssap://settings/getSystemSettings",
+        "GetSystemSettingDesc": "luna://com.webos.service.settings/getSystemSettingDesc",
         "GetAppState": "ssap://com.webos.service.appstatus/getAppStatus",
         "GetCalibration": "ssap://externalpq/getExternalPqData",
         "TurnOff": "ssap://system/turnOff",
@@ -329,5 +330,52 @@
         "alibaba.genie",
         "alibaba.genie.view",
         "amazon.alexa.view"
-    ]
+    ],
+    "PictureModes": {
+        "cinema": "Cinema",
+        "eco": "Eco",
+        "expert1": "Expert 1",
+        "expert2": "Expert 2",
+        "game": "Game",
+        "normal": "Normal",
+        "photo": "Photo",
+        "sports": "ws",
+        "technicolor": "Technicolor",
+        "vivid": "Vivid",
+        "hdrEffect": "HDR Efect",
+        "hdrCinemaBright": "HDR Cinema Bright",
+        "hdrExternal": "HDR External",
+        "hdrGame": "HDR Ganme",
+        "hdrStandard": "HDR Standard",
+        "hdrTechnicolor": "HDR Technicolor",
+        "dolbyHdrCinema": "Dolby HDR Cinema",
+        "dolbyHdrCinemaBright": "Dolby HDR Cinema Bright",
+        "dolbyHdrDarkAmazon": "Dolby HDR Dark Amazon",
+        "dolbyHdrGame": "Dolby HDR Game",
+        "dolbyHdrStandard": "Dolby HDR Standard",
+        "dolbyHdrVivid": "Dolby HDR Vivid",
+        "dolbyStandard": "Dolby Standard"
+    },
+    "SoundModes": {
+        "aiSoundPlus": "AI Sound Plus",
+        "standard": "Standard",
+        "movie": "Movie",
+        "clearVoice": "Clear Voice",
+        "news": "News",
+        "sport": "Sport",
+        "music": "Music",
+        "game": "Game"
+    },
+    "SoundOutputs": {
+        "tv_speaker": "TV Speaker",
+        "external_speaker": "External Speakre",
+        "external_optical": "External Optical",
+        "external_arc": "External ARC",
+        "lineout": "Line Out",
+        "headphone": "Headphone",
+        "tv_external_speaker": "TV External Speaker",
+        "tv_external_headphone": "TV External Headphone",
+        "bt_soundbar": "BT Soundbar",
+        "soundbar": "Soundbar"
+    }
 }

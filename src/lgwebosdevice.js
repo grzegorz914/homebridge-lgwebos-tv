@@ -94,7 +94,8 @@ class LgWebOsDevice extends EventEmitter {
         this.backlight = 0;
         this.contrast = 0;
         this.color = 0;
-        this.pictureMode = 3;
+        this.pictureModeHomeKit = 1;
+        this.pictureMode = '';
         this.soundMode = '';
         this.soundOutput = '';
         this.invertMediaState = false;
@@ -450,31 +451,53 @@ class LgWebOsDevice extends EventEmitter {
                     this.emit('message', `Reference: ${channelId}`);
                 };
             })
-            .on('pictureSettings', (brightness, backlight, contrast, color, pictureMode, power) => {
+            .on('pictureSettings', (brightness, backlight, contrast, color, power) => {
                 if (this.televisionService) {
                     this.televisionService
-                        .updateCharacteristic(Characteristic.Brightness, brightness)
-                        .updateCharacteristic(Characteristic.PictureMode, pictureMode);
+                        .updateCharacteristic(Characteristic.Brightness, brightness);
                 };
 
                 if (this.brightnessService) {
                     this.brightnessService
+                        .updateCharacteristic(Characteristic.On, power)
                         .updateCharacteristic(Characteristic.Brightness, brightness);
                 };
 
                 if (this.backlightService) {
                     this.backlightService
+                        .updateCharacteristic(Characteristic.On, power)
                         .updateCharacteristic(Characteristic.Brightness, backlight);
                 };
 
                 if (this.contrastService) {
                     this.contrastService
+                        .updateCharacteristic(Characteristic.On, power)
                         .updateCharacteristic(Characteristic.Brightness, contrast);
                 };
 
                 if (this.colorService) {
                     this.colorService
+                        .updateCharacteristic(Characteristic.On, power)
                         .updateCharacteristic(Characteristic.Brightness, color);
+                };
+
+                this.brightness = brightness;
+                this.backlight = backlight;
+                this.contrast = contrast;
+                this.color = color;
+                if (!this.disableLogInfo) {
+                    this.emit('message', `Brightness: ${brightness}%`);
+                    this.emit('message', `Backlight: ${backlight}%`);
+                    this.emit('message', `Contrast: ${contrast}%`);
+                    this.emit('message', `Color: ${color}%`);
+                };
+            })
+            .on('pictureMode', (pictureMode, power) => {
+                if (this.televisionService) {
+                    const mode = 1;
+                    this.pictureModeHomeKit = mode;
+                    this.televisionService
+                        .updateCharacteristic(Characteristic.PictureMode, mode);
                 };
 
                 if (this.picturesModesServices) {
@@ -496,17 +519,9 @@ class LgWebOsDevice extends EventEmitter {
                     }
                 }
 
-                this.brightness = brightness;
-                this.backlight = backlight;
-                this.contrast = contrast;
-                this.color = color;
                 this.pictureMode = pictureMode;
                 if (!this.disableLogInfo) {
-                    this.emit('message', `Brightness: ${brightness}%`);
-                    this.emit('message', `Backlight: ${backlight}%`);
-                    this.emit('message', `Contrast: ${contrast}%`);
-                    this.emit('message', `Color: ${color}%`);
-                    this.emit('message', `Picture Mode: ${pictureMode}`);
+                    this.emit('message', `Picture Mode: ${CONSTANTS.PictureModes.PictureMode ?? 'Unknown'}`);
                 };
             })
             .on('soundMode', (soundMode, power) => {
@@ -531,7 +546,7 @@ class LgWebOsDevice extends EventEmitter {
 
                 this.soundMode = soundMode;
                 if (!this.disableLogInfo) {
-                    this.emit('message', `Sound Mode: ${soundMode}`);
+                    this.emit('message', `Sound Mode: ${CONSTANTS.SoundModes.soundMode ?? 'Unknown'}`);
                 };
             })
             .on('soundOutput', (soundOutput, power) => {
@@ -556,7 +571,7 @@ class LgWebOsDevice extends EventEmitter {
 
                 this.soundOutput = soundOutput;
                 if (!this.disableLogInfo) {
-                    this.emit('message', `Sound Output: ${soundOutput}`);
+                    this.emit('message', `Sound Output: ${CONSTANTS.SoundOutputs.soundOutput ?? 'Unknown'}`);
                 };
             })
             .on('prepareAccessory', async () => {
@@ -829,7 +844,6 @@ class LgWebOsDevice extends EventEmitter {
         return new Promise(async (resolve, reject) => {
             try {
                 const data = await fsPromises.readFile(path);
-                const debug = !this.enableDebugMode ? false : this.emit('debug', `Read data: ${JSON.stringify(data, null, 2)}`);
                 resolve(data);
             } catch (error) {
                 reject(`Read saved data error: ${error}`);
@@ -1072,7 +1086,7 @@ class LgWebOsDevice extends EventEmitter {
 
                         this.televisionService.getCharacteristic(Characteristic.PictureMode)
                             .onGet(async () => {
-                                const value = this.pictureMode;
+                                const value = this.pictureModeHomeKit;
                                 return value;
                             })
                             .onSet(async (command) => {
@@ -1112,8 +1126,8 @@ class LgWebOsDevice extends EventEmitter {
                                     };
 
                                     const cid = await this.lgWebOsSocket.getCid();
-                                    await this.lgWebOsSocket.send('alert', CONSTANTS.ApiUrls.SetSystemSettings, payload, cid), 'Set Picture Mode', `Value: ${command}`;
-                                    const info = this.disableLogInfo ? false : this.emit('message', `set Picture Mode: ${command}`);
+                                    await this.lgWebOsSocket.send('alert', CONSTANTS.ApiUrls.SetSystemSettings, payload, cid), 'Set Picture Mode', `Value: ${CONSTANTS.PictureModes.command ?? 'Unknown'}`;
+                                    const info = this.disableLogInfo ? false : this.emit('message', `set Picture Mode: ${CONSTANTS.PictureModes.command ?? 'Unknown'}`);
                                 } catch (error) {
                                     this.emit('error', `set Picture Mode error: ${error}`);
                                 };
