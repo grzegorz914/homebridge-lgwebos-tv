@@ -18,7 +18,9 @@ class RestFul extends EventEmitter {
             currentapp: 'This data is not available in your system at this time.',
             currentchannel: 'This data is not available in your system at this time.',
             picturesettings: 'This data is not available in your system at this time.',
-            soundmode: 'This data is not available in your system at this time.'
+            soundmode: 'This data is not available in your system at this time.',
+            soundoutput: 'This data is not available in your system at this time.',
+            externalinputlist: 'This data is not available in your system at this time.'
         };
         this.connect();
     };
@@ -37,6 +39,8 @@ class RestFul extends EventEmitter {
             restFul.get('/currentchannel', (req, res) => { res.json(this.restFulData.currentchannel) });
             restFul.get('/picturesettings', (req, res) => { res.json(this.restFulData.picturesettings) });
             restFul.get('/soundmode', (req, res) => { res.json(this.restFulData.soundmode) });
+            restFul.get('/soundoutput', (req, res) => { res.json(this.restFulData.soundoutput) });
+            restFul.get('/soundoutput', (req, res) => { res.json(this.restFulData.externalinputlist) });
 
             restFul.listen(this.restFulPort, () => {
                 this.emit('connected', `RESTful started on port: ${this.restFulPort}`)
@@ -78,6 +82,12 @@ class RestFul extends EventEmitter {
                 break;
             case 'soundmode':
                 this.restFulData.soundmode = data;
+                break;
+            case 'soundoutput':
+                this.restFulData.soundoutput = data;
+                break;
+            case 'externalinputlist':
+                this.restFulData.externalinputlist = data;
                 break;
             default:
                 this.emit('debug', `RESTFul update unknown path: ${path}, data: ${data}`)

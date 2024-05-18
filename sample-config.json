@@ -80,18 +80,29 @@
                         {
                             "name": "Cinema",
                             "reference": "cinema",
+                            "displayType": 0,
                             "namePrefix": false
                         }
                     ],
-                    "volumeControl": 0,
                     "soundModeControl": false,
                     "soundModes": [
                         {
                             "name": "Cinema",
                             "reference": "movie",
+                            "displayType": 0,
                             "namePrefix": false
                         }
                     ],
+                    "soundOutputControl": false,
+                    "soundOutputs": [
+                        {
+                            "name": "TV Speaker",
+                            "reference": "tv_speaker",
+                            "displayType": 0,
+                            "namePrefix": false
+                        }
+                    ],
+                    "volumeControl": 0,
                     "sensorPower": false,
                     "sensorPixelRefresh": false,
                     "sensorVolume": false,
@@ -110,13 +121,14 @@
                             "namePrefix": false
                         }
                     ],
+                    "turnScreenOnOff": false,
+                    "turnScreenSaverOnOff": false,
+                    "sslWebSocket": false,
+                    "infoButtonCommand": "MENU",
                     "enableDebugMode": false,
                     "disableLogInfo": false,
                     "disableLogDeviceInfo": false,
                     "disableTvService": false,
-                    "turnScreenOnOff": false,
-                    "sslWebSocket": false,
-                    "infoButtonCommand": "MENU",
                     "enableRestFul": false,
                     "restFulPort": 3000,
                     "restFulDebug": false,

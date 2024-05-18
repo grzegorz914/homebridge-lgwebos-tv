@@ -38,7 +38,7 @@
               "title": "Load Inputs From Device",
               "type": "boolean",
               "default": false,
-              "description": "This function get all available inputs direct from device, manually configured inputs will be skipped.",
+              "description": "This function get all available inputs and apps direct from device, manually configured inputs will be skipped.",
               "required": false
             },
             "disableLoadDefaultInputs": {
@@ -574,70 +574,77 @@
               "title": "Power",
               "type": "boolean",
               "default": false,
-              "description": "This expose Power as a Motion Sensor to use with automations.",
+              "description": "This expose Power as a Motion Sensor to use with automations, fired if Power ON.",
               "required": false
             },
             "sensorPixelRefresh": {
               "title": "Pixel Refresh",
               "type": "boolean",
               "default": false,
-              "description": "This expose Pixel Refresh as a Motion Sensor to use with automations.",
+              "description": "This expose Pixel Refresh as a Motion Sensor to use with automations, fired if PixelRefresh ON.",
               "required": false
             },
             "sensorVolume": {
               "title": "Volume",
               "type": "boolean",
               "default": false,
-              "description": "This expose Volume as a Motion Sensor to use with automations.",
+              "description": "This expose Volume as a Motion Sensor to use with automations, fired on every Volume change.",
               "required": false
             },
             "sensorMute": {
               "title": "Mute",
               "type": "boolean",
               "default": false,
-              "description": "This expose Mute as a Motion Sensor to use with automations.",
+              "description": "This expose Mute as a Motion Sensor to use with automations, fired if Mute ON.",
               "required": false
             },
             "sensorInput": {
               "title": "Input",
               "type": "boolean",
               "default": false,
-              "description": "This expose Input as a Motion Sensor to use with automations.",
+              "description": "This expose Input as a Motion Sensor to use with automations, fired on every Input change.",
               "required": false
             },
             "sensorChannel": {
               "title": "Channel",
               "type": "boolean",
               "default": false,
-              "description": "This expose Channel as a Motion Sensor to use with automations.",
+              "description": "This expose Channel as a Motion Sensor to use with automations, fired on every Input change.",
               "required": false
             },
             "sensorSoundMode": {
               "title": "Sound Mode",
               "type": "boolean",
               "default": false,
-              "description": "This expose Sound Mode as a Motion Sensor to use with automations, only for webOS >= 6.0.",
+              "description": "This expose Sound Mode as a Motion Sensor to use with automations, fired on every Sound Mode change, webOS >= 6.0.",
+              "required": false
+            },
+            "sensorSoundOutput": {
+              "title": "Sound Output",
+              "type": "boolean",
+              "default": false,
+              "description": "This expose Sound Output as a Motion Sensor to use with automations, fired on every Sound Output change.",
               "required": false
             },
             "sensorPictureMode": {
               "title": "Picture Mode",
               "type": "boolean",
               "default": false,
-              "description": "This expose Picture Mode as a Motion Sensor to use with automations, only for webOS >= 4.0.",
+              "description": "This expose Picture Mode as a Motion Sensor to use with automations, fired on every Picture Mode change, webOS >= 4.0.",
               "required": false
             },
             "sensorScreenOnOff": {
-              "title": "Screen On/Off",
+              "title": "Screen Off",
               "type": "boolean",
               "default": false,
-              "description": "This expose Screen ON/OFF as a Motion Sensor to use with automations.",
+              "description": "This expose Screen ON/OFF as a Motion Sensor to use with automations, fired if Screen Off, webOS >= 4.0.",
               "required": false
             },
             "sensorScreenSaver": {
               "title": "Screen Saver",
               "type": "boolean",
               "default": false,
-              "description": "This expose Screen Saver as a Motion Sensor to use with automations.",
+              "description": "This expose Screen Saver as a Motion Sensor to use with automations, fired if Screen Saver ON, webOS >= 4.0.",
               "required": false
             },
             "sensorInputs": {
@@ -706,7 +713,14 @@
               "title": "Turn Screen ON/OFF",
               "type": "boolean",
               "default": false,
-              "description": "This enable possibility turn ON/OFF screen, only for webOS >= 4.0.",
+              "description": "This enable possibility turn screen ON/OFF, webOS >= 4.0.",
+              "required": false
+            },
+            "turnScreenSaverOnOff": {
+              "title": "Turn Screen Saver ON/OFF",
+              "type": "boolean",
+              "default": false,
+              "description": "This enable possibility turn screen saver ON/OFF, webOS >= 4.0.",
               "required": false
             },
             "brightnessControl": {
@@ -741,7 +755,7 @@
               "title": "Picture Modes",
               "type": "boolean",
               "default": false,
-              "description": "This enable possibility change the Picture Mode, only for webOS >= 4.0.",
+              "description": "This enable possibility change the Picture Mode, webOS >= 4.0.",
               "required": false
             },
             "pictureModes": {
@@ -823,6 +837,12 @@
                         ]
                       },
                       {
+                        "title": "HDR Game",
+                        "enum": [
+                          "hdrGame"
+                        ]
+                      },
+                      {
                         "title": "HDR Standard",
                         "enum": [
                           "hdrStandard"
@@ -877,6 +897,12 @@
                         ]
                       },
                       {
+                        "title": "Dolby HDR Vivid",
+                        "enum": [
+                          "dolbyHdrVivid"
+                        ]
+                      },
+                      {
                         "title": "Dolby HDR Cinema Bright",
                         "enum": [
                           "dolbyHdrCinemaBright"
@@ -907,6 +933,32 @@
                         ]
                       }
                     ],
+                    "required": true
+                  },
+                  "displayType": {
+                    "title": "Display Type",
+                    "type": "integer",
+                    "oneOf": [
+                      {
+                        "title": "None/Disabled",
+                        "enum": [
+                          0
+                        ]
+                      },
+                      {
+                        "title": "Outlet",
+                        "enum": [
+                          1
+                        ]
+                      },
+                      {
+                        "title": "Switch",
+                        "enum": [
+                          2
+                        ]
+                      }
+                    ],
+                    "description": "Here select display type in HomeKit app.",
                     "required": true
                   },
                   "namePrefix": {
@@ -973,7 +1025,7 @@
                     "description": "Here choice the Sound Mode.",
                     "oneOf": [
                       {
-                        "title": "Ai Sound",
+                        "title": "Ai Sound Plus",
                         "enum": [
                           "aiSoundPlus"
                         ]
@@ -981,17 +1033,17 @@
                       {
                         "title": "Standard",
                         "enum": [
-                          "Standard"
+                          "standard"
                         ]
                       },
                       {
-                        "title": "Cinema",
+                        "title": "Movie",
                         "enum": [
                           "movie"
                         ]
                       },
                       {
-                        "title": "ClearVoice",
+                        "title": "Clear Voice",
                         "enum": [
                           "clearVoice"
                         ]
@@ -1023,10 +1075,159 @@
                     ],
                     "required": true
                   },
+                  "displayType": {
+                    "title": "Display Type",
+                    "type": "integer",
+                    "oneOf": [
+                      {
+                        "title": "None/Disabled",
+                        "enum": [
+                          0
+                        ]
+                      },
+                      {
+                        "title": "Outlet",
+                        "enum": [
+                          1
+                        ]
+                      },
+                      {
+                        "title": "Switch",
+                        "enum": [
+                          2
+                        ]
+                      }
+                    ],
+                    "description": "Here select display type in HomeKit app.",
+                    "required": true
+                  },
                   "namePrefix": {
                     "title": "Prefix",
                     "type": "boolean",
                     "description": "Here enable/disable the accessory name as a prefix for sound mode.",
+                    "required": true
+                  }
+                }
+              }
+            },
+            "soundOutputControl": {
+              "title": "Sound Output",
+              "type": "boolean",
+              "default": false,
+              "description": "This enable possibility change the Sound Output.",
+              "required": false
+            },
+            "soundOutputs": {
+              "title": "Sound Output",
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "title": "Name",
+                    "type": "string",
+                    "placeholder": "Sound Output Name",
+                    "description": "Here set Your own Sound Output name.",
+                    "required": true
+                  },
+                  "reference": {
+                    "title": "Output",
+                    "type": "string",
+                    "description": "Here choice the Sound Output.",
+                    "oneOf": [
+                      {
+                        "title": "TV Speaker",
+                        "enum": [
+                          "tv_speaker"
+                        ]
+                      },
+                      {
+                        "title": "External Speaker",
+                        "enum": [
+                          "external_speaker"
+                        ]
+                      },
+                      {
+                        "title": "External Optical",
+                        "enum": [
+                          "external_optical"
+                        ]
+                      },
+                      {
+                        "title": "External ARC",
+                        "enum": [
+                          "external_arc"
+                        ]
+                      },
+                      {
+                        "title": "Line Out",
+                        "enum": [
+                          "lineout"
+                        ]
+                      },
+                      {
+                        "title": "Headphone",
+                        "enum": [
+                          "headphone"
+                        ]
+                      },
+                      {
+                        "title": "TV External Speaker",
+                        "enum": [
+                          "tv_external_speaker"
+                        ]
+                      },
+                      {
+                        "title": "TV Speaker Headphone",
+                        "enum": [
+                          "tv_speaker_headphone"
+                        ]
+                      },
+                      {
+                        "title": "BT Soundbar",
+                        "enum": [
+                          "bt_soundbar"
+                        ]
+                      },
+                      {
+                        "title": "Soundbar",
+                        "enum": [
+                          "soundbar"
+                        ]
+                      }
+                    ],
+                    "required": true
+                  },
+                  "displayType": {
+                    "title": "Display Type",
+                    "type": "integer",
+                    "oneOf": [
+                      {
+                        "title": "None/Disabled",
+                        "enum": [
+                          0
+                        ]
+                      },
+                      {
+                        "title": "Outlet",
+                        "enum": [
+                          1
+                        ]
+                      },
+                      {
+                        "title": "Switch",
+                        "enum": [
+                          2
+                        ]
+                      }
+                    ],
+                    "description": "Here select display type in HomeKit app.",
+                    "required": true
+                  },
+                  "namePrefix": {
+                    "title": "Prefix",
+                    "type": "boolean",
+                    "description": "Here enable/disable the accessory name as a prefix for sound output.",
                     "required": true
                   }
                 }
@@ -1322,6 +1523,7 @@
                     "devices[].sensorInput",
                     "devices[].sensorChannel",
                     "devices[].sensorSoundMode",
+                    "devices[].sensorSoundOutput",
                     "devices[].sensorPictureMode",
                     "devices[].sensorScreenOnOff",
                     "devices[].sensorScreenSaver",
@@ -1353,6 +1555,7 @@
                   "title": "Picture / Screen",
                   "items": [
                     "devices[].turnScreenOnOff",
+                    "devices[].turnScreenSaverOnOff",
                     "devices[].brightnessControl",
                     "devices[].backlightControl",
                     "devices[].contrastControl",
@@ -1367,6 +1570,7 @@
                           "items": [
                             "devices[].pictureModes[].name",
                             "devices[].pictureModes[].reference",
+                            "devices[].pictureModes[].displayType",
                             "devices[].pictureModes[].namePrefix"
                           ],
                           "condition": {
@@ -1392,10 +1596,30 @@
                           "items": [
                             "devices[].soundModes[].name",
                             "devices[].soundModes[].reference",
+                            "devices[].soundModes[].displayType",
                             "devices[].soundModes[].namePrefix"
                           ],
                           "condition": {
                             "functionBody": "return model.devices[arrayIndices].soundModeControl === true;"
+                          }
+                        }
+                      ]
+                    },
+                    "devices[].soundOutputControl",
+                    {
+                      "items": [
+                        {
+                          "key": "devices[].soundOutputs",
+                          "type": "tabarray",
+                          "title": "{{ value.name || 'mode' }}",
+                          "items": [
+                            "devices[].soundOutputs[].name",
+                            "devices[].soundOutputs[].reference",
+                            "devices[].soundOutputs[].displayType",
+                            "devices[].soundOutputs[].namePrefix"
+                          ],
+                          "condition": {
+                            "functionBody": "return model.devices[arrayIndices].soundOutputControl === true;"
                           }
                         }
                       ]
