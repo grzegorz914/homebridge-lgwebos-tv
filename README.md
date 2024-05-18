@@ -81,29 +81,40 @@ Tested with OLED65G6V, 32LM6300PLA, 49SK8500, OLED65C7T, 55SK800PLB, OLED48CX.
 | `sensorMute`| If enabled, then the Mute will be exposed as a `Contact Sensor`, fired if Mmute ON. |
 | `sensorInput`| If enabled, then the Input will be exposed as a `Contact Sensor`, fired on every Input change. |
 | `sensorChannel`| If enabled, then the Channel will be exposed as a `Contact Sensor`, fired on every Channel change. |
-| `sensorSoundMode`| If enabled, then the Sound Mode will be exposed as a `Contact Sensor`, fired on every Sound Mode change. |
-| `sensorPictureMode`| If enabled, then the Picture Mode will be exposed as a `Contact Sensor`, fired on every Picture Mode change. |
-| `sensorScreenOnOff`| If enabled, then the Screen On/Off will be exposed as a `Contact Sensor`, fired on Screen OFF. |
-| `sensorScreenSaver`| If enabled, then the Screen Saver will be exposed as a `Contact Sensor`, fired on Screen Saver ON. |
+| `sensorSoundMode`| If enabled, then the Sound Mode will be exposed as a `Contact Sensor`, fired on every Sound Mode change, webOS >= 6.0. |
+| `sensorSoundOutput`| If enabled, then the Sound Output will be exposed as a `Contact Sensor`, ffired on every Sound Output change. |
+| `sensorPictureMode`| If enabled, then the Picture Mode will be exposed as a `Contact Sensor`, fired on every Picture Mode change, webOS >= 4.0. |
+| `sensorScreenOnOff`| If enabled, then the Screen On/Off will be exposed as a `Contact Sensor`, fired on Screen OFF, webOS >= 4.0. |
+| `sensorScreenSaver`| If enabled, then the Screen Saver will be exposed as a `Contact Sensor`, fired on Screen Saver ON, webOS >= 4.0. |
 | `sensorInputs`| Her create custom Inputs sensor, sensors will be exposed as a `Contact Sensor`, fired if switch to it. |
 | `sensorInputs.name` | Here set own *Name* which You want expose to the *Homebridge/HomeKit* for this sensor. |
 | `sensorInputs.reference` | Here set *Reference* like `com.webos.app.hdmi1` to be exposed as sensor (active on switch to this Input). |
 | `sensorInputs.displayType` | Here select sensor type to be exposed in HomeKit app, possible `0 - None/Disabled`, `1 - Motion Sensor`, `2 - Occupancy Sensor`, `3 - Contact Sensor`. |
 | `sensorInputs.namePrefix` | Here enable/disable the accessory name as a prefix for sensor name.|
+| `pictureModeControl` | Here enable/disable control of picture mode, webOS >= 4.0. |
 | `pictureModes.name` | Here set own *Name* which You want expose to the *Homebridge/HomeKit* for this sensor. |
-| `pictureModes.reference` | Here set *Reference* like `com.webos.app.hdmi1` to be exposed as sensor (active on switch to this Input). |
+| `pictureModes.reference` | Here select mode to be exposed in *Homebridge/HomeKit*. |
+| `pictureModes.displayType` | Here select display type in HomeKit app, possible `0 - None/Disabled`, `1 - Outlet`, `2 - Switch`.|
 | `pictureModes.namePrefix` | Here enable/disable the accessory name as a prefix for picture mode.|
+| `soundModeControl` | Here enable/disable control of sound mode, webOS >= 6.0. |
 | `soundModes.name` | Here set own *Name* which You want expose to the *Homebridge/HomeKit* for this sensor. |
-| `soundModes.reference` | Here set *Reference* like `com.webos.app.hdmi1` to be exposed as sensor (active on switch to this Input). |
+| `soundModes.reference` | Here select mode to be exposed in *Homebridge/HomeKit*. |
+| `soundModes.displayType` | Here select display type in HomeKit app, possible `0 - None/Disabled`, `1 - Outlet`, `2 - Switch`.|
 | `soundModes.namePrefix` | Here enable/disable the accessory name as a prefix for sound mode.|
+| `soundOutputControl` | Here enable/disable control of sound output. |
+| `soundOutputs.name` | Here set own *Name* which You want expose to the *Homebridge/HomeKit* for this sensor. |
+| `soundOutputs.reference` | Here select output to be exposed in *Homebridge/HomeKit*. |
+| `soundModes.displayType` | Here select display type in HomeKit app, possible `0 - None/Disabled`, `1 - Outlet`, `2 - Switch`.|
+| `soundOutputs.namePrefix` | Here enable/disable the accessory name as a prefix for sound output.|
+| `volumeControl` | Here select volume control mode `0 - None/Disabled`, `1 - Slider`, `2 - Fan`. |
+| `turnScreenOnOff` | This enable possibility turn the screen ON/OFF, webOS >= 4.0. |
+| `turnScreenSaverOnOff` | This enable possibility turn the screen saver ON/OFF, webOS >= 4.0. |
+| `sslWebSocket` | If enabled, SSL WebSocket will support TV with new firmware. |
 | `enableDebugMode` | If enabled, deep log will be present in homebridge console. |
 | `disableLogInfo` | If enabled, disable log info, all values and state will not be displayed in Homebridge log console. |
 | `disableLogDeviceInfo` | If enabled, add ability to disable log device info by every connections device to the network. |
 | `disableTvService` | If enabled, TV service will be disabled and prevent display double services if TV already support HomeKit native. |
-| `turnScreenOnOff` | This enable possibility turn the screen ON/OFF, only for webOS >= 4.0. |
-| `sslWebSocket` | If enabled, SSL WebSocket will support TV with new firmware. |
 | `infoButtonCommand` | Here select the function of `I` button in RC app. |
-| `volumeControl` | Here select volume control mode `0 - None/Disabled`, `1 - Slider`, `2 - Fan`. |
 | `enableRestFul` | If enabled, RESTful server will start automatically and respond to any path request. |
 | `restFulPort` | Here set the listening `Port` for RESTful server, every device need own port. |
 | `restFulDebug` | If enabled, deep log will be present in homebridge console for RESTFul server. |
@@ -121,22 +132,34 @@ Tested with OLED65G6V, 32LM6300PLA, 49SK8500, OLED65C7T, 55SK800PLB, OLED48CX.
 ### RESTFul Integration
 
 * Request: `http//homebridge_ip_address:port/path`.
-* Path: `systemnfo`, `softwareinfo`, `channels`, `apps`, `power`, `audio`, `currentapp`, `currentchannel`, `picturesettings`, `soundmode`.
+* Path: `systemnfo`, `softwareinfo`, `channels`, `apps`, `power`, `audio`, `currentapp`, `currentchannel`, `picturesettings`, `soundmode`, `soundoutput`, `externalinputlist`.
 * Respone as JSON object.
 
 ### MQTT Integration
 
 | Direction | Topic | Message | Payload Data |
 | --- | --- | --- | --- |
-|  Publish   | `System Info`, `Software Info`, `Channels`, `Apps`, `Power`, `Audio`, `Current App`, `Current Channel`, `Picture Settings`, `Sound Mode` | `{"state": Active}` | JSON object. |
+|  Publish   | `System Info`, `Software Info`, `Channels`, `Apps`, `Power`, `Audio`, `Current App`, `Current Channel`, `Picture Settings`, `Sound Mode`, `Sound Output`, `External Input List` | `{"state": Active}` | JSON object. |
 |  Subscribe   | `Set` | `{"Power": true}` | JSON object. |
 
 | Subscribe | Key | Value | Type | Description |
 | --- | --- | --- | --- | --- |
 | LG WebOS|     |     |     |      |
 |     | `Power` | `true`, `false` | boolean | Power state. |
-|     | `Input` | `com.webos.app.hdmi2` | string | Set input. |
+|     | `Input` | `input reference` | string | Set input. |
 |     | `Channel` | `channel reference` | string | Set channel. |
-|     | `RcControl` | `REWIND` | string | Send RC command. |
 |     | `Volume` | `100` | integer | Set volume. |
 |     | `Mute` | `true`, `false` | boolean | Set mute. |
+|     | `Brightness` | `100` | integer | Set brightness. |
+|     | `Backlight` | `100` | integer | Set backlight. |
+|     | `Contrast` | `100` | integer | Set contrast. |
+|     | `Color` | `100` | integer | Set color. |
+|     | `PictureMode` | `picture mode reference` | string | Set picture mode. |
+|     | `SoundMode` | `sound mode reference` | string | Set sound mode. |
+|     | `SoundOutput` | `sound output reference` | string | Set sound output. |
+|     | `RcControl` | `REWIND` | string | Send RC command. |
+
+* References:
+  * Picture Mode - `cinema`, `eco`, `expert1`, `expert2`, `game`, `normal`, `photo`, `sports`, `technicolor`, `vivid`, `hdrEffect`, ` hdrCinema`, `hdrCinemaBright`, `hdrExternal`, `hdrGame`, `hdrStandard`, `hdrTechnicolor`, `hdrVivid`, `dolbyHdrCinema,dolbyHdrCinemaBright`, `dolbyHdrDarkAmazon`, `dolbyHdrGame`, `dolbyHdrStandard`, `dolbyHdrVivid`, `dolbyStandard`.
+  * Sound Mode - `aiSoundPlus`, `standard`, `movie`, `clearVoice`, `news`, `sport`, `music`, `game`.
+  * Sound Output - `tv_speaker`, `external_speaker`, `external_optical`, `external_arc`, `lineout`, `headphone`, `tv_external_speaker`, `tv_external_headphone`, `bt_soundbar`, `soundbar`.
