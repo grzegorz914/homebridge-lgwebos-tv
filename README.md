@@ -34,7 +34,7 @@ Tested with OLED65G6V, 32LM6300PLA, 49SK8500, OLED65C7T, 55SK800PLB, OLED48CX.
 * Legacy Volume and Mute control is possible throught extra `lightbulb`/`fan` (slider).
 * Inputs can be changed using Inputs selector in HomeKit.app, additionally can create separate tile.
 * Channels can be changed using Channels selector in HomeKit app, additionally can create separate tile.
-* Brightness, Contrast, Backlight, Color, Picture Mode and Sound Mode can be changed using extra tile.
+* Brightness, Contrast, Backlight, Color, Picture Mode, Sound Mode and Sound Output can be changed using extra tile.
 * Siri can be used for all functions, some times need create legacy buttons/switches/sensors.
 * Automations can be used for all functions, some times need create legacy buttons/switches/sensors.
 * Support external integrations, [RESTFul](https://github.com/grzegorz914/homebridge-lgwebos-tv?tab=readme-ov-file#restful-integration), [MQTT](https://github.com/grzegorz914/homebridge-lgwebos-tv?tab=readme-ov-file#mqtt-integration).
