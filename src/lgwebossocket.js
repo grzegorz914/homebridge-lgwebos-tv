@@ -416,6 +416,7 @@ class LgWebOsSocket extends EventEmitter {
 
                                 this.emit('powerState', this.power, this.screenState);
                                 const disconnect = !this.power ? socket.emit('powerOff') : false;
+                                const emit = this.screenState === 'Screen Saver' ? this.emit('currentApp', 'com.webos.app.screensaver') : this.emit('currentApp', this.appId);
 
                                 //restFul
                                 this.emit('restFul', 'power', messageData);
