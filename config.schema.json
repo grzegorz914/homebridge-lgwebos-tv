@@ -1118,7 +1118,7 @@
               "required": false
             },
             "soundOutputs": {
-              "title": "Sound Output",
+              "title": "Sound Outputs",
               "type": "array",
               "items": {
                 "type": "object",
@@ -1625,7 +1625,7 @@
                         {
                           "key": "devices[].soundOutputs",
                           "type": "tabarray",
-                          "title": "{{ value.name || 'mode' }}",
+                          "title": "{{ value.name || 'output' }}",
                           "items": [
                             "devices[].soundOutputs[].name",
                             "devices[].soundOutputs[].reference",

@@ -40,7 +40,7 @@ class RestFul extends EventEmitter {
             restFul.get('/picturesettings', (req, res) => { res.json(this.restFulData.picturesettings) });
             restFul.get('/soundmode', (req, res) => { res.json(this.restFulData.soundmode) });
             restFul.get('/soundoutput', (req, res) => { res.json(this.restFulData.soundoutput) });
-            restFul.get('/soundoutput', (req, res) => { res.json(this.restFulData.externalinputlist) });
+            restFul.get('/externalinputlist', (req, res) => { res.json(this.restFulData.externalinputlist) });
 
             restFul.listen(this.restFulPort, () => {
                 this.emit('connected', `RESTful started on port: ${this.restFulPort}`)
