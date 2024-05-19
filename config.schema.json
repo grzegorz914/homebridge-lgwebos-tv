@@ -1233,6 +1233,20 @@
                 }
               }
             },
+            "serviceMenu": {
+              "title": "Service Menu",
+              "type": "boolean",
+              "default": false,
+              "description": "This enable access to the service menu from input list.",
+              "required": false
+            },
+            "ezAdjustMenu": {
+              "title": "EZ Adjust Menu",
+              "type": "boolean",
+              "default": false,
+              "description": "This enable access to the ez adjust menu from input list.",
+              "required": false
+            },
             "enableDebugMode": {
               "title": "Debug",
               "type": "boolean",
@@ -1631,6 +1645,8 @@
                   "title": "Device",
                   "items": [
                     "devices[].sslWebSocket",
+                    "devices[].serviceMenu",
+                    "devices[].ezAdjustMenu",
                     "devices[].infoButtonCommand"
                   ]
                 },

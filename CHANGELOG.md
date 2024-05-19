@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+## [2.19.0] - (19.05.2024)
+
+## Changes
+
+- added support for service menu access from the input list
+- added support for ez adjust menu access from the input list
+- config schema updated
+- cleanup
+
 ## [2.18.0] - (18.05.2024)
 
 ## Changes

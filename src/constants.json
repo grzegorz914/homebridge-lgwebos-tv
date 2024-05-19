@@ -90,7 +90,8 @@
         "RebootTvWebOs5": "luna://com.webos.service.tv.power/reboot",
         "ShowInputPicker": "luna://com.webos.surfacemanager/showInputPicker",
         "SetDeviceInfo": "luna://com.webos.service.eim/setDeviceInfo",
-        "EjectDevice": "luna://com.webos.service.attachedstoragemanager/ejectDevice"
+        "EjectDevice": "luna://com.webos.service.attachedstoragemanager/ejectDevice",
+        "ServiceMenu": "com.webos.app.factorywin"
     },
     "Pairing": {
         "forcePairing": false,
@@ -226,7 +227,6 @@
         "com.webos.app.twinlivezoom-intwindemo",
         "com.webos.app.twinzoom-inmiracast",
         "com.webos.app.tvtutorial",
-        "com.webos.app.factorywin",
         "com.webos.app.inputcommon",
         "com.webos.app.mvpdwin",
         "com.webos.app.mystarter",
@@ -307,6 +307,7 @@
         "com.webos.app.lgnlp",
         "com.webos.app.actionhandler",
         "com.webos.app.channeledit",
+        "com.webos.app.factorywin",
         "com.webos.exampleapp.enyoapp.epg",
         "com.webos.exampleapp.qmlapp.hbbtv",
         "com.webos.exampleapp.qmlapp.client.positive.one",

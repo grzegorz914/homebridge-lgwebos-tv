@@ -17,15 +17,14 @@ class LgWebOsSocket extends EventEmitter {
         const channelsFile = config.channelsFile;
         const getInputsFromDevice = config.getInputsFromDevice;
         const filterSystemApps = config.filterSystemApps;
+        const serviceMenu = config.serviceMenu;
+        const ezAdjustMenu = config.ezAdjustMenu;
         const debugLog = config.debugLog;
         const sslWebSocket = config.sslWebSocket;
         const url = sslWebSocket ? CONSTANTS.ApiUrls.WssUrl.replace('lgwebostv', host) : CONSTANTS.ApiUrls.WsUrl.replace('lgwebostv', host);
         const webSocketPort = sslWebSocket ? 3001 : 3000;
 
-        this.inputs = inputs;
         this.keyFile = keyFile;
-        this.getInputsFromDevice = getInputsFromDevice;
-        this.filterSystemApps = filterSystemApps;
         this.debugLog = debugLog;
 
         this.externalInputsArr = [];
@@ -288,8 +287,22 @@ class LgWebOsSocket extends EventEmitter {
                                     return;
                                 };
 
+                                const channelsArr = [];
+                                for (const channel of channelsList) {
+                                    const name = channel.channelName;
+                                    const channelId = channel.channelId;
+                                    const number = channel.channelNumber;
+                                    const channelsObj = {
+                                        'name': name,
+                                        'reference': channelId,
+                                        'number': number,
+                                        'mode': 1
+                                    }
+                                    channelsArr.push(channelsObj);
+                                };
+
                                 //save channels to the file
-                                await this.saveChannels(channelsFile, channelsList);
+                                await this.saveChannels(channelsFile, channelsArr);
 
                                 //restFul
                                 this.emit('restFul', 'channels', messageData);
@@ -315,6 +328,7 @@ class LgWebOsSocket extends EventEmitter {
                                     return;
                                 };
 
+                                //parse inputs
                                 for (const input of externalInputList) {
                                     const name = input.label;
                                     const reference = input.appId;
@@ -351,6 +365,7 @@ class LgWebOsSocket extends EventEmitter {
                                     return;
                                 };
 
+                                //parse apps
                                 const appsArr = [];
                                 for (const input of appsList) {
                                     const name = input.title;
@@ -364,9 +379,37 @@ class LgWebOsSocket extends EventEmitter {
                                     appsArr.push(obj);
                                 };
 
-                                //save apps to the file
-                                const inputsApps = this.getInputsFromDevice ? [...this.externalInputsArr, ...appsArr] : this.inputs;
-                                await this.saveInputs(inputsFile, inputsApps);
+                                //add service menu
+                                const serviceMenuInput = {
+                                    'name': 'Service Menu',
+                                    'reference': 'service.menu',
+                                    'mode': 0
+                                };
+                                const pushServiceMenu = serviceMenu ? appsArr.push(serviceMenuInput) : false;
+
+                                //add ez adjust menu
+                                const ezAdjustMenuInput = {
+                                    'name': 'EZ Adjust',
+                                    'reference': 'ez.adjust',
+                                    'mode': 0
+                                };
+                                const pushEzAdjusteMenu = ezAdjustMenu ? appsArr.push(ezAdjustMenuInput) : false;
+
+                                //add external inputs and apps to array
+                                const inputsApps = getInputsFromDevice ? [...this.externalInputsArr, ...appsArr] : inputs;
+
+                                //chack duplicated object in array and filter system apps
+                                const inputsArr = [];
+                                for (const input of inputsApps) {
+                                    const inputName = input.name;
+                                    const inputReference = input.reference;
+                                    const duplicatedInput = inputsArr.some(input => input.reference === inputReference);
+                                    const filter = filterSystemApps ? CONSTANTS.SystemApps.includes(inputReference) : false;
+                                    const push = inputName && inputReference && !filter && !duplicatedInput ? inputsArr.push(input) : false;
+                                }
+
+                                //save apps to the file                             
+                                await this.saveInputs(inputsFile, inputsArr);
 
                                 //restFul
                                 this.emit('restFul', 'apps', messageData);
@@ -449,8 +492,9 @@ class LgWebOsSocket extends EventEmitter {
                                     return;
                                 };
 
-                                const emit = this.screenState === 'Screen Saver' ? this.emit('currentApp', 'com.webos.app.screensaver') : this.emit('currentApp', appId);
-                                this.appId = appId;
+                                const app = appId === 'com.webos.app.factorywin' ? 'service.menu' : appId
+                                const emit = this.screenState === 'Screen Saver' ? this.emit('currentApp', 'com.webos.app.screensaver') : this.emit('currentApp', app);
+                                this.appId = app;
 
                                 //restFul
                                 this.emit('restFul', 'currentapp', messageData);
@@ -760,20 +804,7 @@ class LgWebOsSocket extends EventEmitter {
     saveChannels(path, channelsList) {
         return new Promise(async (resolve, reject) => {
             try {
-                const channelsArr = [];
-                for (const channel of channelsList) {
-                    const name = channel.channelName;
-                    const channelId = channel.channelId;
-                    const number = channel.channelNumber;
-                    const channelsObj = {
-                        'name': name,
-                        'reference': channelId,
-                        'number': number,
-                        'mode': 1
-                    }
-                    channelsArr.push(channelsObj);
-                };
-                const channels = JSON.stringify(channelsArr, null, 2);
+                const channels = JSON.stringify(channelsList, null, 2);
                 await fsPromises.writeFile(path, channels);
                 const debug = this.enableDebugMode ? this.emit('debug', `Channels list saved: ${channels}`) : false;
 
@@ -787,20 +818,9 @@ class LgWebOsSocket extends EventEmitter {
     saveInputs(path, appsList) {
         return new Promise(async (resolve, reject) => {
             try {
-                //chack duplicated inputs
-                const inputsArr = [];
-                for (const input of appsList) {
-                    const inputName = input.name;
-                    const inputReference = input.reference;
-                    const duplicatedInput = inputsArr.some(input => input.reference === inputReference);
-                    const filterSystemApps = this.filterSystemApps ? CONSTANTS.SystemApps.includes(inputReference) : false;
-                    const push = inputName && inputReference && !filterSystemApps && !duplicatedInput ? inputsArr.push(input) : false;
-                }
-
-                //save inputs
-                const allInputs = JSON.stringify(inputsArr, null, 2);
-                await fsPromises.writeFile(path, allInputs);
-                const debug = this.debugLog ? this.emit('debug', `Apps list saved: ${allInputs}`) : false;
+                const inputs = JSON.stringify(appsList, null, 2);
+                await fsPromises.writeFile(path, inputs);
+                const debug = this.debugLog ? this.emit('debug', `Apps list saved: ${inputs}`) : false;
 
                 resolve()
             } catch (error) {

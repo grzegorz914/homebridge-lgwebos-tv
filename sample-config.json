@@ -132,6 +132,8 @@
                     "enableRestFul": false,
                     "restFulPort": 3000,
                     "restFulDebug": false,
+                    "serviceMenu": false,
+                    "ezAdjustMenu": false,
                     "enableMqtt": false,
                     "mqttDebug": false,
                     "mqttHost": "192.168.1.33",
