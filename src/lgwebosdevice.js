@@ -84,7 +84,7 @@ class LgWebOsDevice extends EventEmitter {
         //state variable
         this.power = false;
         this.pixelRefreshState = false;
-        this.screenState = false;
+        this.screenStateOff = false;
         this.screenSaverState = false;
         this.appId = '';
         this.volume = 0;
@@ -265,17 +265,17 @@ class LgWebOsDevice extends EventEmitter {
                         .updateCharacteristic(Characteristic.Active, power);
                 };
 
-                if (this.turnScreenSaverOnOffService) {
-                    const state = power ? screenState === 'Screen Off' : false;
-                    this.turnScreenSaverOnOffService
-                        .updateCharacteristic(Characteristic.On, state)
-                }
-
                 if (this.turnScreenOnOffService) {
-                    const state = power ? screenState === 'Screen Saver' : false;
+                    const state = power ? screenState === 'Screen Off' : false;
                     this.turnScreenOnOffService
                         .updateCharacteristic(Characteristic.On, state);
                 };
+
+                if (this.turnScreenSaverOnOffService) {
+                    const state = power ? screenState === 'Screen Saver' : false;
+                    this.turnScreenSaverOnOffService
+                        .updateCharacteristic(Characteristic.On, state)
+                }
 
                 if (this.sensorPowerService) {
                     this.sensorPowerService
@@ -311,7 +311,7 @@ class LgWebOsDevice extends EventEmitter {
 
                 this.power = power;
                 this.pixelRefreshState = power ? screenState === 'Active Standby' : false;
-                this.screenState = power ? screenState === 'Screen Off' : false;
+                this.screenStateOff = power ? screenState === 'Screen Off' : false;
                 this.screenSaverState = power ? screenState === 'Screen Saver' : false;
                 if (!this.disableLogInfo) {
                     this.emit('message', `Power: ${power ? 'ON' : 'OFF'}`);
@@ -1275,6 +1275,9 @@ class LgWebOsDevice extends EventEmitter {
                         const inputName = savedInputsNames ? savedInputsNames : name;
                         input.name = inputName;
 
+                        //input mode
+                        const inputMode = input.mode;
+
                         //get input type
                         const inputSourceType = 0;
 
@@ -1624,29 +1627,6 @@ class LgWebOsDevice extends EventEmitter {
                         }
                     }
 
-                    //turn screen saver ON/OFF
-                    if (this.turnScreenSaverOnOff) {
-                        const debug = this.enableDebugMode ? this.emit('debug', `Prepare screen saver service`) : false;
-                        this.turnScreenSaverOnOffService = accessory.addService(Service.Switch, `${accessoryName} Screen Saver`, 'Screen Saver');
-                        this.turnScreenSaverOnOffService.addOptionalCharacteristic(Characteristic.ConfiguredName);
-                        this.turnScreenSaverOnOffService.setCharacteristic(Characteristic.ConfiguredName, `${accessoryName} Screen Saver`);
-                        this.turnScreenSaverOnOffService.getCharacteristic(Characteristic.On)
-                            .onGet(async () => {
-                                const state = this.screenSaverState;
-                                return state;
-                            })
-                            .onSet(async (state) => {
-                                try {
-                                    const cid = await this.lgWebOsSocket.getCid();
-                                    const set = state ? await this.lgWebOsSocket.send('alert', CONSTANTS.ApiUrls.TurnOnScreenSaver, undefined, cid, 'Screen Saver', `ON`) : await this.lgWebOsSocket.send('button', undefined, { name: 'EXIT' });
-                                    const info = this.disableLogInfo ? false : this.emit('message', `set Screen Saver: ${state}`);
-                                } catch (error) {
-                                    this.emit('error', `set Color error: ${error}`);
-                                };
-                            });
-                        this.allServices.push(this.turnScreenSaverOnOffService);
-                    }
-
                     //turn screen ON/OFF
                     if (this.turnScreenOnOff) {
                         const debug = this.enableDebugMode ? this.emit('debug', `Prepare screen off service`) : false;
@@ -1655,17 +1635,17 @@ class LgWebOsDevice extends EventEmitter {
                         this.turnScreenOnOffService.setCharacteristic(Characteristic.ConfiguredName, `${accessoryName} Screen Off`);
                         this.turnScreenOnOffService.getCharacteristic(Characteristic.On)
                             .onGet(async () => {
-                                const state = this.screenState;
+                                const state = this.screenStateOff;
                                 return state;
                             })
                             .onSet(async (state) => {
                                 try {
                                     let url;
                                     switch (state) {
-                                        case false:
+                                        case true:
                                             url = this.webOS >= 4.5 ? CONSTANTS.ApiUrls.TurnOffScreen45 : CONSTANTS.ApiUrls.TurnOffScreen;
                                             break;
-                                        case true:
+                                        case false:
                                             url = this.webOS >= 4.5 ? CONSTANTS.ApiUrls.TurnOnScreen45 : CONSTANTS.ApiUrls.TurnOnScreen;
                                             break;
                                     }
@@ -1680,6 +1660,29 @@ class LgWebOsDevice extends EventEmitter {
                         this.allServices.push(this.turnScreenOnOffService);
                     };
                 };
+
+                //turn screen saver ON/OFF
+                if (this.turnScreenSaverOnOff) {
+                    const debug = this.enableDebugMode ? this.emit('debug', `Prepare screen saver service`) : false;
+                    this.turnScreenSaverOnOffService = accessory.addService(Service.Switch, `${accessoryName} Screen Saver`, 'Screen Saver');
+                    this.turnScreenSaverOnOffService.addOptionalCharacteristic(Characteristic.ConfiguredName);
+                    this.turnScreenSaverOnOffService.setCharacteristic(Characteristic.ConfiguredName, `${accessoryName} Screen Saver`);
+                    this.turnScreenSaverOnOffService.getCharacteristic(Characteristic.On)
+                        .onGet(async () => {
+                            const state = this.screenSaverState;
+                            return state;
+                        })
+                        .onSet(async (state) => {
+                            try {
+                                const cid = await this.lgWebOsSocket.getCid();
+                                const set = state ? await this.lgWebOsSocket.send('alert', CONSTANTS.ApiUrls.TurnOnScreenSaver, undefined, cid, 'Screen Saver', `ON`) : await this.lgWebOsSocket.send('button', undefined, { name: 'EXIT' });
+                                const info = this.disableLogInfo ? false : this.emit('message', `set Screen Saver: ${state}`);
+                            } catch (error) {
+                                this.emit('error', `set Color error: ${error}`);
+                            };
+                        });
+                    this.allServices.push(this.turnScreenSaverOnOffService);
+                }
 
                 //Sound mode
                 if (this.soundsModesConfiguredCount > 0 && this.webOS >= 6.0) {
@@ -1844,7 +1847,7 @@ class LgWebOsDevice extends EventEmitter {
                     this.sensorScreenOnOffService.setCharacteristic(Characteristic.ConfiguredName, `${accessoryName} Screen On/Off Sensor`);
                     this.sensorScreenOnOffService.getCharacteristic(Characteristic.ContactSensorState)
                         .onGet(async () => {
-                            const state = this.power ? this.screenState : false;
+                            const state = this.power ? this.screenStateOff : false;
                             return state;
                         });
                     this.allServices.push(this.sensorScreenOnOffService);

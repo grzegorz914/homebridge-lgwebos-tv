@@ -982,6 +982,7 @@ class LgWebOsSocket extends EventEmitter {
 
                         const message1 = JSON.stringify(data1);
                         this.socket.send(message1);
+                        const debug = this.debugLog ? this.emit('debug', `Alert send: ${message1}`) : false;
                         resolve();
                         break;
                     case 'toast':
@@ -1000,6 +1001,7 @@ class LgWebOsSocket extends EventEmitter {
 
                         const message2 = JSON.stringify(data2);
                         this.socket.send(message2);
+                        const debug1 = this.debugLog ? this.emit('debug', `Toast send: ${message2}`) : false;
                         resolve();
                         break;
                     default:
@@ -1016,6 +1018,7 @@ class LgWebOsSocket extends EventEmitter {
 
                         const message3 = JSON.stringify(data3);
                         this.socket.send(message3);
+                        const debug2 = this.debugLog ? this.emit('debug', `Socket send: ${message3}`) : false;
                         resolve();
                         break
                 };
