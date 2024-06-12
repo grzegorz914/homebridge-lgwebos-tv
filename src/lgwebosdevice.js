@@ -1216,10 +1216,6 @@ class LgWebOsDevice extends EventEmitter {
                         })
                         .onSet(async (volume) => {
                             try {
-                                if (volume === 0 || volume === 100) {
-                                    volume = this.volume;
-                                };
-
                                 const payload = {
                                     volume: volume,
                                     soundOutput: this.soundOutput
@@ -2005,7 +2001,6 @@ class LgWebOsDevice extends EventEmitter {
                                     }
                                 } catch (error) {
                                     this.emit('error', `set ${['Input', 'Channel', 'Command'][buttonMode]} error: ${error}`);
-                                    button.state = false;
                                 };
                             });
                         this.buttonsServices.push(buttonService);
