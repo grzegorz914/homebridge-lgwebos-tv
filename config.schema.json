@@ -961,7 +961,7 @@
                       }
                     ],
                     "description": "Here select display type in HomeKit app.",
-                    "required": true
+                    "required": false
                   },
                   "namePrefix": {
                     "title": "Prefix",
