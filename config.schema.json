@@ -39,27 +39,27 @@
               "type": "boolean",
               "default": false,
               "description": "This function get all available inputs and apps direct from device, manually configured inputs will be skipped.",
-              "required": false
+              "required": true
             },
             "disableLoadDefaultInputs": {
               "title": "Disable Load Default Inputs",
               "type": "boolean",
               "default": false,
               "description": "This function disable load default inputs Live TV, HDMI 1, HDMI 2 in to the inputs list.",
-              "required": false,
               "condition": {
                 "functionBody": "return model.devices[arrayIndices].getInputsFromDevice === false"
-              }
+              },
+              "required": true
             },
             "filterSystemApps": {
               "title": "Hide System Apps",
               "type": "boolean",
               "default": false,
               "description": "If enabled, all System Apps will not be displayed on the list of inputs.",
-              "required": false,
               "condition": {
                 "functionBody": "return model.devices[arrayIndices].getInputsFromDevice === true"
-              }
+              },
+              "required": true
             },
             "inputsDisplayOrder": {
               "title": "Inputs Display Order",
@@ -140,7 +140,7 @@
                         ]
                       }
                     ],
-                    "required": true
+                    "required": false
                   }
                 }
               }
@@ -182,7 +182,7 @@
                         ]
                       }
                     ],
-                    "required": true
+                    "required": false
                   },
                   "reference": {
                     "title": "Reference",
@@ -533,7 +533,7 @@
                       }
                     ],
                     "description": "Here select the remote control command.",
-                    "required": true
+                    "required": false
                   },
                   "displayType": {
                     "title": "Display Type",
@@ -559,16 +559,17 @@
                       }
                     ],
                     "description": "Here select display type in HomeKit app.",
-                    "required": true
+                    "required": false
                   },
                   "namePrefix": {
                     "title": "Prefix",
                     "type": "boolean",
                     "description": "Here enable/disable the accessory name as a prefix for button name.",
-                    "required": true
+                    "required": false
                   }
                 }
-              }
+              },
+              "required": false
             },
             "sensorPower": {
               "title": "Power",
@@ -659,14 +660,14 @@
                     "type": "string",
                     "placeholder": "Name",
                     "description": "Here set Your own name.",
-                    "required": true
+                    "required": false
                   },
                   "reference": {
                     "title": "Reference",
                     "type": "string",
                     "placeholder": "Input/App reference",
                     "description": "Here set the Input/App reference.",
-                    "required": true
+                    "required": false
                   },
                   "displayType": {
                     "title": "Type",
@@ -698,16 +699,17 @@
                       }
                     ],
                     "description": "Here select sensor type to be exposed in HomeKit app.",
-                    "required": true
+                    "required": false
                   },
                   "namePrefix": {
                     "title": "Prefix",
                     "type": "boolean",
                     "description": "Here enable/disable the accessory name as a prefix for sensor name.",
-                    "required": true
+                    "required": false
                   }
                 }
-              }
+              },
+              "required": false
             },
             "turnScreenOnOff": {
               "title": "Turn Screen ON/OFF",
@@ -769,7 +771,7 @@
                     "type": "string",
                     "placeholder": "Picture Mode Name",
                     "description": "Here set Your own Picture Mode name.",
-                    "required": true
+                    "required": false
                   },
                   "reference": {
                     "title": "Mode",
@@ -933,7 +935,7 @@
                         ]
                       }
                     ],
-                    "required": true
+                    "required": false
                   },
                   "displayType": {
                     "title": "Display Type",
@@ -965,10 +967,11 @@
                     "title": "Prefix",
                     "type": "boolean",
                     "description": "Here enable/disable the accessory name as a prefix for picture mode.",
-                    "required": true
+                    "required": false
                   }
                 }
-              }
+              },
+              "required": false
             },
             "volumeControl": {
               "title": "Volume",
@@ -1017,7 +1020,7 @@
                     "type": "string",
                     "placeholder": "Sound Mode Name",
                     "description": "Here set Your own Sound Mode name.",
-                    "required": true
+                    "required": false
                   },
                   "reference": {
                     "title": "Mode",
@@ -1073,7 +1076,7 @@
                         ]
                       }
                     ],
-                    "required": true
+                    "required": false
                   },
                   "displayType": {
                     "title": "Display Type",
@@ -1099,16 +1102,17 @@
                       }
                     ],
                     "description": "Here select display type in HomeKit app.",
-                    "required": true
+                    "required": false
                   },
                   "namePrefix": {
                     "title": "Prefix",
                     "type": "boolean",
                     "description": "Here enable/disable the accessory name as a prefix for sound mode.",
-                    "required": true
+                    "required": false
                   }
                 }
-              }
+              },
+              "required": false
             },
             "soundOutputControl": {
               "title": "Sound Output",
@@ -1128,7 +1132,7 @@
                     "type": "string",
                     "placeholder": "Sound Output Name",
                     "description": "Here set Your own Sound Output name.",
-                    "required": true
+                    "required": false
                   },
                   "reference": {
                     "title": "Output",
@@ -1196,7 +1200,7 @@
                         ]
                       }
                     ],
-                    "required": true
+                    "required": false
                   },
                   "displayType": {
                     "title": "Display Type",
@@ -1222,16 +1226,17 @@
                       }
                     ],
                     "description": "Here select display type in HomeKit app.",
-                    "required": true
+                    "required": false
                   },
                   "namePrefix": {
                     "title": "Prefix",
                     "type": "boolean",
                     "description": "Here enable/disable the accessory name as a prefix for sound output.",
-                    "required": true
+                    "required": false
                   }
                 }
-              }
+              },
+              "required": false
             },
             "serviceMenu": {
               "title": "Service Menu",
@@ -1279,12 +1284,13 @@
               "title": "SSL WebSocket",
               "type": "boolean",
               "default": false,
-              "required": false,
-              "description": "This enable SSL WebSocket, support TV with new firmware."
+              "description": "This enable SSL WebSocket, support TV with new firmware.",
+              "required": false
             },
             "infoButtonCommand": {
               "title": "Info Button",
               "type": "string",
+              "default": "MENU",
               "oneOf": [
                 {
                   "title": "Home",
@@ -1342,116 +1348,116 @@
               "title": "Enable",
               "type": "boolean",
               "default": false,
-              "required": false,
-              "description": "This enable RESTful server."
+              "description": "This enable RESTful server.",
+              "required": false
             },
             "restFulDebug": {
               "title": "Debug",
               "type": "boolean",
               "default": false,
-              "required": false,
               "description": "This enable debug mode for RESTFul.",
               "condition": {
                 "functionBody": "return model.devices[arrayIndices].enableRestFul === true;"
-              }
+              },
+              "required": false
             },
             "restFulPort": {
               "title": "Port",
               "type": "integer",
               "placeholder": 3000,
-              "required": true,
               "description": "Here set the listening Port for RESTful server, every device need own port.",
               "condition": {
                 "functionBody": "return model.devices[arrayIndices].enableRestFul === true;"
-              }
+              },
+              "required": false
             },
             "enableMqtt": {
               "title": "Enable",
               "type": "boolean",
               "default": false,
-              "required": false,
-              "description": "This enable MQTT client."
+              "description": "This enable MQTT client.",
+              "required": false
             },
             "mqttDebug": {
               "title": "Debug",
               "type": "boolean",
               "default": false,
-              "required": false,
               "description": "This enable debug mode for MQTT.",
               "condition": {
                 "functionBody": "return model.devices[arrayIndices].enableMqtt === true;"
-              }
+              },
+              "required": false
             },
             "mqttHost": {
               "title": "IP/Hostname",
               "type": "string",
               "placeholder": "ip or hostname",
-              "required": true,
               "format": "hostname",
               "description": "Here set the IP/Hostname of MQTT Broker.",
               "condition": {
                 "functionBody": "return model.devices[arrayIndices].enableMqtt === true;"
-              }
+              },
+              "required": false
             },
             "mqttPort": {
               "title": "Port",
               "type": "integer",
               "placeholder": 1883,
-              "required": true,
               "description": "Here set the port of MQTT Broker.",
               "condition": {
                 "functionBody": "return model.devices[arrayIndices].enableMqtt === true;"
-              }
+              },
+              "required": false
             },
             "mqttClientId": {
               "title": "Client ID",
               "type": "string",
               "placeholder": "client id",
-              "required": false,
               "description": "Here optional set the Client ID of MQTT Broker.",
               "condition": {
                 "functionBody": "return model.devices[arrayIndices].enableMqtt === true"
-              }
+              },
+              "required": false
             },
             "mqttPrefix": {
               "title": "Prefix",
               "type": "string",
               "placeholder": "home/lg",
-              "required": false,
               "description": "Here set the prefix.",
               "condition": {
                 "functionBody": "return model.devices[arrayIndices].enableMqtt === true;"
-              }
+              },
+              "required": false
             },
             "mqttAuth": {
               "title": "Authorization",
               "type": "boolean",
               "default": false,
-              "required": false,
               "description": "This enable authorization for MQTT Broker.",
               "condition": {
                 "functionBody": "return model.devices[arrayIndices].enableMqtt === true;"
-              }
+              },
+              "required": false
             },
             "mqttUser": {
               "title": "User",
               "type": "string",
               "placeholder": "user",
-              "required": false,
               "description": "Here set the user of MQTT Broker.",
               "condition": {
                 "functionBody": "return model.devices[arrayIndices].enableMqtt === true && model.devices[arrayIndices].mqttAuth === true;"
-              }
+              },
+              "required": false
             },
             "mqttPasswd": {
               "title": "Password",
               "type": "string",
               "placeholder": "password",
-              "required": false,
               "description": "Here set the password of MQTT Broker.",
               "condition": {
                 "functionBody": "return model.devices[arrayIndices].enableMqtt === true && model.devices[arrayIndices].mqttAuth === true;"
-              }
+              },
+              "required": false
             }
           }
         }
