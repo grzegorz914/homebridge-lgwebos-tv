@@ -120,12 +120,14 @@ class LgWebOsSocket extends EventEmitter {
                                 };
 
                                 //Request specjalized socket
-                                await new Promise(resolve => setTimeout(resolve, 2000));
+                                await new Promise(resolve => setTimeout(resolve, 1500));
+                                this.specjalizedSockedId = await this.getCid();
                                 try {
-                                    this.specjalizedSockedId = await this.getCid();
                                     await this.send('request', CONSTANTS.ApiUrls.SocketUrl, undefined, this.specjalizedSockedId);
                                 } catch (error) {
-                                    this.emit('error', `Request specjalized socket error: ${error}`);
+                                    this.emit('error', `Request specjalized socket error: ${error}.`);
+                                    await new Promise(resolve => setTimeout(resolve, 5000));
+                                    await this.send('request', CONSTANTS.ApiUrls.SocketUrl, undefined, this.specjalizedSockedId);
                                 };
                                 break;
                             case 'error':
@@ -160,9 +162,11 @@ class LgWebOsSocket extends EventEmitter {
                                     } catch (error) {
                                         this.emit('error', `Request system info error: ${error}`);
                                     };
-                                }).on('error', (error) => {
+                                }).on('error', async (error) => {
                                     const debug = debugLog ? this.emit('debug', `Specjalized socket connect error: ${error}.`) : false;
                                     specializedSocket.emit('disconnect');
+                                    await new Promise(resolve => setTimeout(resolve, 5000));
+                                    await this.send('request', CONSTANTS.ApiUrls.SocketUrl, undefined, this.specjalizedSockedId);
                                 }).on('disconnect', () => {
                                     const message = this.specjalizedSocketConnected ? this.emit('message', 'Specjalized socket disconnected.') : false;
                                     this.specjalizedSocketConnected = false;
