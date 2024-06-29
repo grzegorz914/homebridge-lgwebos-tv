@@ -255,16 +255,16 @@ class LgWebOsSocket extends EventEmitter {
                                     this.emit('error', `Request apps error: ${error}`);
                                 };
 
-                                await new Promise(resolve => setTimeout(resolve, 1500));
                                 //Start prepare accessory
+                                await new Promise(resolve => setTimeout(resolve, 1500));
                                 try {
                                     const prepareAccessory = this.startPrepareAccessory ? await this.prepareAccessory() : false;
                                 } catch (error) {
                                     this.emit('error', `Prepare accessory error: ${error}.`);
                                 }
 
-                                await new Promise(resolve => setTimeout(resolve, 2500));
                                 //Subscribe tv status
+                                await new Promise(resolve => setTimeout(resolve, 3000));
                                 try {
                                     const debug = debugLog ? this.emit('debug', `Subscirbe tv status.`) : false;
                                     await this.subscribeTvStatus();
