@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+## [2.20.0] - (04.08.2024)
+
+## Changes
+
+- added possiblity to set own volume control name and enable/disable prefix
+- config schema updated
+- bump dependencies
+- cleanup
+
 ## [2.19.0] - (19.05.2024)
 
 ## Changes

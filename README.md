@@ -106,6 +106,8 @@ Tested with OLED65G6V, 32LM6300PLA, 49SK8500, OLED65C7T, 55SK800PLB, OLED48CX.
 | `soundOutputs.reference` | Here select output to be exposed in *Homebridge/HomeKit*. |
 | `soundModes.displayType` | Here select display type in HomeKit app, possible `0 - None/Disabled`, `1 - Outlet`, `2 - Switch`.|
 | `soundOutputs.namePrefix` | Here enable/disable the accessory name as a prefix for sound output.|
+| `volumeControlNamePrefix` | Here enable/disable the accessory name as a prefix for volume control name. |
+| `volumeControlName` | Here set Your own volume control name or leave empty. |
 | `volumeControl` | Here select volume control mode `0 - None/Disabled`, `1 - Slider`, `2 - Fan`. |
 | `turnScreenOnOff` | This enable possibility turn the screen ON/OFF, webOS >= 4.0. |
 | `turnScreenSaverOnOff` | This enable possibility turn the screen saver ON/OFF, webOS >= 4.0. |

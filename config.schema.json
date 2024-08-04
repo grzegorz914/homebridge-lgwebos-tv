@@ -973,6 +973,20 @@
               },
               "required": false
             },
+            "volumeControlNamePrefix": {
+              "title": "Volume Control Name Prefix",
+              "type": "boolean",
+              "default": false,
+              "description": "Here enable/disable the accessory name as a prefix for volume control name.",
+              "required": false
+            },
+            "volumeControlName": {
+              "title": "Volume Control Name",
+              "type": "string",
+              "placeholder": "Name",
+              "description": "Here set Your own volume control name or leave empty.",
+              "required": false
+            },
             "volumeControl": {
               "title": "Volume",
               "type": "integer",
@@ -1605,6 +1619,8 @@
                   "key": "devices[]",
                   "title": "Sound / Volume",
                   "items": [
+                    "devices[].volumeControlNamePrefix",
+                    "devices[].volumeControlName",
                     "devices[].volumeControl",
                     "devices[].soundModeControl",
                     {

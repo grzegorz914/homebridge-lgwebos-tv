@@ -62,6 +62,8 @@ class LgWebOsDevice extends EventEmitter {
         this.turnScreenSaverOnOff = device.turnScreenSaverOnOff || false;
         this.sslWebSocket = device.sslWebSocket || false;
         this.infoButtonCommand = device.infoButtonCommand || 'INFO';
+        this.volumeControlNamePrefix = device.volumeControlNamePrefix || false;
+        this.volumeControlName = device.volumeControlName || 'Volume';
         this.volumeControl = device.volumeControl || false;
 
         //external integration
@@ -1345,10 +1347,11 @@ class LgWebOsDevice extends EventEmitter {
                 //Prepare volume service
                 if (this.volumeControl) {
                     const debug = this.enableDebugMode ? this.emit('debug', `Prepare volume service`) : false;
+                    const volumeServiceName = this.volumeControlNamePrefix ? `${accessoryName} ${this.volumeControlName}` : this.volumeControlName;
                     if (this.volumeControl === 1) {
-                        this.volumeService = accessory.addService(Service.Lightbulb, `${accessoryName} Volume`, 'Volume');
+                        this.volumeService = accessory.addService(Service.Lightbulb, `${volumeServiceName}`, 'Volume');
                         this.volumeService.addOptionalCharacteristic(Characteristic.ConfiguredName);
-                        this.volumeService.setCharacteristic(Characteristic.ConfiguredName, `${accessoryName} Volume`);
+                        this.volumeService.setCharacteristic(Characteristic.ConfiguredName, `${volumeServiceName}`);
                         this.volumeService.getCharacteristic(Characteristic.Brightness)
                             .onGet(async () => {
                                 const volume = this.volume;
@@ -1391,9 +1394,9 @@ class LgWebOsDevice extends EventEmitter {
                     }
 
                     if (this.volumeControl === 2) {
-                        this.volumeServiceFan = accessory.addService(Service.Fan, `${accessoryName} Volume`, 'Volume Fan');
+                        this.volumeServiceFan = accessory.addService(Service.Fan, `${volumeServiceName}`, 'Volume Fan');
                         this.volumeServiceFan.addOptionalCharacteristic(Characteristic.ConfiguredName);
-                        this.volumeServiceFan.setCharacteristic(Characteristic.ConfiguredName, `${accessoryName} Volume`);
+                        this.volumeServiceFan.setCharacteristic(Characteristic.ConfiguredName, `${volumeServiceName}`);
                         this.volumeServiceFan.getCharacteristic(Characteristic.RotationSpeed)
                             .onGet(async () => {
                                 const volume = this.volume;
