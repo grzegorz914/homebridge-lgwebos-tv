@@ -564,7 +564,7 @@ class LgWebOsDevice extends EventEmitter {
                     };
                 };
 
-                if (this.sensorSoundOutputService && soundMode !== this.soundOutput) {
+                if (this.sensorSoundOutputService && this.soundMode !== this.soundOutput) {
                     for (let i = 0; i < 2; i++) {
                         const state = power ? [true, false][i] : false;
                         this.sensorSoundOutputService
