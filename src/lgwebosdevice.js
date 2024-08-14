@@ -801,423 +801,558 @@ class LgWebOsDevice extends EventEmitter {
             });
     };
 
-    displayOrder() {
-        return new Promise((resolve, reject) => {
-            try {
-                switch (this.inputsDisplayOrder) {
-                    case 0:
-                        this.inputsConfigured.sort((a, b) => a.identifier - b.identifier);
-                        break;
-                    case 1:
-                        this.inputsConfigured.sort((a, b) => a.name.localeCompare(b.name));
-                        break;
-                    case 2:
-                        this.inputsConfigured.sort((a, b) => b.name.localeCompare(a.name));
-                        break;
-                    case 3:
-                        this.inputsConfigured.sort((a, b) => a.reference.localeCompare(b.reference));
-                        break;
-                    case 4:
-                        this.inputsConfigured.sort((a, b) => b.reference.localeCompare(a.reference));
-                        break;
-                }
-                const debug = this.enableDebugMode ? this.emit('debug', `Inputs display order: ${JSON.stringify(this.inputsConfigured, null, 2)}`) : false;
+    async displayOrder() {
+        try {
+            switch (this.inputsDisplayOrder) {
+                case 0:
+                    this.inputsConfigured.sort((a, b) => a.identifier - b.identifier);
+                    break;
+                case 1:
+                    this.inputsConfigured.sort((a, b) => a.name.localeCompare(b.name));
+                    break;
+                case 2:
+                    this.inputsConfigured.sort((a, b) => b.name.localeCompare(a.name));
+                    break;
+                case 3:
+                    this.inputsConfigured.sort((a, b) => a.reference.localeCompare(b.reference));
+                    break;
+                case 4:
+                    this.inputsConfigured.sort((a, b) => b.reference.localeCompare(a.reference));
+                    break;
+            }
+            const debug = this.enableDebugMode ? this.emit('debug', `Inputs display order: ${JSON.stringify(this.inputsConfigured, null, 2)}`) : false;
 
-                const displayOrder = this.inputsConfigured.map(input => input.identifier);
-                this.televisionService.setCharacteristic(Characteristic.DisplayOrder, Encode(1, displayOrder).toString('base64'));
-                resolve();
-            } catch (error) {
-                reject(error);
-            };
-        });
+            const displayOrder = this.inputsConfigured.map(input => input.identifier);
+            this.televisionService.setCharacteristic(Characteristic.DisplayOrder, Encode(1, displayOrder).toString('base64'));
+            return true;;
+        } catch (error) {
+            this.emit('error', error);
+        };
     }
 
-    saveData(path, data) {
-        return new Promise(async (resolve, reject) => {
-            try {
-                await fsPromises.writeFile(path, JSON.stringify(data, null, 2));
-                const debug = !this.enableDebugMode ? false : this.emit('debug', `Saved data: ${JSON.stringify(data, null, 2)}`);
-                resolve();
-            } catch (error) {
-                reject(error);
-            };
-        });
+    async saveData(path, data) {
+        try {
+            await fsPromises.writeFile(path, JSON.stringify(data, null, 2));
+            const debug = !this.enableDebugMode ? false : this.emit('debug', `Saved data: ${JSON.stringify(data, null, 2)}`);
+            return true;;
+        } catch (error) {
+            this.emit('error', error);
+        };
     }
 
-    readData(path) {
-        return new Promise(async (resolve, reject) => {
-            try {
-                const data = await fsPromises.readFile(path);
-                resolve(data);
-            } catch (error) {
-                reject(`Read saved data error: ${error}`);
-            };
-        });
+    async readData(path) {
+        try {
+            const data = await fsPromises.readFile(path);
+            return data;
+        } catch (error) {
+            this.emit('error', `Read saved data error: ${error}`);
+        };
     }
 
     //Prepare accessory
-    prepareAccessory() {
-        return new Promise((resolve, reject) => {
-            try {
-                //accessory
-                const debug = this.enableDebugMode ? this.emit('debug', `Prepare accessory`) : false;
+    async prepareAccessory() {
+        try {
+            //accessory
+            const debug = this.enableDebugMode ? this.emit('debug', `Prepare accessory`) : false;
 
-                const accessoryName = this.name;
-                const accessoryUUID = AccessoryUUID.generate(this.mac);
-                const accessoryCategory = Categories.TELEVISION;
-                const accessory = new Accessory(accessoryName, accessoryUUID, accessoryCategory);
+            const accessoryName = this.name;
+            const accessoryUUID = AccessoryUUID.generate(this.mac);
+            const accessoryCategory = Categories.TELEVISION;
+            const accessory = new Accessory(accessoryName, accessoryUUID, accessoryCategory);
 
-                //information service
-                const debug1 = this.enableDebugMode ? this.emit('debug', `Prepare information service`) : false;
-                this.informationService = accessory.getService(Service.AccessoryInformation)
-                    .setCharacteristic(Characteristic.Manufacturer, this.savedInfo.manufacturer ?? 'LG Electronics')
-                    .setCharacteristic(Characteristic.Model, this.savedInfo.modelName ?? 'Model Name')
-                    .setCharacteristic(Characteristic.SerialNumber, this.savedInfo.deviceId ?? 'Serial Number')
-                    .setCharacteristic(Characteristic.FirmwareRevision, this.savedInfo.firmwareRevision ?? 'Firmware Revision');
-                this.allServices.push(this.informationService);
+            //information service
+            const debug1 = this.enableDebugMode ? this.emit('debug', `Prepare information service`) : false;
+            this.informationService = accessory.getService(Service.AccessoryInformation)
+                .setCharacteristic(Characteristic.Manufacturer, this.savedInfo.manufacturer ?? 'LG Electronics')
+                .setCharacteristic(Characteristic.Model, this.savedInfo.modelName ?? 'Model Name')
+                .setCharacteristic(Characteristic.SerialNumber, this.savedInfo.deviceId ?? 'Serial Number')
+                .setCharacteristic(Characteristic.FirmwareRevision, this.savedInfo.firmwareRevision ?? 'Firmware Revision');
+            this.allServices.push(this.informationService);
 
-                //prepare television service 
-                if (!this.disableTvService) {
-                    const debug2 = this.enableDebugMode ? this.emit('debug', `Prepare television service`) : false;
-                    this.televisionService = accessory.addService(Service.Television, `${accessoryName} Television`, 'Television');
-                    this.televisionService.setCharacteristic(Characteristic.ConfiguredName, accessoryName);
-                    this.televisionService.setCharacteristic(Characteristic.SleepDiscoveryMode, 1);
+            //prepare television service 
+            if (!this.disableTvService) {
+                const debug2 = this.enableDebugMode ? this.emit('debug', `Prepare television service`) : false;
+                this.televisionService = accessory.addService(Service.Television, `${accessoryName} Television`, 'Television');
+                this.televisionService.setCharacteristic(Characteristic.ConfiguredName, accessoryName);
+                this.televisionService.setCharacteristic(Characteristic.SleepDiscoveryMode, 1);
 
-                    this.televisionService.getCharacteristic(Characteristic.Active)
+                this.televisionService.getCharacteristic(Characteristic.Active)
+                    .onGet(async () => {
+                        const state = this.power;
+                        return state;
+                    })
+                    .onSet(async (state) => {
+                        if (state == this.power) {
+                            return;
+                        }
+
+                        try {
+                            switch (state) {
+                                case 1:
+                                    await this.wol.wakeOnLan();
+                                    break;
+                                case 0:
+                                    const cid = await this.lgWebOsSocket.getCid('Power');
+                                    await this.lgWebOsSocket.send('request', CONSTANTS.ApiUrls.TurnOff, undefined, cid);
+                                    break;
+                            }
+                            const info = this.disableLogInfo ? false : this.emit('message', `set Power: ${state ? 'ON' : 'OFF'}`);
+                            await new Promise(resolve => setTimeout(resolve, 3000));
+                        } catch (error) {
+                            this.emit('error', `set Power error: ${error}`);
+                        }
+                    });
+
+                this.televisionService.getCharacteristic(Characteristic.ActiveIdentifier)
+                    .onGet(async () => {
+                        const inputIdentifier = this.inputIdentifier;
+                        return inputIdentifier;
+                    })
+                    .onSet(async (activeIdentifier) => {
+                        try {
+                            const index = this.inputsConfigured.findIndex(input => input.identifier === activeIdentifier);
+                            const inputMode = this.inputsConfigured[index].mode;
+                            const inputName = this.inputsConfigured[index].name;
+                            const inputReference = this.inputsConfigured[index].reference;
+
+                            switch (this.power) {
+                                case false:
+                                    await new Promise(resolve => setTimeout(resolve, 4000));
+                                    const tryAgain = this.power ? this.televisionService.setCharacteristic(Characteristic.ActiveIdentifier, activeIdentifier) : false;
+                                    break;
+                                case true:
+                                    switch (inputMode) {
+                                        case 0:
+                                            switch (inputReference) {
+                                                case 'com.webos.app.screensaver': //screen saver
+                                                    const cid = await this.lgWebOsSocket.getCid();
+                                                    await this.lgWebOsSocket.send('alert', CONSTANTS.ApiUrls.TurnOnScreenSaver, undefined, cid, 'Screen Saver', `ON`);
+                                                    break;
+                                                case 'service.menu': //service menu
+                                                    const payload1 = {
+                                                        id: CONSTANTS.ApiUrls.ServiceMenu,
+                                                        params: {
+                                                            id: "executeFactory",
+                                                            irKey: "inStart"
+                                                        }
+                                                    }
+                                                    const cid1 = await this.lgWebOsSocket.getCid('App');
+                                                    await this.lgWebOsSocket.send('request', CONSTANTS.ApiUrls.LaunchApp, payload1, cid1);
+                                                    break;
+                                                case 'ez.adjust': //ez adjust
+                                                    const payload2 = {
+                                                        id: CONSTANTS.ApiUrls.ServiceMenu,
+                                                        params: {
+                                                            id: "executeFactory",
+                                                            irKey: "ezAdjust"
+                                                        }
+                                                    }
+                                                    const cid2 = await this.lgWebOsSocket.getCid('App');
+                                                    await this.lgWebOsSocket.send('request', CONSTANTS.ApiUrls.LaunchApp, payload2, cid2);
+                                                    break;
+                                                default:
+                                                    const payload3 = {
+                                                        id: inputReference
+                                                    }
+                                                    const cid3 = await this.lgWebOsSocket.getCid('App');
+                                                    await this.lgWebOsSocket.send('request', CONSTANTS.ApiUrls.LaunchApp, payload3, cid3);
+                                                    break;
+                                            }
+                                            break;
+                                        case 1:
+                                            const liveTv = 'com.webos.app.livetv';
+                                            const cid1 = this.appId !== liveTv ? await this.lgWebOsSocket.getCid('App') : false;
+                                            const openLiveTv = this.appId !== liveTv ? await this.lgWebOsSocket.send('request', CONSTANTS.ApiUrls.LaunchApp, { id: liveTv }, cid1) : false;
+                                            const cid2 = await this.lgWebOsSocket.getCid('Channel');
+                                            await this.lgWebOsSocket.send('request', CONSTANTS.ApiUrls.OpenChannel, { channelId: inputReference }, cid2)
+                                            break;
+                                    }
+
+                                    const info = this.disableLogInfo ? false : this.emit('message', `set ${inputMode === 0 ? 'Input' : 'Channel'}, Name: ${inputName}, Reference: ${inputReference}`);
+                                    break;
+                            }
+                        } catch (error) {
+                            this.emit('error', `set Input or Channel error: ${error}`);
+                        };
+                    });
+
+                this.televisionService.getCharacteristic(Characteristic.RemoteKey)
+                    .onSet(async (command) => {
+                        try {
+                            switch (command) {
+                                case Characteristic.RemoteKey.REWIND:
+                                    command = 'REWIND';
+                                    break;
+                                case Characteristic.RemoteKey.FAST_FORWARD:
+                                    command = 'FASTFORWARD';
+                                    break;
+                                case Characteristic.RemoteKey.NEXT_TRACK:
+                                    command = 'GOTONEXT';
+                                    break;
+                                case Characteristic.RemoteKey.PREVIOUS_TRACK:
+                                    command = 'GOTOPREV';
+                                    break;
+                                case Characteristic.RemoteKey.ARROW_UP:
+                                    command = 'UP';
+                                    break;
+                                case Characteristic.RemoteKey.ARROW_DOWN:
+                                    command = 'DOWN';
+                                    break;
+                                case Characteristic.RemoteKey.ARROW_LEFT:
+                                    command = 'LEFT';
+                                    break;
+                                case Characteristic.RemoteKey.ARROW_RIGHT:
+                                    command = 'RIGHT';
+                                    break;
+                                case Characteristic.RemoteKey.SELECT:
+                                    command = 'ENTER';
+                                    break;
+                                case Characteristic.RemoteKey.BACK:
+                                    command = 'BACK';
+                                    break;
+                                case Characteristic.RemoteKey.EXIT:
+                                    command = 'EXIT';
+                                    break;
+                                case Characteristic.RemoteKey.PLAY_PAUSE:
+                                    command = this.invertMediaState ? 'PLAY' : 'PAUSE';
+                                    this.invertMediaState = !this.invertMediaState;
+                                    break;
+                                case Characteristic.RemoteKey.INFORMATION:
+                                    command = this.infoButtonCommand;
+                                    break;
+                            }
+
+                            const payload = {
+                                name: command
+                            };
+                            await this.lgWebOsSocket.send('button', undefined, payload);
+                            const info = this.disableLogInfo ? false : this.emit('message', `set Remote Key: ${command}`);
+                        } catch (error) {
+                            this.emit('error', `set Remote Key error: ${error}`);
+                        };
+                    });
+
+                //optional television characteristics
+                this.televisionService.getCharacteristic(Characteristic.ClosedCaptions)
+                    .onGet(async () => {
+                        const state = 0;
+                        return state;
+                    })
+                    .onSet(async (state) => {
+                        try {
+                            const info = this.disableLogInfo ? false : this.emit('message', `set Closed Captions: ${state}`);
+                        } catch (error) {
+                            this.emit('error', `set Closed Captions error: ${error}`);
+                        };
+                    });
+
+                this.televisionService.getCharacteristic(Characteristic.CurrentMediaState)
+                    .onGet(async () => {
+                        //0 - PLAY, 1 - PAUSE, 2 - STOP, 3 - LOADING, 4 - INTERRUPTED
+                        const value = 2;
+                        return value;
+                    });
+
+                this.televisionService.getCharacteristic(Characteristic.TargetMediaState)
+                    .onGet(async () => {
+                        //0 - PLAY, 1 - PAUSE, 2 - STOP
+                        const value = 2;
+                        return value;
+                    })
+                    .onSet(async (value) => {
+                        try {
+                            const newMediaState = [CONSTANTS.ApiUrls.SetMediaPlay, CONSTANTS.ApiUrls.SetMediaPause, CONSTANTS.ApiUrls.SetMediaStop][value]
+                            await this.lgWebOsSocket.send('request', newMediaState);
+                            const info = this.disableLogInfo ? false : this.emit('message', `set Media: ${['PLAY', 'PAUSE', 'STOP', 'LOADING', 'INTERRUPTED'][value]}`);
+                        } catch (error) {
+                            this.emit('error', `set Media error: ${error}`);
+                        };
+                    });
+
+                this.televisionService.getCharacteristic(Characteristic.PowerModeSelection)
+                    .onSet(async (command) => {
+                        try {
+                            switch (command) {
+                                case Characteristic.PowerModeSelection.SHOW:
+                                    command = 'MENU';
+                                    break;
+                                case Characteristic.PowerModeSelection.HIDE:
+                                    command = 'BACK';
+                                    break;
+                            };
+
+                            const payload = {
+                                name: command
+                            };
+                            await this.lgWebOsSocket.send('button', undefined, payload);
+                            const info = this.disableLogInfo ? false : this.emit('message', `set Power Mode Selection: ${command === 'MENU' ? 'SHOW' : 'HIDE'}`);
+                        } catch (error) {
+                            this.emit('error', `set Power Mode Selection error: ${error}`);
+                        };
+                    });
+
+                if (this.webOS >= 4.0) {
+                    this.televisionService.getCharacteristic(Characteristic.Brightness)
                         .onGet(async () => {
-                            const state = this.power;
-                            return state;
+                            const brightness = this.brightness;
+                            return brightness;
                         })
-                        .onSet(async (state) => {
-                            if (state == this.power) {
+                        .onSet(async (value) => {
+                            try {
+                                const payload = {
+                                    category: 'picture',
+                                    settings: {
+                                        brightness: value
+                                    }
+                                };
+
+                                const cid = await this.lgWebOsSocket.getCid();
+                                await this.lgWebOsSocket.send('alert', CONSTANTS.ApiUrls.SetSystemSettings, payload, cid, 'Set Brightness', `Value: ${value}`);
+                                const info = this.disableLogInfo ? false : this.emit('message', `set Brightness: ${value}`);
+                            } catch (error) {
+                                this.emit('error', `set Brightness error: ${error}`);
+                            };
+                        });
+
+                    this.televisionService.getCharacteristic(Characteristic.PictureMode)
+                        .onGet(async () => {
+                            const value = this.pictureModeHomeKit;
+                            return value;
+                        })
+                        .onSet(async (command) => {
+                            try {
+                                switch (command) {
+                                    case Characteristic.PictureMode.OTHER:
+                                        command = 'cinema';
+                                        break;
+                                    case Characteristic.PictureMode.STANDARD:
+                                        command = 'normal';
+                                        break;
+                                    case Characteristic.PictureMode.CALIBRATED:
+                                        command = 'expert1';
+                                        break;
+                                    case Characteristic.PictureMode.CALIBRATED_DARK:
+                                        command = 'expert2';
+                                        break;
+                                    case Characteristic.PictureMode.VIVID:
+                                        command = 'vivid';
+                                        break;
+                                    case Characteristic.PictureMode.GAME:
+                                        command = 'game';
+                                        break;
+                                    case Characteristic.PictureMode.COMPUTER:
+                                        command = 'photo';
+                                        break;
+                                    case Characteristic.PictureMode.CUSTOM:
+                                        command = 'sport';
+                                        break;
+                                };
+
+                                const payload = {
+                                    category: 'picture',
+                                    settings: {
+                                        pictureMode: command
+                                    }
+                                };
+
+                                const cid = await this.lgWebOsSocket.getCid();
+                                await this.lgWebOsSocket.send('alert', CONSTANTS.ApiUrls.SetSystemSettings, payload, cid), 'Set Picture Mode', `Value: ${CONSTANTS.PictureModes[command] ?? 'Unknown'}`;
+                                const info = this.disableLogInfo ? false : this.emit('message', `set Picture Mode: ${CONSTANTS.PictureModes[command] ?? 'Unknown'}`);
+                            } catch (error) {
+                                this.emit('error', `set Picture Mode error: ${error}`);
+                            };
+                        });
+                };
+                this.allServices.push(this.televisionService);
+
+                //Prepare speaker service
+                const debug3 = this.enableDebugMode ? this.emit('debug', `Prepare speaker service`) : false;
+                this.speakerService = accessory.addService(Service.TelevisionSpeaker, `${accessoryName} Speaker`, 'Speaker');
+                this.speakerService.getCharacteristic(Characteristic.Active)
+                    .onGet(async () => {
+                        const state = this.power;
+                        return state;
+                    })
+                    .onSet(async (state) => {
+                    });
+
+                this.speakerService.getCharacteristic(Characteristic.VolumeControlType)
+                    .onGet(async () => {
+                        const state = 3; //none, relative, relative with current, absolute
+                        return state;
+                    });
+
+                this.speakerService.getCharacteristic(Characteristic.VolumeSelector)
+                    .onSet(async (command) => {
+                        try {
+                            switch (command) {
+                                case Characteristic.VolumeSelector.INCREMENT:
+                                    command = 'VOLUMEUP';
+                                    break;
+                                case Characteristic.VolumeSelector.DECREMENT:
+                                    command = 'VOLUMEDOWN';
+                                    break;
+                            };
+
+                            const payload = {
+                                name: command
+                            };
+                            await this.lgWebOsSocket.send('button', undefined, payload);
+                            const info = this.disableLogInfo ? false : this.emit('message', `set Volume Selector: ${command}`);
+                        } catch (error) {
+                            this.emit('error', `set Volume Selector error: ${error}`);
+                        };
+                    });
+
+                this.speakerService.getCharacteristic(Characteristic.Volume)
+                    .onGet(async () => {
+                        const volume = this.volume;
+                        return volume;
+                    })
+                    .onSet(async (volume) => {
+                        try {
+                            const payload = {
+                                volume: volume,
+                                soundOutput: this.soundOutput
+                            };
+
+                            const cid = await this.lgWebOsSocket.getCid('Audio');
+                            await this.lgWebOsSocket.send('request', CONSTANTS.ApiUrls.SetVolume, payload, cid);
+                            const info = this.disableLogInfo ? false : this.emit('message', `set Volume: ${volume}`);
+                        } catch (error) {
+                            this.emit('error', `set Volume error: ${error}`);
+                        };
+                    });
+
+                this.speakerService.getCharacteristic(Characteristic.Mute)
+                    .onGet(async () => {
+                        const state = this.power ? this.mute : true;
+                        return state;
+                    })
+                    .onSet(async (state) => {
+                        try {
+                            const payload = {
+                                mute: state
+                            };
+
+                            const cid = await this.lgWebOsSocket.getCid('Audio');
+                            await this.lgWebOsSocket.send('request', CONSTANTS.ApiUrls.SetMute, payload, cid);
+                            const info = this.disableLogInfo ? false : this.emit('message', `set Mute: ${state ? 'ON' : 'OFF'}`);
+                        } catch (error) {
+                            this.emit('error', `set Mute error: ${error}`);
+                        };
+                    });
+                this.allServices.push(this.speakerService);
+
+                //prepare inputs service
+                const debug = this.enableDebugMode ? this.emit('debug', `Prepare inputs service`) : false;
+
+                //check possible inputs count (max 85)
+                const inputs = this.savedInputs;
+                const inputsCount = inputs.length;
+                const possibleInputsCount = 85 - this.allServices.length;
+                const maxInputsCount = inputsCount >= possibleInputsCount ? possibleInputsCount : inputsCount;
+                for (let i = 0; i < maxInputsCount; i++) {
+                    //input
+                    const input = inputs[i];
+                    const inputIdentifier = i + 1;
+
+                    //get input reference
+                    const inputReference = input.reference;
+
+                    //get input name
+                    const savedInputsNames = this.savedInputsNames[inputReference] ?? false;
+                    input.name = savedInputsNames ? savedInputsNames : input.name;
+
+                    //input mode
+                    const inputMode = input.mode;
+
+                    //get input type
+                    const inputSourceType = 0;
+
+                    //get input configured
+                    const isConfigured = 1;
+
+                    //get visibility
+                    input.visibility = this.savedInputsTargetVisibility[inputReference] ?? 0;
+
+                    //add identifier to the input
+                    input.identifier = inputIdentifier;
+
+                    //input service
+                    const inputService = accessory.addService(Service.InputSource, input.name, `Input ${inputIdentifier}`);
+                    inputService
+                        .setCharacteristic(Characteristic.Identifier, inputIdentifier)
+                        .setCharacteristic(Characteristic.Name, input.name)
+                        .setCharacteristic(Characteristic.IsConfigured, isConfigured)
+                        .setCharacteristic(Characteristic.InputSourceType, inputSourceType)
+                        .setCharacteristic(Characteristic.CurrentVisibilityState, input.visibility)
+
+                    inputService.getCharacteristic(Characteristic.ConfiguredName)
+                        .onGet(async () => {
+                            return input.name;
+                        })
+                        .onSet(async (value) => {
+                            if (value === this.savedInputsNames[inputReference]) {
                                 return;
                             }
 
                             try {
-                                switch (state) {
-                                    case 1:
-                                        await this.wol.wakeOnLan();
-                                        break;
-                                    case 0:
-                                        const cid = await this.lgWebOsSocket.getCid('Power');
-                                        await this.lgWebOsSocket.send('request', CONSTANTS.ApiUrls.TurnOff, undefined, cid);
-                                        break;
-                                }
-                                const info = this.disableLogInfo ? false : this.emit('message', `set Power: ${state ? 'ON' : 'OFF'}`);
-                                await new Promise(resolve => setTimeout(resolve, 3000));
+                                input.name = value;
+                                this.savedInputsNames[inputReference] = value;
+                                await this.saveData(this.inputsNamesFile, this.savedInputsNames);
+                                const debug = this.enableDebugMode ? this.emit('debug', `Saved ${inputMode === 0 ? 'Input' : 'Channel'} Name: ${value}, Reference: ${inputReference}`) : false;
+
+                                //sort inputs
+                                const index = this.inputsConfigured.findIndex(input => input.reference === inputReference);
+                                this.inputsConfigured[index].name = value;
+                                await this.displayOrder();
                             } catch (error) {
-                                this.emit('error', `set Power error: ${error}`);
+                                this.emit('error', `save Input error: ${error}`);
                             }
                         });
 
-                    this.televisionService.getCharacteristic(Characteristic.ActiveIdentifier)
+                    inputService.getCharacteristic(Characteristic.TargetVisibilityState)
                         .onGet(async () => {
-                            const inputIdentifier = this.inputIdentifier;
-                            return inputIdentifier;
-                        })
-                        .onSet(async (activeIdentifier) => {
-                            try {
-                                const index = this.inputsConfigured.findIndex(input => input.identifier === activeIdentifier);
-                                const inputMode = this.inputsConfigured[index].mode;
-                                const inputName = this.inputsConfigured[index].name;
-                                const inputReference = this.inputsConfigured[index].reference;
-
-                                switch (this.power) {
-                                    case false:
-                                        await new Promise(resolve => setTimeout(resolve, 4000));
-                                        const tryAgain = this.power ? this.televisionService.setCharacteristic(Characteristic.ActiveIdentifier, activeIdentifier) : false;
-                                        break;
-                                    case true:
-                                        switch (inputMode) {
-                                            case 0:
-                                                switch (inputReference) {
-                                                    case 'com.webos.app.screensaver': //screen saver
-                                                        const cid = await this.lgWebOsSocket.getCid();
-                                                        await this.lgWebOsSocket.send('alert', CONSTANTS.ApiUrls.TurnOnScreenSaver, undefined, cid, 'Screen Saver', `ON`);
-                                                        break;
-                                                    case 'service.menu': //service menu
-                                                        const payload1 = {
-                                                            id: CONSTANTS.ApiUrls.ServiceMenu,
-                                                            params: {
-                                                                id: "executeFactory",
-                                                                irKey: "inStart"
-                                                            }
-                                                        }
-                                                        const cid1 = await this.lgWebOsSocket.getCid('App');
-                                                        await this.lgWebOsSocket.send('request', CONSTANTS.ApiUrls.LaunchApp, payload1, cid1);
-                                                        break;
-                                                    case 'ez.adjust': //ez adjust
-                                                        const payload2 = {
-                                                            id: CONSTANTS.ApiUrls.ServiceMenu,
-                                                            params: {
-                                                                id: "executeFactory",
-                                                                irKey: "ezAdjust"
-                                                            }
-                                                        }
-                                                        const cid2 = await this.lgWebOsSocket.getCid('App');
-                                                        await this.lgWebOsSocket.send('request', CONSTANTS.ApiUrls.LaunchApp, payload2, cid2);
-                                                        break;
-                                                    default:
-                                                        const payload3 = {
-                                                            id: inputReference
-                                                        }
-                                                        const cid3 = await this.lgWebOsSocket.getCid('App');
-                                                        await this.lgWebOsSocket.send('request', CONSTANTS.ApiUrls.LaunchApp, payload3, cid3);
-                                                        break;
-                                                }
-                                                break;
-                                            case 1:
-                                                const liveTv = 'com.webos.app.livetv';
-                                                const cid1 = this.appId !== liveTv ? await this.lgWebOsSocket.getCid('App') : false;
-                                                const openLiveTv = this.appId !== liveTv ? await this.lgWebOsSocket.send('request', CONSTANTS.ApiUrls.LaunchApp, { id: liveTv }, cid1) : false;
-                                                const cid2 = await this.lgWebOsSocket.getCid('Channel');
-                                                await this.lgWebOsSocket.send('request', CONSTANTS.ApiUrls.OpenChannel, { channelId: inputReference }, cid2)
-                                                break;
-                                        }
-
-                                        const info = this.disableLogInfo ? false : this.emit('message', `set ${inputMode === 0 ? 'Input' : 'Channel'}, Name: ${inputName}, Reference: ${inputReference}`);
-                                        break;
-                                }
-                            } catch (error) {
-                                this.emit('error', `set Input or Channel error: ${error}`);
-                            };
-                        });
-
-                    this.televisionService.getCharacteristic(Characteristic.RemoteKey)
-                        .onSet(async (command) => {
-                            try {
-                                switch (command) {
-                                    case Characteristic.RemoteKey.REWIND:
-                                        command = 'REWIND';
-                                        break;
-                                    case Characteristic.RemoteKey.FAST_FORWARD:
-                                        command = 'FASTFORWARD';
-                                        break;
-                                    case Characteristic.RemoteKey.NEXT_TRACK:
-                                        command = 'GOTONEXT';
-                                        break;
-                                    case Characteristic.RemoteKey.PREVIOUS_TRACK:
-                                        command = 'GOTOPREV';
-                                        break;
-                                    case Characteristic.RemoteKey.ARROW_UP:
-                                        command = 'UP';
-                                        break;
-                                    case Characteristic.RemoteKey.ARROW_DOWN:
-                                        command = 'DOWN';
-                                        break;
-                                    case Characteristic.RemoteKey.ARROW_LEFT:
-                                        command = 'LEFT';
-                                        break;
-                                    case Characteristic.RemoteKey.ARROW_RIGHT:
-                                        command = 'RIGHT';
-                                        break;
-                                    case Characteristic.RemoteKey.SELECT:
-                                        command = 'ENTER';
-                                        break;
-                                    case Characteristic.RemoteKey.BACK:
-                                        command = 'BACK';
-                                        break;
-                                    case Characteristic.RemoteKey.EXIT:
-                                        command = 'EXIT';
-                                        break;
-                                    case Characteristic.RemoteKey.PLAY_PAUSE:
-                                        command = this.invertMediaState ? 'PLAY' : 'PAUSE';
-                                        this.invertMediaState = !this.invertMediaState;
-                                        break;
-                                    case Characteristic.RemoteKey.INFORMATION:
-                                        command = this.infoButtonCommand;
-                                        break;
-                                }
-
-                                const payload = {
-                                    name: command
-                                };
-                                await this.lgWebOsSocket.send('button', undefined, payload);
-                                const info = this.disableLogInfo ? false : this.emit('message', `set Remote Key: ${command}`);
-                            } catch (error) {
-                                this.emit('error', `set Remote Key error: ${error}`);
-                            };
-                        });
-
-                    //optional television characteristics
-                    this.televisionService.getCharacteristic(Characteristic.ClosedCaptions)
-                        .onGet(async () => {
-                            const state = 0;
-                            return state;
+                            return input.visibility;
                         })
                         .onSet(async (state) => {
+                            if (state === this.savedInputsTargetVisibility[inputReference]) {
+                                return;
+                            }
+
                             try {
-                                const info = this.disableLogInfo ? false : this.emit('message', `set Closed Captions: ${state}`);
+                                input.visibility = state;
+                                this.savedInputsTargetVisibility[inputReference] = state;
+                                await this.saveData(this.inputsTargetVisibilityFile, this.savedInputsTargetVisibility);
+                                const debug = this.enableDebugMode ? this.emit('debug', `Saved ${inputMode === 0 ? 'Input' : 'Channel'}: ${input.name}, Target Visibility: ${state ? 'HIDEN' : 'SHOWN'}`) : false;
                             } catch (error) {
-                                this.emit('error', `set Closed Captions error: ${error}`);
-                            };
+                                this.emit('error', `save Target Visibility error: ${error}`);
+                            }
                         });
+                    this.inputsConfigured.push(input);
+                    this.televisionService.addLinkedService(inputService);
+                    this.allServices.push(inputService);
+                }
+            }
 
-                    this.televisionService.getCharacteristic(Characteristic.CurrentMediaState)
-                        .onGet(async () => {
-                            //0 - PLAY, 1 - PAUSE, 2 - STOP, 3 - LOADING, 4 - INTERRUPTED
-                            const value = 2;
-                            return value;
-                        });
 
-                    this.televisionService.getCharacteristic(Characteristic.TargetMediaState)
-                        .onGet(async () => {
-                            //0 - PLAY, 1 - PAUSE, 2 - STOP
-                            const value = 2;
-                            return value;
-                        })
-                        .onSet(async (value) => {
-                            try {
-                                const newMediaState = [CONSTANTS.ApiUrls.SetMediaPlay, CONSTANTS.ApiUrls.SetMediaPause, CONSTANTS.ApiUrls.SetMediaStop][value]
-                                await this.lgWebOsSocket.send('request', newMediaState);
-                                const info = this.disableLogInfo ? false : this.emit('message', `set Media: ${['PLAY', 'PAUSE', 'STOP', 'LOADING', 'INTERRUPTED'][value]}`);
-                            } catch (error) {
-                                this.emit('error', `set Media error: ${error}`);
-                            };
-                        });
-
-                    this.televisionService.getCharacteristic(Characteristic.PowerModeSelection)
-                        .onSet(async (command) => {
-                            try {
-                                switch (command) {
-                                    case Characteristic.PowerModeSelection.SHOW:
-                                        command = 'MENU';
-                                        break;
-                                    case Characteristic.PowerModeSelection.HIDE:
-                                        command = 'BACK';
-                                        break;
-                                };
-
-                                const payload = {
-                                    name: command
-                                };
-                                await this.lgWebOsSocket.send('button', undefined, payload);
-                                const info = this.disableLogInfo ? false : this.emit('message', `set Power Mode Selection: ${command === 'MENU' ? 'SHOW' : 'HIDE'}`);
-                            } catch (error) {
-                                this.emit('error', `set Power Mode Selection error: ${error}`);
-                            };
-                        });
-
-                    if (this.webOS >= 4.0) {
-                        this.televisionService.getCharacteristic(Characteristic.Brightness)
-                            .onGet(async () => {
-                                const brightness = this.brightness;
-                                return brightness;
-                            })
-                            .onSet(async (value) => {
-                                try {
-                                    const payload = {
-                                        category: 'picture',
-                                        settings: {
-                                            brightness: value
-                                        }
-                                    };
-
-                                    const cid = await this.lgWebOsSocket.getCid();
-                                    await this.lgWebOsSocket.send('alert', CONSTANTS.ApiUrls.SetSystemSettings, payload, cid, 'Set Brightness', `Value: ${value}`);
-                                    const info = this.disableLogInfo ? false : this.emit('message', `set Brightness: ${value}`);
-                                } catch (error) {
-                                    this.emit('error', `set Brightness error: ${error}`);
-                                };
-                            });
-
-                        this.televisionService.getCharacteristic(Characteristic.PictureMode)
-                            .onGet(async () => {
-                                const value = this.pictureModeHomeKit;
-                                return value;
-                            })
-                            .onSet(async (command) => {
-                                try {
-                                    switch (command) {
-                                        case Characteristic.PictureMode.OTHER:
-                                            command = 'cinema';
-                                            break;
-                                        case Characteristic.PictureMode.STANDARD:
-                                            command = 'normal';
-                                            break;
-                                        case Characteristic.PictureMode.CALIBRATED:
-                                            command = 'expert1';
-                                            break;
-                                        case Characteristic.PictureMode.CALIBRATED_DARK:
-                                            command = 'expert2';
-                                            break;
-                                        case Characteristic.PictureMode.VIVID:
-                                            command = 'vivid';
-                                            break;
-                                        case Characteristic.PictureMode.GAME:
-                                            command = 'game';
-                                            break;
-                                        case Characteristic.PictureMode.COMPUTER:
-                                            command = 'photo';
-                                            break;
-                                        case Characteristic.PictureMode.CUSTOM:
-                                            command = 'sport';
-                                            break;
-                                    };
-
-                                    const payload = {
-                                        category: 'picture',
-                                        settings: {
-                                            pictureMode: command
-                                        }
-                                    };
-
-                                    const cid = await this.lgWebOsSocket.getCid();
-                                    await this.lgWebOsSocket.send('alert', CONSTANTS.ApiUrls.SetSystemSettings, payload, cid), 'Set Picture Mode', `Value: ${CONSTANTS.PictureModes[command] ?? 'Unknown'}`;
-                                    const info = this.disableLogInfo ? false : this.emit('message', `set Picture Mode: ${CONSTANTS.PictureModes[command] ?? 'Unknown'}`);
-                                } catch (error) {
-                                    this.emit('error', `set Picture Mode error: ${error}`);
-                                };
-                            });
-                    };
-                    this.allServices.push(this.televisionService);
-
-                    //Prepare speaker service
-                    const debug3 = this.enableDebugMode ? this.emit('debug', `Prepare speaker service`) : false;
-                    this.speakerService = accessory.addService(Service.TelevisionSpeaker, `${accessoryName} Speaker`, 'Speaker');
-                    this.speakerService.getCharacteristic(Characteristic.Active)
-                        .onGet(async () => {
-                            const state = this.power;
-                            return state;
-                        })
-                        .onSet(async (state) => {
-                        });
-
-                    this.speakerService.getCharacteristic(Characteristic.VolumeControlType)
-                        .onGet(async () => {
-                            const state = 3; //none, relative, relative with current, absolute
-                            return state;
-                        });
-
-                    this.speakerService.getCharacteristic(Characteristic.VolumeSelector)
-                        .onSet(async (command) => {
-                            try {
-                                switch (command) {
-                                    case Characteristic.VolumeSelector.INCREMENT:
-                                        command = 'VOLUMEUP';
-                                        break;
-                                    case Characteristic.VolumeSelector.DECREMENT:
-                                        command = 'VOLUMEDOWN';
-                                        break;
-                                };
-
-                                const payload = {
-                                    name: command
-                                };
-                                await this.lgWebOsSocket.send('button', undefined, payload);
-                                const info = this.disableLogInfo ? false : this.emit('message', `set Volume Selector: ${command}`);
-                            } catch (error) {
-                                this.emit('error', `set Volume Selector error: ${error}`);
-                            };
-                        });
-
-                    this.speakerService.getCharacteristic(Characteristic.Volume)
+            //Prepare volume service
+            if (this.volumeControl) {
+                const debug = this.enableDebugMode ? this.emit('debug', `Prepare volume service`) : false;
+                const volumeServiceName = this.volumeControlNamePrefix ? `${accessoryName} ${this.volumeControlName}` : this.volumeControlName;
+                if (this.volumeControl === 1) {
+                    this.volumeService = accessory.addService(Service.Lightbulb, `${volumeServiceName}`, 'Volume');
+                    this.volumeService.addOptionalCharacteristic(Characteristic.ConfiguredName);
+                    this.volumeService.setCharacteristic(Characteristic.ConfiguredName, `${volumeServiceName}`);
+                    this.volumeService.getCharacteristic(Characteristic.Brightness)
                         .onGet(async () => {
                             const volume = this.volume;
                             return volume;
                         })
-                        .onSet(async (volume) => {
+                        .onSet(async (value) => {
                             try {
+                                volume = (value <= 0 || value >= 100) ? this.volume : value;
                                 const payload = {
                                     volume: volume,
                                     soundOutput: this.soundOutput
@@ -1230,472 +1365,233 @@ class LgWebOsDevice extends EventEmitter {
                                 this.emit('error', `set Volume error: ${error}`);
                             };
                         });
-
-                    this.speakerService.getCharacteristic(Characteristic.Mute)
+                    this.volumeService.getCharacteristic(Characteristic.On)
                         .onGet(async () => {
-                            const state = this.power ? this.mute : true;
+                            const state = this.power ? !this.mute : false;
                             return state;
                         })
                         .onSet(async (state) => {
                             try {
                                 const payload = {
-                                    mute: state
+                                    mute: !state
                                 };
 
                                 const cid = await this.lgWebOsSocket.getCid('Audio');
                                 await this.lgWebOsSocket.send('request', CONSTANTS.ApiUrls.SetMute, payload, cid);
-                                const info = this.disableLogInfo ? false : this.emit('message', `set Mute: ${state ? 'ON' : 'OFF'}`);
+                                const info = this.disableLogInfo ? false : this.emit('message', `set Mute: ${!state ? 'ON' : 'OFF'}`);
                             } catch (error) {
                                 this.emit('error', `set Mute error: ${error}`);
                             };
                         });
-                    this.allServices.push(this.speakerService);
-
-                    //prepare inputs service
-                    const debug = this.enableDebugMode ? this.emit('debug', `Prepare inputs service`) : false;
-
-                    //check possible inputs count (max 85)
-                    const inputs = this.savedInputs;
-                    const inputsCount = inputs.length;
-                    const possibleInputsCount = 85 - this.allServices.length;
-                    const maxInputsCount = inputsCount >= possibleInputsCount ? possibleInputsCount : inputsCount;
-                    for (let i = 0; i < maxInputsCount; i++) {
-                        //input
-                        const input = inputs[i];
-                        const inputIdentifier = i + 1;
-
-                        //get input reference
-                        const inputReference = input.reference;
-
-                        //get input name
-                        const savedInputsNames = this.savedInputsNames[inputReference] ?? false;
-                        input.name = savedInputsNames ? savedInputsNames : input.name;
-
-                        //input mode
-                        const inputMode = input.mode;
-
-                        //get input type
-                        const inputSourceType = 0;
-
-                        //get input configured
-                        const isConfigured = 1;
-
-                        //get visibility
-                        input.visibility = this.savedInputsTargetVisibility[inputReference] ?? 0;
-
-                        //add identifier to the input
-                        input.identifier = inputIdentifier;
-
-                        //input service
-                        const inputService = accessory.addService(Service.InputSource, input.name, `Input ${inputIdentifier}`);
-                        inputService
-                            .setCharacteristic(Characteristic.Identifier, inputIdentifier)
-                            .setCharacteristic(Characteristic.Name, input.name)
-                            .setCharacteristic(Characteristic.IsConfigured, isConfigured)
-                            .setCharacteristic(Characteristic.InputSourceType, inputSourceType)
-                            .setCharacteristic(Characteristic.CurrentVisibilityState, input.visibility)
-
-                        inputService.getCharacteristic(Characteristic.ConfiguredName)
-                            .onGet(async () => {
-                                return input.name;
-                            })
-                            .onSet(async (value) => {
-                                if (value === this.savedInputsNames[inputReference]) {
-                                    return;
-                                }
-
-                                try {
-                                    input.name = value;
-                                    this.savedInputsNames[inputReference] = value;
-                                    await this.saveData(this.inputsNamesFile, this.savedInputsNames);
-                                    const debug = this.enableDebugMode ? this.emit('debug', `Saved ${inputMode === 0 ? 'Input' : 'Channel'} Name: ${value}, Reference: ${inputReference}`) : false;
-
-                                    //sort inputs
-                                    const index = this.inputsConfigured.findIndex(input => input.reference === inputReference);
-                                    this.inputsConfigured[index].name = value;
-                                    await this.displayOrder();
-                                } catch (error) {
-                                    this.emit('error', `save Input error: ${error}`);
-                                }
-                            });
-
-                        inputService.getCharacteristic(Characteristic.TargetVisibilityState)
-                            .onGet(async () => {
-                                return input.visibility;
-                            })
-                            .onSet(async (state) => {
-                                if (state === this.savedInputsTargetVisibility[inputReference]) {
-                                    return;
-                                }
-
-                                try {
-                                    input.visibility = state;
-                                    this.savedInputsTargetVisibility[inputReference] = state;
-                                    await this.saveData(this.inputsTargetVisibilityFile, this.savedInputsTargetVisibility);
-                                    const debug = this.enableDebugMode ? this.emit('debug', `Saved ${inputMode === 0 ? 'Input' : 'Channel'}: ${input.name}, Target Visibility: ${state ? 'HIDEN' : 'SHOWN'}`) : false;
-                                } catch (error) {
-                                    this.emit('error', `save Target Visibility error: ${error}`);
-                                }
-                            });
-                        this.inputsConfigured.push(input);
-                        this.televisionService.addLinkedService(inputService);
-                        this.allServices.push(inputService);
-                    }
+                    this.allServices.push(this.volumeService);
                 }
 
-
-                //Prepare volume service
-                if (this.volumeControl) {
-                    const debug = this.enableDebugMode ? this.emit('debug', `Prepare volume service`) : false;
-                    const volumeServiceName = this.volumeControlNamePrefix ? `${accessoryName} ${this.volumeControlName}` : this.volumeControlName;
-                    if (this.volumeControl === 1) {
-                        this.volumeService = accessory.addService(Service.Lightbulb, `${volumeServiceName}`, 'Volume');
-                        this.volumeService.addOptionalCharacteristic(Characteristic.ConfiguredName);
-                        this.volumeService.setCharacteristic(Characteristic.ConfiguredName, `${volumeServiceName}`);
-                        this.volumeService.getCharacteristic(Characteristic.Brightness)
-                            .onGet(async () => {
-                                const volume = this.volume;
-                                return volume;
-                            })
-                            .onSet(async (value) => {
-                                try {
-                                    volume = (value <= 0 || value >= 100) ? this.volume : value;
-                                    const payload = {
-                                        volume: volume,
-                                        soundOutput: this.soundOutput
-                                    };
-
-                                    const cid = await this.lgWebOsSocket.getCid('Audio');
-                                    await this.lgWebOsSocket.send('request', CONSTANTS.ApiUrls.SetVolume, payload, cid);
-                                    const info = this.disableLogInfo ? false : this.emit('message', `set Volume: ${volume}`);
-                                } catch (error) {
-                                    this.emit('error', `set Volume error: ${error}`);
-                                };
-                            });
-                        this.volumeService.getCharacteristic(Characteristic.On)
-                            .onGet(async () => {
-                                const state = this.power ? !this.mute : false;
-                                return state;
-                            })
-                            .onSet(async (state) => {
-                                try {
-                                    const payload = {
-                                        mute: !state
-                                    };
-
-                                    const cid = await this.lgWebOsSocket.getCid('Audio');
-                                    await this.lgWebOsSocket.send('request', CONSTANTS.ApiUrls.SetMute, payload, cid);
-                                    const info = this.disableLogInfo ? false : this.emit('message', `set Mute: ${!state ? 'ON' : 'OFF'}`);
-                                } catch (error) {
-                                    this.emit('error', `set Mute error: ${error}`);
-                                };
-                            });
-                        this.allServices.push(this.volumeService);
-                    }
-
-                    if (this.volumeControl === 2) {
-                        this.volumeServiceFan = accessory.addService(Service.Fan, `${volumeServiceName}`, 'Volume Fan');
-                        this.volumeServiceFan.addOptionalCharacteristic(Characteristic.ConfiguredName);
-                        this.volumeServiceFan.setCharacteristic(Characteristic.ConfiguredName, `${volumeServiceName}`);
-                        this.volumeServiceFan.getCharacteristic(Characteristic.RotationSpeed)
-                            .onGet(async () => {
-                                const volume = this.volume;
-                                return volume;
-                            })
-                            .onSet(async (volume) => {
-                                try {
-                                    volume = (volume <= 0 || volume >= 100) ? this.volume : volume;
-                                    const payload = {
-                                        volume: volume,
-                                        soundOutput: this.soundOutput
-                                    };
-
-                                    const cid = await this.lgWebOsSocket.getCid('Audio');
-                                    await this.lgWebOsSocket.send('request', CONSTANTS.ApiUrls.SetVolume, payload, cid);
-                                    const info = this.disableLogInfo ? false : this.emit('message', `set Volume: ${volume}`);
-                                } catch (error) {
-                                    this.emit('error', `set Volume error: ${error}`);
-                                };
-                            });
-                        this.volumeServiceFan.getCharacteristic(Characteristic.On)
-                            .onGet(async () => {
-                                const state = this.power ? !this.mute : false;
-                                return state;
-                            })
-                            .onSet(async (state) => {
-                                try {
-                                    const payload = {
-                                        mute: !state
-                                    };
-
-                                    const cid = await this.lgWebOsSocket.getCid('Audio')
-                                    await this.lgWebOsSocket.send('request', CONSTANTS.ApiUrls.SetMute, payload, cid);
-                                    const info = this.disableLogInfo ? false : this.emit('message', `set Mute: ${!state ? 'ON' : 'OFF'}`);
-                                } catch (error) {
-                                    this.emit('error', `set Mute error: ${error}`);
-                                };
-                            });
-                        this.allServices.push(this.volumeServiceFan);
-                    }
-                }
-
-                //Picture Control
-                if (this.webOS >= 4.0) {
-                    //Backlight
-                    if (this.backlightControl) {
-                        const debug = this.enableDebugMode ? this.emit('debug', `Prepare backlight service`) : false;
-                        this.backlightService = accessory.addService(Service.Lightbulb, `${accessoryName} Backlight`, 'Backlight');
-                        this.backlightService.addOptionalCharacteristic(Characteristic.ConfiguredName);
-                        this.backlightService.setCharacteristic(Characteristic.ConfiguredName, `${accessoryName} Backlight`);
-                        this.backlightService.getCharacteristic(Characteristic.On)
-                            .onGet(async () => {
-                                const state = this.power;
-                                return state;
-                            })
-                            .onSet(async (state) => { });
-                        this.backlightService.getCharacteristic(Characteristic.Brightness)
-                            .onGet(async () => {
-                                const value = this.backlight;
-                                return value;
-                            })
-                            .onSet(async (value) => {
-                                try {
-                                    const payload = {
-                                        category: 'picture',
-                                        settings: {
-                                            backlight: value
-                                        }
-                                    };
-
-                                    const cid = await this.lgWebOsSocket.getCid();
-                                    await this.lgWebOsSocket.send('alert', CONSTANTS.ApiUrls.SetSystemSettings, payload, cid, 'Backlight', `Value: ${value}`);
-                                    const info = this.disableLogInfo ? false : this.emit('message', `set Backlight: ${value}`);
-                                } catch (error) {
-                                    this.emit('error', `set Backlight error: ${error}`);
-                                };
-                            });
-                        this.allServices.push(this.backlightService);
-                    }
-
-                    //Brightness
-                    if (this.brightnessControl) {
-                        const debug = this.enableDebugMode ? this.emit('debug', `Prepare brightness service`) : false;
-                        this.brightnessService = accessory.addService(Service.Lightbulb, `${accessoryName} Brightness`, 'Brightness');
-                        this.brightnessService.addOptionalCharacteristic(Characteristic.ConfiguredName);
-                        this.brightnessService.setCharacteristic(Characteristic.ConfiguredName, `${accessoryName} Brightness`);
-                        this.brightnessService.getCharacteristic(Characteristic.On)
-                            .onGet(async () => {
-                                const state = this.power;
-                                return state;
-                            })
-                            .onSet(async (state) => { })
-                        this.brightnessService.getCharacteristic(Characteristic.Brightness)
-                            .onGet(async () => {
-                                const value = this.brightness;
-                                return value;
-                            })
-                            .onSet(async (value) => {
-                                try {
-                                    const payload = {
-                                        category: 'picture',
-                                        settings: {
-                                            brightness: value
-                                        }
-                                    };
-
-                                    const cid = await this.lgWebOsSocket.getCid();
-                                    await this.lgWebOsSocket.send('alert', CONSTANTS.ApiUrls.SetSystemSettings, payload, cid, 'Brightness', `Value: ${value}`);
-                                    const info = this.disableLogInfo ? false : this.emit('message', `set Brightness: ${value}`);
-                                } catch (error) {
-                                    this.emit('error', `set Brightness error: ${error}`);
-                                };
-                            });
-                        this.allServices.push(this.brightnessService);
-                    }
-
-                    //Contrast
-                    if (this.contrastControl) {
-                        const debug = this.enableDebugMode ? this.emit('debug', `Prepare contrast service`) : false;
-                        this.contrastService = accessory.addService(Service.Lightbulb, `${accessoryName} Contrast`, 'Contrast');
-                        this.contrastService.addOptionalCharacteristic(Characteristic.ConfiguredName);
-                        this.contrastService.setCharacteristic(Characteristic.ConfiguredName, `${accessoryName} Contrast`);
-                        this.contrastService.getCharacteristic(Characteristic.On)
-                            .onGet(async () => {
-                                const state = this.power;
-                                return state;
-                            })
-                            .onSet(async (state) => { });
-                        this.contrastService.getCharacteristic(Characteristic.Brightness)
-                            .onGet(async () => {
-                                const value = this.contrast;
-                                return value;
-                            })
-                            .onSet(async (value) => {
-                                try {
-                                    const payload = {
-                                        category: 'picture',
-                                        settings: {
-                                            contrast: value
-                                        }
-                                    };
-
-                                    const cid = await this.lgWebOsSocket.getCid();
-                                    await this.lgWebOsSocket.send('alert', CONSTANTS.ApiUrls.SetSystemSettings, payload, cid, 'Contrast', `Value: ${value}`);
-                                    const info = this.disableLogInfo ? false : this.emit('message', `set Contrast: ${value}`);
-                                } catch (error) {
-                                    this.emit('error', `set Contrast error: ${error}`);
-                                };
-                            });
-                        this.allServices.push(this.contrastService);
-                    }
-
-                    //Color
-                    if (this.colorControl) {
-                        const debug = this.enableDebugMode ? this.emit('debug', `Prepare color service`) : false;
-                        this.colorService = accessory.addService(Service.Lightbulb, `${accessoryName} Color`, 'Color');
-                        this.colorService.addOptionalCharacteristic(Characteristic.ConfiguredName);
-                        this.colorService.setCharacteristic(Characteristic.ConfiguredName, `${accessoryName} Color`);
-                        this.colorService.getCharacteristic(Characteristic.On)
-                            .onGet(async () => {
-                                const state = this.power;
-                                return state;
-                            })
-                            .onSet(async (state) => { });
-                        this.colorService.getCharacteristic(Characteristic.Brightness)
-                            .onGet(async () => {
-                                const value = this.color;
-                                return value;
-                            })
-                            .onSet(async (value) => {
-                                try {
-                                    const payload = {
-                                        category: 'picture',
-                                        settings: {
-                                            color: value
-                                        }
-                                    };
-
-                                    const cid = await this.lgWebOsSocket.getCid();
-                                    await this.lgWebOsSocket.send('alert', CONSTANTS.ApiUrls.SetSystemSettings, payload, cid, 'Color', `Value: ${value}`);
-                                    const info = this.disableLogInfo ? false : this.emit('message', `set Color: ${value}`);
-                                } catch (error) {
-                                    this.emit('error', `set Color error: ${error}`);
-                                };
-                            });
-                        this.allServices.push(this.colorService);
-                    }
-
-                    //Picture mode
-                    if (this.picturesModesConfiguredCount > 0) {
-                        const debug = this.enableDebugMode ? this.emit('debug', `Prepare picture mode service`) : false;
-                        for (let i = 0; i < this.picturesModesConfiguredCount; i++) {
-                            const mode = this.picturesModesConfigured[i];
-                            const modeName = mode.name;
-                            const modeReference = mode.reference;
-                            const modeNamePrefix = mode.namePrefix || false;
-                            const serviceType = mode.serviceType;
-                            const serviceName = modeNamePrefix ? `${accessoryName} ${modeName}` : modeName;
-                            const pictureModeService = new serviceType(serviceName, `Picture Mode ${i}`);
-                            pictureModeService.addOptionalCharacteristic(Characteristic.ConfiguredName);
-                            pictureModeService.setCharacteristic(Characteristic.ConfiguredName, serviceName);
-                            pictureModeService.getCharacteristic(Characteristic.On)
-                                .onGet(async () => {
-                                    const state = this.power ? mode.state : false;
-                                    return state;
-                                })
-                                .onSet(async (state) => {
-                                    try {
-                                        const payload = {
-                                            category: 'picture',
-                                            settings: {
-                                                pictureMode: modeReference
-                                            }
-                                        }
-
-                                        const cid = state ? await this.lgWebOsSocket.getCid() : false;
-                                        const set = state ? await this.lgWebOsSocket.send('alert', CONSTANTS.ApiUrls.SetSystemSettings, payload, cid, 'Picture Mode', `Value: ${modeName}`) : false;
-                                        const info = this.disableLogInfo ? false : this.emit('message', `set Picture Mode: ${modeName}`);
-                                    } catch (error) {
-                                        this.emit('error', `set Picture Mode error: ${error}`);
-                                    };
-                                });
-                            this.picturesModesServices.push(pictureModeService);
-                            this.allServices.push(pictureModeService);
-                            accessory.addService(pictureModeService);
-                        }
-                    }
-
-                    //turn screen ON/OFF
-                    if (this.turnScreenOnOff) {
-                        const debug = this.enableDebugMode ? this.emit('debug', `Prepare screen off service`) : false;
-                        this.turnScreenOnOffService = accessory.addService(Service.Switch, `${accessoryName} Screen Off`, 'Screen Off');
-                        this.turnScreenOnOffService.addOptionalCharacteristic(Characteristic.ConfiguredName);
-                        this.turnScreenOnOffService.setCharacteristic(Characteristic.ConfiguredName, `${accessoryName} Screen Off`);
-                        this.turnScreenOnOffService.getCharacteristic(Characteristic.On)
-                            .onGet(async () => {
-                                const state = this.screenStateOff;
-                                return state;
-                            })
-                            .onSet(async (state) => {
-                                try {
-                                    let url;
-                                    switch (state) {
-                                        case true:
-                                            url = this.webOS >= 4.5 ? CONSTANTS.ApiUrls.TurnOffScreen45 : CONSTANTS.ApiUrls.TurnOffScreen;
-                                            break;
-                                        case false:
-                                            url = this.webOS >= 4.5 ? CONSTANTS.ApiUrls.TurnOnScreen45 : CONSTANTS.ApiUrls.TurnOnScreen;
-                                            break;
-                                    }
-
-                                    const cid = await this.lgWebOsSocket.getCid('Power');
-                                    await this.lgWebOsSocket.send('request', url, undefined, cid);
-                                    const info = this.disableLogInfo ? false : this.emit('message', `Turn Screen ${state ? 'ON' : 'OFF'}.`);
-                                } catch (error) {
-                                    this.emit('error', `Turn Screen ${state ? 'ON' : 'OFF'}, error: ${error}`);
-                                };
-                            });
-                        this.allServices.push(this.turnScreenOnOffService);
-                    };
-                };
-
-                //turn screen saver ON/OFF
-                if (this.turnScreenSaverOnOff) {
-                    const debug = this.enableDebugMode ? this.emit('debug', `Prepare screen saver service`) : false;
-                    this.turnScreenSaverOnOffService = accessory.addService(Service.Switch, `${accessoryName} Screen Saver`, 'Screen Saver');
-                    this.turnScreenSaverOnOffService.addOptionalCharacteristic(Characteristic.ConfiguredName);
-                    this.turnScreenSaverOnOffService.setCharacteristic(Characteristic.ConfiguredName, `${accessoryName} Screen Saver`);
-                    this.turnScreenSaverOnOffService.getCharacteristic(Characteristic.On)
+                if (this.volumeControl === 2) {
+                    this.volumeServiceFan = accessory.addService(Service.Fan, `${volumeServiceName}`, 'Volume Fan');
+                    this.volumeServiceFan.addOptionalCharacteristic(Characteristic.ConfiguredName);
+                    this.volumeServiceFan.setCharacteristic(Characteristic.ConfiguredName, `${volumeServiceName}`);
+                    this.volumeServiceFan.getCharacteristic(Characteristic.RotationSpeed)
                         .onGet(async () => {
-                            const state = this.screenSaverState;
+                            const volume = this.volume;
+                            return volume;
+                        })
+                        .onSet(async (volume) => {
+                            try {
+                                volume = (volume <= 0 || volume >= 100) ? this.volume : volume;
+                                const payload = {
+                                    volume: volume,
+                                    soundOutput: this.soundOutput
+                                };
+
+                                const cid = await this.lgWebOsSocket.getCid('Audio');
+                                await this.lgWebOsSocket.send('request', CONSTANTS.ApiUrls.SetVolume, payload, cid);
+                                const info = this.disableLogInfo ? false : this.emit('message', `set Volume: ${volume}`);
+                            } catch (error) {
+                                this.emit('error', `set Volume error: ${error}`);
+                            };
+                        });
+                    this.volumeServiceFan.getCharacteristic(Characteristic.On)
+                        .onGet(async () => {
+                            const state = this.power ? !this.mute : false;
                             return state;
                         })
                         .onSet(async (state) => {
                             try {
+                                const payload = {
+                                    mute: !state
+                                };
+
+                                const cid = await this.lgWebOsSocket.getCid('Audio')
+                                await this.lgWebOsSocket.send('request', CONSTANTS.ApiUrls.SetMute, payload, cid);
+                                const info = this.disableLogInfo ? false : this.emit('message', `set Mute: ${!state ? 'ON' : 'OFF'}`);
+                            } catch (error) {
+                                this.emit('error', `set Mute error: ${error}`);
+                            };
+                        });
+                    this.allServices.push(this.volumeServiceFan);
+                }
+            }
+
+            //Picture Control
+            if (this.webOS >= 4.0) {
+                //Backlight
+                if (this.backlightControl) {
+                    const debug = this.enableDebugMode ? this.emit('debug', `Prepare backlight service`) : false;
+                    this.backlightService = accessory.addService(Service.Lightbulb, `${accessoryName} Backlight`, 'Backlight');
+                    this.backlightService.addOptionalCharacteristic(Characteristic.ConfiguredName);
+                    this.backlightService.setCharacteristic(Characteristic.ConfiguredName, `${accessoryName} Backlight`);
+                    this.backlightService.getCharacteristic(Characteristic.On)
+                        .onGet(async () => {
+                            const state = this.power;
+                            return state;
+                        })
+                        .onSet(async (state) => { });
+                    this.backlightService.getCharacteristic(Characteristic.Brightness)
+                        .onGet(async () => {
+                            const value = this.backlight;
+                            return value;
+                        })
+                        .onSet(async (value) => {
+                            try {
+                                const payload = {
+                                    category: 'picture',
+                                    settings: {
+                                        backlight: value
+                                    }
+                                };
+
                                 const cid = await this.lgWebOsSocket.getCid();
-                                const set = state ? await this.lgWebOsSocket.send('alert', CONSTANTS.ApiUrls.TurnOnScreenSaver, undefined, cid, 'Screen Saver', `ON`) : await this.lgWebOsSocket.send('button', undefined, { name: 'EXIT' });
-                                const info = this.disableLogInfo ? false : this.emit('message', `set Screen Saver: ${state}`);
+                                await this.lgWebOsSocket.send('alert', CONSTANTS.ApiUrls.SetSystemSettings, payload, cid, 'Backlight', `Value: ${value}`);
+                                const info = this.disableLogInfo ? false : this.emit('message', `set Backlight: ${value}`);
+                            } catch (error) {
+                                this.emit('error', `set Backlight error: ${error}`);
+                            };
+                        });
+                    this.allServices.push(this.backlightService);
+                }
+
+                //Brightness
+                if (this.brightnessControl) {
+                    const debug = this.enableDebugMode ? this.emit('debug', `Prepare brightness service`) : false;
+                    this.brightnessService = accessory.addService(Service.Lightbulb, `${accessoryName} Brightness`, 'Brightness');
+                    this.brightnessService.addOptionalCharacteristic(Characteristic.ConfiguredName);
+                    this.brightnessService.setCharacteristic(Characteristic.ConfiguredName, `${accessoryName} Brightness`);
+                    this.brightnessService.getCharacteristic(Characteristic.On)
+                        .onGet(async () => {
+                            const state = this.power;
+                            return state;
+                        })
+                        .onSet(async (state) => { })
+                    this.brightnessService.getCharacteristic(Characteristic.Brightness)
+                        .onGet(async () => {
+                            const value = this.brightness;
+                            return value;
+                        })
+                        .onSet(async (value) => {
+                            try {
+                                const payload = {
+                                    category: 'picture',
+                                    settings: {
+                                        brightness: value
+                                    }
+                                };
+
+                                const cid = await this.lgWebOsSocket.getCid();
+                                await this.lgWebOsSocket.send('alert', CONSTANTS.ApiUrls.SetSystemSettings, payload, cid, 'Brightness', `Value: ${value}`);
+                                const info = this.disableLogInfo ? false : this.emit('message', `set Brightness: ${value}`);
+                            } catch (error) {
+                                this.emit('error', `set Brightness error: ${error}`);
+                            };
+                        });
+                    this.allServices.push(this.brightnessService);
+                }
+
+                //Contrast
+                if (this.contrastControl) {
+                    const debug = this.enableDebugMode ? this.emit('debug', `Prepare contrast service`) : false;
+                    this.contrastService = accessory.addService(Service.Lightbulb, `${accessoryName} Contrast`, 'Contrast');
+                    this.contrastService.addOptionalCharacteristic(Characteristic.ConfiguredName);
+                    this.contrastService.setCharacteristic(Characteristic.ConfiguredName, `${accessoryName} Contrast`);
+                    this.contrastService.getCharacteristic(Characteristic.On)
+                        .onGet(async () => {
+                            const state = this.power;
+                            return state;
+                        })
+                        .onSet(async (state) => { });
+                    this.contrastService.getCharacteristic(Characteristic.Brightness)
+                        .onGet(async () => {
+                            const value = this.contrast;
+                            return value;
+                        })
+                        .onSet(async (value) => {
+                            try {
+                                const payload = {
+                                    category: 'picture',
+                                    settings: {
+                                        contrast: value
+                                    }
+                                };
+
+                                const cid = await this.lgWebOsSocket.getCid();
+                                await this.lgWebOsSocket.send('alert', CONSTANTS.ApiUrls.SetSystemSettings, payload, cid, 'Contrast', `Value: ${value}`);
+                                const info = this.disableLogInfo ? false : this.emit('message', `set Contrast: ${value}`);
+                            } catch (error) {
+                                this.emit('error', `set Contrast error: ${error}`);
+                            };
+                        });
+                    this.allServices.push(this.contrastService);
+                }
+
+                //Color
+                if (this.colorControl) {
+                    const debug = this.enableDebugMode ? this.emit('debug', `Prepare color service`) : false;
+                    this.colorService = accessory.addService(Service.Lightbulb, `${accessoryName} Color`, 'Color');
+                    this.colorService.addOptionalCharacteristic(Characteristic.ConfiguredName);
+                    this.colorService.setCharacteristic(Characteristic.ConfiguredName, `${accessoryName} Color`);
+                    this.colorService.getCharacteristic(Characteristic.On)
+                        .onGet(async () => {
+                            const state = this.power;
+                            return state;
+                        })
+                        .onSet(async (state) => { });
+                    this.colorService.getCharacteristic(Characteristic.Brightness)
+                        .onGet(async () => {
+                            const value = this.color;
+                            return value;
+                        })
+                        .onSet(async (value) => {
+                            try {
+                                const payload = {
+                                    category: 'picture',
+                                    settings: {
+                                        color: value
+                                    }
+                                };
+
+                                const cid = await this.lgWebOsSocket.getCid();
+                                await this.lgWebOsSocket.send('alert', CONSTANTS.ApiUrls.SetSystemSettings, payload, cid, 'Color', `Value: ${value}`);
+                                const info = this.disableLogInfo ? false : this.emit('message', `set Color: ${value}`);
                             } catch (error) {
                                 this.emit('error', `set Color error: ${error}`);
                             };
                         });
-                    this.allServices.push(this.turnScreenSaverOnOffService);
+                    this.allServices.push(this.colorService);
                 }
 
-                //Sound mode
-                if (this.soundsModesConfiguredCount > 0 && this.webOS >= 6.0) {
-                    const debug = this.enableDebugMode ? this.emit('debug', `Prepare sound mode service`) : false;
-                    for (let i = 0; i < this.soundsModesConfiguredCount; i++) {
-                        const mode = this.soundsModesConfigured[i];
+                //Picture mode
+                if (this.picturesModesConfiguredCount > 0) {
+                    const debug = this.enableDebugMode ? this.emit('debug', `Prepare picture mode service`) : false;
+                    for (let i = 0; i < this.picturesModesConfiguredCount; i++) {
+                        const mode = this.picturesModesConfigured[i];
                         const modeName = mode.name;
                         const modeReference = mode.reference;
                         const modeNamePrefix = mode.namePrefix || false;
                         const serviceType = mode.serviceType;
                         const serviceName = modeNamePrefix ? `${accessoryName} ${modeName}` : modeName;
-                        const soundModeService = new serviceType(serviceName, `Sound Mode ${i}`);
-                        soundModeService.addOptionalCharacteristic(Characteristic.ConfiguredName);
-                        soundModeService.setCharacteristic(Characteristic.ConfiguredName, serviceName);
-                        soundModeService.getCharacteristic(Characteristic.On)
+                        const pictureModeService = new serviceType(serviceName, `Picture Mode ${i}`);
+                        pictureModeService.addOptionalCharacteristic(Characteristic.ConfiguredName);
+                        pictureModeService.setCharacteristic(Characteristic.ConfiguredName, serviceName);
+                        pictureModeService.getCharacteristic(Characteristic.On)
                             .onGet(async () => {
                                 const state = this.power ? mode.state : false;
                                 return state;
@@ -1703,319 +1599,415 @@ class LgWebOsDevice extends EventEmitter {
                             .onSet(async (state) => {
                                 try {
                                     const payload = {
-                                        category: 'sound',
+                                        category: 'picture',
                                         settings: {
-                                            soundMode: modeReference
+                                            pictureMode: modeReference
                                         }
                                     }
 
                                     const cid = state ? await this.lgWebOsSocket.getCid() : false;
-                                    const set = state ? await this.lgWebOsSocket.send('alert', CONSTANTS.ApiUrls.SetSystemSettings, payload, cid, 'Sound Mode', `Value: ${modeName}`) : false;
-                                    const info = this.disableLogInfo ? false : this.emit('message', `set Sound Mode: ${modeName}`);
+                                    const set = state ? await this.lgWebOsSocket.send('alert', CONSTANTS.ApiUrls.SetSystemSettings, payload, cid, 'Picture Mode', `Value: ${modeName}`) : false;
+                                    const info = this.disableLogInfo ? false : this.emit('message', `set Picture Mode: ${modeName}`);
                                 } catch (error) {
-                                    this.emit('error', `set Sound Mode error: ${error}`);
+                                    this.emit('error', `set Picture Mode error: ${error}`);
                                 };
                             });
-                        this.soundsModesServices.push(soundModeService);
-                        this.allServices.push(soundModeService);
-                        accessory.addService(soundModeService);
+                        this.picturesModesServices.push(pictureModeService);
+                        this.allServices.push(pictureModeService);
+                        accessory.addService(pictureModeService);
                     }
                 }
 
-                //Sound output
-                if (this.soundsOutputsConfiguredCount > 0) {
-                    const debug = this.enableDebugOutput ? this.emit('debug', `Prepare sound output service`) : false;
-                    for (let i = 0; i < this.soundsOutputsConfiguredCount; i++) {
-                        const output = this.soundsOutputsConfigured[i];
-                        const outputName = output.name;
-                        const outputReference = output.reference;
-                        const outputNamePrefix = output.namePrefix || false;
-                        const serviceType = output.serviceType;
-                        const serviceName = outputNamePrefix ? `${accessoryName} ${outputName}` : outputName;
-                        const soundOutputService = new serviceType(serviceName, `Sound Output ${i}`);
-                        soundOutputService.addOptionalCharacteristic(Characteristic.ConfiguredName);
-                        soundOutputService.setCharacteristic(Characteristic.ConfiguredName, serviceName);
-                        soundOutputService.getCharacteristic(Characteristic.On)
-                            .onGet(async () => {
-                                const state = this.power ? output.state : false;
-                                return state;
-                            })
-                            .onSet(async (state) => {
-                                try {
-                                    const payload = {
-                                        output: outputReference
-                                    }
-
-                                    const cid = state ? await this.lgWebOsSocket.getCid('SoundOutput') : false;
-                                    const send = state ? await this.lgWebOsSocket.send('request', CONSTANTS.ApiUrls.SetSoundOutput, payload, cid) : false;
-                                    const info = this.disableLogInfo ? false : this.emit('message', `set Sound Output: ${outputName}`);
-                                } catch (error) {
-                                    this.emit('error', `set Sound Output error: ${error}`);
-                                };
-                            });
-                        this.soundsOutputsServices.push(soundOutputService);
-                        this.allServices.push(soundOutputService);
-                        accessory.addService(soundOutputService);
-                    }
-                }
-
-                //prepare sensor service
-                if (this.sensorPower) {
-                    const debug = this.enableDebugMode ? this.emit('debug', `Prepare power sensor service`) : false;
-                    this.sensorPowerService = accessory.addService(Service.ContactSensor, `${accessoryName} Power Sensor`, `Power Sensor`);
-                    this.sensorPowerService.addOptionalCharacteristic(Characteristic.ConfiguredName);
-                    this.sensorPowerService.setCharacteristic(Characteristic.ConfiguredName, `${accessoryName} Power Sensor`);
-                    this.sensorPowerService.getCharacteristic(Characteristic.ContactSensorState)
+                //turn screen ON/OFF
+                if (this.turnScreenOnOff) {
+                    const debug = this.enableDebugMode ? this.emit('debug', `Prepare screen off service`) : false;
+                    this.turnScreenOnOffService = accessory.addService(Service.Switch, `${accessoryName} Screen Off`, 'Screen Off');
+                    this.turnScreenOnOffService.addOptionalCharacteristic(Characteristic.ConfiguredName);
+                    this.turnScreenOnOffService.setCharacteristic(Characteristic.ConfiguredName, `${accessoryName} Screen Off`);
+                    this.turnScreenOnOffService.getCharacteristic(Characteristic.On)
                         .onGet(async () => {
-                            const state = this.power;
+                            const state = this.screenStateOff;
                             return state;
+                        })
+                        .onSet(async (state) => {
+                            try {
+                                let url;
+                                switch (state) {
+                                    case true:
+                                        url = this.webOS >= 4.5 ? CONSTANTS.ApiUrls.TurnOffScreen45 : CONSTANTS.ApiUrls.TurnOffScreen;
+                                        break;
+                                    case false:
+                                        url = this.webOS >= 4.5 ? CONSTANTS.ApiUrls.TurnOnScreen45 : CONSTANTS.ApiUrls.TurnOnScreen;
+                                        break;
+                                }
+
+                                const cid = await this.lgWebOsSocket.getCid('Power');
+                                await this.lgWebOsSocket.send('request', url, undefined, cid);
+                                const info = this.disableLogInfo ? false : this.emit('message', `Turn Screen ${state ? 'ON' : 'OFF'}.`);
+                            } catch (error) {
+                                this.emit('error', `Turn Screen ${state ? 'ON' : 'OFF'}, error: ${error}`);
+                            };
                         });
-                    this.allServices.push(this.sensorPowerService);
+                    this.allServices.push(this.turnScreenOnOffService);
                 };
-
-                if (this.sensorPixelRefresh) {
-                    const debug = this.enableDebugMode ? this.emit('debug', `Prepare pixel refresh sensor service`) : false;
-                    this.sensorPixelRefreshService = accessory.addService(Service.ContactSensor, `${accessoryName} Pixel Refresh Sensor`, `Pixel Refresh Sensor`);
-                    this.sensorPixelRefreshService.addOptionalCharacteristic(Characteristic.ConfiguredName);
-                    this.sensorPixelRefreshService.setCharacteristic(Characteristic.ConfiguredName, `${accessoryName} Pixel Refresh Sensor`);
-                    this.sensorPixelRefreshService.getCharacteristic(Characteristic.ContactSensorState)
-                        .onGet(async () => {
-                            const state = this.pixelRefreshState;
-                            return state;
-                        });
-                    this.allServices.push(this.sensorPixelRefreshService);
-                };
-
-                if (this.sensorVolume) {
-                    const debug = this.enableDebugMode ? this.emit('debug', `Prepare volume sensor service`) : false;
-                    this.sensorVolumeService = accessory.addService(Service.ContactSensor, `${accessoryName} Volume Sensor`, `Volume Sensor`);
-                    this.sensorVolumeService.addOptionalCharacteristic(Characteristic.ConfiguredName);
-                    this.sensorVolumeService.setCharacteristic(Characteristic.ConfiguredName, `${accessoryName} Volume Sensor`);
-                    this.sensorVolumeService.getCharacteristic(Characteristic.ContactSensorState)
-                        .onGet(async () => {
-                            const state = this.sensorVolumeState;
-                            return state;
-                        });
-                    this.allServices.push(this.sensorVolumeService);
-                };
-
-                if (this.sensorMute) {
-                    const debug = this.enableDebugMode ? this.emit('debug', `Prepare mute sensor service`) : false;
-                    this.sensorMuteService = accessory.addService(Service.ContactSensor, `${accessoryName} Mute Sensor`, `Mute Sensor`);
-                    this.sensorMuteService.addOptionalCharacteristic(Characteristic.ConfiguredName);
-                    this.sensorMuteService.setCharacteristic(Characteristic.ConfiguredName, `${accessoryName} Mute Sensor`);
-                    this.sensorMuteService.getCharacteristic(Characteristic.ContactSensorState)
-                        .onGet(async () => {
-                            const state = this.power ? this.mute : false;
-                            return state;
-                        });
-                    this.allServices.push(this.sensorMuteService);
-                };
-
-                if (this.sensorInput) {
-                    const debug = this.enableDebugMode ? this.emit('debug', `Prepare input sensor service`) : false;
-                    this.sensorInputService = accessory.addService(Service.ContactSensor, `${accessoryName} Input Sensor`, `Input Sensor`);
-                    this.sensorInputService.addOptionalCharacteristic(Characteristic.ConfiguredName);
-                    this.sensorInputService.setCharacteristic(Characteristic.ConfiguredName, `${accessoryName} Input Sensor`);
-                    this.sensorInputService.getCharacteristic(Characteristic.ContactSensorState)
-                        .onGet(async () => {
-                            const state = this.sensorInputState;
-                            return state;
-                        });
-                    this.allServices.push(this.sensorInputService);
-                };
-
-                if (this.sensorChannel) {
-                    const debug = this.enableDebugMode ? this.emit('debug', `Prepare channel sensor service`) : false;
-                    this.sensorChannelService = accessory.addService(Service.ContactSensor, `${accessoryName} Channel Sensor`, `Channel Sensor`);
-                    this.sensorChannelService.addOptionalCharacteristic(Characteristic.ConfiguredName);
-                    this.sensorChannelService.setCharacteristic(Characteristic.ConfiguredName, `${accessoryName} Channel Sensor`);
-                    this.sensorChannelService.getCharacteristic(Characteristic.ContactSensorState)
-                        .onGet(async () => {
-                            const state = this.sensorChannelState;
-                            return state;
-                        });
-                    this.allServices.push(this.sensorChannelService);
-                };
-
-                if (this.sensorScreenOnOff && this.webOS >= 4.0) {
-                    const debug = this.enableDebugMode ? this.emit('debug', `Prepare screen off sensor service`) : false;
-                    this.sensorScreenOnOffService = accessory.addService(Service.ContactSensor, `${accessoryName} Screen On/Off Sensor`, `Screen On/Off Sensor`);
-                    this.sensorScreenOnOffService.addOptionalCharacteristic(Characteristic.ConfiguredName);
-                    this.sensorScreenOnOffService.setCharacteristic(Characteristic.ConfiguredName, `${accessoryName} Screen On/Off Sensor`);
-                    this.sensorScreenOnOffService.getCharacteristic(Characteristic.ContactSensorState)
-                        .onGet(async () => {
-                            const state = this.power ? this.screenStateOff : false;
-                            return state;
-                        });
-                    this.allServices.push(this.sensorScreenOnOffService);
-                };
-
-                if (this.sensorScreenSaver) {
-                    const debug = this.enableDebugMode ? this.emit('debug', `Prepare screen saver sensor service`) : false;
-                    this.sensorScreenSaverService = accessory.addService(Service.ContactSensor, `${accessoryName} Screen Saver Sensor`, `Screen Saver Sensor`);
-                    this.sensorScreenSaverService.addOptionalCharacteristic(Characteristic.ConfiguredName);
-                    this.sensorScreenSaverService.setCharacteristic(Characteristic.ConfiguredName, `${accessoryName} Screen Saver Sensor`);
-                    this.sensorScreenSaverService.getCharacteristic(Characteristic.ContactSensorState)
-                        .onGet(async () => {
-                            const state = this.power ? this.screenSaverState : false;
-                            return state;
-                        });
-                    this.allServices.push(this.sensorScreenSaverService);
-                };
-
-                if (this.sensorSoundMode && this.webOS >= 6.0) {
-                    const debug = this.enableDebugMode ? this.emit('debug', `Prepare sound mode sensor service`) : false;
-                    this.sensorSoundModeService = accessory.addService(Service.ContactSensor, `${accessoryName} Sound Mode Sensor`, `Sound Mode Sensor`);
-                    this.sensorSoundModeService.addOptionalCharacteristic(Characteristic.ConfiguredName);
-                    this.sensorSoundModeService.setCharacteristic(Characteristic.ConfiguredName, `${accessoryName} Sound Mode Sensor`);
-                    this.sensorSoundModeService.getCharacteristic(Characteristic.ContactSensorState)
-                        .onGet(async () => {
-                            const state = this.power ? this.sensorSoundModeState : false;
-                            return state;
-                        });
-                    this.allServices.push(this.sensorSoundModeService);
-                };
-
-                if (this.sensorSoundOutput) {
-                    const debug = this.enableDebugOutput ? this.emit('debug', `Prepare sound output sensor service`) : false;
-                    this.sensorSoundOutputService = accessory.addService(Service.ContactSensor, `${accessoryName} Sound Output Sensor`, `Sound Output Sensor`);
-                    this.sensorSoundOutputService.addOptionalCharacteristic(Characteristic.ConfiguredName);
-                    this.sensorSoundOutputService.setCharacteristic(Characteristic.ConfiguredName, `${accessoryName} Sound Output Sensor`);
-                    this.sensorSoundOutputService.getCharacteristic(Characteristic.ContactSensorState)
-                        .onGet(async () => {
-                            const state = this.power ? this.sensorSoundOutputState : false;
-                            return state;
-                        });
-                    this.allServices.push(this.sensorSoundOutputService);
-                };
-
-                if (this.sensorPictureMode && this.webOS >= 4.0) {
-                    const debug = this.enableDebugMode ? this.emit('debug', `Prepare picture mode sensor service`) : false;
-                    this.sensorPictureModeService = accessory.addService(Service.ContactSensor, `${accessoryName} Picture Mode Sensor`, `Picture Mode Sensor`);
-                    this.sensorPictureModeService.addOptionalCharacteristic(Characteristic.ConfiguredName);
-                    this.sensorPictureModeService.setCharacteristic(Characteristic.ConfiguredName, `${accessoryName} Picture Mode Sensor`);
-                    this.sensorPictureModeService.getCharacteristic(Characteristic.ContactSensorState)
-                        .onGet(async () => {
-                            const state = this.power ? this.pictureMode : false;
-                            return state;
-                        });
-                    this.allServices.push(this.sensorPictureModeService);
-                };
-
-                //prepare sonsor service
-                const possibleSensorInputsCount = 99 - this.allServices.length;
-                const maxSensorInputsCount = this.sensorsInputsConfiguredCount >= possibleSensorInputsCount ? possibleSensorInputsCount : this.sensorsInputsConfiguredCount;
-                if (maxSensorInputsCount > 0) {
-                    const debug = !this.enableDebugMode ? false : this.emit('debug', `Prepare inputs sensors services`);
-                    for (let i = 0; i < maxSensorInputsCount; i++) {
-                        //get sensor
-                        const sensorInput = this.sensorsInputsConfigured[i];
-
-                        //get sensor name		
-                        const sensorInputName = sensorInput.name;
-
-                        //get sensor name prefix
-                        const namePrefix = sensorInput.namePrefix || false;
-
-                        //get service type
-                        const serviceType = sensorInput.serviceType;
-
-                        //get service type
-                        const characteristicType = sensorInput.characteristicType;
-
-                        const serviceName = namePrefix ? `${accessoryName} ${sensorInputName}` : sensorInputName;
-                        const sensorInputService = new serviceType(serviceName, `Sensor ${i}`);
-                        sensorInputService.addOptionalCharacteristic(Characteristic.ConfiguredName);
-                        sensorInputService.setCharacteristic(Characteristic.ConfiguredName, serviceName);
-                        sensorInputService.getCharacteristic(characteristicType)
-                            .onGet(async () => {
-                                const state = sensorInput.state;
-                                return state;
-                            });
-                        this.sensorsInputsServices.push(sensorInputService);
-                        this.allServices.push(sensorInputService);
-                        accessory.addService(sensorInputService);
-                    }
-                }
-
-                //Prepare inputs button services
-                const possibleButtonsCount = 99 - this.allServices.length;
-                const maxButtonsCount = this.buttonsConfiguredCount >= possibleButtonsCount ? possibleButtonsCount : this.buttonsConfiguredCount;
-                if (maxButtonsCount > 0) {
-                    const debug = this.enableDebugMode ? this.emit('debug', `Prepare button service`) : false;
-                    for (let i = 0; i < maxButtonsCount; i++) {
-                        //get button
-                        const button = this.buttonsConfigured[i];
-
-                        //get button name
-                        const buttonName = button.name;
-
-                        //get button mode
-                        const buttonMode = button.mode;
-
-                        //get button reference
-                        const buttonReference = button.reference;
-
-                        //get button command
-                        const buttonCommand = button.command;
-
-                        //get button name prefix
-                        const namePrefix = button.namePrefix || false;
-
-                        //get service type
-                        const serviceType = button.serviceType;
-
-                        const serviceName = namePrefix ? `${accessoryName} ${buttonName}` : buttonName;
-                        const buttonService = new serviceType(serviceName, `Button ${i}`);
-                        buttonService.addOptionalCharacteristic(Characteristic.ConfiguredName);
-                        buttonService.setCharacteristic(Characteristic.ConfiguredName, serviceName);
-                        buttonService.getCharacteristic(Characteristic.On)
-                            .onGet(async () => {
-                                const state = button.state;
-                                return state;
-                            })
-                            .onSet(async (state) => {
-                                try {
-                                    switch (buttonMode) {
-                                        case 0: //App Control
-                                            const cid = this.power && state ? await this.lgWebOsSocket.getCid('App') : false;
-                                            const send = this.power && state ? await this.lgWebOsSocket.send('request', CONSTANTS.ApiUrls.LaunchApp, { id: buttonReference }, cid) : false;
-                                            const debug = this.power && state && this.enableDebugMode ? this.emit('debug', `Set Input, Name: ${buttonName}, Reference: ${buttonReference}`) : false;
-                                            break;
-                                        case 1: //Channel Control
-                                            const liveTv = 'com.webos.app.livetv';
-                                            const cid1 = this.power && state && this.appId !== liveTv ? await this.lgWebOsSocket.getCid('App') : false;
-                                            const openLiveTv = this.appId !== liveTv ? await this.lgWebOsSocket.send('request', CONSTANTS.ApiUrls.LaunchApp, { id: liveTv }, cid1) : false;
-                                            const cid2 = this.power && state ? await this.lgWebOsSocket.getCid('Channel') : false;
-                                            const send1 = this.power && state ? await this.lgWebOsSocket.send('request', CONSTANTS.ApiUrls.OpenChannel, { channelId: buttonReference }, cid2) : false;
-                                            const debug1 = this.power && state && this.enableDebugMode ? this.emit('debug', `Set Channel, Name: ${buttonName}, Reference: ${buttonReference}`) : false;
-                                            break;
-                                        case 2: //RC Control
-                                            const send2 = state ? await this.lgWebOsSocket.send('button', undefined, { name: buttonCommand }) : false;
-                                            const debug2 = state && this.enableDebugMode ? this.emit('debug', `Set Command, Name: ${buttonName}, Reference: ${buttonCommand}`) : false;
-                                            button.state = false;
-                                            break;
-                                        default:
-                                            const debug3 = this.enableDebugMode ? this.emit('debug', `Set Unknown Button Mode: ${buttonMode}.`) : false;
-                                            button.state = false;
-                                            break;
-                                    }
-                                } catch (error) {
-                                    this.emit('error', `set ${['Input', 'Channel', 'Command'][buttonMode]} error: ${error}`);
-                                };
-                            });
-                        this.buttonsServices.push(buttonService);
-                        this.allServices.push(buttonService);
-                        accessory.addService(buttonService);
-                    };
-                };
-
-                resolve(accessory);
-            } catch (error) {
-                reject(error)
             };
-        });
+
+            //turn screen saver ON/OFF
+            if (this.turnScreenSaverOnOff) {
+                const debug = this.enableDebugMode ? this.emit('debug', `Prepare screen saver service`) : false;
+                this.turnScreenSaverOnOffService = accessory.addService(Service.Switch, `${accessoryName} Screen Saver`, 'Screen Saver');
+                this.turnScreenSaverOnOffService.addOptionalCharacteristic(Characteristic.ConfiguredName);
+                this.turnScreenSaverOnOffService.setCharacteristic(Characteristic.ConfiguredName, `${accessoryName} Screen Saver`);
+                this.turnScreenSaverOnOffService.getCharacteristic(Characteristic.On)
+                    .onGet(async () => {
+                        const state = this.screenSaverState;
+                        return state;
+                    })
+                    .onSet(async (state) => {
+                        try {
+                            const cid = await this.lgWebOsSocket.getCid();
+                            const set = state ? await this.lgWebOsSocket.send('alert', CONSTANTS.ApiUrls.TurnOnScreenSaver, undefined, cid, 'Screen Saver', `ON`) : await this.lgWebOsSocket.send('button', undefined, { name: 'EXIT' });
+                            const info = this.disableLogInfo ? false : this.emit('message', `set Screen Saver: ${state}`);
+                        } catch (error) {
+                            this.emit('error', `set Color error: ${error}`);
+                        };
+                    });
+                this.allServices.push(this.turnScreenSaverOnOffService);
+            }
+
+            //Sound mode
+            if (this.soundsModesConfiguredCount > 0 && this.webOS >= 6.0) {
+                const debug = this.enableDebugMode ? this.emit('debug', `Prepare sound mode service`) : false;
+                for (let i = 0; i < this.soundsModesConfiguredCount; i++) {
+                    const mode = this.soundsModesConfigured[i];
+                    const modeName = mode.name;
+                    const modeReference = mode.reference;
+                    const modeNamePrefix = mode.namePrefix || false;
+                    const serviceType = mode.serviceType;
+                    const serviceName = modeNamePrefix ? `${accessoryName} ${modeName}` : modeName;
+                    const soundModeService = new serviceType(serviceName, `Sound Mode ${i}`);
+                    soundModeService.addOptionalCharacteristic(Characteristic.ConfiguredName);
+                    soundModeService.setCharacteristic(Characteristic.ConfiguredName, serviceName);
+                    soundModeService.getCharacteristic(Characteristic.On)
+                        .onGet(async () => {
+                            const state = this.power ? mode.state : false;
+                            return state;
+                        })
+                        .onSet(async (state) => {
+                            try {
+                                const payload = {
+                                    category: 'sound',
+                                    settings: {
+                                        soundMode: modeReference
+                                    }
+                                }
+
+                                const cid = state ? await this.lgWebOsSocket.getCid() : false;
+                                const set = state ? await this.lgWebOsSocket.send('alert', CONSTANTS.ApiUrls.SetSystemSettings, payload, cid, 'Sound Mode', `Value: ${modeName}`) : false;
+                                const info = this.disableLogInfo ? false : this.emit('message', `set Sound Mode: ${modeName}`);
+                            } catch (error) {
+                                this.emit('error', `set Sound Mode error: ${error}`);
+                            };
+                        });
+                    this.soundsModesServices.push(soundModeService);
+                    this.allServices.push(soundModeService);
+                    accessory.addService(soundModeService);
+                }
+            }
+
+            //Sound output
+            if (this.soundsOutputsConfiguredCount > 0) {
+                const debug = this.enableDebugOutput ? this.emit('debug', `Prepare sound output service`) : false;
+                for (let i = 0; i < this.soundsOutputsConfiguredCount; i++) {
+                    const output = this.soundsOutputsConfigured[i];
+                    const outputName = output.name;
+                    const outputReference = output.reference;
+                    const outputNamePrefix = output.namePrefix || false;
+                    const serviceType = output.serviceType;
+                    const serviceName = outputNamePrefix ? `${accessoryName} ${outputName}` : outputName;
+                    const soundOutputService = new serviceType(serviceName, `Sound Output ${i}`);
+                    soundOutputService.addOptionalCharacteristic(Characteristic.ConfiguredName);
+                    soundOutputService.setCharacteristic(Characteristic.ConfiguredName, serviceName);
+                    soundOutputService.getCharacteristic(Characteristic.On)
+                        .onGet(async () => {
+                            const state = this.power ? output.state : false;
+                            return state;
+                        })
+                        .onSet(async (state) => {
+                            try {
+                                const payload = {
+                                    output: outputReference
+                                }
+
+                                const cid = state ? await this.lgWebOsSocket.getCid('SoundOutput') : false;
+                                const send = state ? await this.lgWebOsSocket.send('request', CONSTANTS.ApiUrls.SetSoundOutput, payload, cid) : false;
+                                const info = this.disableLogInfo ? false : this.emit('message', `set Sound Output: ${outputName}`);
+                            } catch (error) {
+                                this.emit('error', `set Sound Output error: ${error}`);
+                            };
+                        });
+                    this.soundsOutputsServices.push(soundOutputService);
+                    this.allServices.push(soundOutputService);
+                    accessory.addService(soundOutputService);
+                }
+            }
+
+            //prepare sensor service
+            if (this.sensorPower) {
+                const debug = this.enableDebugMode ? this.emit('debug', `Prepare power sensor service`) : false;
+                this.sensorPowerService = accessory.addService(Service.ContactSensor, `${accessoryName} Power Sensor`, `Power Sensor`);
+                this.sensorPowerService.addOptionalCharacteristic(Characteristic.ConfiguredName);
+                this.sensorPowerService.setCharacteristic(Characteristic.ConfiguredName, `${accessoryName} Power Sensor`);
+                this.sensorPowerService.getCharacteristic(Characteristic.ContactSensorState)
+                    .onGet(async () => {
+                        const state = this.power;
+                        return state;
+                    });
+                this.allServices.push(this.sensorPowerService);
+            };
+
+            if (this.sensorPixelRefresh) {
+                const debug = this.enableDebugMode ? this.emit('debug', `Prepare pixel refresh sensor service`) : false;
+                this.sensorPixelRefreshService = accessory.addService(Service.ContactSensor, `${accessoryName} Pixel Refresh Sensor`, `Pixel Refresh Sensor`);
+                this.sensorPixelRefreshService.addOptionalCharacteristic(Characteristic.ConfiguredName);
+                this.sensorPixelRefreshService.setCharacteristic(Characteristic.ConfiguredName, `${accessoryName} Pixel Refresh Sensor`);
+                this.sensorPixelRefreshService.getCharacteristic(Characteristic.ContactSensorState)
+                    .onGet(async () => {
+                        const state = this.pixelRefreshState;
+                        return state;
+                    });
+                this.allServices.push(this.sensorPixelRefreshService);
+            };
+
+            if (this.sensorVolume) {
+                const debug = this.enableDebugMode ? this.emit('debug', `Prepare volume sensor service`) : false;
+                this.sensorVolumeService = accessory.addService(Service.ContactSensor, `${accessoryName} Volume Sensor`, `Volume Sensor`);
+                this.sensorVolumeService.addOptionalCharacteristic(Characteristic.ConfiguredName);
+                this.sensorVolumeService.setCharacteristic(Characteristic.ConfiguredName, `${accessoryName} Volume Sensor`);
+                this.sensorVolumeService.getCharacteristic(Characteristic.ContactSensorState)
+                    .onGet(async () => {
+                        const state = this.sensorVolumeState;
+                        return state;
+                    });
+                this.allServices.push(this.sensorVolumeService);
+            };
+
+            if (this.sensorMute) {
+                const debug = this.enableDebugMode ? this.emit('debug', `Prepare mute sensor service`) : false;
+                this.sensorMuteService = accessory.addService(Service.ContactSensor, `${accessoryName} Mute Sensor`, `Mute Sensor`);
+                this.sensorMuteService.addOptionalCharacteristic(Characteristic.ConfiguredName);
+                this.sensorMuteService.setCharacteristic(Characteristic.ConfiguredName, `${accessoryName} Mute Sensor`);
+                this.sensorMuteService.getCharacteristic(Characteristic.ContactSensorState)
+                    .onGet(async () => {
+                        const state = this.power ? this.mute : false;
+                        return state;
+                    });
+                this.allServices.push(this.sensorMuteService);
+            };
+
+            if (this.sensorInput) {
+                const debug = this.enableDebugMode ? this.emit('debug', `Prepare input sensor service`) : false;
+                this.sensorInputService = accessory.addService(Service.ContactSensor, `${accessoryName} Input Sensor`, `Input Sensor`);
+                this.sensorInputService.addOptionalCharacteristic(Characteristic.ConfiguredName);
+                this.sensorInputService.setCharacteristic(Characteristic.ConfiguredName, `${accessoryName} Input Sensor`);
+                this.sensorInputService.getCharacteristic(Characteristic.ContactSensorState)
+                    .onGet(async () => {
+                        const state = this.sensorInputState;
+                        return state;
+                    });
+                this.allServices.push(this.sensorInputService);
+            };
+
+            if (this.sensorChannel) {
+                const debug = this.enableDebugMode ? this.emit('debug', `Prepare channel sensor service`) : false;
+                this.sensorChannelService = accessory.addService(Service.ContactSensor, `${accessoryName} Channel Sensor`, `Channel Sensor`);
+                this.sensorChannelService.addOptionalCharacteristic(Characteristic.ConfiguredName);
+                this.sensorChannelService.setCharacteristic(Characteristic.ConfiguredName, `${accessoryName} Channel Sensor`);
+                this.sensorChannelService.getCharacteristic(Characteristic.ContactSensorState)
+                    .onGet(async () => {
+                        const state = this.sensorChannelState;
+                        return state;
+                    });
+                this.allServices.push(this.sensorChannelService);
+            };
+
+            if (this.sensorScreenOnOff && this.webOS >= 4.0) {
+                const debug = this.enableDebugMode ? this.emit('debug', `Prepare screen off sensor service`) : false;
+                this.sensorScreenOnOffService = accessory.addService(Service.ContactSensor, `${accessoryName} Screen On/Off Sensor`, `Screen On/Off Sensor`);
+                this.sensorScreenOnOffService.addOptionalCharacteristic(Characteristic.ConfiguredName);
+                this.sensorScreenOnOffService.setCharacteristic(Characteristic.ConfiguredName, `${accessoryName} Screen On/Off Sensor`);
+                this.sensorScreenOnOffService.getCharacteristic(Characteristic.ContactSensorState)
+                    .onGet(async () => {
+                        const state = this.power ? this.screenStateOff : false;
+                        return state;
+                    });
+                this.allServices.push(this.sensorScreenOnOffService);
+            };
+
+            if (this.sensorScreenSaver) {
+                const debug = this.enableDebugMode ? this.emit('debug', `Prepare screen saver sensor service`) : false;
+                this.sensorScreenSaverService = accessory.addService(Service.ContactSensor, `${accessoryName} Screen Saver Sensor`, `Screen Saver Sensor`);
+                this.sensorScreenSaverService.addOptionalCharacteristic(Characteristic.ConfiguredName);
+                this.sensorScreenSaverService.setCharacteristic(Characteristic.ConfiguredName, `${accessoryName} Screen Saver Sensor`);
+                this.sensorScreenSaverService.getCharacteristic(Characteristic.ContactSensorState)
+                    .onGet(async () => {
+                        const state = this.power ? this.screenSaverState : false;
+                        return state;
+                    });
+                this.allServices.push(this.sensorScreenSaverService);
+            };
+
+            if (this.sensorSoundMode && this.webOS >= 6.0) {
+                const debug = this.enableDebugMode ? this.emit('debug', `Prepare sound mode sensor service`) : false;
+                this.sensorSoundModeService = accessory.addService(Service.ContactSensor, `${accessoryName} Sound Mode Sensor`, `Sound Mode Sensor`);
+                this.sensorSoundModeService.addOptionalCharacteristic(Characteristic.ConfiguredName);
+                this.sensorSoundModeService.setCharacteristic(Characteristic.ConfiguredName, `${accessoryName} Sound Mode Sensor`);
+                this.sensorSoundModeService.getCharacteristic(Characteristic.ContactSensorState)
+                    .onGet(async () => {
+                        const state = this.power ? this.sensorSoundModeState : false;
+                        return state;
+                    });
+                this.allServices.push(this.sensorSoundModeService);
+            };
+
+            if (this.sensorSoundOutput) {
+                const debug = this.enableDebugOutput ? this.emit('debug', `Prepare sound output sensor service`) : false;
+                this.sensorSoundOutputService = accessory.addService(Service.ContactSensor, `${accessoryName} Sound Output Sensor`, `Sound Output Sensor`);
+                this.sensorSoundOutputService.addOptionalCharacteristic(Characteristic.ConfiguredName);
+                this.sensorSoundOutputService.setCharacteristic(Characteristic.ConfiguredName, `${accessoryName} Sound Output Sensor`);
+                this.sensorSoundOutputService.getCharacteristic(Characteristic.ContactSensorState)
+                    .onGet(async () => {
+                        const state = this.power ? this.sensorSoundOutputState : false;
+                        return state;
+                    });
+                this.allServices.push(this.sensorSoundOutputService);
+            };
+
+            if (this.sensorPictureMode && this.webOS >= 4.0) {
+                const debug = this.enableDebugMode ? this.emit('debug', `Prepare picture mode sensor service`) : false;
+                this.sensorPictureModeService = accessory.addService(Service.ContactSensor, `${accessoryName} Picture Mode Sensor`, `Picture Mode Sensor`);
+                this.sensorPictureModeService.addOptionalCharacteristic(Characteristic.ConfiguredName);
+                this.sensorPictureModeService.setCharacteristic(Characteristic.ConfiguredName, `${accessoryName} Picture Mode Sensor`);
+                this.sensorPictureModeService.getCharacteristic(Characteristic.ContactSensorState)
+                    .onGet(async () => {
+                        const state = this.power ? this.pictureMode : false;
+                        return state;
+                    });
+                this.allServices.push(this.sensorPictureModeService);
+            };
+
+            //prepare sonsor service
+            const possibleSensorInputsCount = 99 - this.allServices.length;
+            const maxSensorInputsCount = this.sensorsInputsConfiguredCount >= possibleSensorInputsCount ? possibleSensorInputsCount : this.sensorsInputsConfiguredCount;
+            if (maxSensorInputsCount > 0) {
+                const debug = !this.enableDebugMode ? false : this.emit('debug', `Prepare inputs sensors services`);
+                for (let i = 0; i < maxSensorInputsCount; i++) {
+                    //get sensor
+                    const sensorInput = this.sensorsInputsConfigured[i];
+
+                    //get sensor name		
+                    const sensorInputName = sensorInput.name;
+
+                    //get sensor name prefix
+                    const namePrefix = sensorInput.namePrefix || false;
+
+                    //get service type
+                    const serviceType = sensorInput.serviceType;
+
+                    //get service type
+                    const characteristicType = sensorInput.characteristicType;
+
+                    const serviceName = namePrefix ? `${accessoryName} ${sensorInputName}` : sensorInputName;
+                    const sensorInputService = new serviceType(serviceName, `Sensor ${i}`);
+                    sensorInputService.addOptionalCharacteristic(Characteristic.ConfiguredName);
+                    sensorInputService.setCharacteristic(Characteristic.ConfiguredName, serviceName);
+                    sensorInputService.getCharacteristic(characteristicType)
+                        .onGet(async () => {
+                            const state = sensorInput.state;
+                            return state;
+                        });
+                    this.sensorsInputsServices.push(sensorInputService);
+                    this.allServices.push(sensorInputService);
+                    accessory.addService(sensorInputService);
+                }
+            }
+
+            //Prepare inputs button services
+            const possibleButtonsCount = 99 - this.allServices.length;
+            const maxButtonsCount = this.buttonsConfiguredCount >= possibleButtonsCount ? possibleButtonsCount : this.buttonsConfiguredCount;
+            if (maxButtonsCount > 0) {
+                const debug = this.enableDebugMode ? this.emit('debug', `Prepare button service`) : false;
+                for (let i = 0; i < maxButtonsCount; i++) {
+                    //get button
+                    const button = this.buttonsConfigured[i];
+
+                    //get button name
+                    const buttonName = button.name;
+
+                    //get button mode
+                    const buttonMode = button.mode;
+
+                    //get button reference
+                    const buttonReference = button.reference;
+
+                    //get button command
+                    const buttonCommand = button.command;
+
+                    //get button name prefix
+                    const namePrefix = button.namePrefix || false;
+
+                    //get service type
+                    const serviceType = button.serviceType;
+
+                    const serviceName = namePrefix ? `${accessoryName} ${buttonName}` : buttonName;
+                    const buttonService = new serviceType(serviceName, `Button ${i}`);
+                    buttonService.addOptionalCharacteristic(Characteristic.ConfiguredName);
+                    buttonService.setCharacteristic(Characteristic.ConfiguredName, serviceName);
+                    buttonService.getCharacteristic(Characteristic.On)
+                        .onGet(async () => {
+                            const state = button.state;
+                            return state;
+                        })
+                        .onSet(async (state) => {
+                            try {
+                                switch (buttonMode) {
+                                    case 0: //App Control
+                                        const cid = this.power && state ? await this.lgWebOsSocket.getCid('App') : false;
+                                        const send = this.power && state ? await this.lgWebOsSocket.send('request', CONSTANTS.ApiUrls.LaunchApp, { id: buttonReference }, cid) : false;
+                                        const debug = this.power && state && this.enableDebugMode ? this.emit('debug', `Set Input, Name: ${buttonName}, Reference: ${buttonReference}`) : false;
+                                        break;
+                                    case 1: //Channel Control
+                                        const liveTv = 'com.webos.app.livetv';
+                                        const cid1 = this.power && state && this.appId !== liveTv ? await this.lgWebOsSocket.getCid('App') : false;
+                                        const openLiveTv = this.appId !== liveTv ? await this.lgWebOsSocket.send('request', CONSTANTS.ApiUrls.LaunchApp, { id: liveTv }, cid1) : false;
+                                        const cid2 = this.power && state ? await this.lgWebOsSocket.getCid('Channel') : false;
+                                        const send1 = this.power && state ? await this.lgWebOsSocket.send('request', CONSTANTS.ApiUrls.OpenChannel, { channelId: buttonReference }, cid2) : false;
+                                        const debug1 = this.power && state && this.enableDebugMode ? this.emit('debug', `Set Channel, Name: ${buttonName}, Reference: ${buttonReference}`) : false;
+                                        break;
+                                    case 2: //RC Control
+                                        const send2 = state ? await this.lgWebOsSocket.send('button', undefined, { name: buttonCommand }) : false;
+                                        const debug2 = state && this.enableDebugMode ? this.emit('debug', `Set Command, Name: ${buttonName}, Reference: ${buttonCommand}`) : false;
+                                        button.state = false;
+                                        break;
+                                    default:
+                                        const debug3 = this.enableDebugMode ? this.emit('debug', `Set Unknown Button Mode: ${buttonMode}.`) : false;
+                                        button.state = false;
+                                        break;
+                                }
+                            } catch (error) {
+                                this.emit('error', `set ${['Input', 'Channel', 'Command'][buttonMode]} error: ${error}`);
+                            };
+                        });
+                    this.buttonsServices.push(buttonService);
+                    this.allServices.push(buttonService);
+                    accessory.addService(buttonService);
+                };
+            };
+
+            return accessory;
+        } catch (error) {
+            this.emit('error', error)
+        };
     };
 };
 

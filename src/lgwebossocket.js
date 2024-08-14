@@ -760,276 +760,233 @@ class LgWebOsSocket extends EventEmitter {
         }, 10000);
     };
 
-    readPairingKey(path) {
-        return new Promise(async (resolve, reject) => {
-            try {
-                const key = await fsPromises.readFile(path);
-                const pairingKey = key.length > 10 ? key.toString() : '0';
-                resolve(pairingKey);
-            } catch (error) {
-                reject(error);
-            }
-        });
+    async readPairingKey(path) {
+        try {
+            const key = await fsPromises.readFile(path);
+            const pairingKey = key.length > 10 ? key.toString() : '0';
+            return pairingKey;
+        } catch (error) {
+            this.emit('error', error);
+        }
     }
 
-    savePairingKey(path, pairingKey) {
-        return new Promise(async (resolve, reject) => {
-            try {
-                await fsPromises.writeFile(path, pairingKey);
-                resolve();
-            } catch (error) {
-                reject(error);
-            }
-        });
+    async savePairingKey(path, pairingKey) {
+        try {
+            await fsPromises.writeFile(path, pairingKey);
+            return true;
+        } catch (error) {
+            this.emit('error', error);
+        }
     }
 
-    saveDevInfo(path, modelName, productName, deviceId, firmwareRevision, webOS) {
-        return new Promise(async (resolve, reject) => {
-            try {
-                const obj = {
-                    manufacturer: 'LG Electronics',
-                    modelName: modelName,
-                    productName: productName,
-                    deviceId: deviceId,
-                    firmwareRevision: firmwareRevision,
-                    webOS: webOS
-                };
-                const info = JSON.stringify(obj, null, 2);
-                await fsPromises.writeFile(path, info);
-                const debug = this.debugLog ? this.emit('debug', `Saved device info: ${info}`) : false;
-
-                resolve();
-            } catch (error) {
-                reject(error);
+    async saveDevInfo(path, modelName, productName, deviceId, firmwareRevision, webOS) {
+        try {
+            const obj = {
+                manufacturer: 'LG Electronics',
+                modelName: modelName,
+                productName: productName,
+                deviceId: deviceId,
+                firmwareRevision: firmwareRevision,
+                webOS: webOS
             };
-        });
+            const info = JSON.stringify(obj, null, 2);
+            await fsPromises.writeFile(path, info);
+            const debug = this.debugLog ? this.emit('debug', `Saved device info: ${info}`) : false;
+
+            return true;
+        } catch (error) {
+            this.emit('error', error);
+        };
     };
 
-    saveChannels(path, channelsList) {
-        return new Promise(async (resolve, reject) => {
-            try {
-                const channels = JSON.stringify(channelsList, null, 2);
-                await fsPromises.writeFile(path, channels);
-                const debug = this.enableDebugMode ? this.emit('debug', `Channels list saved: ${channels}`) : false;
+    async saveChannels(path, channelsList) {
+        try {
+            const channels = JSON.stringify(channelsList, null, 2);
+            await fsPromises.writeFile(path, channels);
+            const debug = this.enableDebugMode ? this.emit('debug', `Channels list saved: ${channels}`) : false;
 
-                resolve()
-            } catch (error) {
-                reject(error);
-            }
-        });
+            return true;
+        } catch (error) {
+            this.emit('error', error);
+        }
     };
 
-    saveInputs(path, appsList) {
-        return new Promise(async (resolve, reject) => {
-            try {
-                const inputs = JSON.stringify(appsList, null, 2);
-                await fsPromises.writeFile(path, inputs);
-                const debug = this.debugLog ? this.emit('debug', `Apps list saved: ${inputs}`) : false;
+    async saveInputs(path, appsList) {
+        try {
+            const inputs = JSON.stringify(appsList, null, 2);
+            await fsPromises.writeFile(path, inputs);
+            const debug = this.debugLog ? this.emit('debug', `Apps list saved: ${inputs}`) : false;
 
-                resolve()
-            } catch (error) {
-                reject(error);
-            }
-        });
+            return tzrue;
+        } catch (error) {
+            this.emit('error', error);
+        }
     };
 
-    prepareAccessory() {
-        return new Promise(async (resolve, reject) => {
-            try {
-                const pairingKey = await this.readPairingKey(this.keyFile);
-                if (pairingKey === '0') {
-                    reject(`Prepare accessory not possible, pairing key: ${pairingKey}.`);
-                }
-
-                this.startPrepareAccessory = false;
-                this.emit('prepareAccessory');
-                resolve();
-            } catch (error) {
-                reject(error);
+    async prepareAccessory() {
+        try {
+            const pairingKey = await this.readPairingKey(this.keyFile);
+            if (pairingKey === '0') {
+                this.emit('error', `Prepare accessory not possible, pairing key: ${pairingKey}.`);
+                return;
             }
-        });
+
+            this.startPrepareAccessory = false;
+            this.emit('prepareAccessory');
+            return true;
+        } catch (error) {
+            this.emit('error', error);
+        }
     }
 
-    subscribeTvStatus() {
-        return new Promise(async (resolve, reject) => {
-            try {
-                this.powerStateId = await this.getCid();
-                await this.send('subscribe', CONSTANTS.ApiUrls.GetPowerState, undefined, this.powerStateId);
-                this.currentAppId = await this.getCid();
-                await this.send('subscribe', CONSTANTS.ApiUrls.GetForegroundAppInfo, undefined, this.currentAppId);
-                this.currentChannelId = await this.getCid();
-                await this.send('subscribe', CONSTANTS.ApiUrls.GetCurrentChannel, undefined, this.currentChannelId);
-                this.audioStateId = await this.getCid();
-                await this.send('subscribe', CONSTANTS.ApiUrls.GetAudioStatus, undefined, this.audioStateId);
-                this.soundOutputId = await this.getCid();
-                await this.send('subscribe', CONSTANTS.ApiUrls.GetSoundOutput, undefined, this.soundOutputId);
+    async subscribeTvStatus() {
+        try {
+            this.powerStateId = await this.getCid();
+            await this.send('subscribe', CONSTANTS.ApiUrls.GetPowerState, undefined, this.powerStateId);
+            this.currentAppId = await this.getCid();
+            await this.send('subscribe', CONSTANTS.ApiUrls.GetForegroundAppInfo, undefined, this.currentAppId);
+            this.currentChannelId = await this.getCid();
+            await this.send('subscribe', CONSTANTS.ApiUrls.GetCurrentChannel, undefined, this.currentChannelId);
+            this.audioStateId = await this.getCid();
+            await this.send('subscribe', CONSTANTS.ApiUrls.GetAudioStatus, undefined, this.audioStateId);
+            this.soundOutputId = await this.getCid();
+            await this.send('subscribe', CONSTANTS.ApiUrls.GetSoundOutput, undefined, this.soundOutputId);
 
-                //picture settings
-                if (this.webOS >= 4.0) {
-                    const payload = {
-                        category: 'picture',
-                        keys: ['brightness', 'backlight', 'contrast', 'color']
-                    }
-                    this.pictureSettingsId = await this.getCid();
-                    await this.send('subscribe', CONSTANTS.ApiUrls.GetSystemSettings, payload, this.pictureSettingsId);
+            //picture settings
+            if (this.webOS >= 4.0) {
+                const payload = {
+                    category: 'picture',
+                    keys: ['brightness', 'backlight', 'contrast', 'color']
                 }
-
-                //picture mode
-                if (this.webOS >= 4.0) {
-                    const payload = {
-                        category: 'picture',
-                        keys: ['pictureMode']
-                    }
-                    this.pictureModeId = await this.getCid();
-                    //await this.send('alert', CONSTANTS.ApiUrls.GetSystemSettings, payload, this.pictureModeId);
-                }
-
-                //sound mode
-                if (this.webOS >= 6.0) {
-                    const payload = {
-                        category: 'sound',
-                        keys: ['soundMode']
-                    }
-                    this.soundModeId = await this.getCid();
-                    await this.send('subscribe', CONSTANTS.ApiUrls.GetSystemSettings, payload, this.soundModeId);
-                }
-                resolve();
-            } catch (error) {
-                reject(error);
-            };
-        });
-    }
-
-    getCid(type) {
-        return new Promise((resolve, reject) => {
-            try {
-                switch (type) {
-                    case 'Power':
-                        resolve(this.powerStateId);
-                        break;
-                    case 'App':
-                        resolve(this.currentAppId);
-                        break;
-                    case 'Channel':
-                        resolve(this.currentChannelId);
-                        break;
-                    case 'Audio':
-                        resolve(this.audioStateId);
-                        break;
-                    case 'PictureSettings':
-                        resolve(this.pictureSettingsId);
-                        break;
-                    case 'PictureMode':
-                        resolve(this.pictureModeId);
-                        break;
-                    case 'SoundMode':
-                        resolve(this.soundModeId);
-                        break;
-                    case 'SoundOutput':
-                        resolve(this.soundOutputId);
-                        break;
-                    case 'ExternalInputList':
-                        resolve(this.externalInoutListId);
-                        break;
-                    default:
-                        this.cidCount++;
-                        const randomPart = (`0000000${Math.floor(Math.random() * 0xFFFFFFFF).toString(16)}`).slice(-8);
-                        const counterPart = (`000${(this.cidCount).toString(16)}`).slice(-4);
-                        const cid = randomPart + counterPart;
-                        resolve(cid);
-                        break;
-                }
-            } catch (error) {
-                reject(error);
+                this.pictureSettingsId = await this.getCid();
+                await this.send('subscribe', CONSTANTS.ApiUrls.GetSystemSettings, payload, this.pictureSettingsId);
             }
-        });
+
+            //picture mode
+            if (this.webOS >= 4.0) {
+                const payload = {
+                    category: 'picture',
+                    keys: ['pictureMode']
+                }
+                this.pictureModeId = await this.getCid();
+                //await this.send('alert', CONSTANTS.ApiUrls.GetSystemSettings, payload, this.pictureModeId);
+            }
+
+            //sound mode
+            if (this.webOS >= 6.0) {
+                const payload = {
+                    category: 'sound',
+                    keys: ['soundMode']
+                }
+                this.soundModeId = await this.getCid();
+                await this.send('subscribe', CONSTANTS.ApiUrls.GetSystemSettings, payload, this.soundModeId);
+            }
+            return true;
+        } catch (error) {
+            this.emit('error', error);
+        };
     }
 
-    send(type, uri, payload, cid, title, message) {
-        return new Promise(async (resolve, reject) => {
+    async getCid(type) {
+        try {
+            switch (type) {
+                case 'Power':
+                    return this.powerStateId;
+                case 'App':
+                    return this.currentAppId;
+                case 'Channel':
+                    return this.currentChannelId;
+                case 'Audio':
+                    return this.audioStateId;
+                case 'PictureSettings':
+                    return this.pictureSettingsId;
+                case 'PictureMode':
+                    return this.pictureModeId;
+                case 'SoundMode':
+                    return this.soundModeId;
+                case 'SoundOutput':
+                    return this.soundOutputId;
+                case 'ExternalInputList':
+                    return this.externalInoutListId;
+                default:
+                    this.cidCount++;
+                    const randomPart = (`0000000${Math.floor(Math.random() * 0xFFFFFFFF).toString(16)}`).slice(-8);
+                    const counterPart = (`000${(this.cidCount).toString(16)}`).slice(-4);
+                    const cid = randomPart + counterPart;
+                    return cid;
+            }
+        } catch (error) {
+            this.emit('error', error);
+        }
+    }
 
-            try {
-                payload = payload ?? {};
-                cid = cid ?? await this.getCid();
-                title = title ?? 'Unknown Title';
-                message = message ?? 'Unknown Message';
 
-                switch (type) {
-                    case 'button':
-                        if (!this.specjalizedSocketConnected) {
-                            reject('Specjalized socket not connected.');
-                        };
+    async send(type, uri, payload = {}, cid = await this.getCid(), title = 'Unknown Title', message = 'Unknown Message') {
+        try {
+            if (!this.socketConnected && type !== 'button') {
+                this.emit('error', 'Socket not connected.');
+                return;
+            }
 
-                        const keyValuePairs = Object.entries(payload).map(([key, value]) => `${key}:${value}`);
-                        keyValuePairs.unshift(`type:${type}`);
-                        const message0 = keyValuePairs.join('\n') + '\n\n';
+            if (type === 'button' && !this.specializedSocketConnected) {
+                this.emit('error', 'Specialized socket not connected.');
+                return;
+            }
 
-                        this.specializedSocket.send(message0);
-                        resolve();
-                        break;
-                    case 'alert':
-                        if (!this.socketConnected) {
-                            reject('Socket not connected.');
-                        };
+            let data, messageContent;
+            switch (type) {
+                case 'button':
+                    const keyValuePairs = Object.entries(payload).map(([key, value]) => `${key}:${value}`);
+                    keyValuePairs.unshift(`type:${type}`);
+                    messageContent = keyValuePairs.join('\n') + '\n\n';
+                    this.specializedSocket.send(messageContent);
+                    break;
+                case 'alert':
+                    this.alertCid = cid;
+                    const alertPayload = {
+                        title: title,
+                        message: message,
+                        modal: true,
+                        buttons: [{ label: 'Ok', focus: true, buttonType: 'ok', onClick: uri, params: payload }],
+                        onclose: { uri: uri, params: payload },
+                        onfail: { uri: uri, params: payload },
+                        type: 'confirm',
+                        isSysReq: true
+                    };
+                    data = {
+                        id: cid,
+                        type: 'request',
+                        uri: CONSTANTS.ApiUrls.CreateAlert,
+                        payload: alertPayload
+                    };
+                    break;
+                case 'toast':
+                    this.toastCid = cid;
+                    const toastPayload = { message: message, iconData: null, iconExtension: null, onClick: payload };
+                    data = {
+                        id: cid,
+                        type: 'request',
+                        uri: CONSTANTS.ApiUrls.CreateToast,
+                        payload: toastPayload
+                    };
+                    break;
+                default:
+                    data = { id: cid, type: type, uri: uri, payload: payload };
+                    break;
+            }
 
-                        this.alertCid = cid;
-                        const buttons = [{ label: 'Ok', focus: true, buttonType: 'ok', onClick: uri, params: payload }];
-                        const onClose = { uri: uri, params: payload };
-                        const onFail = { uri: uri, params: payload };
-                        const payload1 = { title: title, message: message, modal: true, buttons: buttons, onclose: onClose, onfail: onFail, type: 'confirm', isSysReq: true };
-                        const data1 = {
-                            id: cid,
-                            type: 'request',
-                            uri: CONSTANTS.ApiUrls.CreateAlert,
-                            payload: payload1
-                        };
+            if (type !== 'button') {
+                messageContent = JSON.stringify(data);
+                this.socket.send(messageContent);
+            }
 
-                        const message1 = JSON.stringify(data1);
-                        this.socket.send(message1);
-                        const debug = this.debugLog ? this.emit('debug', `Alert send: ${message1}`) : false;
-                        resolve();
-                        break;
-                    case 'toast':
-                        if (!this.socketConnected) {
-                            reject('Socket not connected.');
-                        };
-
-                        this.toastCid = cid;
-                        const payload2 = { message: message, iconData: null, iconExtension: null, onClick: payload };
-                        const data2 = {
-                            id: cid,
-                            type: 'request',
-                            uri: CONSTANTS.ApiUrls.CreateToast,
-                            payload: payload2
-                        };
-
-                        const message2 = JSON.stringify(data2);
-                        this.socket.send(message2);
-                        const debug1 = this.debugLog ? this.emit('debug', `Toast send: ${message2}`) : false;
-                        resolve();
-                        break;
-                    default:
-                        if (!this.socketConnected) {
-                            reject('Socket not connected.');
-                        };
-
-                        const data3 = {
-                            id: cid,
-                            type: type,
-                            uri: uri,
-                            payload: payload
-                        };
-
-                        const message3 = JSON.stringify(data3);
-                        this.socket.send(message3);
-                        const debug2 = this.debugLog ? this.emit('debug', `Socket send: ${message3}`) : false;
-                        resolve();
-                        break
-                };
-            } catch (error) {
-                reject(error);
-            };
-        });
-    };
+            if (this.debugLog) {
+                this.emit('debug', `${type.charAt(0).toUpperCase() + type.slice(1)} send: ${messageContent}`);
+            }
+            return true;
+        } catch (error) {
+            this.emit('error', error);
+        }
+    }
 };
 module.exports = LgWebOsSocket;
