@@ -580,11 +580,11 @@ class LgWebOsDevice extends EventEmitter {
             })
             .on('prepareAccessory', async () => {
                 //RESTFul server
-                const restFulEnabled = device.enableRestFul || false;
+                const restFulEnabled = device.restFul.enable || false;
                 if (restFulEnabled) {
                     this.restFul = new RestFul({
-                        port: device.restFulPort || 3000,
-                        debug: device.restFulDebug || false
+                        port: device.restFul.port || 3000,
+                        debug: device.restFul.debug || false
                     });
 
                     this.restFul.on('connected', (message) => {
@@ -600,16 +600,16 @@ class LgWebOsDevice extends EventEmitter {
                 }
 
                 //mqtt client
-                const mqttEnabled = device.enableMqtt || false;
+                const mqttEnabled = device.mqtt.enable || false;
                 if (mqttEnabled) {
                     this.mqtt = new Mqtt({
-                        host: device.mqttHost,
-                        port: device.mqttPort || 1883,
-                        clientId: device.mqttClientId || `lgwebos_${Math.random().toString(16).slice(3)}`,
-                        prefix: `${device.mqttPrefix}/${this.name}`,
-                        user: device.mqttUser,
-                        passwd: device.mqttPasswd,
-                        debug: device.mqttDebug || false
+                        host: device.mqtt.host,
+                        port: device.mqtt.port || 1883,
+                        clientId: device.mqtt.clientId || `lgwebos_${Math.random().toString(16).slice(3)}`,
+                        prefix: `${device.mqtt.prefix}/${this.name}`,
+                        user: device.mqtt.user,
+                        passwd: device.mqtt.passwd,
+                        debug: device.mqtt.debug || false
                     });
 
                     this.mqtt.on('connected', (message) => {

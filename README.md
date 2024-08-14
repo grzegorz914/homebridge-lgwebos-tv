@@ -119,18 +119,20 @@ Tested with OLED65G6V, 32LM6300PLA, 49SK8500, OLED65C7T, 55SK800PLB, OLED48CX.
 | `disableLogInfo` | If enabled, disable log info, all values and state will not be displayed in Homebridge log console. |
 | `disableLogDeviceInfo` | If enabled, add ability to disable log device info by every connections device to the network. |
 | `disableTvService` | If enabled, TV service will be disabled and prevent display double services if TV already support HomeKit native. |
-| `enableRestFul` | If enabled, RESTful server will start automatically and respond to any path request. |
-| `restFulPort` | Here set the listening `Port` for RESTful server, every device need own port. |
-| `restFulDebug` | If enabled, deep log will be present in homebridge console for RESTFul server. |
-| `enableMqtt` | If enabled, MQTT Broker will start automatically and publish all awailable PV installation data. |
-| `mqttHost` | Here set the `IP Address` or `Hostname` for MQTT Broker. |
-| `mqttPort` | Here set the `Port` for MQTT Broker, default 1883. |
-| `mqttClientId` | Here optional set the `Client Id` of MQTT Broker. |
-| `mqttPrefix` | Here set the `Prefix` for `Topic` or leave empty. |
-| `mqttAuth` | If enabled, MQTT Broker will use authorization credentials. |
-| `mqttUser` | Here set the MQTT Broker user. |
-| `mqttPasswd` | Here set the MQTT Broker password. |
-| `mqttDebug` | If enabled, deep log will be present in homebridge console for MQTT. |
+| `restFul` | This is RSTful server. |
+| `enable` | If enabled, RESTful server will start automatically and respond to any path request. |
+| `port` | Here set the listening `Port` for RESTful server. |
+| `debug` | If enabled, deep log will be present in homebridge console for RESTFul server. |
+| `mqtt` | This is MQTT Broker. |
+| `enable` | If enabled, MQTT Broker will start automatically and publish all awailable PV data. |
+| `host` | Here set the `IP Address` or `Hostname` for MQTT Broker. |
+| `port` | Here set the `Port` for MQTT Broker, default 1883. |
+| `clientId` | Here optional set the `Client Id` of MQTT Broker. |
+| `prefix` | Here set the `Prefix` for `Topic` or leave empty. |
+| `auth` | If enabled, MQTT Broker will use authorization credentials. |
+| `user` | Here set the MQTT Broker user. |
+| `passwd` | Here set the MQTT Broker password. |
+| `debug` | If enabled, deep log will be present in homebridge console for MQTT. |
 | `reference` | All can be found in `homebridge_directory/lgwebosTv`, `inputs_xxx` file, where `reference == id`, or `channels_xxx` file, where `reference == channelId`. |
 
 ### RESTFul Integration

@@ -34,7 +34,15 @@ class LgWebOsPlatform {
 				//debug config
 				const enableDebugMode = device.enableDebugMode || false;
 				const debug = enableDebugMode ? log(`Device: ${host} ${deviceName}, did finish launching.`) : false;
-				const debug1 = enableDebugMode ? log(`Device: ${host} ${deviceName}, Config: ${JSON.stringify(device, null, 2)}`) : false;
+				const config = {
+					...device,
+					mqtt: {
+					  ...device.mqtt,
+					  user: 'removed',
+					  passwd: 'removed'
+					}
+				  };
+				const debug1 = enableDebugMode ? log(`Device: ${host} ${deviceName}, Config: ${JSON.stringify(config, null, 2)}`) : false;
 
 				//webos device
 				const lgWebOsDevice = new LgWebOsDevice(api, prefDir, device);
