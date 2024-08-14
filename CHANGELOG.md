@@ -7,7 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## Changes
 
-### After update to v9.0.0 RESTFull and MQTT config settings need to be updated
+### After update to v3.0.0 RESTFull and MQTT config settings need to be updated
 
 - hide passwords by typing and display in Config UI
 - remove return duplicate promises from whole code
