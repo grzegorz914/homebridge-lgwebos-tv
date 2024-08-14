@@ -921,7 +921,7 @@ class LgWebOsSocket extends EventEmitter {
     }
 
 
-    async send(type, uri, payload = {}, cid = await this.getCid(), title = 'Unknown Title', message = 'Unknown Message') {
+    async send(type, uri, payload = {}, cid, title = 'Unknown Title', message = 'Unknown Message') {
         try {
             if (!this.socketConnected && type !== 'button') {
                 this.emit('error', 'Socket not connected.');
