@@ -817,7 +817,7 @@ class LgWebOsSocket extends EventEmitter {
             await fsPromises.writeFile(path, inputs);
             const debug = this.debugLog ? this.emit('debug', `Apps list saved: ${inputs}`) : false;
 
-            return tzrue;
+            return true;
         } catch (error) {
             this.emit('error', error);
         }
