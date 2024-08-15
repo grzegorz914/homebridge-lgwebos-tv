@@ -66,8 +66,15 @@ class LgWebOsDevice extends EventEmitter {
         this.volumeControlName = device.volumeControlName || 'Volume';
         this.volumeControl = device.volumeControl || false;
 
-        //external integration
+        //external integrations
+        //restFul
+        const restFul = device.restFul ?? {};
+        const restFulEnabled = restFul.enable || false;
         this.restFulConnected = false;
+
+        //mqtt
+        const mqtt = device.restFul ?? {};
+        const mqttEnabled = mqtt.enable || false;
         this.mqttConnected = false;
 
         //accessory services
@@ -580,11 +587,10 @@ class LgWebOsDevice extends EventEmitter {
             })
             .on('prepareAccessory', async () => {
                 //RESTFul server
-                const restFulEnabled = device.restFul.enable || false;
                 if (restFulEnabled) {
                     this.restFul = new RestFul({
-                        port: device.restFul.port || 3000,
-                        debug: device.restFul.debug || false
+                        port: restFul.port || 3000,
+                        debug: restFul.debug || false
                     });
 
                     this.restFul.on('connected', (message) => {
@@ -600,16 +606,15 @@ class LgWebOsDevice extends EventEmitter {
                 }
 
                 //mqtt client
-                const mqttEnabled = device.mqtt.enable || false;
                 if (mqttEnabled) {
                     this.mqtt = new Mqtt({
-                        host: device.mqtt.host,
-                        port: device.mqtt.port || 1883,
-                        clientId: device.mqtt.clientId || `lgwebos_${Math.random().toString(16).slice(3)}`,
-                        prefix: `${device.mqtt.prefix}/${this.name}`,
-                        user: device.mqtt.user,
-                        passwd: device.mqtt.passwd,
-                        debug: device.mqtt.debug || false
+                        host: mqtt.host,
+                        port: mqtt.port || 1883,
+                        clientId: mqtt.clientId || `lgwebos_${Math.random().toString(16).slice(3)}`,
+                        prefix: `${mqtt.prefix}/${this.name}`,
+                        user: mqtt.user,
+                        passwd: mqtt.passwd,
+                        debug: mqtt.debug || false
                     });
 
                     this.mqtt.on('connected', (message) => {
