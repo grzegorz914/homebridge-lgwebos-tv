@@ -3,11 +3,17 @@
 All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
-## [3.0.0] - (14.08.2024)
+### After update to v3.0.0 RESTFull and MQTT config settings need to be updated
+
+## [3.0.4] - (18.08.2024)
 
 ## Changes
 
-### After update to v3.0.0 RESTFull and MQTT config settings need to be updated
+- fix correct catch error
+
+## [3.0.0] - (14.08.2024)
+
+## Changes
 
 - hide passwords by typing and display in Config UI
 - remove return duplicate promises from whole code

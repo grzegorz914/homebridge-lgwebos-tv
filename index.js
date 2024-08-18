@@ -33,30 +33,33 @@ class LgWebOsPlatform {
 
 				//debug config
 				const enableDebugMode = device.enableDebugMode || false;
-				const debug = enableDebugMode ? log(`Device: ${host} ${deviceName}, did finish launching.`) : false;
+				const debug = enableDebugMode ? log.info(`Device: ${host} ${deviceName}, did finish launching.`) : false;
 				const config = {
 					...device,
 					mqtt: {
-					  ...device.mqtt,
-					  passwd: 'removed'
+						...device.mqtt,
+						passwd: 'removed'
 					}
-				  };
+				};
 				const debug1 = enableDebugMode ? log(`Device: ${host} ${deviceName}, Config: ${JSON.stringify(config, null, 2)}`) : false;
 
 				//webos device
 				const lgWebOsDevice = new LgWebOsDevice(api, prefDir, device);
 				lgWebOsDevice.on('publishAccessory', (accessory) => {
 					api.publishExternalAccessories(CONSTANTS.PluginName, [accessory]);
-					const debug = enableDebugMode ? log(`Device: ${host} ${deviceName}, published as external accessory.`) : false;
+					log.success(`Device: ${host} ${deviceName}, published as external accessory.`);
 				})
 					.on('devInfo', (devInfo) => {
-						log(devInfo);
+						log.info(devInfo);
 					})
 					.on('message', (message) => {
-						log(`Device: ${host} ${deviceName}, ${message}`);
+						log.info(`Device: ${host} ${deviceName}, ${message}`);
 					})
 					.on('debug', (debug) => {
-						log(`Device: ${host} ${deviceName}, debug: ${debug}`);
+						log.info(`Device: ${host} ${deviceName}, debug: ${debug}`);
+					})
+					.on('warn', (warn) => {
+						log.warn(`Device: ${host} ${deviceName}, ${warn}`);
 					})
 					.on('error', (error) => {
 						log.error(`Device: ${host} ${deviceName}, ${error}`);

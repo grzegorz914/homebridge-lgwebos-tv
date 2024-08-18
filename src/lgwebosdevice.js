@@ -224,7 +224,7 @@ class LgWebOsDevice extends EventEmitter {
                 }
             });
         } catch (error) {
-            this.emit('error', `prepare files error: ${error}`);
+            throw new Error(`prepare files error: ${error}`);
         }
 
         //Wake On Lan
@@ -795,6 +795,9 @@ class LgWebOsDevice extends EventEmitter {
             .on('debug', (debug) => {
                 this.emit('debug', debug);
             })
+            .on('warn', (warn) => {
+                this.emit('warn', warn);
+            })
             .on('error', (error) => {
                 this.emit('error', error);
             })
@@ -831,7 +834,7 @@ class LgWebOsDevice extends EventEmitter {
             this.televisionService.setCharacteristic(Characteristic.DisplayOrder, Encode(1, displayOrder).toString('base64'));
             return true;;
         } catch (error) {
-            this.emit('error', error);
+            throw new Error(error);
         };
     }
 
@@ -841,7 +844,7 @@ class LgWebOsDevice extends EventEmitter {
             const debug = !this.enableDebugMode ? false : this.emit('debug', `Saved data: ${JSON.stringify(data, null, 2)}`);
             return true;;
         } catch (error) {
-            this.emit('error', error);
+            throw new Error(error);
         };
     }
 
@@ -850,7 +853,7 @@ class LgWebOsDevice extends EventEmitter {
             const data = await fsPromises.readFile(path);
             return data;
         } catch (error) {
-            this.emit('error', `Read saved data error: ${error}`);
+            throw new Error(`Read saved data error: ${error}`);
         };
     }
 
@@ -902,7 +905,6 @@ class LgWebOsDevice extends EventEmitter {
                                     break;
                             }
                             const info = this.disableLogInfo ? false : this.emit('message', `set Power: ${state ? 'ON' : 'OFF'}`);
-                            await new Promise(resolve => setTimeout(resolve, 3000));
                         } catch (error) {
                             this.emit('error', `set Power error: ${error}`);
                         }
@@ -2011,7 +2013,7 @@ class LgWebOsDevice extends EventEmitter {
 
             return accessory;
         } catch (error) {
-            this.emit('error', error)
+            throw new Error(error)
         };
     };
 };

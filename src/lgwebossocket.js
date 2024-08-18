@@ -753,7 +753,7 @@ class LgWebOsSocket extends EventEmitter {
                     try {
                         const prepare = this.startPrepareAccessory && !this.socketConnected ? await this.prepareAccessory() : false;
                     } catch (error) {
-                        this.emit('error', `Prepare accessory error: ${error}.`);
+                        throw new Error(`Prepare accessory error: ${error}.`);
                     }
                 }, 5500);
             });
@@ -766,7 +766,7 @@ class LgWebOsSocket extends EventEmitter {
             const pairingKey = key.length > 10 ? key.toString() : '0';
             return pairingKey;
         } catch (error) {
-            this.emit('error', error);
+            throw new Error(error);
         }
     }
 
@@ -775,7 +775,7 @@ class LgWebOsSocket extends EventEmitter {
             await fsPromises.writeFile(path, pairingKey);
             return true;
         } catch (error) {
-            this.emit('error', error);
+            throw new Error(error);
         }
     }
 
@@ -795,7 +795,7 @@ class LgWebOsSocket extends EventEmitter {
 
             return true;
         } catch (error) {
-            this.emit('error', error);
+            throw new Error(error);
         };
     };
 
@@ -807,7 +807,7 @@ class LgWebOsSocket extends EventEmitter {
 
             return true;
         } catch (error) {
-            this.emit('error', error);
+            throw new Error(error);
         }
     };
 
@@ -819,7 +819,7 @@ class LgWebOsSocket extends EventEmitter {
 
             return true;
         } catch (error) {
-            this.emit('error', error);
+            throw new Error(error);
         }
     };
 
@@ -835,7 +835,7 @@ class LgWebOsSocket extends EventEmitter {
             this.emit('prepareAccessory');
             return true;
         } catch (error) {
-            this.emit('error', error);
+            throw new Error(error);
         }
     }
 
@@ -883,7 +883,7 @@ class LgWebOsSocket extends EventEmitter {
             }
             return true;
         } catch (error) {
-            this.emit('error', error);
+            throw new Error(error);
         };
     }
 
@@ -916,7 +916,7 @@ class LgWebOsSocket extends EventEmitter {
                     return cid;
             }
         } catch (error) {
-            this.emit('error', error);
+            throw new Error(error);
         }
     }
 
@@ -924,12 +924,12 @@ class LgWebOsSocket extends EventEmitter {
     async send(type, uri, payload = {}, cid, title = 'Unknown Title', message = 'Unknown Message') {
         try {
             if (!this.socketConnected && type !== 'button') {
-                this.emit('error', 'Socket not connected.');
+                this.emit('warn', 'Socket not connected.');
                 return;
             }
 
             if (type === 'button' && !this.specializedSocketConnected) {
-                this.emit('error', 'Specialized socket not connected.');
+                this.emit('warn', 'Specialized socket not connected.');
                 return;
             }
 
@@ -985,7 +985,7 @@ class LgWebOsSocket extends EventEmitter {
             }
             return true;
         } catch (error) {
-            this.emit('error', error);
+            throw new Error(error);
         }
     }
 };
