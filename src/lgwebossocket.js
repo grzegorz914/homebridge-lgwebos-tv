@@ -54,7 +54,7 @@ class LgWebOsSocket extends EventEmitter {
             try {
                 this.pairingKey = await this.readPairingKey(keyFile);
             } catch (error) {
-                this.emit('error', `Read pairing key error: ${error}`);
+                this.emit('warn', `Read pairing key error: ${error}`);
             };
 
             //Socket
@@ -115,7 +115,7 @@ class LgWebOsSocket extends EventEmitter {
                                         await this.savePairingKey(keyFile, pairingKey);
                                         this.emit('message', 'Pairing key saved.');
                                     } catch (error) {
-                                        this.emit('error', `Pairing key save error: ${error}`);
+                                        this.emit('warn', `Pairing key save error: ${error}`);
                                     };
                                 };
 
@@ -827,7 +827,7 @@ class LgWebOsSocket extends EventEmitter {
         try {
             const pairingKey = await this.readPairingKey(this.keyFile);
             if (pairingKey === '0') {
-                this.emit('error', `Prepare accessory not possible, pairing key: ${pairingKey}.`);
+                this.emit('warn', `Prepare accessory not possible, pairing key: ${pairingKey}.`);
                 return;
             }
 

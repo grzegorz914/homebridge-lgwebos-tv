@@ -55,7 +55,7 @@ class WOL extends EventEmitter {
                 })
                 .bind();
         } catch (error) {
-            this.emit('error', error);
+            throw new Error(error);
         }
     }
 }

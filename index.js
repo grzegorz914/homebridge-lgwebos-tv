@@ -41,7 +41,7 @@ class LgWebOsPlatform {
 						passwd: 'removed'
 					}
 				};
-				const debug1 = enableDebugMode ? log(`Device: ${host} ${deviceName}, Config: ${JSON.stringify(config, null, 2)}`) : false;
+				const debug1 = enableDebugMode ? log.info(`Device: ${host} ${deviceName}, Config: ${JSON.stringify(config, null, 2)}`) : false;
 
 				//webos device
 				const lgWebOsDevice = new LgWebOsDevice(api, prefDir, device);
