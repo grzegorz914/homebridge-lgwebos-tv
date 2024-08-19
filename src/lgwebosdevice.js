@@ -224,7 +224,8 @@ class LgWebOsDevice extends EventEmitter {
                 }
             });
         } catch (error) {
-            throw new Error(`prepare files error: ${error}`);
+            this.emit('error', `prepare files error: ${error}`);
+            return;
         }
 
         //Wake On Lan
@@ -234,7 +235,7 @@ class LgWebOsDevice extends EventEmitter {
             debugLog: this.enableDebugMode
         })
             .on('error', (error) => {
-                this.emit('error', error);
+                this.emit('warn', error);
             })
             .on('debug', (debug) => {
                 this.emit('debug', debug);
@@ -747,7 +748,7 @@ class LgWebOsDevice extends EventEmitter {
                             this.emit('debug', debug);
                         })
                         .on('error', (error) => {
-                            this.emit('error', error);
+                            this.emit('warn', error);
                         });
                 };
 
