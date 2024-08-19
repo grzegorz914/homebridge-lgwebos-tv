@@ -599,7 +599,7 @@ class LgWebOsDevice extends EventEmitter {
                         this.restFulConnected = true;
                     })
                         .on('error', (error) => {
-                            this.emit('error', error);
+                            this.emit('warn', error);
                         })
                         .on('debug', (debug) => {
                             this.emit('debug', debug);
