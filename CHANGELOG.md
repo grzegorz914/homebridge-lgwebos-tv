@@ -5,6 +5,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ### After update to v3.0.0 RESTFull and MQTT config settings need to be updated
 
+## [3.1.0] - (23.08.2024)
+
+## Changes
+
+- add control over RESTFul POST JSON Object
+- bump dependencies
+- cleanup
+
 ## [3.0.4] - (18.08.2024)
 
 ## Changes

@@ -114,7 +114,7 @@ Tested with OLED65G6V, 32LM6300PLA, 49SK8500, OLED65C7T, 55SK800PLB, OLED48CX.
 | `sslWebSocket` | If enabled, SSL WebSocket will support TV with new firmware. |
 | `serviceMenu` | If enabled, service menu will be available from the input list. |
 | `ezAdjustMenu` | If enabled, ez adjust menu will be available from the input list. |
-| `infoButtonCommand` | Here select the function of `I` button in RC app. 
+| `infoButtonCommand` | Here select the function of `I` button in RC app.
 | `enableDebugMode` | If enabled, deep log will be present in homebridge console. |
 | `disableLogInfo` | If enabled, disable log info, all values and state will not be displayed in Homebridge log console. |
 | `disableLogDeviceInfo` | If enabled, add ability to disable log device info by every connections device to the network. |
@@ -137,35 +137,52 @@ Tested with OLED65G6V, 32LM6300PLA, 49SK8500, OLED65C7T, 55SK800PLB, OLED48CX.
 
 ### RESTFul Integration
 
-* Request: `http//homebridge_ip_address:port/path`.
-* Path: `systemnfo`, `softwareinfo`, `channels`, `apps`, `power`, `audio`, `currentapp`, `currentchannel`, `picturesettings`, `soundmode`, `soundoutput`, `externalinputlist`.
-* Respone as JSON object.
+* POST data as a JSON Object `{Power: true}`
+
+| Method | URL | Path | Response | Type |
+| --- | --- | --- | --- | --- |
+| GET | `http//ip:port` | `systemnfo`, `softwareinfo`, `channels`, `apps`, `power`, `audio`, `currentapp`, `currentchannel`, `picturesettings`, `soundmode`, `soundoutput`, `externalinputlist`. | `{"state": Active}` | JSON object. |
+
+| Method | URL | Key | Value | Type | Description |
+| --- | --- | --- | --- | --- | --- |
+| POST | `http//ip:port` | `Power` | `true`, `false` | boolean | Power state. |
+|      | `http//ip:port` | `Input` | `input reference` | string | Set input. |
+|      | `http//ip:port` | `Channel` | `channel reference` | string | Set channel. |
+|      | `http//ip:port` | `Volume` | `100` | integer | Set volume. |
+|      | `http//ip:port` | `Mute` | `true`, `false` | boolean | Set mute. |
+|      | `http//ip:port` | `Brightness` | `100` | integer | Set brightness. |
+|      | `http//ip:port` | `Backlight` | `100` | integer | Set backlight. |
+|      | `http//ip:port` | `Contrast` | `100` | integer | Set contrast. |
+|      | `http//ip:port` | `Color` | `100` | integer | Set color. |
+|      | `http//ip:port` | `PictureMode` | `picture mode reference` | string | Set picture mode. |
+|      | `http//ip:port` | `SoundMode` | `sound mode reference` | string | Set sound mode. |
+|      | `http//ip:port` | `SoundOutput` | `sound output reference` | string | Set sound output. |
+|      | `http//ip:port` | `RcControl` | `REWIND` | string | Send RC command. |
 
 ### MQTT Integration
 
-| Direction | Topic | Message | Payload Data |
-| --- | --- | --- | --- |
-|  Publish   | `System Info`, `Software Info`, `Channels`, `Apps`, `Power`, `Audio`, `Current App`, `Current Channel`, `Picture Settings`, `Sound Mode`, `Sound Output`, `External Input List` | `{"state": Active}` | JSON object. |
-|  Subscribe   | `Set` | `{"Power": true}` | JSON object. |
-
-| Subscribe | Key | Value | Type | Description |
-| --- | --- | --- | --- | --- |
-| LG WebOS|     |     |     |      |
-|     | `Power` | `true`, `false` | boolean | Power state. |
-|     | `Input` | `input reference` | string | Set input. |
-|     | `Channel` | `channel reference` | string | Set channel. |
-|     | `Volume` | `100` | integer | Set volume. |
-|     | `Mute` | `true`, `false` | boolean | Set mute. |
-|     | `Brightness` | `100` | integer | Set brightness. |
-|     | `Backlight` | `100` | integer | Set backlight. |
-|     | `Contrast` | `100` | integer | Set contrast. |
-|     | `Color` | `100` | integer | Set color. |
-|     | `PictureMode` | `picture mode reference` | string | Set picture mode. |
-|     | `SoundMode` | `sound mode reference` | string | Set sound mode. |
-|     | `SoundOutput` | `sound output reference` | string | Set sound output. |
-|     | `RcControl` | `REWIND` | string | Send RC command. |
-
+* Subscribe data as a JSON Object `{Power: true}`
 * References:
   * Picture Mode - `cinema`, `eco`, `expert1`, `expert2`, `game`, `normal`, `photo`, `sports`, `technicolor`, `vivid`, `hdrEffect`, `hdrCinema`, `hdrCinemaBright`, `hdrExternal`, `hdrGame`, `hdrStandard`, `hdrTechnicolor`, `hdrVivid`, `dolbyHdrCinema`, `dolbyHdrCinemaBright`, `dolbyHdrDarkAmazon`, `dolbyHdrGame`, `dolbyHdrStandard`, `dolbyHdrVivid`, `dolbyStandard`.
   * Sound Mode - `aiSoundPlus`, `standard`, `movie`, `clearVoice`, `news`, `sport`, `music`, `game`.
   * Sound Output - `tv_speaker`, `external_speaker`, `external_optical`, `external_arc`, `lineout`, `headphone`, `tv_external_speaker`, `tv_external_headphone`, `bt_soundbar`, `soundbar`.
+
+| Method | Topic | Message | Type |
+| --- | --- | --- | --- |
+| Publish | `System Info`, `Software Info`, `Channels`, `Apps`, `Power`, `Audio`, `Current App`, `Current Channel`, `Picture Settings`, `Sound Mode`, `Sound Output`, `External Input List` | `{"state": Active}` | JSON object. |
+
+| Method | Topic | Key | Value | Type | Description |
+| --- | --- | --- | --- | --- | --- |
+| Subscribe | `Set` | `Power` | `true`, `false` | boolean | Power state. |
+|           | `Set` | `Input` | `input reference` | string | Set input. |
+|           | `Set` | `Channel` | `channel reference` | string | Set channel. |
+|           | `Set` | `Volume` | `100` | integer | Set volume. |
+|           | `Set` | `Mute` | `true`, `false` | boolean | Set mute. |
+|           | `Set` | `Brightness` | `100` | integer | Set brightness. |
+|           | `Set` | `Backlight` | `100` | integer | Set backlight. |
+|           | `Set` | `Contrast` | `100` | integer | Set contrast. |
+|           | `Set` | `Color` | `100` | integer | Set color. |
+|           | `Set` | `PictureMode` | `picture mode reference` | string | Set picture mode. |
+|           | `Set` | `SoundMode` | `sound mode reference` | string | Set sound mode. |
+|           | `Set` | `SoundOutput` | `sound output reference` | string | Set sound output. |
+|           | `Set` | `RcControl` | `REWIND` | string | Send RC command. |

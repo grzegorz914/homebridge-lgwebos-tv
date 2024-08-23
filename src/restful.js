@@ -29,6 +29,7 @@ class RestFul extends EventEmitter {
         try {
             const restFul = express();
             restFul.set('json spaces', 2);
+            restFul.use(express.json());
             restFul.get('/systeminfo', (req, res) => { res.json(this.restFulData.systeminfo) });
             restFul.get('/softwareinfo', (req, res) => { res.json(this.restFulData.softwareinfo) });
             restFul.get('/channels', (req, res) => { res.json(this.restFulData.channels) });
@@ -41,6 +42,20 @@ class RestFul extends EventEmitter {
             restFul.get('/soundmode', (req, res) => { res.json(this.restFulData.soundmode) });
             restFul.get('/soundoutput', (req, res) => { res.json(this.restFulData.soundoutput) });
             restFul.get('/externalinputlist', (req, res) => { res.json(this.restFulData.externalinputlist) });
+
+            //post data
+            restFul.post('/', (req, res) => {
+                try {
+                    const obj = req.body;
+                    const emitDebug = this.restFulDebug ? this.emit('debug', `RESTFul post data: ${JSON.stringify(obj, null, 2)}`) : false;
+                    const key = Object.keys(obj)[0];
+                    const value = Object.values(obj)[0];
+                    this.emit('set', key, value);
+                    res.send('OK');
+                } catch (error) {
+                    this.emit('error', `RESTFul Parse object error: ${error}`);
+                };
+            });
 
             restFul.listen(this.restFulPort, () => {
                 this.emit('connected', `RESTful started on port: ${this.restFulPort}`)

@@ -67,14 +67,9 @@ class LgWebOsDevice extends EventEmitter {
         this.volumeControl = device.volumeControl || false;
 
         //external integrations
-        //restFul
         const restFul = device.restFul ?? {};
-        const restFulEnabled = restFul.enable || false;
         this.restFulConnected = false;
-
-        //mqtt
         const mqtt = device.mqtt ?? {};
-        const mqttEnabled = mqtt.enable || false;
         this.mqttConnected = false;
 
         //accessory services
@@ -588,6 +583,7 @@ class LgWebOsDevice extends EventEmitter {
             })
             .on('prepareAccessory', async () => {
                 //RESTFul server
+                const restFulEnabled = restFul.enable || false;
                 if (restFulEnabled) {
                     this.restFul = new RestFul({
                         port: restFul.port || 3000,
@@ -595,9 +591,16 @@ class LgWebOsDevice extends EventEmitter {
                     });
 
                     this.restFul.on('connected', (message) => {
-                        this.emit('message', message);
+                        this.emit('success', message);
                         this.restFulConnected = true;
                     })
+                        .on('set', async (key, value) => {
+                            try {
+                                await this.setOverExternalIntegration('RESTFul', key, value);
+                            } catch (error) {
+                                this.emit('warn', `RESTFul set error: ${error}`);
+                            };
+                        })
                         .on('error', (error) => {
                             this.emit('warn', error);
                         })
@@ -607,6 +610,7 @@ class LgWebOsDevice extends EventEmitter {
                 }
 
                 //mqtt client
+                const mqttEnabled = mqtt.enable || false;
                 if (mqttEnabled) {
                     this.mqtt = new Mqtt({
                         host: mqtt.host,
@@ -619,129 +623,17 @@ class LgWebOsDevice extends EventEmitter {
                     });
 
                     this.mqtt.on('connected', (message) => {
-                        this.emit('message', message);
+                        this.emit('success', message);
                         this.mqttConnected = true;
                     })
                         .on('subscribed', (message) => {
-                            this.emit('message', message);
+                            this.emit('success', message);
                         })
-                        .on('subscribedMessage', async (key, value) => {
+                        .on('set', async (key, value) => {
                             try {
-                                switch (key) {
-                                    case 'Power':
-                                        switch (value) {
-                                            case 1:
-                                                await this.wol.wakeOnLan();
-                                                break;
-                                            case 0:
-                                                const cid = await this.lgWebOsSocket.getCid('Power');
-                                                await this.lgWebOsSocket.send('request', CONSTANTS.ApiUrls.TurnOff, undefined, cid);
-                                                break;
-                                        }
-                                        break;
-                                    case 'App':
-                                        const cid = await this.lgWebOsSocket.getCid('App');
-                                        await this.lgWebOsSocket.send('request', CONSTANTS.ApiUrls.LaunchApp, { id: value }, cid);
-                                        break;
-                                    case 'Channel':
-                                        const cid1 = await this.lgWebOsSocket.getCid('Channel');
-                                        await this.lgWebOsSocket.send('request', CONSTANTS.ApiUrls.OpenChannel, { channelId: value }, cid1)
-                                        break;
-                                    case 'Volume':
-                                        const volume = (value < 0 || value > 100) ? this.volume : value;
-                                        const payload = {
-                                            volume: volume,
-                                            soundOutput: this.soundOutput
-                                        };
-                                        const cid2 = await this.lgWebOsSocket.getCid('Audio');
-                                        await this.lgWebOsSocket.send('request', CONSTANTS.ApiUrls.SetVolume, payload, cid2);
-                                        break;
-                                    case 'Mute':
-                                        const payload3 = {
-                                            mute: value
-                                        };
-                                        const cid3 = await this.lgWebOsSocket.getCid('Audio');
-                                        await this.lgWebOsSocket.send('request', CONSTANTS.ApiUrls.SetMute, payload1, cid3);
-                                        break;
-                                    case 'Brightness':
-                                        const payload4 = {
-                                            category: 'picture',
-                                            settings: {
-                                                brightness: value
-                                            }
-                                        };
-                                        const cid4 = await this.lgWebOsSocket.getCid();
-                                        await this.lgWebOsSocket.send('alert', CONSTANTS.ApiUrls.SetMute, payload4, cid4);
-                                        break;
-                                    case 'Backlight':
-                                        const payload5 = {
-                                            category: 'picture',
-                                            settings: {
-                                                backlight: value
-                                            }
-                                        };
-                                        const cid5 = await this.lgWebOsSocket.getCid();
-                                        await this.lgWebOsSocket.send('alert', CONSTANTS.ApiUrls.SetMute, payload5, cid5);
-                                        break;
-                                    case 'Contrast':
-                                        const payload6 = {
-                                            category: 'picture',
-                                            settings: {
-                                                contrast: value
-                                            }
-                                        };
-                                        const cid6 = await this.lgWebOsSocket.getCid();
-                                        await this.lgWebOsSocket.send('alert', CONSTANTS.ApiUrls.SetMute, payload6, cid6);
-                                        break;
-                                    case 'Color':
-                                        const payload7 = {
-                                            category: 'picture',
-                                            settings: {
-                                                color: value
-                                            }
-                                        };
-                                        const cid7 = await this.lgWebOsSocket.getCid();
-                                        await this.lgWebOsSocket.send('alert', CONSTANTS.ApiUrls.SetMute, payload7, cid7);
-                                        break;
-                                    case 'PictureMode':
-                                        const payload8 = {
-                                            category: 'picture',
-                                            settings: {
-                                                pictureMode: value
-                                            }
-                                        };
-                                        const cid8 = await this.lgWebOsSocket.getCid();
-                                        await this.lgWebOsSocket.send('alert', CONSTANTS.ApiUrls.SetMute, payload8, cid8);
-                                        break;
-                                    case 'SoundMode':
-                                        const payload9 = {
-                                            category: 'picture',
-                                            settings: {
-                                                soundMode: value
-                                            }
-                                        };
-                                        const cid9 = await this.lgWebOsSocket.getCid();
-                                        await this.lgWebOsSocket.send('alert', CONSTANTS.ApiUrls.SetMute, payload9, cid9);
-                                        break;
-                                    case 'SoundOutput':
-                                        const payload10 = {
-                                            output: value
-                                        };
-                                        const cid10 = await this.lgWebOsSocket.getCid('SoundOutput');
-                                        await this.lgWebOsSocket.send('request', CONSTANTS.ApiUrls.SetSoundOutput, payload10, cid10);
-                                        break;
-                                    case 'RcControl':
-                                        const payload11 = {
-                                            name: value
-                                        };
-                                        await this.lgWebOsSocket.send('button', undefined, payload11);
-                                        break;
-                                    default:
-                                        this.emit('message', `MQTT Received unknown key: ${key}, value: ${value}`);
-                                        break;
-                                };
+                                await this.setOverExternalIntegration('MQTT', key, value);
                             } catch (error) {
-                                this.emit('warn', `MQTT send error: ${error}.`);
+                                this.emit('warn', `MQTT set error: ${error}.`);
                             };
                         })
                         .on('debug', (debug) => {
@@ -855,6 +747,128 @@ class LgWebOsDevice extends EventEmitter {
             return data;
         } catch (error) {
             throw new Error(`Read saved data error: ${error}`);
+        };
+    }
+
+    async setOverExternalIntegration(integration, key, value) {
+        try {
+            let set = false
+            switch (key) {
+                case 'Power':
+                    switch (value) {
+                        case 1:
+                            set = await this.wol.wakeOnLan();
+                            break;
+                        case 0:
+                            const cid = await this.lgWebOsSocket.getCid('Power');
+                            set = await this.lgWebOsSocket.send('request', CONSTANTS.ApiUrls.TurnOff, undefined, cid);
+                            break;
+                    }
+                    break;
+                case 'App':
+                    const cid = await this.lgWebOsSocket.getCid('App');
+                    set = await this.lgWebOsSocket.send('request', CONSTANTS.ApiUrls.LaunchApp, { id: value }, cid);
+                    break;
+                case 'Channel':
+                    const cid1 = await this.lgWebOsSocket.getCid('Channel');
+                    set = await this.lgWebOsSocket.send('request', CONSTANTS.ApiUrls.OpenChannel, { channelId: value }, cid1)
+                    break;
+                case 'Volume':
+                    const volume = (value < 0 || value > 100) ? this.volume : value;
+                    const payload = {
+                        volume: volume,
+                        soundOutput: this.soundOutput
+                    };
+                    const cid2 = await this.lgWebOsSocket.getCid('Audio');
+                    set = await this.lgWebOsSocket.send('request', CONSTANTS.ApiUrls.SetVolume, payload, cid2);
+                    break;
+                case 'Mute':
+                    const payload3 = {
+                        mute: value
+                    };
+                    const cid3 = await this.lgWebOsSocket.getCid('Audio');
+                    set = await this.lgWebOsSocket.send('request', CONSTANTS.ApiUrls.SetMute, payload3, cid3);
+                    break;
+                case 'Brightness':
+                    const payload4 = {
+                        category: 'picture',
+                        settings: {
+                            brightness: value
+                        }
+                    };
+                    const cid4 = await this.lgWebOsSocket.getCid();
+                    set = await this.lgWebOsSocket.send('alert', CONSTANTS.ApiUrls.SetMute, payload4, cid4);
+                    break;
+                case 'Backlight':
+                    const payload5 = {
+                        category: 'picture',
+                        settings: {
+                            backlight: value
+                        }
+                    };
+                    const cid5 = await this.lgWebOsSocket.getCid();
+                    set = await this.lgWebOsSocket.send('alert', CONSTANTS.ApiUrls.SetMute, payload5, cid5);
+                    break;
+                case 'Contrast':
+                    const payload6 = {
+                        category: 'picture',
+                        settings: {
+                            contrast: value
+                        }
+                    };
+                    const cid6 = await this.lgWebOsSocket.getCid();
+                    set = await this.lgWebOsSocket.send('alert', CONSTANTS.ApiUrls.SetMute, payload6, cid6);
+                    break;
+                case 'Color':
+                    const payload7 = {
+                        category: 'picture',
+                        settings: {
+                            color: value
+                        }
+                    };
+                    const cid7 = await this.lgWebOsSocket.getCid();
+                    set = await this.lgWebOsSocket.send('alert', CONSTANTS.ApiUrls.SetMute, payload7, cid7);
+                    break;
+                case 'PictureMode':
+                    const payload8 = {
+                        category: 'picture',
+                        settings: {
+                            pictureMode: value
+                        }
+                    };
+                    const cid8 = await this.lgWebOsSocket.getCid();
+                    set = await this.lgWebOsSocket.send('alert', CONSTANTS.ApiUrls.SetMute, payload8, cid8);
+                    break;
+                case 'SoundMode':
+                    const payload9 = {
+                        category: 'picture',
+                        settings: {
+                            soundMode: value
+                        }
+                    };
+                    const cid9 = await this.lgWebOsSocket.getCid();
+                    set = await this.lgWebOsSocket.send('alert', CONSTANTS.ApiUrls.SetMute, payload9, cid9);
+                    break;
+                case 'SoundOutput':
+                    const payload10 = {
+                        output: value
+                    };
+                    const cid10 = await this.lgWebOsSocket.getCid('SoundOutput');
+                    set = await this.lgWebOsSocket.send('request', CONSTANTS.ApiUrls.SetSoundOutput, payload10, cid10);
+                    break;
+                case 'RcControl':
+                    const payload11 = {
+                        name: value
+                    };
+                    set = await this.lgWebOsSocket.send('button', undefined, payload11);
+                    break;
+                default:
+                    this.emit('warn', `${integration}, received key: ${key}, value: ${value}`);
+                    break;
+            };
+            return set;
+        } catch (error) {
+            throw new Error(`${integration} set key: ${key}, value: ${value}, error: ${error}`);
         };
     }
 
