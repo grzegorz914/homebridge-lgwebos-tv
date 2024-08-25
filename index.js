@@ -13,12 +13,6 @@ class LgWebOsPlatform {
 		};
 		this.accessories = [];
 
-		//check if prefs directory exist
-		const prefDir = path.join(api.user.storagePath(), 'lgwebosTv');
-		if (!fs.existsSync(prefDir)) {
-			fs.mkdirSync(prefDir);
-		};
-
 		api.on('didFinishLaunching', () => {
 			for (const device of config.devices) {
 				const deviceName = device.name;
@@ -43,8 +37,34 @@ class LgWebOsPlatform {
 				};
 				const debug1 = enableDebugMode ? log.info(`Device: ${host} ${deviceName}, Config: ${JSON.stringify(config, null, 2)}`) : false;
 
+				//define directory and file paths
+				const prefDir = path.join(api.user.storagePath(), 'lgwebosTv');
+				const postFix = host.split('.').join('');
+				const keyFile = `${prefDir}/key_${postFix}`;
+				const devInfoFile = `${prefDir}/devInfo_${postFix}`;
+				const inputsFile = `${prefDir}/inputs_${postFix}`;
+				const channelsFile = `${prefDir}/channels_${postFix}`;
+				const inputsNamesFile = `${prefDir}/inputsNames_${postFix}`;
+				const inputsTargetVisibilityFile = `${prefDir}/inputsTargetVisibility_${postFix}`;
+				const files = [keyFile, devInfoFile, inputsFile, channelsFile, inputsNamesFile, inputsTargetVisibilityFile];
+
+				try {
+					//create directory if it doesn't exist
+					fs.mkdirSync(prefDir, { recursive: true });
+
+					//create files if they don't exist
+					files.forEach((file) => {
+						if (!fs.existsSync(file)) {
+							fs.writeFileSync(file, '');
+						}
+					});
+				} catch (error) {
+					this.emit('error', `prepare files error: ${error}`);
+					return;
+				}
+
 				//webos device
-				const lgWebOsDevice = new LgWebOsDevice(api, prefDir, device);
+				const lgWebOsDevice = new LgWebOsDevice(api, device, keyFile, devInfoFile, inputsFile, channelsFile, inputsNamesFile, inputsTargetVisibilityFile);
 				lgWebOsDevice.on('publishAccessory', (accessory) => {
 					api.publishExternalAccessories(CONSTANTS.PluginName, [accessory]);
 					log.success(`Device: ${host} ${deviceName}, published as external accessory.`);

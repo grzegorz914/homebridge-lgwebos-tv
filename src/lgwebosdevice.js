@@ -10,7 +10,7 @@ const CONSTANTS = require('./constants.json');
 let Accessory, Characteristic, Service, Categories, Encode, AccessoryUUID;
 
 class LgWebOsDevice extends EventEmitter {
-    constructor(api, prefDir, device) {
+    constructor(api, device, keyFile, devInfoFile, inputsFile, channelsFile, inputsNamesFile, inputsTargetVisibilityFile) {
         super();
 
         Accessory = api.platformAccessory;
@@ -105,6 +105,8 @@ class LgWebOsDevice extends EventEmitter {
         this.soundMode = '';
         this.soundOutput = '';
         this.invertMediaState = false;
+        this.inputsNamesFile = inputsNamesFile;
+        this.inputsTargetVisibilityFile = inputsTargetVisibilityFile;
 
         //picture mode variable
         this.picturesModesConfigured = [];
@@ -193,35 +195,6 @@ class LgWebOsDevice extends EventEmitter {
             };
         }
         this.buttonsConfiguredCount = this.buttonsConfigured.length || 0;
-
-        //check files exists, if not then create it
-        const postFix = this.host.split('.').join('');
-        const keyFile = `${prefDir}/key_${postFix}`;
-        const devInfoFile = `${prefDir}/devInfo_${postFix}`;
-        const inputsFile = `${prefDir}/inputs_${postFix}`;
-        const channelsFile = `${prefDir}/channels_${postFix}`;
-        this.inputsNamesFile = `${prefDir}/inputsNames_${postFix}`;
-        this.inputsTargetVisibilityFile = `${prefDir}/inputsTargetVisibility_${postFix}`;
-
-        try {
-            const files = [
-                keyFile,
-                devInfoFile,
-                inputsFile,
-                channelsFile,
-                this.inputsNamesFile,
-                this.inputsTargetVisibilityFile
-            ];
-
-            files.forEach((file) => {
-                if (!fs.existsSync(file)) {
-                    fs.writeFileSync(file, '');
-                }
-            });
-        } catch (error) {
-            this.emit('error', `prepare files error: ${error}`);
-            return;
-        }
 
         //Wake On Lan
         this.wol = new Wol({
@@ -727,7 +700,7 @@ class LgWebOsDevice extends EventEmitter {
             this.televisionService.setCharacteristic(Characteristic.DisplayOrder, Encode(1, displayOrder).toString('base64'));
             return true;;
         } catch (error) {
-            throw new Error(error);
+            throw new Error(`Display order error: ${error.message ?? error}`);
         };
     }
 
@@ -737,7 +710,7 @@ class LgWebOsDevice extends EventEmitter {
             const debug = !this.enableDebugMode ? false : this.emit('debug', `Saved data: ${JSON.stringify(data, null, 2)}`);
             return true;;
         } catch (error) {
-            throw new Error(error);
+            throw new Error(error.message ?? error);
         };
     }
 
@@ -746,7 +719,7 @@ class LgWebOsDevice extends EventEmitter {
             const data = await fsPromises.readFile(path);
             return data;
         } catch (error) {
-            throw new Error(`Read saved data error: ${error}`);
+            throw new Error(`Read saved data error: ${error.message ?? error}`);
         };
     }
 
@@ -868,7 +841,7 @@ class LgWebOsDevice extends EventEmitter {
             };
             return set;
         } catch (error) {
-            throw new Error(`${integration} set key: ${key}, value: ${value}, error: ${error}`);
+            throw new Error(`${integration} set key: ${key}, value: ${value}, error: ${error.message ?? error}`);
         };
     }
 
@@ -2028,7 +2001,7 @@ class LgWebOsDevice extends EventEmitter {
 
             return accessory;
         } catch (error) {
-            throw new Error(error)
+            throw new Error(error.message ?? error)
         };
     };
 };

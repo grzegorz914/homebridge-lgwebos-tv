@@ -766,7 +766,7 @@ class LgWebOsSocket extends EventEmitter {
             const pairingKey = key.length > 10 ? key.toString() : '0';
             return pairingKey;
         } catch (error) {
-            throw new Error(error);
+            throw new Error(error.message ?? error);
         }
     }
 
@@ -775,7 +775,7 @@ class LgWebOsSocket extends EventEmitter {
             await fsPromises.writeFile(path, pairingKey);
             return true;
         } catch (error) {
-            throw new Error(error);
+            throw new Error(error.message ?? error);
         }
     }
 
@@ -795,7 +795,7 @@ class LgWebOsSocket extends EventEmitter {
 
             return true;
         } catch (error) {
-            throw new Error(error);
+            throw new Error(error.message ?? error);
         };
     };
 
@@ -807,7 +807,7 @@ class LgWebOsSocket extends EventEmitter {
 
             return true;
         } catch (error) {
-            throw new Error(error);
+            throw new Error(error.message ?? error);
         }
     };
 
@@ -819,7 +819,7 @@ class LgWebOsSocket extends EventEmitter {
 
             return true;
         } catch (error) {
-            throw new Error(error);
+            throw new Error(error.message ?? error);
         }
     };
 
@@ -835,7 +835,7 @@ class LgWebOsSocket extends EventEmitter {
             this.emit('prepareAccessory');
             return true;
         } catch (error) {
-            throw new Error(error);
+            throw new Error(error.message ?? error);
         }
     }
 
@@ -883,7 +883,7 @@ class LgWebOsSocket extends EventEmitter {
             }
             return true;
         } catch (error) {
-            throw new Error(error);
+            throw new Error(error.message ?? error);
         };
     }
 
@@ -916,51 +916,61 @@ class LgWebOsSocket extends EventEmitter {
                     return cid;
             }
         } catch (error) {
-            throw new Error(error);
+            throw new Error(error.message ?? error);
         }
     }
 
 
-    async send(type, uri, payload = {}, cid, title = 'Unknown Title', message = 'Unknown Message') {
+    async send(type, uri, payload, cid, title, message) {
         try {
-            if (!this.socketConnected && type !== 'button') {
-                this.emit('warn', 'Socket not connected.');
-                return;
-            }
+            payload = payload ?? {};
+            cid = cid ?? await this.getCid();
+            title = title ?? 'Unknown Title';
+            message = message ?? 'Unknown Message';
+            let data = {};
+            let messageContent = {};
 
-            if (type === 'button' && !this.specializedSocketConnected) {
-                this.emit('warn', 'Specialized socket not connected.');
-                return;
-            }
-
-            let data, messageContent;
             switch (type) {
                 case 'button':
+                    if (!this.specjalizedSocketConnected) {
+                        this.emit('warn', 'Specialized socket not connected.');
+                        return;
+                    };
+
                     const keyValuePairs = Object.entries(payload).map(([key, value]) => `${key}:${value}`);
                     keyValuePairs.unshift(`type:${type}`);
-                    messageContent = keyValuePairs.join('\n') + '\n\n';
-                    this.specializedSocket.send(messageContent);
-                    break;
+                    const array = keyValuePairs.join('\n') + '\n\n';
+
+                    this.specializedSocket.send(array);
+                    return true;
                 case 'alert':
-                    this.alertCid = cid;
-                    const alertPayload = {
-                        title: title,
-                        message: message,
-                        modal: true,
-                        buttons: [{ label: 'Ok', focus: true, buttonType: 'ok', onClick: uri, params: payload }],
-                        onclose: { uri: uri, params: payload },
-                        onfail: { uri: uri, params: payload },
-                        type: 'confirm',
-                        isSysReq: true
+                    if (!this.socketConnected) {
+                        this.emit('warn', 'Socket not connected.');
+                        return;
                     };
+
+                    this.alertCid = cid;
+                    const buttons = [{ label: 'Ok', focus: true, buttonType: 'ok', onClick: uri, params: payload }];
+                    const onClose = { uri: uri, params: payload };
+                    const onFail = { uri: uri, params: payload };
+                    const alertPayload = { title: title, message: message, modal: true, buttons: buttons, onclose: onClose, onfail: onFail, type: 'confirm', isSysReq: true };
                     data = {
                         id: cid,
                         type: 'request',
                         uri: CONSTANTS.ApiUrls.CreateAlert,
                         payload: alertPayload
                     };
-                    break;
+
+                    messageContent = JSON.stringify(data);
+                    this.socket.send(messageContent);
+                    const debug = this.debugLog ? this.emit('debug', `Alert send: ${messageContent}`) : false;
+                    return true;
                 case 'toast':
+                    if (!this.socketConnected) {
+                        this.emit('warn', 'Socket not connected.');
+                        return;
+                    };
+
                     this.toastCid = cid;
                     const toastPayload = { message: message, iconData: null, iconExtension: null, onClick: payload };
                     data = {
@@ -969,23 +979,31 @@ class LgWebOsSocket extends EventEmitter {
                         uri: CONSTANTS.ApiUrls.CreateToast,
                         payload: toastPayload
                     };
-                    break;
+
+                    messageContent = JSON.stringify(data);
+                    this.socket.send(messageContent);
+                    const debug1 = this.debugLog ? this.emit('debug', `Toast send: ${messageContent}`) : false;
+                    return true;
                 default:
-                    data = { id: cid, type: type, uri: uri, payload: payload };
-                    break;
-            }
+                    if (!this.socketConnected) {
+                        this.emit('warn', 'Socket not connected.');
+                        return;
+                    };
 
-            if (type !== 'button') {
-                messageContent = JSON.stringify(data);
-                this.socket.send(messageContent);
-            }
+                    data = {
+                        id: cid,
+                        type: type,
+                        uri: uri,
+                        payload: payload
+                    };
 
-            if (this.debugLog) {
-                this.emit('debug', `${type.charAt(0).toUpperCase() + type.slice(1)} send: ${messageContent}`);
-            }
-            return true;
+                    messageContent = JSON.stringify(data);
+                    this.socket.send(messageContent);
+                    const debug2 = this.debugLog ? this.emit('debug', `Socket send: ${messageContent}`) : false;
+                    return true;
+            };
         } catch (error) {
-            throw new Error(error);
+            throw new Error(error.message ?? error);
         }
     }
 };
