@@ -457,7 +457,7 @@ class LgWebOsSocket extends EventEmitter {
                                         break;
                                     default:
                                         this.screenState = messageData.state;
-                                        this.emit('debug', `Unknown power state: ${this.screenState}`);
+                                        const debug1 = debugLog ? this.emit('debug', `Unknown power state: ${this.screenState}`) : false;
                                         break;
                                 }
 
