@@ -307,7 +307,7 @@ class LgWebOsDevice extends EventEmitter {
                     };
                 })
                 .on('currentApp', (appId) => {
-                    const input = this.inputsConfigured.find(input => input.reference === appId) ?? -1;
+                    const input = this.inputsConfigured.find(input => input.reference === appId) ?? false;
                     const inputIdentifier = input ? input.identifier : this.inputIdentifier;
                     const inputName = input ? input.name : appId;
 
