@@ -575,7 +575,7 @@ class LgWebOsDevice extends EventEmitter {
                                 debug: this.restFul.debug || false
                             });
 
-                            this.restFul.on('connected', (message) => {
+                            this.restFul1.on('connected', (message) => {
                                 this.emit('success', message);
                                 this.restFulConnected = true;
                             })
@@ -607,7 +607,7 @@ class LgWebOsDevice extends EventEmitter {
                                 debug: this.mqtt.debug || false
                             });
 
-                            this.mqtt.on('connected', (message) => {
+                            this.mqtt1.on('connected', (message) => {
                                 this.emit('success', message);
                                 this.mqttConnected = true;
                             })
