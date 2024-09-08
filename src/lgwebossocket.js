@@ -137,7 +137,7 @@ class LgWebOsSocket extends EventEmitter {
                             const pairingKey = messageData['client-key'];
                             if (pairingKey !== this.pairingKey) {
                                 try {
-                                    await this.saveData(this.keyFile, pairingKey);
+                                    await this.savePairingKey(this.keyFile, pairingKey);
                                     this.emit('message', 'Pairing key saved.');
                                 } catch (error) {
                                     this.emit('warn', `Pairing key save error: ${error}`);
@@ -772,6 +772,16 @@ class LgWebOsSocket extends EventEmitter {
 
         return true;
     }
+
+    async savePairingKey(path, data) {
+        try {
+            await fsPromises.writeFile(path, data);
+            const debug = this.debugLog ? this.emit('debug', `Saved payring key: ${data}`) : false;
+            return true;
+        } catch (error) {
+            throw new Error(`Save payring key error: ${error.message || error}}`);
+        };
+    };
 
     async saveData(path, data) {
         try {
