@@ -776,10 +776,10 @@ class LgWebOsSocket extends EventEmitter {
     async savePairingKey(path, data) {
         try {
             await fsPromises.writeFile(path, data);
-            const debug = this.debugLog ? this.emit('debug', `Saved payring key: ${data}`) : false;
+            const debug = this.debugLog ? this.emit('debug', `Saved pairing key: ${data}`) : false;
             return true;
         } catch (error) {
-            throw new Error(`Save payring key error: ${error.message || error}}`);
+            throw new Error(`Save pairing key error: ${error.message || error}}`);
         };
     };
 

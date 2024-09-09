@@ -81,11 +81,6 @@ class LgWebOsDevice extends EventEmitter {
 
         //accessory services
         this.allServices = [];
-        this.buttonsServices = [];
-        this.picturesModesServices = [];
-        this.soundsModesServices = [];
-        this.soundsOutputsServices = [];
-        this.sensorsInputsServices = [];
 
         //add configured inputs to the default inputs
         this.inputs = this.disableLoadDefaultInputs ? this.inputs : [...CONSTANTS.DefaultInputs, ...this.inputs];
@@ -289,12 +284,15 @@ class LgWebOsDevice extends EventEmitter {
                             .updateCharacteristic(Characteristic.ContactSensorState, state);
                     }
 
-                    if (this.buttonsServices && !power) {
+                    if (!power) {
                         for (let i = 0; i < this.buttonsCount; i++) {
+                            const button = this.buttonsConfigured[i];
                             const state = false;
-                            this.buttonsConfigured[i].state = state;
-                            this.buttonsServices[i]
-                                .updateCharacteristic(Characteristic.On, state);
+                            button.state = state;
+                            if (this.buttonsServices && !power) {
+                                this.buttonsServices[i]
+                                    .updateCharacteristic(Characteristic.On, state);
+                            }
                         }
                     }
 
@@ -316,31 +314,33 @@ class LgWebOsDevice extends EventEmitter {
                             .updateCharacteristic(Characteristic.ActiveIdentifier, inputIdentifier);
                     };
 
-                    if (this.sensorInputService && appId !== appId) {
+                    if (appId !== appId) {
                         for (let i = 0; i < 2; i++) {
                             const state = this.power ? [true, false][i] : false;
-                            this.sensorInputService
-                                .updateCharacteristic(Characteristic.ContactSensorState, state)
-                            this.sensorInputState = state;
+                            if (this.sensorInputService) {
+                                this.sensorInputService
+                                    .updateCharacteristic(Characteristic.ContactSensorState, state)
+                                this.sensorInputState = state;
+                            }
                         }
                     }
 
-                    if (this.sensorsInputsServices) {
-                        for (let i = 0; i < this.sensorsInputsConfiguredCount; i++) {
-                            const sensorInput = this.sensorsInputsConfigured[i];
-                            const state = this.power ? sensorInput.reference === appId : false;
-                            sensorInput.state = state;
+                    for (let i = 0; i < this.sensorsInputsConfiguredCount; i++) {
+                        const sensorInput = this.sensorsInputsConfigured[i];
+                        const state = this.power ? sensorInput.reference === appId : false;
+                        sensorInput.state = state;
+                        if (this.sensorsInputsServices) {
                             const characteristicType = sensorInput.characteristicType;
                             this.sensorsInputsServices[i]
                                 .updateCharacteristic(characteristicType, state);
                         }
                     }
 
-                    if (this.buttonsServices) {
-                        for (let i = 0; i < this.buttonsConfiguredCount; i++) {
-                            const button = this.buttonsConfigured[i];
-                            const state = this.power ? button.reference === appId : false;
-                            button.state = state;
+                    for (let i = 0; i < this.buttonsConfiguredCount; i++) {
+                        const button = this.buttonsConfigured[i];
+                        const state = this.power ? button.reference === appId : false;
+                        button.state = state;
+                        if (this.buttonsServices) {
                             this.buttonsServices[i]
                                 .updateCharacteristic(Characteristic.On, state);
                         }
@@ -383,12 +383,14 @@ class LgWebOsDevice extends EventEmitter {
                         };
                     };
 
-                    if (this.sensorVolumeService && volume !== this.volume) {
+                    if (volume !== this.volume) {
                         for (let i = 0; i < 2; i++) {
                             const state = this.power ? [true, false][i] : false;
-                            this.sensorVolumeService
-                                .updateCharacteristic(Characteristic.ContactSensorState, state)
-                            this.sensorVolumeState = state;
+                            if (this.sensorMuteService) {
+                                this.sensorVolumeService
+                                    .updateCharacteristic(Characteristic.ContactSensorState, state)
+                                this.sensorVolumeState = state;
+                            }
                         }
                     }
 
@@ -414,20 +416,22 @@ class LgWebOsDevice extends EventEmitter {
                             .updateCharacteristic(Characteristic.ActiveIdentifier, inputIdentifier);
                     };
 
-                    if (this.sensorChannelService && channelId !== this.channelId) {
+                    if (channelId !== this.channelId) {
                         for (let i = 0; i < 2; i++) {
                             const state = this.power ? [true, false][i] : false;
-                            this.sensorChannelService
-                                .updateCharacteristic(Characteristic.ContactSensorState, state)
-                            this.sensorChannelState = state;
+                            if (this.sensorChannelService) {
+                                this.sensorChannelService
+                                    .updateCharacteristic(Characteristic.ContactSensorState, state)
+                                this.sensorChannelState = state;
+                            }
                         }
                     }
 
-                    if (this.buttonsServices) {
-                        for (let i = 0; i < this.buttonsConfiguredCount; i++) {
-                            const button = this.buttonsConfigured[i];
-                            const state = this.power ? this.appId === 'com.webos.app.livetv' && button.reference === channelId : false;
-                            button.state = state;
+                    for (let i = 0; i < this.buttonsConfiguredCount; i++) {
+                        const button = this.buttonsConfigured[i];
+                        const state = this.power ? this.appId === 'com.webos.app.livetv' && button.reference === channelId : false;
+                        button.state = state;
+                        if (this.buttonsServices) {
                             this.buttonsServices[i]
                                 .updateCharacteristic(Characteristic.On, state);
                         }
@@ -491,22 +495,24 @@ class LgWebOsDevice extends EventEmitter {
                             .updateCharacteristic(Characteristic.PictureMode, mode);
                     };
 
-                    if (this.picturesModesServices) {
-                        for (let i = 0; i < this.picturesModesConfiguredCount; i++) {
-                            const mode = this.picturesModesConfigured[i];
-                            const state = power ? mode.reference === pictureMode : false;
-                            mode.state = state;
+                    for (let i = 0; i < this.picturesModesConfiguredCount; i++) {
+                        const mode = this.picturesModesConfigured[i];
+                        const state = power ? mode.reference === pictureMode : false;
+                        mode.state = state;
+                        if (this.picturesModesServices) {
                             this.picturesModesServices[i]
                                 .updateCharacteristic(Characteristic.On, state);
                         };
                     };
 
-                    if (this.sensorPicturedModeService && pictureMode !== this.pictureMode) {
+                    if (pictureMode !== this.pictureMode) {
                         for (let i = 0; i < 2; i++) {
                             const state = power ? [true, false][i] : false;
-                            this.sensorPicturedModeService
-                                .updateCharacteristic(Characteristic.ContactSensorState, state)
-                            this.sensorPicturedModeState = state;
+                            if (this.sensorPicturedModeService) {
+                                this.sensorPicturedModeService
+                                    .updateCharacteristic(Characteristic.ContactSensorState, state)
+                                this.sensorPicturedModeState = state;
+                            }
                         }
                     }
 
@@ -516,22 +522,24 @@ class LgWebOsDevice extends EventEmitter {
                     };
                 })
                 .on('soundMode', (soundMode, power) => {
-                    if (this.soundsModesServices) {
-                        for (let i = 0; i < this.soundsModesConfiguredCount; i++) {
-                            const mode = this.soundsModesConfigured[i];
-                            const state = power ? mode.reference === soundMode : false;
-                            mode.state = state;
+                    for (let i = 0; i < this.soundsModesConfiguredCount; i++) {
+                        const mode = this.soundsModesConfigured[i];
+                        const state = power ? mode.reference === soundMode : false;
+                        mode.state = state;
+                        if (this.soundsModesServices) {
                             this.soundsModesServices[i]
                                 .updateCharacteristic(Characteristic.On, state);
                         };
                     };
 
-                    if (this.sensorSoundModeService && soundMode !== this.soundMode) {
+                    if (soundMode !== this.soundMode) {
                         for (let i = 0; i < 2; i++) {
                             const state = power ? [true, false][i] : false;
-                            this.sensorSoundModeService
-                                .updateCharacteristic(Characteristic.ContactSensorState, state)
-                            this.sensorSoundModeState = state;
+                            if (this.soundsModesServices) {
+                                this.sensorSoundModeService
+                                    .updateCharacteristic(Characteristic.ContactSensorState, state)
+                                this.sensorSoundModeState = state;
+                            }
                         }
                     }
 
@@ -541,22 +549,24 @@ class LgWebOsDevice extends EventEmitter {
                     };
                 })
                 .on('soundOutput', (soundOutput, power) => {
-                    if (this.soundsOutputsServices) {
-                        for (let i = 0; i < this.soundsOutputsConfiguredCount; i++) {
-                            const output = this.soundsOutputsConfigured[i];
-                            const state = power ? output.reference === soundOutput : false;
-                            output.state = state;
+                    for (let i = 0; i < this.soundsOutputsConfiguredCount; i++) {
+                        const output = this.soundsOutputsConfigured[i];
+                        const state = power ? output.reference === soundOutput : false;
+                        output.state = state;
+                        if (this.soundsOutputsServices) {
                             this.soundsOutputsServices[i]
                                 .updateCharacteristic(Characteristic.On, state);
                         };
                     };
 
-                    if (this.sensorSoundOutputService && this.soundMode !== this.soundOutput) {
+                    if (this.soundMode !== this.soundOutput) {
                         for (let i = 0; i < 2; i++) {
                             const state = power ? [true, false][i] : false;
-                            this.sensorSoundOutputService
-                                .updateCharacteristic(Characteristic.ContactSensorState, state)
-                            this.sensorSoundOutputState = state;
+                            if (this.soundsOutputsServices) {
+                                this.sensorSoundOutputService
+                                    .updateCharacteristic(Characteristic.ContactSensorState, state)
+                                this.sensorSoundOutputState = state;
+                            }
                         }
                     }
 
@@ -1609,6 +1619,7 @@ class LgWebOsDevice extends EventEmitter {
 
                 //Picture mode
                 if (this.picturesModesConfiguredCount > 0) {
+                    this.picturesModesServices = [];
                     const debug = this.enableDebugMode ? this.emit('debug', `Prepare picture mode service`) : false;
                     for (let i = 0; i < this.picturesModesConfiguredCount; i++) {
                         const mode = this.picturesModesConfigured[i];
@@ -1706,6 +1717,7 @@ class LgWebOsDevice extends EventEmitter {
 
             //Sound mode
             if (this.soundsModesConfiguredCount > 0 && this.webOS >= 6.0) {
+                this.soundsModesServices = [];
                 const debug = this.enableDebugMode ? this.emit('debug', `Prepare sound mode service`) : false;
                 for (let i = 0; i < this.soundsModesConfiguredCount; i++) {
                     const mode = this.soundsModesConfigured[i];
@@ -1746,6 +1758,7 @@ class LgWebOsDevice extends EventEmitter {
 
             //Sound output
             if (this.soundsOutputsConfiguredCount > 0) {
+                this.soundsOutputsServices = [];
                 const debug = this.enableDebugOutput ? this.emit('debug', `Prepare sound output service`) : false;
                 for (let i = 0; i < this.soundsOutputsConfiguredCount; i++) {
                     const output = this.soundsOutputsConfigured[i];
@@ -1929,6 +1942,7 @@ class LgWebOsDevice extends EventEmitter {
             const possibleSensorInputsCount = 99 - this.allServices.length;
             const maxSensorInputsCount = this.sensorsInputsConfiguredCount >= possibleSensorInputsCount ? possibleSensorInputsCount : this.sensorsInputsConfiguredCount;
             if (maxSensorInputsCount > 0) {
+                this.sensorsInputsServices = []
                 const debug = !this.enableDebugMode ? false : this.emit('debug', `Prepare inputs sensors services`);
                 for (let i = 0; i < maxSensorInputsCount; i++) {
                     //get sensor
@@ -1965,6 +1979,7 @@ class LgWebOsDevice extends EventEmitter {
             const possibleButtonsCount = 99 - this.allServices.length;
             const maxButtonsCount = this.buttonsConfiguredCount >= possibleButtonsCount ? possibleButtonsCount : this.buttonsConfiguredCount;
             if (maxButtonsCount > 0) {
+                this.buttonsServices = [];
                 const debug = this.enableDebugMode ? this.emit('debug', `Prepare button service`) : false;
                 for (let i = 0; i < maxButtonsCount; i++) {
                     //get button
