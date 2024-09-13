@@ -949,6 +949,7 @@ class LgWebOsDevice extends EventEmitter {
                                     break;
                             }
                             const info = this.disableLogInfo ? false : this.emit('message', `set Power: ${state ? 'ON' : 'OFF'}`);
+                            await new Promise(resolve => setTimeout(resolve, 1000));
                         } catch (error) {
                             this.emit('warn', `set Power error: ${error}`);
                         }
