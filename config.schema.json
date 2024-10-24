@@ -113,19 +113,20 @@
                     "type": "string",
                     "placeholder": "Name",
                     "description": "Here set Your own name.",
-                    "required": true
+                    "required": false
                   },
                   "reference": {
                     "title": "Reference",
                     "type": "string",
                     "placeholder": "Input/App, Channel reference",
                     "description": "Here set the Input/App, Channel reference.",
-                    "required": true
+                    "required": false
                   },
                   "mode": {
                     "title": "Mode",
                     "type": "integer",
                     "description": "Here select the function mode.",
+                    "default": 0,
                     "oneOf": [
                       {
                         "title": "Input/App",
@@ -162,6 +163,7 @@
                     "title": "Mode",
                     "type": "integer",
                     "description": "Here select the function mode.",
+                    "default": 0,
                     "oneOf": [
                       {
                         "title": "Input/App",
@@ -533,11 +535,12 @@
                       }
                     ],
                     "description": "Here select the remote control command.",
-                    "required": true
+                    "required": false
                   },
                   "displayType": {
                     "title": "Display Type",
                     "type": "integer",
+                    "default": 0,
                     "oneOf": [
                       {
                         "title": "None/Disabled",
@@ -672,6 +675,7 @@
                   "displayType": {
                     "title": "Type",
                     "type": "integer",
+                    "default": 0,
                     "oneOf": [
                       {
                         "title": "None/Disabled",
@@ -935,11 +939,12 @@
                         ]
                       }
                     ],
-                    "required": true
+                    "required": false
                   },
                   "displayType": {
                     "title": "Display Type",
                     "type": "integer",
+                    "default": 0,
                     "oneOf": [
                       {
                         "title": "None/Disabled",
@@ -1090,11 +1095,12 @@
                         ]
                       }
                     ],
-                    "required": true
+                    "required": false
                   },
                   "displayType": {
                     "title": "Display Type",
                     "type": "integer",
+                    "default": 0,
                     "oneOf": [
                       {
                         "title": "None/Disabled",
@@ -1214,11 +1220,12 @@
                         ]
                       }
                     ],
-                    "required": true
+                    "required": false
                   },
                   "displayType": {
                     "title": "Display Type",
                     "type": "integer",
+                    "default": 0,
                     "oneOf": [
                       {
                         "title": "None/Disabled",
