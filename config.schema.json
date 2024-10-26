@@ -3,6 +3,7 @@
   "pluginType": "platform",
   "singular": true,
   "fixArrays": true,
+  "strictValidation": true,
   "headerDisplay": "This plugin works with webOS based TV and are exposed to HomeKit as separate accessories and each needs to be manually paired.",
   "footerDisplay": "For documentation please see [GitHub repository](https://github.com/grzegorz914/homebridge-lgwebos-tv).",
   "schema": {
@@ -59,7 +60,7 @@
               "condition": {
                 "functionBody": "return model.devices[arrayIndices].getInputsFromDevice === true"
               },
-              "required": true
+              "required": false
             },
             "inputsDisplayOrder": {
               "title": "Inputs Display Order",
@@ -196,6 +197,7 @@
                   "command": {
                     "title": "RC Command",
                     "type": "string",
+                    "default": "POWER",
                     "oneOf": [
                       {
                         "title": "0",
@@ -535,7 +537,7 @@
                       }
                     ],
                     "description": "Here select the remote control command.",
-                    "required": false
+                    "required": true
                   },
                   "displayType": {
                     "title": "Display Type",
@@ -1044,6 +1046,7 @@
                   "reference": {
                     "title": "Mode",
                     "type": "string",
+                    "default": "standard",
                     "description": "Here choice the Sound Mode.",
                     "oneOf": [
                       {
@@ -1095,7 +1098,7 @@
                         ]
                       }
                     ],
-                    "required": false
+                    "required": true
                   },
                   "displayType": {
                     "title": "Display Type",
@@ -1157,6 +1160,7 @@
                   "reference": {
                     "title": "Output",
                     "type": "string",
+                    "default": "tv_speaker",
                     "description": "Here choice the Sound Output.",
                     "oneOf": [
                       {
@@ -1220,7 +1224,7 @@
                         ]
                       }
                     ],
-                    "required": false
+                    "required": true
                   },
                   "displayType": {
                     "title": "Display Type",

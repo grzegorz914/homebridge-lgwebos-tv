@@ -2,6 +2,7 @@
 const path = require('path');
 const fs = require('fs');
 const LgWebOsDevice = require('./src/lgwebosdevice.js');
+const ImpulseGenerator = require('./src/impulsegenerator.js');
 const CONSTANTS = require('./src/constants.json');
 
 class LgWebOsPlatform {
@@ -36,7 +37,7 @@ class LgWebOsPlatform {
 
 				//debug config
 				const enableDebugMode = device.enableDebugMode || false;
-				const debug = enableDebugMode ? log.info(`Device: ${host} ${deviceName}, did finish launching.`) : false;
+				const debug = enableDebugMode ? log.info(`Device: ${host} ${deviceName}, Did finish launching.`) : false;
 				const config = {
 					...device,
 					mqtt: {
@@ -71,16 +72,16 @@ class LgWebOsPlatform {
 						}
 					});
 				} catch (error) {
-					log.error(`Device: ${host} ${deviceName}, prepare files error: ${error}`);
+					log.error(`Device: ${host} ${deviceName}, Prepare files error: ${error}`);
 					return;
 				}
 
 				//webos device
 				try {
-					this.lgWebOsDevice = new LgWebOsDevice(api, device, keyFile, devInfoFile, inputsFile, channelsFile, inputsNamesFile, inputsTargetVisibilityFile);
-					this.lgWebOsDevice.on('publishAccessory', (accessory) => {
+					const lgWebOsDevice = new LgWebOsDevice(api, device, keyFile, devInfoFile, inputsFile, channelsFile, inputsNamesFile, inputsTargetVisibilityFile);
+					lgWebOsDevice.on('publishAccessory', (accessory) => {
 						api.publishExternalAccessories(CONSTANTS.PluginName, [accessory]);
-						log.success(`Device: ${host} ${deviceName}, published as external accessory.`);
+						log.success(`Device: ${host} ${deviceName}, Published as external accessory.`);
 					})
 						.on('devInfo', (devInfo) => {
 							log.info(devInfo);
@@ -101,10 +102,25 @@ class LgWebOsPlatform {
 							log.error(`Device: ${host} ${deviceName}, ${error}`);
 						});
 
-					await this.lgWebOsDevice.start();
+					//create impulse generator
+					const impulseGenerator = new ImpulseGenerator();
+					impulseGenerator.on('start', async () => {
+						try {
+							await lgWebOsDevice.start();
+							impulseGenerator.stop();
+						} catch (error) {
+							log.error(`Device: ${host} ${deviceName}, ${error}, trying again.`);
+						};
+					}).on('state', (state) => {
+						const debug = enableDebugMode ? state ? log.info(`Device: ${host} ${deviceName}, Start impulse generator started.`) : log.info(`Device: ${host} ${deviceName}, Start impulse generator stopped.`) : false;
+					});
+
+					//start impulse generator
+					impulseGenerator.start([{ name: 'start', sampling: 45000 }]);
 				} catch (error) {
-					log.error(`Device: ${host} ${deviceName}, did finish launching error: ${error}`);
+					log.error(`Device: ${host} ${deviceName}, Did finish launching error: ${error}`);
 				}
+				await new Promise(resolve => setTimeout(resolve, 250));
 			}
 		});
 	}

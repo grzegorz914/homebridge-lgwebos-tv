@@ -814,7 +814,7 @@ class LgWebOsSocket extends EventEmitter {
             }
 
             //start external integration
-            this.emit('externalIntegration');
+            this.emit('externalIntegrations');
 
             //prepare accessory
             this.emit('prepareAccessory');
