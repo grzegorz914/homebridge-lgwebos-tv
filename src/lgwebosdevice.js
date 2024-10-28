@@ -353,6 +353,7 @@ class LgWebOsDevice extends EventEmitter {
 
                         //start impulse generator
                         this.lgWebOsSocket.impulseGenerator.start([{ name: 'heartBeat', sampling: 10000 }]);
+                        return true;
                     } catch (error) {
                         this.emit('error', `Prepare accessory error: ${error.message || error}`);
                     };
@@ -725,8 +726,6 @@ class LgWebOsDevice extends EventEmitter {
 
             //connect
             await this.lgWebOsSocket.connect();
-
-            return true;
         } catch (error) {
             throw new Error(`Start error: ${error.message || error}}`);
         };

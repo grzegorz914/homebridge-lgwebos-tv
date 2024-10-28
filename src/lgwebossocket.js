@@ -61,10 +61,6 @@ class LgWebOsSocket extends EventEmitter {
                         await this.connect();
                         return;
                     }
-
-                    setTimeout(async () => {
-                        const prepare = !this.socketConnected ? await this.prepareAccessory() : false;
-                    }, 5500);
                 });
             } catch (error) {
                 this.emit('error', `${error}, trying again.`);
@@ -727,6 +723,10 @@ class LgWebOsSocket extends EventEmitter {
                 this.emit('soundMode', this.soundMode, false);
                 this.emit('soundOutput', this.soundOutput, false);
             });
+
+            setTimeout(async () => {
+                const prepare = !this.socketConnected ? await this.prepareAccessory() : false;
+            }, 5500);
 
             return true;
         } catch (error) {
