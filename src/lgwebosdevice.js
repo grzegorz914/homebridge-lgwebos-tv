@@ -350,6 +350,9 @@ class LgWebOsDevice extends EventEmitter {
                         //sort inputs list
                         const sortInputsDisplayOrder = this.televisionService ? await this.displayOrder() : false;
                         this.startPrepareAccessory = false;
+
+                        //start impulse generator
+                        this.lgWebOsSocket.impulseGenerator.start([{ name: 'heartBeat', sampling: 10000 }]);
                     } catch (error) {
                         this.emit('error', `Prepare accessory error: ${error.message || error}`);
                     };
