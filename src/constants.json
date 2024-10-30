@@ -369,6 +369,7 @@
     },
     "SoundOutputs": {
         "tv_speaker": "TV Speaker",
+        "mastervolume_tv_speaker": "TV Speaker",
         "external_speaker": "External Speakre",
         "external_optical": "External Optical",
         "external_arc": "External ARC",

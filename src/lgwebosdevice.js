@@ -1265,8 +1265,7 @@ class LgWebOsDevice extends EventEmitter {
                     .onSet(async (volume) => {
                         try {
                             const payload = {
-                                volume: volume,
-                                soundOutput: this.soundOutput
+                                volume: volume
                             };
 
                             const cid = await this.lgWebOsSocket.getCid('Audio');
@@ -1407,8 +1406,7 @@ class LgWebOsDevice extends EventEmitter {
                             try {
                                 volume = (volume <= 0 || volume >= 100) ? this.volume : volume;
                                 const payload = {
-                                    volume: volume,
-                                    soundOutput: this.soundOutput
+                                    volume: volume
                                 };
 
                                 const cid = await this.lgWebOsSocket.getCid('Audio');
@@ -1452,8 +1450,7 @@ class LgWebOsDevice extends EventEmitter {
                             try {
                                 volume = (volume <= 0 || volume >= 100) ? this.volume : volume;
                                 const payload = {
-                                    volume: volume,
-                                    soundOutput: this.soundOutput
+                                    volume: volume
                                 };
 
                                 const cid = await this.lgWebOsSocket.getCid('Audio');
