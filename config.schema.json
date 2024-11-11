@@ -40,7 +40,7 @@
               "type": "boolean",
               "default": false,
               "description": "This function get all available inputs and apps direct from device, manually configured inputs will be skipped.",
-              "required": true
+              "required": false
             },
             "disableLoadDefaultInputs": {
               "title": "Disable Load Default Inputs",
@@ -50,7 +50,7 @@
               "condition": {
                 "functionBody": "return model.devices[arrayIndices].getInputsFromDevice === false"
               },
-              "required": true
+              "required": false
             },
             "filterSystemApps": {
               "title": "Hide System Apps",
@@ -185,7 +185,7 @@
                         ]
                       }
                     ],
-                    "required": true
+                    "required": false
                   },
                   "reference": {
                     "title": "Reference",
@@ -197,7 +197,6 @@
                   "command": {
                     "title": "RC Command",
                     "type": "string",
-                    "default": "POWER",
                     "oneOf": [
                       {
                         "title": "0",
@@ -537,7 +536,7 @@
                       }
                     ],
                     "description": "Here select the remote control command.",
-                    "required": true
+                    "required": false
                   },
                   "displayType": {
                     "title": "Display Type",
@@ -1021,7 +1020,7 @@
                 }
               ],
               "description": "Here select what a volume control mode You want to use. If select *None/Disabled* only hardware buttons in RC app can be used to control volume.",
-              "required": true
+              "required": false
             },
             "soundModeControl": {
               "title": "Sound Modes",
@@ -1346,7 +1345,7 @@
                 }
               ],
               "description": "Here select the function of info button in RC.",
-              "required": true
+              "required": false
             },
             "enableDebugMode": {
               "title": "Debug",

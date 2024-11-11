@@ -330,7 +330,16 @@
         "com.webos.app.shoppinghdmi3",
         "alibaba.genie",
         "alibaba.genie.view",
-        "amazon.alexa.view"
+        "amazon.alexa.view",
+        "com.webos.app.adhdmi1",
+        "com.webos.app.adhdmi2",
+        "com.webos.app.adhdmi3",
+        "com.webos.app.adhdmi4",
+        "com.webos.app.adoverlay",
+        "com.webos.app.adoverlayex",
+         "com.webos.app.overlaymembership",
+         "com.webos.chromecast",
+         "com.webos.chromecast-settings"
     ],
     "PictureModes": {
         "cinema": "Cinema",
