@@ -786,12 +786,12 @@ class LgWebOsDevice extends EventEmitter {
             switch (key) {
                 case 'Power':
                     switch (value) {
-                        case 1:
-                            set = await this.wol.wakeOnLan();
+                        case true:
+                            set = !this.power ? await this.wol.wakeOnLan() : true;
                             break;
-                        case 0:
+                        case false:
                             const cid = await this.lgWebOsSocket.getCid('Power');
-                            set = await this.lgWebOsSocket.send('request', CONSTANTS.ApiUrls.TurnOff, undefined, cid);
+                            set = this.power ? await this.lgWebOsSocket.send('request', CONSTANTS.ApiUrls.TurnOff, undefined, cid) : true;
                             break;
                     }
                     break;
