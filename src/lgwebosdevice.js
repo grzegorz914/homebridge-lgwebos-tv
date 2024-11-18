@@ -24,6 +24,7 @@ class LgWebOsDevice extends EventEmitter {
         this.name = device.name;
         this.host = device.host;
         this.mac = device.mac;
+        this.broadcastAddress = device.broadcastAddress || '255.255.255.255';
         this.getInputsFromDevice = device.getInputsFromDevice || false;
         this.filterSystemApps = this.getInputsFromDevice ? device.filterSystemApps : false;
         this.disableLoadDefaultInputs = device.disableLoadDefaultInputs || false;
@@ -202,7 +203,7 @@ class LgWebOsDevice extends EventEmitter {
         try {
             this.wol = new Wol({
                 mac: this.mac,
-                host: this.host,
+                broadcastAddress: this.broadcastAddress,
                 debugLog: this.enableDebugMode
             })
                 .on('error', (error) => {

@@ -7,12 +7,12 @@ class WOL extends EventEmitter {
     constructor(config) {
         super();
         this.mac = config.mac;
+        this.broadcastAddress = config.broadcastAddress;
         this.debugLog = config.debugLog;
-        this.ipAddress = '255.255.255.255';
-        this.udpType = Net.isIPv6(this.ipAddress) ? 'udp6' : 'udp4';
+        this.udpType = Net.isIPv6(this.broadcastAddress) ? 'udp6' : 'udp4';
     }
 
-    async wakeOnLan(retries = 3, retryDelay = 100) {
+    async wakeOnLan() {
         try {
             // Create the magic packet
             const magicPacket = Buffer.alloc(102);
@@ -36,16 +36,16 @@ class WOL extends EventEmitter {
                     const debug1 = this.debugLog ? this.emit('debug', `WoL start listening: ${address.address}:${address.port}.`) : false;
 
                     const sendMagicPacket = (attempt) => {
-                        if (attempt > retries) {
+                        if (attempt > 3) {
                             socket.close();
-                            return true;;
+                            return true;
                         } else {
-                            socket.send(magicPacket, 0, magicPacket.length, 9, this.ipAddress, (error, bytes) => {
+                            socket.send(magicPacket, 0, magicPacket.length, 9, this.broadcastAddress, (error, bytes) => {
                                 if (error) {
                                     this.emit('error', error);
                                 } else {
-                                    const debug = this.debugLog ? this.emit('debug', `Send WoL to: ${this.ipAddress}:${9}, ${bytes}B.`) : false;
-                                    setTimeout(() => sendMagicPacket(attempt + 1), retryDelay);
+                                    const debug = this.debugLog ? this.emit('debug', `Send WoL to: ${this.broadcastAddress}:${9}, ${bytes}B.`) : false;
+                                    setTimeout(() => sendMagicPacket(attempt + 1), 100);
                                 }
                             });
                         }
