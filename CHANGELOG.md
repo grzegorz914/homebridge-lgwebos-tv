@@ -5,6 +5,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ### After update to v3.0.0 RESTFull and MQTT config settings need to be updated
 
+## [3.4.0] - (01.12.2024)
+
+## Changes
+
+- move from commonJS to esm module
+- moved constants.json to constants.js
+- cleanup
+
 ## [3.3.0] - (18.11.2024)
 
 ## Changes

@@ -1,9 +1,9 @@
 "use strict";
-const Dgram = require('dgram');
-const Net = require('net');
-const EventEmitter = require('events');
+import Dgram from 'dgram';
+import Net from 'net';
+import EventEmitter from 'events';
 
-class WOL extends EventEmitter {
+class WakeOnLan extends EventEmitter {
     constructor(config) {
         super();
         this.mac = config.mac;
@@ -60,4 +60,4 @@ class WOL extends EventEmitter {
     }
 }
 
-module.exports = WOL;
+export default WakeOnLan;

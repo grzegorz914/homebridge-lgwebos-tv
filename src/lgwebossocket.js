@@ -1,11 +1,11 @@
 'use strict';
-const fs = require('fs');
-const fsPromises = fs.promises;
-const tcpp = require('tcp-ping');
-const EventEmitter = require('events');
-const WebSocket = require('ws');
-const ImpulseGenerator = require('./impulsegenerator.js');
-const CONSTANTS = require('./constants.json');
+import { promises } from 'fs';
+const fsPromises = promises;
+import tcpp from 'tcp-ping';
+import WebSocket from 'ws';
+import EventEmitter from 'events';
+import ImpulseGenerator from './impulsegenerator.js';
+import { ApiUrls, Pairing, SystemApps } from './constants.js';
 
 class LgWebOsSocket extends EventEmitter {
     constructor(config) {
@@ -22,7 +22,7 @@ class LgWebOsSocket extends EventEmitter {
         this.ezAdjustMenu = config.ezAdjustMenu;
         this.debugLog = config.debugLog;
         this.sslWebSocket = config.sslWebSocket;
-        this.url = this.sslWebSocket ? CONSTANTS.ApiUrls.WssUrl.replace('lgwebostv', this.host) : CONSTANTS.ApiUrls.WsUrl.replace('lgwebostv', this.host);
+        this.url = this.sslWebSocket ? ApiUrls.WssUrl.replace('lgwebostv', this.host) : ApiUrls.WsUrl.replace('lgwebostv', this.host);
         this.webSocketPort = this.sslWebSocket ? 3001 : 3000;
 
         this.externalInputsArr = [];
@@ -105,9 +105,9 @@ class LgWebOsSocket extends EventEmitter {
                 });
 
                 //Register to tv
-                CONSTANTS.Pairing['client-key'] = this.pairingKey;
+                Pairing['client-key'] = this.pairingKey;
                 this.registerId = await this.getCid();
-                await this.send('register', undefined, CONSTANTS.Pairing, this.registerId);
+                await this.send('register', undefined, Pairing, this.registerId);
             }).on('message', async (message) => {
                 const parsedMessage = JSON.parse(message);
                 const messageId = parsedMessage.id;
@@ -135,7 +135,7 @@ class LgWebOsSocket extends EventEmitter {
                                 //Request specjalized socket
                                 await new Promise(resolve => setTimeout(resolve, 1500));
                                 this.specjalizedSockedId = await this.getCid();
-                                await this.send('request', CONSTANTS.ApiUrls.SocketUrl, undefined, this.specjalizedSockedId);
+                                await this.send('request', ApiUrls.SocketUrl, undefined, this.specjalizedSockedId);
                                 break;
                             case 'error':
                                 const debug2 = this.debugLog ? this.emit('debug', `Register to TV error: ${stringifyMessage}`) : false;
@@ -167,12 +167,12 @@ class LgWebOsSocket extends EventEmitter {
 
                                     //Request system info data
                                     this.systemInfoId = await this.getCid();
-                                    await this.send('request', CONSTANTS.ApiUrls.GetSystemInfo, undefined, this.systemInfoId);
+                                    await this.send('request', ApiUrls.GetSystemInfo, undefined, this.systemInfoId);
                                 }).on('error', async (error) => {
                                     const debug = this.debugLog ? this.emit('debug', `Specjalized socket connect error: ${error}.`) : false;
                                     specializedSocket.emit('disconnect');
                                     await new Promise(resolve => setTimeout(resolve, 5000));
-                                    await this.send('request', CONSTANTS.ApiUrls.SocketUrl, undefined, this.specjalizedSockedId);
+                                    await this.send('request', ApiUrls.SocketUrl, undefined, this.specjalizedSockedId);
                                 }).on('disconnect', () => {
                                     const message = this.specjalizedSocketConnected ? this.emit('message', 'Specjalized socket disconnected.') : false;
                                     this.specjalizedSocketConnected = false;
@@ -200,7 +200,7 @@ class LgWebOsSocket extends EventEmitter {
 
                                 //Request software info data
                                 this.softwareInfoId = await this.getCid();
-                                await this.send('request', CONSTANTS.ApiUrls.GetSoftwareInfo, undefined, this.softwareInfoId);
+                                await this.send('request', ApiUrls.GetSoftwareInfo, undefined, this.softwareInfoId);
                                 break;
                             case 'error':
                                 const debug1 = this.debugLog ? this.emit('debug', `System info error: ${stringifyMessage}`) : false;
@@ -243,15 +243,15 @@ class LgWebOsSocket extends EventEmitter {
 
                                 //Request channels list
                                 this.channelsId = await this.getCid();
-                                await this.send('request', CONSTANTS.ApiUrls.GetChannelList, undefined, this.channelsId);
+                                await this.send('request', ApiUrls.GetChannelList, undefined, this.channelsId);
 
                                 //Request external inputs list
                                 this.externalInputListId = await this.getCid();
-                                await this.send('subscribe', CONSTANTS.ApiUrls.GetExternalInputList, undefined, this.externalInputListId);
+                                await this.send('subscribe', ApiUrls.GetExternalInputList, undefined, this.externalInputListId);
 
                                 //Request apps list
                                 this.appsId = await this.getCid();
-                                await this.send('request', CONSTANTS.ApiUrls.GetInstalledApps, undefined, this.appsId);
+                                await this.send('request', ApiUrls.GetInstalledApps, undefined, this.appsId);
 
                                 //Start prepare accessory
                                 await new Promise(resolve => setTimeout(resolve, 1500));
@@ -398,7 +398,7 @@ class LgWebOsSocket extends EventEmitter {
                                     const inputName = input.name;
                                     const inputReference = input.reference;
                                     const duplicatedInput = inputsArr.some(input => input.reference === inputReference);
-                                    const filter = this.filterSystemApps ? CONSTANTS.SystemApps.includes(inputReference) : false;
+                                    const filter = this.filterSystemApps ? SystemApps.includes(inputReference) : false;
                                     const push = inputName && inputReference && !filter && !duplicatedInput ? inputsArr.push(input) : false;
                                 }
 
@@ -682,7 +682,7 @@ class LgWebOsSocket extends EventEmitter {
                             return;
                         }
 
-                        const closeAlert = this.webOS >= 4.0 ? await this.send('request', CONSTANTS.ApiUrls.CloseAletrt, { alertId: alertId }) : await this.send('button', undefined, { name: 'ENTER' });
+                        const closeAlert = this.webOS >= 4.0 ? await this.send('request', ApiUrls.CloseAletrt, { alertId: alertId }) : await this.send('button', undefined, { name: 'ENTER' });
                         break;
                     case this.toastCid:
                         const debug1 = this.debugLog ? this.emit('debug', `Toast: ${stringifyMessage}`) : false;
@@ -691,7 +691,7 @@ class LgWebOsSocket extends EventEmitter {
                             return;
                         }
 
-                        const closeToast = this.webOS >= 4.0 ? await this.send('request', CONSTANTS.ApiUrls.CloseToast, { toastId: toastId }) : await this.send('button', undefined, { name: 'ENTER' });
+                        const closeToast = this.webOS >= 4.0 ? await this.send('request', ApiUrls.CloseToast, { toastId: toastId }) : await this.send('button', undefined, { name: 'ENTER' });
                         break;
                     default:
                         const debug3 = this.debugLog ? this.emit('debug', `Received message type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`) : false;
@@ -789,15 +789,15 @@ class LgWebOsSocket extends EventEmitter {
     async subscribeTvStatus() {
         try {
             this.powerStateId = await this.getCid();
-            await this.send('subscribe', CONSTANTS.ApiUrls.GetPowerState, undefined, this.powerStateId);
+            await this.send('subscribe', ApiUrls.GetPowerState, undefined, this.powerStateId);
             this.currentAppId = await this.getCid();
-            await this.send('subscribe', CONSTANTS.ApiUrls.GetForegroundAppInfo, undefined, this.currentAppId);
+            await this.send('subscribe', ApiUrls.GetForegroundAppInfo, undefined, this.currentAppId);
             this.currentChannelId = await this.getCid();
-            await this.send('subscribe', CONSTANTS.ApiUrls.GetCurrentChannel, undefined, this.currentChannelId);
+            await this.send('subscribe', ApiUrls.GetCurrentChannel, undefined, this.currentChannelId);
             this.audioStateId = await this.getCid();
-            await this.send('subscribe', CONSTANTS.ApiUrls.GetAudioStatus, undefined, this.audioStateId);
+            await this.send('subscribe', ApiUrls.GetAudioStatus, undefined, this.audioStateId);
             this.soundOutputId = await this.getCid();
-            await this.send('subscribe', CONSTANTS.ApiUrls.GetSoundOutput, undefined, this.soundOutputId);
+            await this.send('subscribe', ApiUrls.GetSoundOutput, undefined, this.soundOutputId);
 
             //picture settings
             if (this.webOS >= 4.0) {
@@ -806,7 +806,7 @@ class LgWebOsSocket extends EventEmitter {
                     keys: ['brightness', 'backlight', 'contrast', 'color']
                 }
                 this.pictureSettingsId = await this.getCid();
-                await this.send('subscribe', CONSTANTS.ApiUrls.GetSystemSettings, payload, this.pictureSettingsId);
+                await this.send('subscribe', ApiUrls.GetSystemSettings, payload, this.pictureSettingsId);
             }
 
             //picture mode
@@ -816,7 +816,7 @@ class LgWebOsSocket extends EventEmitter {
                     keys: ['pictureMode']
                 }
                 this.pictureModeId = await this.getCid();
-                //await this.send('alert', CONSTANTS.ApiUrls.GetSystemSettings, payload, this.pictureModeId);
+                //await this.send('alert', ApiUrls.GetSystemSettings, payload, this.pictureModeId);
             }
 
             //sound mode
@@ -826,7 +826,7 @@ class LgWebOsSocket extends EventEmitter {
                     keys: ['soundMode']
                 }
                 this.soundModeId = await this.getCid();
-                await this.send('subscribe', CONSTANTS.ApiUrls.GetSystemSettings, payload, this.soundModeId);
+                await this.send('subscribe', ApiUrls.GetSystemSettings, payload, this.soundModeId);
             }
             return true;
         } catch (error) {
@@ -904,7 +904,7 @@ class LgWebOsSocket extends EventEmitter {
                     data = {
                         id: cid,
                         type: 'request',
-                        uri: CONSTANTS.ApiUrls.CreateAlert,
+                        uri: ApiUrls.CreateAlert,
                         payload: alertPayload
                     };
 
@@ -923,7 +923,7 @@ class LgWebOsSocket extends EventEmitter {
                     data = {
                         id: cid,
                         type: 'request',
-                        uri: CONSTANTS.ApiUrls.CreateToast,
+                        uri: ApiUrls.CreateToast,
                         payload: toastPayload
                     };
 
@@ -954,4 +954,4 @@ class LgWebOsSocket extends EventEmitter {
         }
     }
 };
-module.exports = LgWebOsSocket;
+export default LgWebOsSocket;
