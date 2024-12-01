@@ -1,4 +1,4 @@
-
+import { promises as fsPromises } from 'fs';
 import tcpp from 'tcp-ping';
 import WebSocket from 'ws';
 import EventEmitter from 'events';
