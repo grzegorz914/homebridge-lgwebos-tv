@@ -1,6 +1,4 @@
-'use strict';
-import { promises } from 'fs';
-const fsPromises = promises;
+
 import EventEmitter from 'events';
 import RestFul from './restful.js';
 import Mqtt from './mqtt.js';

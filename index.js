@@ -1,4 +1,3 @@
-'use strict';
 import { join } from 'path';
 import { mkdirSync, existsSync, writeFileSync } from 'fs';
 import LgWebOsDevice from './src/lgwebosdevice.js';

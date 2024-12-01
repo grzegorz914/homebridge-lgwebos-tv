@@ -1,6 +1,4 @@
-'use strict';
-import { promises } from 'fs';
-const fsPromises = promises;
+
 import tcpp from 'tcp-ping';
 import WebSocket from 'ws';
 import EventEmitter from 'events';

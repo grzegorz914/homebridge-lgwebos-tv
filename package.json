@@ -1,7 +1,7 @@
 {
   "displayName": "LG webOS TV",
   "name": "homebridge-lgwebos-tv",
-  "version": "3.4.0",
+  "version": "3.4.1",
   "description": "Homebridge plugin to control LG webOS TV.",
   "license": "MIT",
   "author": "grzegorz914",
@@ -17,7 +17,9 @@
     "url": "https://github.com/grzegorz914/homebridge-lgwebos-tv/issues"
   },
   "type": "module",
-  "main": "index.js",
+  "exports": {
+    ".": "./index.js"
+  },
   "files": [
     "src",
     "index.js",

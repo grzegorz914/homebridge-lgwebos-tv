@@ -1,4 +1,3 @@
-"use strict";
 import Dgram from 'dgram';
 import Net from 'net';
 import EventEmitter from 'events';
