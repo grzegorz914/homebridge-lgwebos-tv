@@ -27,12 +27,12 @@ class WakeOnLan extends EventEmitter {
                 this.emit('error', error);
             })
                 .on('close', () => {
-                    const debug1 = this.debugLog ? this.emit('debug', `WoL closed.`) : false;
+                    const debug1 = this.debugLog ? this.emit('debug', `WoL closed`) : false;
                 })
                 .on('listening', () => {
                     socket.setBroadcast(true);
                     const address = socket.address();
-                    const debug1 = this.debugLog ? this.emit('debug', `WoL start listening: ${address.address}:${address.port}.`) : false;
+                    const debug1 = this.debugLog ? this.emit('debug', `WoL start listening: ${address.address}:${address.port}`) : false;
 
                     const sendMagicPacket = (attempt) => {
                         if (attempt > 3) {
@@ -43,7 +43,7 @@ class WakeOnLan extends EventEmitter {
                                 if (error) {
                                     this.emit('error', error);
                                 } else {
-                                    const debug = this.debugLog ? this.emit('debug', `Send WoL to: ${this.broadcastAddress}:${9}, ${bytes}B.`) : false;
+                                    const debug = this.debugLog ? this.emit('debug', `Send WoL to: ${this.broadcastAddress}:${9}, ${bytes}B`) : false;
                                     setTimeout(() => sendMagicPacket(attempt + 1), 100);
                                 }
                             });

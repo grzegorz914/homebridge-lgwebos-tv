@@ -119,7 +119,7 @@ class LgWebOsDevice extends EventEmitter {
                 mode.state = false;
                 this.picturesModesConfigured.push(mode);
             } else {
-                const log = pictureModeDisplayType === 0 ? false : this.emit('message', `Picture Mode Name: ${pictureModeName ? pictureModeName : 'Missing'}, 'Reference: ${pictureModeReference ? pictureModeReference : 'Missing'}.`);
+                const log = pictureModeDisplayType === 0 ? false : this.emit('message', `Picture Mode Name: ${pictureModeName ? pictureModeName : 'Missing'}, 'Reference: ${pictureModeReference ? pictureModeReference : 'Missing'}`);
             };
         }
         this.picturesModesConfiguredCount = this.picturesModesConfigured.length || 0;
@@ -135,7 +135,7 @@ class LgWebOsDevice extends EventEmitter {
                 mode.state = false;
                 this.soundsModesConfigured.push(mode);
             } else {
-                const log = soundModeDisplayType === 0 ? false : this.emit('message', `Sound Mode Name: ${soundModeName ? soundModeName : 'Missing'}, 'Reference: ${soundModeReference ? soundModeReference : 'Missing'}.`);
+                const log = soundModeDisplayType === 0 ? false : this.emit('message', `Sound Mode Name: ${soundModeName ? soundModeName : 'Missing'}, 'Reference: ${soundModeReference ? soundModeReference : 'Missing'}`);
             };
         }
         this.soundsModesConfiguredCount = this.soundsModesConfigured.length || 0;
@@ -151,7 +151,7 @@ class LgWebOsDevice extends EventEmitter {
                 output.state = false;
                 this.soundsOutputsConfigured.push(output);
             } else {
-                const log = soundOutputDisplayType === 0 ? false : this.emit('message', `Sound Mode Name: ${soundOutputName ? soundOutputName : 'Missing'}, 'Reference: ${soundOutputReference ? soundOutputReference : 'Missing'}.`);
+                const log = soundOutputDisplayType === 0 ? false : this.emit('message', `Sound Mode Name: ${soundOutputName ? soundOutputName : 'Missing'}, 'Reference: ${soundOutputReference ? soundOutputReference : 'Missing'}`);
             };
         }
         this.soundsOutputsConfiguredCount = this.soundsOutputsConfigured.length || 0;
@@ -168,7 +168,7 @@ class LgWebOsDevice extends EventEmitter {
                 sensor.state = false;
                 this.sensorsInputsConfigured.push(sensor);
             } else {
-                const log = sensorInputDisplayType === 0 ? false : this.emit('message', `Sensor Name: ${sensorInputName ? sensorInputName : 'Missing'}, Reference: ${sensorInputReference ? sensorInputReference : 'Missing'}.`);
+                const log = sensorInputDisplayType === 0 ? false : this.emit('message', `Sensor Name: ${sensorInputName ? sensorInputName : 'Missing'}, Reference: ${sensorInputReference ? sensorInputReference : 'Missing'}`);
             };
         }
         this.sensorsInputsConfiguredCount = this.sensorsInputsConfigured.length || 0;
@@ -191,7 +191,7 @@ class LgWebOsDevice extends EventEmitter {
                 button.state = false;
                 this.buttonsConfigured.push(button);
             } else {
-                const log = buttonDisplayType === 0 ? false : this.emit('message', `Button Name: ${buttonName ? buttonName : 'Missing'}, ${buttonMode ? 'Command:' : 'Reference:'} ${buttonReferenceCommand ? buttonReferenceCommand : 'Missing'}, Mode: ${buttonMode ? buttonMode : 'Missing'}.`);
+                const log = buttonDisplayType === 0 ? false : this.emit('message', `Button Name: ${buttonName ? buttonName : 'Missing'}, ${buttonMode ? 'Command:' : 'Reference:'} ${buttonReferenceCommand ? buttonReferenceCommand : 'Missing'}, Mode: ${buttonMode ? buttonMode : 'Missing'}`);
             };
         }
         this.buttonsConfiguredCount = this.buttonsConfigured.length || 0;
@@ -212,7 +212,7 @@ class LgWebOsDevice extends EventEmitter {
                     this.emit('debug', debug);
                 });
         } catch (error) {
-            throw new Error(`Wake On Lan error: ${error.message || error}}`);
+            throw new Error(`Wake On Lan error: ${error}`);
         };
 
         try {
@@ -296,7 +296,7 @@ class LgWebOsDevice extends EventEmitter {
                                     try {
                                         await this.setOverExternalIntegration('MQTT', key, value);
                                     } catch (error) {
-                                        this.emit('warn', `MQTT set error: ${error}.`);
+                                        this.emit('warn', `MQTT set error: ${error}`);
                                     };
                                 })
                                 .on('debug', (debug) => {
@@ -307,7 +307,7 @@ class LgWebOsDevice extends EventEmitter {
                                 });
                         };
                     } catch (error) {
-                        this.emit('warn', `External integration start error: ${error.message || error}.`);
+                        this.emit('warn', `External integration start error: ${error}`);
                     };
                 })
                 .on('prepareAccessory', async () => {
@@ -355,7 +355,7 @@ class LgWebOsDevice extends EventEmitter {
                         this.lgWebOsSocket.impulseGenerator.start([{ name: 'heartBeat', sampling: 10000 }]);
                         return true;
                     } catch (error) {
-                        this.emit('error', `Prepare accessory error: ${error.message || error}`);
+                        this.emit('error', `Prepare accessory error: ${error}`);
                     };
                 })
                 .on('powerState', (power, screenState) => {
@@ -727,7 +727,7 @@ class LgWebOsDevice extends EventEmitter {
             //connect
             await this.lgWebOsSocket.connect();
         } catch (error) {
-            throw new Error(`Start error: ${error.message || error}}`);
+            throw new Error(`Start error: ${error}`);
         };
     };
 
@@ -756,7 +756,7 @@ class LgWebOsDevice extends EventEmitter {
             this.televisionService.setCharacteristic(Characteristic.DisplayOrder, Encode(1, displayOrder).toString('base64'));
             return true;;
         } catch (error) {
-            throw new Error(`Display order error: ${error.message ?? error}`);
+            throw new Error(`Display order error: ${error}`);
         };
     }
 
@@ -767,7 +767,7 @@ class LgWebOsDevice extends EventEmitter {
             const debug = !this.enableDebugMode ? false : this.emit('debug', `Saved data: ${data}`);
             return true;;
         } catch (error) {
-            throw new Error(`Save data error: ${error.message ?? error}`);
+            throw new Error(`Save data error: ${error}`);
         };
     }
 
@@ -776,7 +776,7 @@ class LgWebOsDevice extends EventEmitter {
             const data = await fsPromises.readFile(path);
             return data;
         } catch (error) {
-            throw new Error(`Read data error: ${error.message ?? error}`);
+            throw new Error(`Read data error: ${error}`);
         };
     }
 
@@ -898,7 +898,7 @@ class LgWebOsDevice extends EventEmitter {
             };
             return set;
         } catch (error) {
-            throw new Error(`${integration} set key: ${key}, value: ${value}, error: ${error.message ?? error}`);
+            throw new Error(`${integration} set key: ${key}, value: ${value}, error: ${error}`);
         };
     }
 
@@ -1695,7 +1695,7 @@ class LgWebOsDevice extends EventEmitter {
 
                                 const cid = await this.lgWebOsSocket.getCid('Power');
                                 await this.lgWebOsSocket.send('request', url, undefined, cid);
-                                const info = this.disableLogInfo ? false : this.emit('message', `Turn Screen ${state ? 'ON' : 'OFF'}.`);
+                                const info = this.disableLogInfo ? false : this.emit('message', `Turn Screen ${state ? 'ON' : 'OFF'}`);
                             } catch (error) {
                                 this.emit('warn', `Turn Screen ${state ? 'ON' : 'OFF'}, error: ${error}`);
                             };
@@ -2046,7 +2046,7 @@ class LgWebOsDevice extends EventEmitter {
                                         button.state = false;
                                         break;
                                     default:
-                                        const debug3 = this.enableDebugMode ? this.emit('debug', `Set Unknown Button Mode: ${buttonMode}.`) : false;
+                                        const debug3 = this.enableDebugMode ? this.emit('debug', `Set Unknown Button Mode: ${buttonMode}`) : false;
                                         button.state = false;
                                         break;
                                 }
@@ -2062,7 +2062,7 @@ class LgWebOsDevice extends EventEmitter {
 
             return accessory;
         } catch (error) {
-            throw new Error(error.message ?? error)
+            throw new Error(error)
         };
     };
 };

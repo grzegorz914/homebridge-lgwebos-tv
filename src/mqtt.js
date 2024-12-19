@@ -17,11 +17,11 @@ class Mqtt extends EventEmitter {
             try {
                 //connect
                 this.mqttClient = await connectAsync(url, options);
-                this.emit('connected', 'MQTT Connected.');
+                this.emit('connected', 'MQTT Connected');
 
                 //subscribe
                 await this.mqttClient.subscribe(subscribeTopic);
-                this.emit('subscribed', `MQTT Subscribe topic: ${subscribeTopic}.`);
+                this.emit('subscribed', `MQTT Subscribe topic: ${subscribeTopic}`);
 
                 //subscribed message
                 this.mqttClient.on('message', (topic, message) => {

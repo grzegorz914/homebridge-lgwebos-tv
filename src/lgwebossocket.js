@@ -52,19 +52,19 @@ class LgWebOsSocket extends EventEmitter {
                     return;
                 }
 
-                const debug = this.debugLog ? this.emit('debug', `Plugin send heartbeat to TV.`) : false;
+                const debug = this.debugLog ? this.emit('debug', `Plugin send heartbeat to TV`) : false;
                 tcpp.probe(this.host, this.webSocketPort, async (error, online) => {
                     if (online && !this.socketConnected) {
-                        const debug1 = this.debugLog ? this.emit('debug', `Plugin received heartbeat from TV.`) : false;
+                        const debug1 = this.debugLog ? this.emit('debug', `Plugin received heartbeat from TV`) : false;
                         await this.connect();
                         return;
                     }
                 });
             } catch (error) {
-                this.emit('error', `${error}, trying again.`);
+                this.emit('error', `${error}, trying again`);
             };
         }).on('state', (state) => {
-            const emit = state ? this.emit('success', `Heartbeat started.`) : this.emit('warn', ` Heartbeat stopped.`);
+            const emit = state ? this.emit('success', `Heartbeat started`) : this.emit('warn', ` Heartbeat stopped`);
         });
     };
 
@@ -75,29 +75,29 @@ class LgWebOsSocket extends EventEmitter {
             this.pairingKey = pairingKey.length > 10 ? pairingKey.toString() : '0';
 
             //Socket
-            const debug = this.debugLog ? this.emit('debug', `Connecting to ${this.sslWebSocket ? 'secure socket' : 'socket'}.`) : false;
+            const debug = this.debugLog ? this.emit('debug', `Connecting to ${this.sslWebSocket ? 'secure socket' : 'socket'}`) : false;
             const socket = this.sslWebSocket ? new WebSocket(this.url, { rejectUnauthorized: false }) : new WebSocket(this.url);
             socket.on('open', async () => {
-                const debug = this.debugLog ? this.emit('debug', `Socked connected.`) : false;
+                const debug = this.debugLog ? this.emit('debug', `Socked connected`) : false;
                 this.socket = socket;
                 this.socketConnected = true;
 
                 //connect to device success
-                this.emit('success', `Socket Connect Success.`)
+                this.emit('success', `Socket Connect Success`)
 
                 const heartbeat = setInterval(() => {
                     if (socket.readyState === socket.OPEN) {
-                        const debug = this.debugLog ? this.emit('debug', `Socked send heartbeat.`) : false;
+                        const debug = this.debugLog ? this.emit('debug', `Socked send heartbeat`) : false;
                         socket.ping(null, false, 'UTF-8');
                     }
                 }, 5000);
 
                 socket.on('pong', () => {
-                    const debug = this.debugLog ? this.emit('debug', `Socked received heartbeat.`) : false;
+                    const debug = this.debugLog ? this.emit('debug', `Socked received heartbeat`) : false;
                 });
 
                 socket.on('close', () => {
-                    const debug = this.debugLog ? this.emit('debug', `Socked closed.`) : false;
+                    const debug = this.debugLog ? this.emit('debug', `Socked closed`) : false;
                     clearInterval(heartbeat);
                     socket.emit('disconnect');
                 });
@@ -118,7 +118,7 @@ class LgWebOsSocket extends EventEmitter {
                         switch (messageType) {
                             case 'response':
                                 const debug = this.debugLog ? this.emit('debug', `Start registering to TV: ${stringifyMessage}`) : false;
-                                this.emit('message', 'Please accept authorization on TV.');
+                                this.emit('message', 'Please accept authorization on TV');
                                 break;
                             case 'registered':
                                 const debug1 = this.debugLog ? this.emit('debug', `Registered to TV with key: ${messageData['client-key']}`) : false;
@@ -127,7 +127,7 @@ class LgWebOsSocket extends EventEmitter {
                                 const pairingKey = messageData['client-key'];
                                 if (pairingKey !== this.pairingKey) {
                                     await this.savePairingKey(this.keyFile, pairingKey);
-                                    this.emit('message', 'Pairing key saved.');
+                                    this.emit('message', 'Pairing key saved');
                                 };
 
                                 //Request specjalized socket
@@ -146,20 +146,20 @@ class LgWebOsSocket extends EventEmitter {
                     case this.specjalizedSockedId:
                         switch (messageType) {
                             case 'response':
-                                const debug = this.debugLog ? this.emit('debug', `Connecting to specjalized socket.`) : false;
+                                const debug = this.debugLog ? this.emit('debug', `Connecting to specjalized socket`) : false;
 
                                 const socketPath = messageData.socketPath;
                                 const specializedSocket = this.sslWebSocket ? new WebSocket(socketPath, { rejectUnauthorized: false }) : new WebSocket(socketPath);
                                 specializedSocket.on('open', async () => {
-                                    const debug = this.debugLog ? this.emit('debug', `Specialized socket connected, path: ${socketPath}.`) : false;
+                                    const debug = this.debugLog ? this.emit('debug', `Specialized socket connected, path: ${socketPath}`) : false;
                                     this.specializedSocket = specializedSocket;
                                     this.specjalizedSocketConnected = true;
 
                                     //connect to deice success
-                                    this.emit('success', `Specjalized Socket Connect Success.`)
+                                    this.emit('success', `Specjalized Socket Connect Success`)
 
                                     specializedSocket.on('close', () => {
-                                        const debug = this.debugLog ? this.emit('debug', 'Specialized socket closed.') : false;
+                                        const debug = this.debugLog ? this.emit('debug', 'Specialized socket closed') : false;
                                         specializedSocket.emit('disconnect');
                                     })
 
@@ -167,12 +167,12 @@ class LgWebOsSocket extends EventEmitter {
                                     this.systemInfoId = await this.getCid();
                                     await this.send('request', ApiUrls.GetSystemInfo, undefined, this.systemInfoId);
                                 }).on('error', async (error) => {
-                                    const debug = this.debugLog ? this.emit('debug', `Specjalized socket connect error: ${error}.`) : false;
+                                    const debug = this.debugLog ? this.emit('debug', `Specjalized socket connect error: ${error}`) : false;
                                     specializedSocket.emit('disconnect');
                                     await new Promise(resolve => setTimeout(resolve, 5000));
                                     await this.send('request', ApiUrls.SocketUrl, undefined, this.specjalizedSockedId);
                                 }).on('disconnect', () => {
-                                    const message = this.specjalizedSocketConnected ? this.emit('message', 'Specjalized socket disconnected.') : false;
+                                    const message = this.specjalizedSocketConnected ? this.emit('message', 'Specjalized socket disconnected') : false;
                                     this.specjalizedSocketConnected = false;
                                 });
                                 break;
@@ -257,9 +257,9 @@ class LgWebOsSocket extends EventEmitter {
 
                                 //Subscribe tv status
                                 await new Promise(resolve => setTimeout(resolve, 3000));
-                                const debug1 = this.debugLog ? this.emit('debug', `Subscirbe tv status.`) : false;
+                                const debug1 = this.debugLog ? this.emit('debug', `Subscirbe tv status`) : false;
                                 await this.subscribeTvStatus();
-                                const debug2 = this.debugLog ? this.emit('debug', `Subscribe tv status successful.`) : false;
+                                const debug2 = this.debugLog ? this.emit('debug', `Subscribe tv status successful`) : false;
                                 break;
                             case 'error':
                                 const debug3 = this.debugLog ? this.emit('debug', `Software info error: ${stringifyMessage}`) : false;
@@ -696,7 +696,7 @@ class LgWebOsSocket extends EventEmitter {
                         break;
                 };
             }).on('error', (error) => {
-                const debug = this.debugLog ? this.emit('debug', `Socket connect error: ${error}.`) : false;
+                const debug = this.debugLog ? this.emit('debug', `Socket connect error: ${error}`) : false;
                 socket.emit('disconnect');
             }).on('powerOff', async () => {
                 //update TV state
@@ -707,7 +707,7 @@ class LgWebOsSocket extends EventEmitter {
                 this.emit('soundMode', this.soundMode, false);
                 this.emit('soundOutput', this.soundOutput, false);
             }).on('disconnect', async () => {
-                const message = this.socketConnected ? this.emit('message', 'Socket disconnected.') : false;
+                const message = this.socketConnected ? this.emit('message', 'Socket disconnected') : false;
                 this.socketConnected = false;
                 this.cidCount = 0;
                 this.power = false;
@@ -728,7 +728,7 @@ class LgWebOsSocket extends EventEmitter {
 
             return true;
         } catch (error) {
-            throw new Error(`Connect error: ${error.message || error}}`);
+            throw new Error(`Connect error: ${error}`);
         };
     }
 
@@ -738,7 +738,7 @@ class LgWebOsSocket extends EventEmitter {
             const debug = this.debugLog ? this.emit('debug', `Saved pairing key: ${data}`) : false;
             return true;
         } catch (error) {
-            throw new Error(`Save pairing key error: ${error.message || error}}`);
+            throw new Error(`Save pairing key error: ${error}`);
         };
     };
 
@@ -749,7 +749,7 @@ class LgWebOsSocket extends EventEmitter {
             const debug = this.debugLog ? this.emit('debug', `Saved data: ${data}`) : false;
             return true;
         } catch (error) {
-            throw new Error(`Save data error: ${error.message || error}}`);
+            throw new Error(`Save data error: ${error}`);
         };
     };
 
@@ -759,7 +759,7 @@ class LgWebOsSocket extends EventEmitter {
             const debug = this.debugLog ? this.emit('debug', `Read data: ${JSON.stringify(data, null, 2)}`) : false;
             return data;;
         } catch (error) {
-            throw new Error(`Read data error: ${error.message || error}`);
+            throw new Error(`Read data error: ${error}`);
         };
     }
 
@@ -768,7 +768,7 @@ class LgWebOsSocket extends EventEmitter {
             const pairingKey = await this.readData(this.keyFile);
             const key = pairingKey.length > 10 ? pairingKey.toString() : '0';
             if (key === '0') {
-                this.emit('warn', `Prepare accessory not possible, pairing key: ${key}.`);
+                this.emit('warn', `Prepare accessory not possible, pairing key: ${key}`);
                 return;
             }
 
@@ -780,7 +780,7 @@ class LgWebOsSocket extends EventEmitter {
 
             return true;
         } catch (error) {
-            throw new Error(`Prepare accessory error: ${error.message || error}.`);
+            throw new Error(`Prepare accessory error: ${error}`);
         }
     }
 
@@ -828,7 +828,7 @@ class LgWebOsSocket extends EventEmitter {
             }
             return true;
         } catch (error) {
-            throw new Error(`Subscribe TV status error: ${error.message || error}.`);
+            throw new Error(`Subscribe TV status error: ${error}`);
         };
     }
 
@@ -861,7 +861,7 @@ class LgWebOsSocket extends EventEmitter {
                     return cid;
             }
         } catch (error) {
-            throw new Error(`Get Cid error: ${error.message || error}.`);
+            throw new Error(`Get Cid error: ${error}`);
         }
     }
 
@@ -878,7 +878,7 @@ class LgWebOsSocket extends EventEmitter {
             switch (type) {
                 case 'button':
                     if (!this.specjalizedSocketConnected) {
-                        this.emit('warn', 'Specialized socket not connected.');
+                        this.emit('warn', 'Specialized socket not connected');
                         return;
                     };
 
@@ -890,7 +890,7 @@ class LgWebOsSocket extends EventEmitter {
                     return true;
                 case 'alert':
                     if (!this.socketConnected) {
-                        this.emit('warn', 'Socket not connected.');
+                        this.emit('warn', 'Socket not connected');
                         return;
                     };
 
@@ -912,7 +912,7 @@ class LgWebOsSocket extends EventEmitter {
                     return true;
                 case 'toast':
                     if (!this.socketConnected) {
-                        this.emit('warn', 'Socket not connected.');
+                        this.emit('warn', 'Socket not connected');
                         return;
                     };
 
@@ -931,7 +931,7 @@ class LgWebOsSocket extends EventEmitter {
                     return true;
                 default:
                     if (!this.socketConnected) {
-                        this.emit('warn', 'Socket not connected.');
+                        this.emit('warn', 'Socket not connected');
                         return;
                     };
 
@@ -948,7 +948,7 @@ class LgWebOsSocket extends EventEmitter {
                     return true;
             };
         } catch (error) {
-            throw new Error(`Send error: ${error.message || error}.`);
+            throw new Error(`Send data error: ${error}`);
         }
     }
 };

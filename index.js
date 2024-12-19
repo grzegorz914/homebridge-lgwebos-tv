@@ -8,7 +8,7 @@ class LgWebOsPlatform {
 	constructor(log, config, api) {
 		// only load if configured
 		if (!config || !Array.isArray(config.devices)) {
-			log.warn(`No configuration found for ${PluginName}`);
+			log.warn(`No configuration found for ${PluginName}.`);
 			return;
 		};
 		this.accessories = [];
@@ -18,7 +18,7 @@ class LgWebOsPlatform {
 		try {
 			mkdirSync(prefDir, { recursive: true });
 		} catch (error) {
-			log.error(`Prepare directory error: ${error.message ?? error}`);
+			log.error(`Prepare directory error: ${error}.`);
 			return;
 		}
 
@@ -44,7 +44,7 @@ class LgWebOsPlatform {
 						passwd: 'removed'
 					}
 				};
-				const debug1 = enableDebugMode ? log.info(`Device: ${host} ${deviceName}, Config: ${JSON.stringify(config, null, 2)}`) : false;
+				const debug1 = enableDebugMode ? log.info(`Device: ${host} ${deviceName}, Config: ${JSON.stringify(config, null, 2)}.`) : false;
 
 				//check files exists, if not then create it
 				const postFix = host.split('.').join('');
@@ -71,7 +71,7 @@ class LgWebOsPlatform {
 						}
 					});
 				} catch (error) {
-					log.error(`Device: ${host} ${deviceName}, Prepare files error: ${error}`);
+					log.error(`Device: ${host} ${deviceName}, Prepare files error: ${error}.`);
 					return;
 				}
 
@@ -86,19 +86,19 @@ class LgWebOsPlatform {
 							log.info(devInfo);
 						})
 						.on('success', (message) => {
-							log.success(`Device: ${host} ${deviceName}, ${message}`);
+							log.success(`Device: ${host} ${deviceName}, ${message}.`);
 						})
 						.on('message', (message) => {
-							log.info(`Device: ${host} ${deviceName}, ${message}`);
+							log.info(`Device: ${host} ${deviceName}, ${message}.`);
 						})
 						.on('debug', (debug) => {
-							log.info(`Device: ${host} ${deviceName}, debug: ${debug}`);
+							log.info(`Device: ${host} ${deviceName}, debug: ${debug}.`);
 						})
 						.on('warn', (warn) => {
-							log.warn(`Device: ${host} ${deviceName}, ${warn}`);
+							log.warn(`Device: ${host} ${deviceName}, ${warn}.`);
 						})
 						.on('error', (error) => {
-							log.error(`Device: ${host} ${deviceName}, ${error}`);
+							log.error(`Device: ${host} ${deviceName}, ${error}.`);
 						});
 
 					//create impulse generator
@@ -117,7 +117,7 @@ class LgWebOsPlatform {
 					//start impulse generator
 					impulseGenerator.start([{ name: 'start', sampling: 45000 }]);
 				} catch (error) {
-					log.error(`Device: ${host} ${deviceName}, Did finish launching error: ${error}`);
+					log.error(`Device: ${host} ${deviceName}, Did finish launching error: ${error}.`);
 				}
 				await new Promise(resolve => setTimeout(resolve, 250));
 			}
