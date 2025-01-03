@@ -806,8 +806,7 @@ class LgWebOsDevice extends EventEmitter {
                 case 'Volume':
                     const volume = (value < 0 || value > 100) ? this.volume : value;
                     const payload = {
-                        volume: volume,
-                        soundOutput: this.soundOutput
+                        volume: volume
                     };
                     const cid2 = await this.lgWebOsSocket.getCid('Audio');
                     set = await this.lgWebOsSocket.send('request', ApiUrls.SetVolume, payload, cid2);
@@ -827,7 +826,7 @@ class LgWebOsDevice extends EventEmitter {
                         }
                     };
                     const cid4 = await this.lgWebOsSocket.getCid();
-                    set = await this.lgWebOsSocket.send('alert', ApiUrls.SetMute, payload4, cid4);
+                    set = await this.lgWebOsSocket.send('alert', ApiUrls.SetSystemSettings, payload4, cid4);
                     break;
                 case 'Backlight':
                     const payload5 = {
@@ -837,7 +836,7 @@ class LgWebOsDevice extends EventEmitter {
                         }
                     };
                     const cid5 = await this.lgWebOsSocket.getCid();
-                    set = await this.lgWebOsSocket.send('alert', ApiUrls.SetMute, payload5, cid5);
+                    set = await this.lgWebOsSocket.send('alert', ApiUrls.SetSystemSettings, payload5, cid5);
                     break;
                 case 'Contrast':
                     const payload6 = {
@@ -847,7 +846,7 @@ class LgWebOsDevice extends EventEmitter {
                         }
                     };
                     const cid6 = await this.lgWebOsSocket.getCid();
-                    set = await this.lgWebOsSocket.send('alert', ApiUrls.SetMute, payload6, cid6);
+                    set = await this.lgWebOsSocket.send('alert', ApiUrls.SetSystemSettings, payload6, cid6);
                     break;
                 case 'Color':
                     const payload7 = {
@@ -857,7 +856,7 @@ class LgWebOsDevice extends EventEmitter {
                         }
                     };
                     const cid7 = await this.lgWebOsSocket.getCid();
-                    set = await this.lgWebOsSocket.send('alert', ApiUrls.SetMute, payload7, cid7);
+                    set = await this.lgWebOsSocket.send('alert', ApiUrls.SetSystemSettings, payload7, cid7);
                     break;
                 case 'PictureMode':
                     const payload8 = {
@@ -867,7 +866,7 @@ class LgWebOsDevice extends EventEmitter {
                         }
                     };
                     const cid8 = await this.lgWebOsSocket.getCid();
-                    set = await this.lgWebOsSocket.send('alert', ApiUrls.SetMute, payload8, cid8);
+                    set = await this.lgWebOsSocket.send('alert', ApiUrls.SetSystemSettings, payload8, cid8);
                     break;
                 case 'SoundMode':
                     const payload9 = {
@@ -877,7 +876,7 @@ class LgWebOsDevice extends EventEmitter {
                         }
                     };
                     const cid9 = await this.lgWebOsSocket.getCid();
-                    set = await this.lgWebOsSocket.send('alert', ApiUrls.SetMute, payload9, cid9);
+                    set = await this.lgWebOsSocket.send('alert', ApiUrls.SetSystemSettings, payload9, cid9);
                     break;
                 case 'SoundOutput':
                     const payload10 = {
