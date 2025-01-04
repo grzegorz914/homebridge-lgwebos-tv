@@ -140,13 +140,13 @@ Tested with OLED65G6V, 32LM6300PLA, 49SK8500, OLED65C7T, 55SK800PLB, OLED48CX.
 
 * POST data as a JSON Object `{Power: true}`
 * References:
-  * Picture Mode - `cinema`, `eco`, `expert1`, `expert2`, `game`, `normal`, `photo`, `sports`, `technicolor`, `vivid`, `hdrEffect`, `hdrCinema`, `hdrCinemaBright`, `hdrExternal`, `hdrGame`, `hdrStandard`, `hdrTechnicolor`, `hdrVivid`, `dolbyHdrCinema`, `dolbyHdrCinemaBright`, `dolbyHdrDarkAmazon`, `dolbyHdrGame`, `dolbyHdrStandard`, `dolbyHdrVivid`, `dolbyStandard`.
+  * Picture Mode - `cinema`, `eco`, `expert1`, `expert2`, `game`, `normal`, `photo`, `sports`, `technicolor`, `vivid`, `hdrEffect`, `hdrCinema`, `hdrCinemaBright`, `hdrExternal`, `hdrGame`, `hdrStandard`, `hdrTechnicolor`, `hdrVivid`, `dolbyHdrCinema`, `dolbyHdrCinemaBright`, `dolbyHdrDarkAmazon`, `dolbyHdrGame`, `dolbyHdrStandard`, `dolbyHdrVivid`, `dolbyStandard`, `filmMaker`.
   * Sound Mode - `aiSoundPlus`, `standard`, `movie`, `clearVoice`, `news`, `sport`, `music`, `game`.
   * Sound Output - `tv_speaker`, `external_speaker`, `external_optical`, `external_arc`, `lineout`, `headphone`, `tv_external_speaker`, `tv_external_headphone`, `bt_soundbar`, `soundbar`.
 
 | Method | URL | Path | Response | Type |
 | --- | --- | --- | --- | --- |
-| GET | `http//ip:port` | `systemnfo`, `softwareinfo`, `channels`, `apps`, `power`, `audio`, `currentapp`, `currentchannel`, `picturesettings`, `soundmode`, `soundoutput`, `externalinputlist`. | `{"state": Active}` | JSON object. |
+| GET | `http//ip:port` | `systeminfo`, `softwareinfo`, `channels`, `apps`, `power`, `audio`, `currentapp`, `currentchannel`, `picturesettings`, `soundmode`, `soundoutput`, `externalinputlist`. | `{"state": Active}` | JSON object. |
 
 | Method | URL | Key | Value | Type | Description |
 | --- | --- | --- | --- | --- | --- |
@@ -168,7 +168,7 @@ Tested with OLED65G6V, 32LM6300PLA, 49SK8500, OLED65C7T, 55SK800PLB, OLED48CX.
 
 * Subscribe data as a JSON Object `{Power: true}`
 * References:
-  * Picture Mode - `cinema`, `eco`, `expert1`, `expert2`, `game`, `normal`, `photo`, `sports`, `technicolor`, `vivid`, `hdrEffect`, `hdrCinema`, `hdrCinemaBright`, `hdrExternal`, `hdrGame`, `hdrStandard`, `hdrTechnicolor`, `hdrVivid`, `dolbyHdrCinema`, `dolbyHdrCinemaBright`, `dolbyHdrDarkAmazon`, `dolbyHdrGame`, `dolbyHdrStandard`, `dolbyHdrVivid`, `dolbyStandard`.
+  * Picture Mode - `cinema`, `eco`, `expert1`, `expert2`, `game`, `normal`, `photo`, `sports`, `technicolor`, `vivid`, `hdrEffect`, `hdrCinema`, `hdrCinemaBright`, `hdrExternal`, `hdrGame`, `hdrStandard`, `hdrTechnicolor`, `hdrVivid`, `dolbyHdrCinema`, `dolbyHdrCinemaBright`, `dolbyHdrDarkAmazon`, `dolbyHdrGame`, `dolbyHdrStandard`, `dolbyHdrVivid`, `dolbyStandard`, `filmMaker`.
   * Sound Mode - `aiSoundPlus`, `standard`, `movie`, `clearVoice`, `news`, `sport`, `music`, `game`.
   * Sound Output - `tv_speaker`, `external_speaker`, `external_optical`, `external_arc`, `lineout`, `headphone`, `tv_external_speaker`, `tv_external_headphone`, `bt_soundbar`, `soundbar`.
 
