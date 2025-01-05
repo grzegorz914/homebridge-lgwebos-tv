@@ -870,7 +870,7 @@ class LgWebOsDevice extends EventEmitter {
                     break;
                 case 'SoundMode':
                     const payload9 = {
-                        category: 'picture',
+                        category: 'sound',
                         settings: {
                             soundMode: value
                         }

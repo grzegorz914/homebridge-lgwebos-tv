@@ -193,7 +193,7 @@
                         ]
                       }
                     ],
-                    "required": false
+                    "required": true
                   },
                   "reference": {
                     "title": "Reference",
@@ -842,7 +842,7 @@
                       {
                         "title": "Filmmaker",
                         "enum": [
-                          "filmmaker"
+                          "filmMaker"
                         ]
                       },
                       {
@@ -894,6 +894,12 @@
                         ]
                       },
                       {
+                        "title": "HDR Filmmaker",
+                        "enum": [
+                          "hdrFilmMaker"
+                        ]
+                      },
+                      {
                         "title": "Dolby Standard",
                         "enum": [
                           "dolbyStandard"
@@ -933,6 +939,12 @@
                         "title": "Dolby HDR Game",
                         "enum": [
                           "dolbyHdrGame"
+                        ]
+                      },
+                      {
+                        "title": "Dolby Filmmaker",
+                        "enum": [
+                          "dolbyFilmMaker"
                         ]
                       },
                       {
@@ -1028,7 +1040,7 @@
                 }
               ],
               "description": "Here select what a volume control mode You want to use. If select *None/Disabled* only hardware buttons in RC app can be used to control volume.",
-              "required": false
+              "required": true
             },
             "soundModeControl": {
               "title": "Sound Modes",
@@ -1053,7 +1065,6 @@
                   "reference": {
                     "title": "Mode",
                     "type": "string",
-                    "default": "standard",
                     "description": "Here choice the Sound Mode.",
                     "oneOf": [
                       {
@@ -1105,7 +1116,7 @@
                         ]
                       }
                     ],
-                    "required": true
+                    "required": false
                   },
                   "displayType": {
                     "title": "Display Type",
@@ -1167,7 +1178,6 @@
                   "reference": {
                     "title": "Output",
                     "type": "string",
-                    "default": "tv_speaker",
                     "description": "Here choice the Sound Output.",
                     "oneOf": [
                       {
@@ -1231,7 +1241,7 @@
                         ]
                       }
                     ],
-                    "required": true
+                    "required": false
                   },
                   "displayType": {
                     "title": "Display Type",
