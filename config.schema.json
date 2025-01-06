@@ -900,12 +900,6 @@
                         ]
                       },
                       {
-                        "title": "Dolby Standard",
-                        "enum": [
-                          "dolbyStandard"
-                        ]
-                      },
-                      {
                         "title": "Dolby HDR Standard",
                         "enum": [
                           "dolbyHdrStandard"
@@ -942,9 +936,9 @@
                         ]
                       },
                       {
-                        "title": "Dolby Filmmaker",
+                        "title": "Dolby HDR Filmmaker",
                         "enum": [
-                          "dolbyFilmMaker"
+                          "dolbyHdrCinema"
                         ]
                       },
                       {
