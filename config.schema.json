@@ -846,6 +846,30 @@
                         ]
                       },
                       {
+                        "title": "HDR Filmmaker",
+                        "enum": [
+                          "hdrFilmMaker"
+                        ]
+                      },
+                      {
+                        "title": "HDR Cinema",
+                        "enum": [
+                          "hdrCinema"
+                        ]
+                      },
+                      {
+                        "title": "HDR Cinema Bright",
+                        "enum": [
+                          "hdrCinemaBright"
+                        ]
+                      },
+                      {
+                        "title": "HDR Standard",
+                        "enum": [
+                          "hdrStandard"
+                        ]
+                      },
+                      {
                         "title": "HDR Effect",
                         "enum": [
                           "hdrEffect"
@@ -858,33 +882,9 @@
                         ]
                       },
                       {
-                        "title": "HDR Standard",
-                        "enum": [
-                          "hdrStandard"
-                        ]
-                      },
-                      {
                         "title": "HDR Vivid",
                         "enum": [
                           "hdrVivid"
-                        ]
-                      },
-                      {
-                        "title": "HDR Cinema",
-                        "enum": [
-                          "hdrCinemarmal"
-                        ]
-                      },
-                      {
-                        "title": "HDR Cinema Bright",
-                        "enum": [
-                          "hdrCinemaBright"
-                        ]
-                      },
-                      {
-                        "title": "HDR External",
-                        "enum": [
-                          "hdrExternal"
                         ]
                       },
                       {
@@ -894,27 +894,15 @@
                         ]
                       },
                       {
-                        "title": "HDR Filmmaker",
+                        "title": "HDR External",
                         "enum": [
-                          "hdrFilmMaker"
-                        ]
-                      },
-                      {
-                        "title": "Dolby HDR Standard",
-                        "enum": [
-                          "dolbyHdrStandard"
+                          "hdrExternal"
                         ]
                       },
                       {
                         "title": "Dolby HDR Cinema",
                         "enum": [
                           "dolbyHdrCinema"
-                        ]
-                      },
-                      {
-                        "title": "Dolby HDR Vivid",
-                        "enum": [
-                          "dolbyHdrVivid"
                         ]
                       },
                       {
@@ -930,15 +918,21 @@
                         ]
                       },
                       {
-                        "title": "Dolby HDR Game",
+                        "title": "Dolby HDR Standard",
                         "enum": [
-                          "dolbyHdrGame"
+                          "dolbyHdrStandard"
                         ]
                       },
                       {
-                        "title": "Dolby HDR Filmmaker",
+                        "title": "Dolby HDR Vivid",
                         "enum": [
-                          "dolbyHdrCinema"
+                          "dolbyHdrVivid"
+                        ]
+                      },
+                      {
+                        "title": "Dolby HDR Game",
+                        "enum": [
+                          "dolbyHdrGame"
                         ]
                       },
                       {
