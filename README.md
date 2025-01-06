@@ -140,7 +140,7 @@ Tested with OLED65G6V, 32LM6300PLA, 49SK8500, OLED65C7T, 55SK800PLB, OLED48CX.
 
 * POST data as a JSON Object `{Power: true}`
 * References:
-  * Picture Mode - `cinema`, `eco`, `expert1`, `expert2`, `game`, `normal`, `photo`, `sports`, `technicolor`, `vivid`, `hdrEffect`, `hdrCinema`, `hdrCinemaBright`, `hdrExternal`, `hdrGame`, `hdrStandard`, `hdrTechnicolor`, `hdrVivid`, `dolbyHdrCinema`, `dolbyHdrCinemaBright`, `dolbyHdrDarkAmazon`, `dolbyHdrGame`, `dolbyHdrStandard`, `dolbyHdrVivid`, `dolbyStandard`, `filmMaker`.
+  * Picture Mode - `cinema`, `eco`, `expert1`, `expert2`, `game`, `normal`, `photo`, `sports`, `technicolor`, `vivid`, `hdrEffect`, `hdrCinema`, `hdrCinemaBright`, `hdrExternal`, `hdrGame`, `hdrStandard`, `hdrTechnicolor`, `hdrVivid`, `hdrFilmMaker`, `dolbyHdrCinema`, `dolbyHdrCinemaBright`, `dolbyHdrDarkAmazon`, `dolbyHdrGame`, `dolbyHdrStandard`, `dolbyHdrVivid`.
   * Sound Mode - `aiSoundPlus`, `standard`, `movie`, `clearVoice`, `news`, `sport`, `music`, `game`.
   * Sound Output - `tv_speaker`, `external_speaker`, `external_optical`, `external_arc`, `lineout`, `headphone`, `tv_external_speaker`, `tv_external_headphone`, `bt_soundbar`, `soundbar`.
 
@@ -168,7 +168,7 @@ Tested with OLED65G6V, 32LM6300PLA, 49SK8500, OLED65C7T, 55SK800PLB, OLED48CX.
 
 * Subscribe data as a JSON Object `{Power: true}`
 * References:
-  * Picture Mode - `cinema`, `eco`, `expert1`, `expert2`, `game`, `normal`, `photo`, `sports`, `technicolor`, `vivid`, `hdrEffect`, `hdrCinema`, `hdrCinemaBright`, `hdrExternal`, `hdrGame`, `hdrStandard`, `hdrTechnicolor`, `hdrVivid`, `dolbyHdrCinema`, `dolbyHdrCinemaBright`, `dolbyHdrDarkAmazon`, `dolbyHdrGame`, `dolbyHdrStandard`, `dolbyHdrVivid`, `dolbyStandard`, `filmMaker`.
+  * Picture Mode - `cinema`, `eco`, `expert1`, `expert2`, `game`, `normal`, `photo`, `sports`, `technicolor`, `vivid`, `hdrEffect`, `hdrCinema`, `hdrCinemaBright`, `hdrExternal`, `hdrGame`, `hdrStandard`, `hdrTechnicolor`, `hdrVivid`, `hdrFilmMaker`, `dolbyHdrCinema`, `dolbyHdrCinemaBright`, `dolbyHdrDarkAmazon`, `dolbyHdrGame`, `dolbyHdrStandard`, `dolbyHdrVivid`.
   * Sound Mode - `aiSoundPlus`, `standard`, `movie`, `clearVoice`, `news`, `sport`, `music`, `game`.
   * Sound Output - `tv_speaker`, `external_speaker`, `external_optical`, `external_arc`, `lineout`, `headphone`, `tv_external_speaker`, `tv_external_headphone`, `bt_soundbar`, `soundbar`.
 
