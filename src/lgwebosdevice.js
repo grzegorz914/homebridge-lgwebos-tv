@@ -612,30 +612,41 @@ class LgWebOsDevice extends EventEmitter {
             //start external integrations
             const startExternalIntegrations = this.restFul.enable || this.mqtt.enable ? await this.externalIntegrations() : false;
 
-            //connect
-            await this.lgWebOsSocket.connect();
-            await new Promise(resolve => setTimeout(resolve, 3000));
-
             //prepare accessory
             if (this.startPrepareAccessory) {
-                setInterval(async () => {
-                    const pairingKey = await this.readData(this.keyFile);
-                    const key = pairingKey.length > 10 ? pairingKey.toString() : '0';
+                const pairingKey = await this.readData(this.keyFile);
+                const key = pairingKey.length > 10 ? pairingKey.toString() : '0';
 
-                    if (key !== '0' && this.startPrepareAccessory) {
-                        //prepare data for accessory
-                        await this.prepareDataForAccessory();
+                if (key !== '0') {
+                    //prepare data for accessory
+                    await this.prepareDataForAccessory();
 
-                        //prepare accessory
-                        const accessory = await this.prepareAccessory();
-                        this.emit('publishAccessory', accessory);
-                        this.startPrepareAccessory = false;
-                    }
-                }, 5000);
+                    //prepare accessory
+                    const accessory = await this.prepareAccessory();
+                    this.emit('publishAccessory', accessory);
+                    this.startPrepareAccessory = false;
+                }
+
+                if (key === '0') {
+                    setInterval(async () => {
+                        const pairingKey = await this.readData(this.keyFile);
+                        const key = pairingKey.length > 10 ? pairingKey.toString() : '0';
+
+                        if (key !== '0' && this.startPrepareAccessory) {
+                            //prepare data for accessory
+                            await this.prepareDataForAccessory();
+
+                            //prepare accessory
+                            const accessory = await this.prepareAccessory();
+                            this.emit('publishAccessory', accessory);
+                            this.startPrepareAccessory = false;
+                        }
+                    }, 5000);
+                }
             }
 
-            //start impulse generator
-            await this.lgWebOsSocket.impulseGenerator.start([{ name: 'heartBeat', sampling: 10000 }]);
+            //connect
+            await this.lgWebOsSocket.connect();
 
             return true;
         } catch (error) {

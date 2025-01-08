@@ -134,6 +134,32 @@ class LgWebOsSocket extends EventEmitter {
                                 await new Promise(resolve => setTimeout(resolve, 1500));
                                 this.specjalizedSockedId = await this.getCid();
                                 await this.send('request', ApiUrls.SocketUrl, undefined, this.specjalizedSockedId);
+
+                                //Request system info data
+                                this.systemInfoId = await this.getCid();
+                                await this.send('request', ApiUrls.GetSystemInfo, undefined, this.systemInfoId);
+
+                                //Request software info data
+                                this.softwareInfoId = await this.getCid();
+                                await this.send('request', ApiUrls.GetSoftwareInfo, undefined, this.softwareInfoId);
+
+                                //Request channels list
+                                this.channelsId = await this.getCid();
+                                await this.send('request', ApiUrls.GetChannelList, undefined, this.channelsId);
+
+                                //Request external inputs list
+                                this.externalInputListId = await this.getCid();
+                                await this.send('subscribe', ApiUrls.GetExternalInputList, undefined, this.externalInputListId);
+
+                                //Request apps list
+                                this.appsId = await this.getCid();
+                                await this.send('request', ApiUrls.GetInstalledApps, undefined, this.appsId);
+
+                                //Subscribe tv status
+                                await new Promise(resolve => setTimeout(resolve, 3000));
+                                const debug4 = this.debugLog ? this.emit('debug', `Subscirbe tv status`) : false;
+                                await this.subscribeTvStatus();
+                                const debug5 = this.debugLog ? this.emit('debug', `Subscribe tv status successful`) : false;
                                 break;
                             case 'error':
                                 const debug2 = this.debugLog ? this.emit('debug', `Register to TV error: ${stringifyMessage}`) : false;
@@ -162,10 +188,6 @@ class LgWebOsSocket extends EventEmitter {
                                         const debug = this.debugLog ? this.emit('debug', 'Specialized socket closed') : false;
                                         specializedSocket.emit('disconnect');
                                     })
-
-                                    //Request system info data
-                                    this.systemInfoId = await this.getCid();
-                                    await this.send('request', ApiUrls.GetSystemInfo, undefined, this.systemInfoId);
                                 }).on('error', async (error) => {
                                     const debug = this.debugLog ? this.emit('debug', `Specjalized socket connect error: ${error}`) : false;
                                     specializedSocket.emit('disconnect');
@@ -195,10 +217,6 @@ class LgWebOsSocket extends EventEmitter {
 
                                 //mqtt
                                 this.emit('mqtt', 'System info', messageData);
-
-                                //Request software info data
-                                this.softwareInfoId = await this.getCid();
-                                await this.send('request', ApiUrls.GetSoftwareInfo, undefined, this.softwareInfoId);
                                 break;
                             case 'error':
                                 const debug1 = this.debugLog ? this.emit('debug', `System info error: ${stringifyMessage}`) : false;
@@ -238,24 +256,6 @@ class LgWebOsSocket extends EventEmitter {
 
                                 //mqtt
                                 this.emit('mqtt', 'Software info', messageData);
-
-                                //Request channels list
-                                this.channelsId = await this.getCid();
-                                await this.send('request', ApiUrls.GetChannelList, undefined, this.channelsId);
-
-                                //Request external inputs list
-                                this.externalInputListId = await this.getCid();
-                                await this.send('subscribe', ApiUrls.GetExternalInputList, undefined, this.externalInputListId);
-
-                                //Request apps list
-                                this.appsId = await this.getCid();
-                                await this.send('request', ApiUrls.GetInstalledApps, undefined, this.appsId);
-
-                                //Subscribe tv status
-                                await new Promise(resolve => setTimeout(resolve, 3000));
-                                const debug1 = this.debugLog ? this.emit('debug', `Subscirbe tv status`) : false;
-                                await this.subscribeTvStatus();
-                                const debug2 = this.debugLog ? this.emit('debug', `Subscribe tv status successful`) : false;
                                 break;
                             case 'error':
                                 const debug3 = this.debugLog ? this.emit('debug', `Software info error: ${stringifyMessage}`) : false;
@@ -718,6 +718,10 @@ class LgWebOsSocket extends EventEmitter {
                 this.emit('soundOutput', this.soundOutput, false);
             });
 
+            //start impulse generator
+            await new Promise(resolve => setTimeout(resolve, 3000));
+            await this.impulseGenerator.start([{ name: 'heartBeat', sampling: 10000 }]);
+            
             return true;
         } catch (error) {
             throw new Error(`Connect error: ${error}`);
