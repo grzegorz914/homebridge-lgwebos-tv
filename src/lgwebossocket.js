@@ -251,10 +251,6 @@ class LgWebOsSocket extends EventEmitter {
                                 this.appsId = await this.getCid();
                                 await this.send('request', ApiUrls.GetInstalledApps, undefined, this.appsId);
 
-                                //Start prepare accessory
-                                await new Promise(resolve => setTimeout(resolve, 1500));
-                                await this.prepareAccessory();
-
                                 //Subscribe tv status
                                 await new Promise(resolve => setTimeout(resolve, 3000));
                                 const debug1 = this.debugLog ? this.emit('debug', `Subscirbe tv status`) : false;
@@ -722,10 +718,6 @@ class LgWebOsSocket extends EventEmitter {
                 this.emit('soundOutput', this.soundOutput, false);
             });
 
-            setTimeout(async () => {
-                const prepare = !this.socketConnected ? await this.prepareAccessory() : false;
-            }, 5500);
-
             return true;
         } catch (error) {
             throw new Error(`Connect error: ${error}`);
@@ -761,27 +753,6 @@ class LgWebOsSocket extends EventEmitter {
         } catch (error) {
             throw new Error(`Read data error: ${error}`);
         };
-    }
-
-    async prepareAccessory() {
-        try {
-            const pairingKey = await this.readData(this.keyFile);
-            const key = pairingKey.length > 10 ? pairingKey.toString() : '0';
-            if (key === '0') {
-                this.emit('warn', `Prepare accessory not possible, pairing key: ${key}`);
-                return;
-            }
-
-            //start external integration
-            this.emit('externalIntegrations');
-
-            //prepare accessory
-            this.emit('prepareAccessory');
-
-            return true;
-        } catch (error) {
-            throw new Error(`Prepare accessory error: ${error}`);
-        }
     }
 
     async subscribeTvStatus() {

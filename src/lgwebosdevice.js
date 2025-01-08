@@ -243,121 +243,6 @@ class LgWebOsDevice extends EventEmitter {
                     this.emit('devInfo', `----------------------------------`);
                 };
             })
-                .on('externalIntegrations', () => {
-                    try {
-                        //RESTFul server
-                        const restFulEnabled = this.restFul.enable || false;
-                        if (restFulEnabled) {
-                            this.restFul1 = new RestFul({
-                                port: this.restFul.port || 3000,
-                                debug: this.restFul.debug || false
-                            });
-
-                            this.restFul1.on('connected', (message) => {
-                                this.emit('success', message);
-                                this.restFulConnected = true;
-                            })
-                                .on('set', async (key, value) => {
-                                    try {
-                                        await this.setOverExternalIntegration('RESTFul', key, value);
-                                    } catch (error) {
-                                        this.emit('warn', `RESTFul set error: ${error}`);
-                                    };
-                                })
-                                .on('error', (error) => {
-                                    this.emit('warn', error);
-                                })
-                                .on('debug', (debug) => {
-                                    this.emit('debug', debug);
-                                });
-                        }
-
-                        //mqtt client
-                        const mqttEnabled = this.mqtt.enable || false;
-                        if (mqttEnabled) {
-                            this.mqtt1 = new Mqtt({
-                                host: this.mqtt.host,
-                                port: this.mqtt.port || 1883,
-                                clientId: this.mqtt.clientId || `lgwebos_${Math.random().toString(16).slice(3)}`,
-                                prefix: `${this.mqtt.prefix}/${this.name}`,
-                                user: this.mqtt.user,
-                                passwd: this.mqtt.passwd,
-                                debug: this.mqtt.debug || false
-                            });
-
-                            this.mqtt1.on('connected', (message) => {
-                                this.emit('success', message);
-                                this.mqttConnected = true;
-                            })
-                                .on('subscribed', (message) => {
-                                    this.emit('success', message);
-                                })
-                                .on('set', async (key, value) => {
-                                    try {
-                                        await this.setOverExternalIntegration('MQTT', key, value);
-                                    } catch (error) {
-                                        this.emit('warn', `MQTT set error: ${error}`);
-                                    };
-                                })
-                                .on('debug', (debug) => {
-                                    this.emit('debug', debug);
-                                })
-                                .on('error', (error) => {
-                                    this.emit('warn', error);
-                                });
-                        };
-                    } catch (error) {
-                        this.emit('warn', `External integration start error: ${error}`);
-                    };
-                })
-                .on('prepareAccessory', async () => {
-                    if (!this.startPrepareAccessory) {
-                        return;
-                    }
-
-                    try {
-                        //read dev info from file
-                        const savedInfo = await this.readData(this.devInfoFile);
-                        this.savedInfo = savedInfo.toString().trim() !== '' ? JSON.parse(savedInfo) : {};
-                        const debug = this.enableDebugMode ? this.emit('debug', `Read saved Info: ${JSON.stringify(this.savedInfo, null, 2)}`) : false;
-                        this.webOS = this.savedInfo.webOS ?? 2.0;
-
-                        //read inputs file
-                        const savedInputs = await this.readData(this.inputsFile);
-                        this.savedInputs = savedInputs.toString().trim() !== '' ? JSON.parse(savedInputs) : this.inputs;
-                        const debug1 = this.enableDebugMode ? this.emit('debug', `Read saved Inputs: ${JSON.stringify(this.savedInputs, null, 2)}`) : false;
-
-                        //read channels from file
-                        const savedChannels = await this.readData(this.channelsFile);
-                        this.savedChannels = savedChannels.toString().trim() !== '' ? JSON.parse(savedChannels) : [];
-                        const debug2 = this.enableDebugMode ? this.emit('debug', `Read saved Channels: ${JSON.stringify(this.savedChannels, null, 2)}`) : false;
-
-                        //read inputs names from file
-                        const savedInputsNames = await this.readData(this.inputsNamesFile);
-                        this.savedInputsNames = savedInputsNames.toString().trim() !== '' ? JSON.parse(savedInputsNames) : {};
-                        const debug3 = this.enableDebugMode ? this.emit('debug', `Read saved Inputs/Channels Names: ${JSON.stringify(this.savedInputsNames, null, 2)}`) : false;
-
-                        //read inputs visibility from file
-                        const savedInputsTargetVisibility = await this.readData(this.inputsTargetVisibilityFile);
-                        this.savedInputsTargetVisibility = savedInputsTargetVisibility.toString().trim() !== '' ? JSON.parse(savedInputsTargetVisibility) : {};
-                        const debug4 = this.enableDebugMode ? this.emit('debug', `Read saved Inputs/Channels Target Visibility: ${JSON.stringify(this.savedInputsTargetVisibility, null, 2)}`) : false;
-
-                        //prepare accessory
-                        await new Promise(resolve => setTimeout(resolve, 2000));
-                        const accessory = await this.prepareAccessory();
-                        this.emit('publishAccessory', accessory);
-
-                        //sort inputs list
-                        const sortInputsDisplayOrder = this.televisionService ? await this.displayOrder() : false;
-                        this.startPrepareAccessory = false;
-
-                        //start impulse generator
-                        this.lgWebOsSocket.impulseGenerator.start([{ name: 'heartBeat', sampling: 10000 }]);
-                        return true;
-                    } catch (error) {
-                        this.emit('error', `Prepare accessory error: ${error}`);
-                    };
-                })
                 .on('powerState', (power, screenState) => {
                     if (this.televisionService) {
                         this.televisionService
@@ -724,8 +609,35 @@ class LgWebOsDevice extends EventEmitter {
                     const mqtt = this.mqttConnected ? this.mqtt1.emit('publish', topic, message) : false;
                 });
 
+            //start external integrations
+            const startExternalIntegrations = this.restFul.enable || this.mqtt.enable ? await this.externalIntegrations() : false;
+
             //connect
             await this.lgWebOsSocket.connect();
+            await new Promise(resolve => setTimeout(resolve, 3000));
+
+            //prepare accessory
+            if (this.startPrepareAccessory) {
+                setInterval(async () => {
+                    const pairingKey = await this.readData(this.keyFile);
+                    const key = pairingKey.length > 10 ? pairingKey.toString() : '0';
+
+                    if (key !== '0' && this.startPrepareAccessory) {
+                        //prepare data for accessory
+                        await this.prepareDataForAccessory();
+
+                        //prepare accessory
+                        const accessory = await this.prepareAccessory();
+                        this.emit('publishAccessory', accessory);
+                        this.startPrepareAccessory = false;
+                    }
+                }, 5000);
+            }
+
+            //start impulse generator
+            await this.lgWebOsSocket.impulseGenerator.start([{ name: 'heartBeat', sampling: 10000 }]);
+
+            return true;
         } catch (error) {
             throw new Error(`Start error: ${error}`);
         };
@@ -899,6 +811,110 @@ class LgWebOsDevice extends EventEmitter {
         } catch (error) {
             throw new Error(`${integration} set key: ${key}, value: ${value}, error: ${error}`);
         };
+    }
+
+    async externalIntegrations() {
+        try {
+            //RESTFul server
+            const restFulEnabled = this.restFul.enable || false;
+            if (restFulEnabled) {
+                this.restFul1 = new RestFul({
+                    port: this.restFul.port || 3000,
+                    debug: this.restFul.debug || false
+                });
+
+                this.restFul1.on('connected', (message) => {
+                    this.emit('success', message);
+                    this.restFulConnected = true;
+                })
+                    .on('set', async (key, value) => {
+                        try {
+                            await this.setOverExternalIntegration('RESTFul', key, value);
+                        } catch (error) {
+                            this.emit('warn', `RESTFul set error: ${error}`);
+                        };
+                    })
+                    .on('error', (error) => {
+                        this.emit('warn', error);
+                    })
+                    .on('debug', (debug) => {
+                        this.emit('debug', debug);
+                    });
+            }
+
+            //mqtt client
+            const mqttEnabled = this.mqtt.enable || false;
+            if (mqttEnabled) {
+                this.mqtt1 = new Mqtt({
+                    host: this.mqtt.host,
+                    port: this.mqtt.port || 1883,
+                    clientId: this.mqtt.clientId || `lgwebos_${Math.random().toString(16).slice(3)}`,
+                    prefix: `${this.mqtt.prefix}/${this.name}`,
+                    user: this.mqtt.user,
+                    passwd: this.mqtt.passwd,
+                    debug: this.mqtt.debug || false
+                });
+
+                this.mqtt1.on('connected', (message) => {
+                    this.emit('success', message);
+                    this.mqttConnected = true;
+                })
+                    .on('subscribed', (message) => {
+                        this.emit('success', message);
+                    })
+                    .on('set', async (key, value) => {
+                        try {
+                            await this.setOverExternalIntegration('MQTT', key, value);
+                        } catch (error) {
+                            this.emit('warn', `MQTT set error: ${error}`);
+                        };
+                    })
+                    .on('debug', (debug) => {
+                        this.emit('debug', debug);
+                    })
+                    .on('error', (error) => {
+                        this.emit('warn', error);
+                    });
+            };
+
+            return true;
+        } catch (error) {
+            this.emit('warn', `External integration start error: ${error}`);
+        };
+    }
+
+    async prepareDataForAccessory() {
+        try {
+            //read dev info from file
+            const savedInfo = await this.readData(this.devInfoFile);
+            this.savedInfo = savedInfo.toString().trim() !== '' ? JSON.parse(savedInfo) : {};
+            const debug = this.enableDebugMode ? this.emit('debug', `Read saved Info: ${JSON.stringify(this.savedInfo, null, 2)}`) : false;
+            this.webOS = this.savedInfo.webOS ?? 2.0;
+
+            //read inputs file
+            const savedInputs = await this.readData(this.inputsFile);
+            this.savedInputs = savedInputs.toString().trim() !== '' ? JSON.parse(savedInputs) : this.inputs;
+            const debug1 = this.enableDebugMode ? this.emit('debug', `Read saved Inputs: ${JSON.stringify(this.savedInputs, null, 2)}`) : false;
+
+            //read channels from file
+            const savedChannels = await this.readData(this.channelsFile);
+            this.savedChannels = savedChannels.toString().trim() !== '' ? JSON.parse(savedChannels) : [];
+            const debug2 = this.enableDebugMode ? this.emit('debug', `Read saved Channels: ${JSON.stringify(this.savedChannels, null, 2)}`) : false;
+
+            //read inputs names from file
+            const savedInputsNames = await this.readData(this.inputsNamesFile);
+            this.savedInputsNames = savedInputsNames.toString().trim() !== '' ? JSON.parse(savedInputsNames) : {};
+            const debug3 = this.enableDebugMode ? this.emit('debug', `Read saved Inputs/Channels Names: ${JSON.stringify(this.savedInputsNames, null, 2)}`) : false;
+
+            //read inputs visibility from file
+            const savedInputsTargetVisibility = await this.readData(this.inputsTargetVisibilityFile);
+            this.savedInputsTargetVisibility = savedInputsTargetVisibility.toString().trim() !== '' ? JSON.parse(savedInputsTargetVisibility) : {};
+            const debug4 = this.enableDebugMode ? this.emit('debug', `Read saved Inputs/Channels Target Visibility: ${JSON.stringify(this.savedInputsTargetVisibility, null, 2)}`) : false;
+
+            return true;
+        } catch (error) {
+            throw new Error(`Prepare data for accessory error: ${error}`);
+        }
     }
 
     //Prepare accessory
@@ -2058,6 +2074,9 @@ class LgWebOsDevice extends EventEmitter {
                     accessory.addService(buttonService);
                 };
             };
+
+            //sort inputs list
+            const sortInputsDisplayOrder = this.televisionService ? await this.displayOrder() : false;
 
             return accessory;
         } catch (error) {
