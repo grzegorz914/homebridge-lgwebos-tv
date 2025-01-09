@@ -64,7 +64,7 @@ class LgWebOsSocket extends EventEmitter {
                 this.emit('error', `${error}, trying again`);
             };
         }).on('state', (state) => {
-            const emit = state ? this.emit('success', `Heartbeat started`) : this.emit('warn', ` Heartbeat stopped`);
+            const emit = state ? this.emit('success', `Heartbeat started`) : this.emit('warn', `Heartbeat stopped`);
         });
     };
 
@@ -717,10 +717,6 @@ class LgWebOsSocket extends EventEmitter {
                 this.emit('soundMode', this.soundMode, false);
                 this.emit('soundOutput', this.soundOutput, false);
             });
-
-            //start impulse generator
-            await new Promise(resolve => setTimeout(resolve, 3000));
-            await this.impulseGenerator.start([{ name: 'heartBeat', sampling: 10000 }]);
             
             return true;
         } catch (error) {
