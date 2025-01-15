@@ -65,10 +65,6 @@ class LgWebOsSocket extends EventEmitter {
         try {
             const debug = this.enableDebugMode ? this.emit('debug', `Plugin send heartbeat to TV`) : false;
             tcpp.probe(this.host, this.webSocketPort, async (error, online) => {
-                if (error) {
-                    return false;
-                }
-
                 if (online) {
                     const debug = this.enableDebugMode ? this.emit('debug', `Plugin received heartbeat from TV`) : false
 
@@ -719,8 +715,9 @@ class LgWebOsSocket extends EventEmitter {
                         this.emit('soundOutput', this.soundOutput, false);
                     });
                 }
-                return true;
             });
+
+            return true;
         } catch (error) {
             throw new Error(`Connect error: ${error}`);
         };
