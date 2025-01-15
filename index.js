@@ -53,7 +53,6 @@ class LgWebOsPlatform {
 
 				//check files exists, if not then create it
 				const postFix = host.split('.').join('');
-				const certFile = `${prefDir}/cert_${postFix}`;
 				const keyFile = `${prefDir}/key_${postFix}`;
 				const devInfoFile = `${prefDir}/devInfo_${postFix}`;
 				const inputsFile = `${prefDir}/inputs_${postFix}`;
@@ -63,7 +62,6 @@ class LgWebOsPlatform {
 
 				try {
 					const files = [
-						certFile,
 						keyFile,
 						devInfoFile,
 						inputsFile,
@@ -84,7 +82,7 @@ class LgWebOsPlatform {
 
 				//webos device
 				try {
-					const lgWebOsDevice = new LgWebOsDevice(api, device, certFile, keyFile, devInfoFile, inputsFile, channelsFile, inputsNamesFile, inputsTargetVisibilityFile);
+					const lgWebOsDevice = new LgWebOsDevice(api, device, keyFile, devInfoFile, inputsFile, channelsFile, inputsNamesFile, inputsTargetVisibilityFile);
 					lgWebOsDevice.on('publishAccessory', (accessory) => {
 						api.publishExternalAccessories(PluginName, [accessory]);
 						const emitLog = disableLogSuccess ? false : log.success(`Device: ${host} ${deviceName}, Published as external accessory.`);

@@ -9,7 +9,7 @@ import { ApiUrls, DefaultInputs, PictureModes, SoundModes, SoundOutputs } from '
 let Accessory, Characteristic, Service, Categories, Encode, AccessoryUUID;
 
 class LgWebOsDevice extends EventEmitter {
-    constructor(api, device, certFile, keyFile, devInfoFile, inputsFile, channelsFile, inputsNamesFile, inputsTargetVisibilityFile) {
+    constructor(api, device, keyFile, devInfoFile, inputsFile, channelsFile, inputsNamesFile, inputsTargetVisibilityFile) {
         super();
 
         Accessory = api.platformAccessory;
@@ -64,7 +64,6 @@ class LgWebOsDevice extends EventEmitter {
         this.volumeControlNamePrefix = device.volumeControlNamePrefix || false;
         this.volumeControlName = device.volumeControlName || 'Volume';
         this.volumeControl = device.volumeControl || false;
-        this.certFile = certFile;
         this.keyFile = keyFile;
         this.devInfoFile = devInfoFile;
         this.inputsFile = inputsFile;
@@ -220,7 +219,6 @@ class LgWebOsDevice extends EventEmitter {
             this.lgWebOsSocket = new LgWebOsSocket({
                 host: this.host,
                 inputs: this.inputs,
-                certFile: this.certFile,
                 keyFile: this.keyFile,
                 devInfoFile: this.devInfoFile,
                 inputsFile: this.inputsFile,
