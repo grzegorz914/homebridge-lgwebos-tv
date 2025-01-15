@@ -112,14 +112,17 @@ Tested with OLED65G6V, 32LM6300PLA, 49SK8500, OLED65C7T, 55SK800PLB, OLED48CX.
 | `volumeControl` | Here select volume control mode `0 - None/Disabled`, `1 - Slider`, `2 - Fan`. |
 | `turnScreenOnOff` | This enable possibility turn the screen ON/OFF, webOS >= 4.0. |
 | `turnScreenSaverOnOff` | This enable possibility turn the screen saver ON/OFF, webOS >= 4.0. |
+| `infoButtonCommand` | Here select the function of `I` button in RC app. |
 | `sslWebSocket` | If enabled, SSL WebSocket will support TV with new firmware. |
 | `serviceMenu` | If enabled, service menu will be available from the input list. |
 | `ezAdjustMenu` | If enabled, ez adjust menu will be available from the input list. |
-| `infoButtonCommand` | Here select the function of `I` button in RC app.
-| `enableDebugMode` | If enabled, deep log will be present in homebridge console. |
-| `disableLogInfo` | If enabled, disable log info, all values and state will not be displayed in Homebridge log console. |
-| `disableLogDeviceInfo` | If enabled, add ability to disable log device info by every connections device to the network. |
 | `disableTvService` | If enabled, TV service will be disabled and prevent display double services if TV already support HomeKit native. |
+| `disableLogDeviceInfo` | If enabled, add ability to disable log device info by every connections device to the network. |
+| `disableLogInfo` | If enabled, disable log info, all values and state will not be displayed in Homebridge log console. |
+| `disableLogSuccess` | If enabled, disable logging device success. |
+| `disableLogWarn` | If enabled, disable logging device warnings. |
+| `disableLogError` | If enabled, disable logging device error. |
+| `enableDebugMode` | If enabled, deep log will be present in homebridge console. |
 | `restFul` | This is RSTful server. |
 | `enable` | If enabled, RESTful server will start automatically and respond to any path request. |
 | `port` | Here set the listening `Port` for RESTful server. |
