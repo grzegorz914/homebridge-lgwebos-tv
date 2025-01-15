@@ -607,7 +607,10 @@ class LgWebOsDevice extends EventEmitter {
                 });
 
             //connect
-            await this.lgWebOsSocket.connect();
+            const connect = await this.lgWebOsSocket.connect();
+            if (!connect) {
+                return false;
+            }
 
             //start external integrations
             const startExternalIntegrations = this.restFul.enable || this.mqtt.enable ? await this.externalIntegrations() : false;
