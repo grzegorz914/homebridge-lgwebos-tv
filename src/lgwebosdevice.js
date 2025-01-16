@@ -54,8 +54,6 @@ class LgWebOsDevice extends EventEmitter {
         this.soundOutputs = this.soundOutputControl ? device.soundOutputs || [] : [];
         this.serviceMenu = device.serviceMenu || false;
         this.ezAdjustMenu = device.ezAdjustMenu || false;
-        this.enableDebugMode = device.enableDebugMode || false;
-        this.disableLogInfo = device.disableLogInfo || false;
         this.disableTvService = device.disableTvService || false;
         this.turnScreenOnOff = device.turnScreenOnOff || false;
         this.turnScreenSaverOnOff = device.turnScreenSaverOnOff || false;
@@ -64,6 +62,8 @@ class LgWebOsDevice extends EventEmitter {
         this.volumeControlNamePrefix = device.volumeControlNamePrefix || false;
         this.volumeControlName = device.volumeControlName || 'Volume';
         this.volumeControl = device.volumeControl || false;
+        this.enableDebugMode = device.enableDebugMode || false;
+        this.disableLogInfo = device.disableLogInfo || false;
         this.keyFile = keyFile;
         this.devInfoFile = devInfoFile;
         this.inputsFile = inputsFile;
@@ -195,505 +195,6 @@ class LgWebOsDevice extends EventEmitter {
         }
         this.buttonsConfiguredCount = this.buttonsConfigured.length || 0;
     };
-
-    async start() {
-        //Wake On Lan
-        try {
-            this.wol = new WakeOnLan({
-                mac: this.mac,
-                broadcastAddress: this.broadcastAddress,
-                enableDebugMode: this.enableDebugMode
-            })
-                .on('error', (error) => {
-                    this.emit('warn', error);
-                })
-                .on('debug', (debug) => {
-                    this.emit('debug', debug);
-                });
-        } catch (error) {
-            this.emit('warn', `Wake On Lan start error: ${error}`);
-        };
-
-        try {
-            //lg tv client
-            this.lgWebOsSocket = new LgWebOsSocket({
-                host: this.host,
-                inputs: this.inputs,
-                keyFile: this.keyFile,
-                devInfoFile: this.devInfoFile,
-                inputsFile: this.inputsFile,
-                channelsFile: this.channelsFile,
-                getInputsFromDevice: this.getInputsFromDevice,
-                serviceMenu: this.serviceMenu,
-                ezAdjustMenu: this.ezAdjustMenu,
-                filterSystemApps: this.filterSystemApps,
-                enableDebugMode: this.enableDebugMode,
-                sslWebSocket: this.sslWebSocket
-            });
-
-            this.lgWebOsSocket.on('deviceInfo', (modelName, productName, deviceId, firmwareRevision) => {
-                this.emit('devInfo', `-------- ${this.name} --------`);
-                this.emit('devInfo', `Manufacturer: LG Electronics`);
-                this.emit('devInfo', `Model: ${modelName}`);
-                this.emit('devInfo', `System: ${productName}`);
-                this.emit('devInfo', `Serialnr: ${deviceId}`);
-                this.emit('devInfo', `Firmware: ${firmwareRevision}`);
-                this.emit('devInfo', `----------------------------------`);
-            })
-                .on('powerState', (power, screenState) => {
-                    if (this.televisionService) {
-                        this.televisionService
-                            .updateCharacteristic(Characteristic.Active, power);
-                    };
-
-                    if (this.turnScreenOnOffService) {
-                        const state = power ? screenState === 'Screen Off' : false;
-                        this.turnScreenOnOffService
-                            .updateCharacteristic(Characteristic.On, state);
-                    };
-
-                    if (this.turnScreenSaverOnOffService) {
-                        const state = power ? screenState === 'Screen Saver' : false;
-                        this.turnScreenSaverOnOffService
-                            .updateCharacteristic(Characteristic.On, state)
-                    }
-
-                    if (this.sensorPowerService) {
-                        this.sensorPowerService
-                            .updateCharacteristic(Characteristic.ContactSensorState, power);
-                    }
-
-                    if (this.sensorPixelRefreshService) {
-                        const state = power ? screenState === 'Active Standby' : false;
-                        this.sensorPixelRefreshService
-                            .updateCharacteristic(Characteristic.ContactSensorState, state);
-                    }
-
-                    if (this.sensorScreenOnOffService) {
-                        const state = power ? screenState === 'Screen Off' : false;
-                        this.sensorScreenOnOffService
-                            .updateCharacteristic(Characteristic.ContactSensorState, state);
-                    }
-
-                    if (this.sensorScreenSaverService) {
-                        const state = power ? screenState === 'Screen Saver' : false;
-                        this.sensorScreenSaverService
-                            .updateCharacteristic(Characteristic.ContactSensorState, state);
-                    }
-
-                    if (this.buttonsConfiguredCount > 0 && !power) {
-                        for (let i = 0; i < this.buttonsConfiguredCount; i++) {
-                            const button = this.buttonsConfigured[i];
-                            const state = false;
-                            button.state = state;
-                            if (this.buttonsServices && !power) {
-                                this.buttonsServices[i]
-                                    .updateCharacteristic(Characteristic.On, state);
-                            }
-                        }
-                    }
-
-                    this.power = power;
-                    this.pixelRefreshState = power ? screenState === 'Active Standby' : false;
-                    this.screenStateOff = power ? screenState === 'Screen Off' : false;
-                    this.screenSaverState = power ? screenState === 'Screen Saver' : false;
-                    if (!this.disableLogInfo) {
-                        this.emit('info', `Power: ${power ? 'ON' : 'OFF'}`);
-                    };
-                })
-                .on('currentApp', (appId) => {
-                    const input = this.inputsConfigured.find(input => input.reference === appId) ?? false;
-                    const inputIdentifier = input ? input.identifier : this.inputIdentifier;
-                    const inputName = input ? input.name : appId;
-
-                    if (this.televisionService) {
-                        this.televisionService
-                            .updateCharacteristic(Characteristic.ActiveIdentifier, inputIdentifier);
-                    };
-
-                    if (appId !== appId) {
-                        for (let i = 0; i < 2; i++) {
-                            const state = this.power ? [true, false][i] : false;
-                            if (this.sensorInputService) {
-                                this.sensorInputService
-                                    .updateCharacteristic(Characteristic.ContactSensorState, state)
-                                this.sensorInputState = state;
-                            }
-                        }
-                    }
-
-                    if (this.sensorsInputsConfiguredCount > 0) {
-                        for (let i = 0; i < this.sensorsInputsConfiguredCount; i++) {
-                            const sensorInput = this.sensorsInputsConfigured[i];
-                            const state = this.power ? sensorInput.reference === appId : false;
-                            sensorInput.state = state;
-                            if (this.sensorsInputsServices) {
-                                const characteristicType = sensorInput.characteristicType;
-                                this.sensorsInputsServices[i]
-                                    .updateCharacteristic(characteristicType, state);
-                            }
-                        }
-                    }
-
-                    if (this.buttonsConfiguredCount > 0) {
-                        for (let i = 0; i < this.buttonsConfiguredCount; i++) {
-                            const button = this.buttonsConfigured[i];
-                            const state = this.power ? button.reference === appId : false;
-                            button.state = state;
-                            if (this.buttonsServices) {
-                                this.buttonsServices[i]
-                                    .updateCharacteristic(Characteristic.On, state);
-                            }
-                        }
-                    }
-
-                    this.inputIdentifier = inputIdentifier;
-                    this.appId = appId;
-                    if (!this.disableLogInfo) {
-                        this.emit('info', `Input Name: ${inputName}`);
-                    };
-                })
-                .on('audioState', (volume, mute) => {
-                    if (this.speakerService) {
-                        this.speakerService
-                            .updateCharacteristic(Characteristic.Volume, volume)
-
-                        if (this.volumeService) {
-                            this.volumeService
-                                .updateCharacteristic(Characteristic.Brightness, volume)
-                        };
-
-                        if (this.volumeServiceFan) {
-                            this.volumeServiceFan
-                                .updateCharacteristic(Characteristic.RotationSpeed, volume)
-                        };
-                    };
-
-                    if (this.speakerService) {
-                        this.speakerService
-                            .updateCharacteristic(Characteristic.Mute, mute);
-
-                        if (this.volumeService) {
-                            this.volumeService
-                                .updateCharacteristic(Characteristic.On, !mute);
-                        };
-
-                        if (this.volumeServiceFan) {
-                            this.volumeServiceFan
-                                .updateCharacteristic(Characteristic.On, !mute);
-                        };
-                    };
-
-                    if (volume !== this.volume) {
-                        for (let i = 0; i < 2; i++) {
-                            const state = this.power ? [true, false][i] : false;
-                            if (this.sensorMuteService) {
-                                this.sensorVolumeService
-                                    .updateCharacteristic(Characteristic.ContactSensorState, state)
-                                this.sensorVolumeState = state;
-                            }
-                        }
-                    }
-
-                    if (this.sensorMuteService) {
-                        const state = this.power ? mute : false;
-                        this.sensorMuteService
-                            .updateCharacteristic(Characteristic.ContactSensorState, state);
-                    }
-
-                    this.volume = volume;
-                    this.mute = mute;
-                    if (!this.disableLogInfo) {
-                        this.emit('info', `Volume: ${volume}%`);
-                        this.emit('info', `Mute: ${mute ? 'ON' : 'OFF'}`);
-                    };
-                })
-                .on('currentChannel', (channelId, channelName, channelNumber) => {
-                    const input = this.inputsConfigured.find(input => input.reference === channelId) ?? false;
-                    const inputIdentifier = input ? input.identifier : this.inputIdentifier;
-
-                    if (this.televisionService) {
-                        this.televisionService
-                            .updateCharacteristic(Characteristic.ActiveIdentifier, inputIdentifier);
-                    };
-
-                    if (channelId !== this.channelId) {
-                        for (let i = 0; i < 2; i++) {
-                            const state = this.power ? [true, false][i] : false;
-                            if (this.sensorChannelService) {
-                                this.sensorChannelService
-                                    .updateCharacteristic(Characteristic.ContactSensorState, state)
-                                this.sensorChannelState = state;
-                            }
-                        }
-                    }
-
-                    if (this.buttonsConfiguredCount > 0) {
-                        for (let i = 0; i < this.buttonsConfiguredCount; i++) {
-                            const button = this.buttonsConfigured[i];
-                            const state = this.power ? this.appId === 'com.webos.app.livetv' && button.reference === channelId : false;
-                            button.state = state;
-                            if (this.buttonsServices) {
-                                this.buttonsServices[i]
-                                    .updateCharacteristic(Characteristic.On, state);
-                            }
-                        }
-                    }
-
-                    this.inputIdentifier = inputIdentifier;
-                    this.channelId = channelId;
-                    this.channelName = channelName !== undefined ? channelName : this.channelName;
-                    this.channelNumber = channelNumber !== undefined ? channelNumber : this.channelNumber;
-                    if (!this.disableLogInfo) {
-                        this.emit('info', `Channel Number: ${channelNumber}`);
-                        this.emit('info', `Channel Name: ${channelName}`);
-                    };
-                })
-                .on('pictureSettings', (brightness, backlight, contrast, color, power) => {
-                    if (this.televisionService) {
-                        this.televisionService
-                            .updateCharacteristic(Characteristic.Brightness, brightness);
-                    };
-
-                    if (this.brightnessService) {
-                        this.brightnessService
-                            .updateCharacteristic(Characteristic.On, power)
-                            .updateCharacteristic(Characteristic.Brightness, brightness);
-                    };
-
-                    if (this.backlightService) {
-                        this.backlightService
-                            .updateCharacteristic(Characteristic.On, power)
-                            .updateCharacteristic(Characteristic.Brightness, backlight);
-                    };
-
-                    if (this.contrastService) {
-                        this.contrastService
-                            .updateCharacteristic(Characteristic.On, power)
-                            .updateCharacteristic(Characteristic.Brightness, contrast);
-                    };
-
-                    if (this.colorService) {
-                        this.colorService
-                            .updateCharacteristic(Characteristic.On, power)
-                            .updateCharacteristic(Characteristic.Brightness, color);
-                    };
-
-                    this.brightness = brightness;
-                    this.backlight = backlight;
-                    this.contrast = contrast;
-                    this.color = color;
-                    if (!this.disableLogInfo) {
-                        this.emit('info', `Brightness: ${brightness}%`);
-                        this.emit('info', `Backlight: ${backlight}%`);
-                        this.emit('info', `Contrast: ${contrast}%`);
-                        this.emit('info', `Color: ${color}%`);
-                    };
-                })
-                .on('pictureMode', (pictureMode, power) => {
-                    if (this.televisionService) {
-                        const mode = 1;
-                        this.pictureModeHomeKit = mode;
-                        this.televisionService
-                            .updateCharacteristic(Characteristic.PictureMode, mode);
-                    };
-
-                    if (this.picturesModesConfiguredCount > 0) {
-                        for (let i = 0; i < this.picturesModesConfiguredCount; i++) {
-                            const mode = this.picturesModesConfigured[i];
-                            const state = power ? mode.reference === pictureMode : false;
-                            mode.state = state;
-                            if (this.picturesModesServices) {
-                                this.picturesModesServices[i]
-                                    .updateCharacteristic(Characteristic.On, state);
-                            };
-                        };
-                    };
-
-                    if (pictureMode !== this.pictureMode) {
-                        for (let i = 0; i < 2; i++) {
-                            const state = power ? [true, false][i] : false;
-                            if (this.sensorPicturedModeService) {
-                                this.sensorPicturedModeService
-                                    .updateCharacteristic(Characteristic.ContactSensorState, state)
-                                this.sensorPicturedModeState = state;
-                            }
-                        }
-                    }
-
-                    this.pictureMode = pictureMode;
-                    if (!this.disableLogInfo) {
-                        this.emit('info', `Picture Mode: ${PictureModes[pictureMode] ?? 'Unknown'}`);
-                    };
-                })
-                .on('soundMode', (soundMode, power) => {
-                    if (this.soundsModesConfiguredCount > 0) {
-                        for (let i = 0; i < this.soundsModesConfiguredCount; i++) {
-                            const mode = this.soundsModesConfigured[i];
-                            const state = power ? mode.reference === soundMode : false;
-                            mode.state = state;
-                            if (this.soundsModesServices) {
-                                this.soundsModesServices[i]
-                                    .updateCharacteristic(Characteristic.On, state);
-                            };
-                        };
-                    };
-
-                    if (soundMode !== this.soundMode) {
-                        for (let i = 0; i < 2; i++) {
-                            const state = power ? [true, false][i] : false;
-                            if (this.sensorSoundModeService) {
-                                this.sensorSoundModeService
-                                    .updateCharacteristic(Characteristic.ContactSensorState, state)
-                                this.sensorSoundModeState = state;
-                            }
-                        }
-                    }
-
-                    this.soundMode = soundMode;
-                    if (!this.disableLogInfo) {
-                        this.emit('info', `Sound Mode: ${SoundModes[soundMode] ?? 'Unknown'}`);
-                    };
-                })
-                .on('soundOutput', (soundOutput, power) => {
-                    if (this.soundsOutputsConfiguredCount > 0) {
-                        for (let i = 0; i < this.soundsOutputsConfiguredCount; i++) {
-                            const output = this.soundsOutputsConfigured[i];
-                            const state = power ? output.reference === soundOutput : false;
-                            output.state = state;
-                            if (this.soundsOutputsServices) {
-                                this.soundsOutputsServices[i]
-                                    .updateCharacteristic(Characteristic.On, state);
-                            };
-                        };
-                    };
-
-                    if (this.soundMode !== this.soundOutput) {
-                        for (let i = 0; i < 2; i++) {
-                            const state = power ? [true, false][i] : false;
-                            if (this.sensorSoundOutputService) {
-                                this.sensorSoundOutputService
-                                    .updateCharacteristic(Characteristic.ContactSensorState, state)
-                                this.sensorSoundOutputState = state;
-                            }
-                        }
-                    }
-
-                    this.soundOutput = soundOutput;
-                    if (!this.disableLogInfo) {
-                        this.emit('info', `Sound Output: ${SoundOutputs[soundOutput] ?? 'Unknown'}`);
-                    };
-                })
-                .on('success', (success) => {
-                    this.emit('success', success);
-                })
-                .on('info', (info) => {
-                    this.emit('info', info);
-                })
-                .on('debug', (debug) => {
-                    this.emit('debug', debug);
-                })
-                .on('warn', (warn) => {
-                    this.emit('warn', warn);
-                })
-                .on('error', (error) => {
-                    this.emit('error', error);
-                })
-                .on('restFul', (path, data) => {
-                    const restFul = this.restFulConnected ? this.restFul1.update(path, data) : false;
-                })
-                .on('mqtt', (topic, message) => {
-                    const mqtt = this.mqttConnected ? this.mqtt1.emit('publish', topic, message) : false;
-                });
-
-            //connect
-            const connect = await this.lgWebOsSocket.connect();
-            if (!connect) {
-                return false;
-            }
-
-            //start external integrations
-            const startExternalIntegrations = this.restFul.enable || this.mqtt.enable ? await this.externalIntegrations() : false;
-
-            //prepare accessory
-            if (this.startPrepareAccessory) {
-                const pairingKey = await this.readData(this.keyFile);
-                const key = pairingKey.length > 10 ? pairingKey.toString() : '0';
-
-                if (key !== '0') {
-                    //prepare data for accessory
-                    await this.prepareDataForAccessory();
-
-                    //prepare accessory
-                    const accessory = await this.prepareAccessory();
-                    this.emit('publishAccessory', accessory);
-                    this.startPrepareAccessory = false;
-
-                    //start impulse generator
-                    await new Promise(resolve => setTimeout(resolve, 3000));
-                    await this.lgWebOsSocket.impulseGenerator.start([{ name: 'heartBeat', sampling: 10000 }]);
-                }
-
-                if (key === '0') {
-                    const intervalId = setInterval(async () => {
-                        if (this.startPrepareAccessory) {
-                            const pairingKey = await this.readData(this.keyFile);
-                            const key = pairingKey.length > 10 ? pairingKey.toString() : '0';
-
-                            if (key !== '0') {
-                                //prepare data for accessory
-                                await this.prepareDataForAccessory();
-
-                                //prepare accessory
-                                const accessory = await this.prepareAccessory();
-                                this.emit('publishAccessory', accessory);
-                                this.startPrepareAccessory = false;
-
-                                //start impulse generator
-                                await new Promise(resolve => setTimeout(resolve, 3000));
-                                await this.lgWebOsSocket.impulseGenerator.start([{ name: 'heartBeat', sampling: 10000 }]);
-
-                                clearInterval(intervalId);
-                            }
-                        }
-                    }, 5000);
-                }
-
-            }
-            return true;
-        } catch (error) {
-            throw new Error(`Start error: ${error}`);
-        };
-    };
-
-    async displayOrder() {
-        try {
-            switch (this.inputsDisplayOrder) {
-                case 0:
-                    this.inputsConfigured.sort((a, b) => a.identifier - b.identifier);
-                    break;
-                case 1:
-                    this.inputsConfigured.sort((a, b) => a.name.localeCompare(b.name));
-                    break;
-                case 2:
-                    this.inputsConfigured.sort((a, b) => b.name.localeCompare(a.name));
-                    break;
-                case 3:
-                    this.inputsConfigured.sort((a, b) => a.reference.localeCompare(b.reference));
-                    break;
-                case 4:
-                    this.inputsConfigured.sort((a, b) => b.reference.localeCompare(a.reference));
-                    break;
-            }
-            const debug = this.enableDebugMode ? this.emit('debug', `Inputs display order: ${JSON.stringify(this.inputsConfigured, null, 2)}`) : false;
-
-            const displayOrder = this.inputsConfigured.map(input => input.identifier);
-            this.televisionService.setCharacteristic(Characteristic.DisplayOrder, Encode(1, displayOrder).toString('base64'));
-            return true;
-        } catch (error) {
-            throw new Error(`Display order error: ${error}`);
-        };
-    }
 
     async saveData(path, data) {
         try {
@@ -940,7 +441,36 @@ class LgWebOsDevice extends EventEmitter {
         }
     }
 
-    //Prepare accessory
+    async displayOrder() {
+        try {
+            switch (this.inputsDisplayOrder) {
+                case 0:
+                    this.inputsConfigured.sort((a, b) => a.identifier - b.identifier);
+                    break;
+                case 1:
+                    this.inputsConfigured.sort((a, b) => a.name.localeCompare(b.name));
+                    break;
+                case 2:
+                    this.inputsConfigured.sort((a, b) => b.name.localeCompare(a.name));
+                    break;
+                case 3:
+                    this.inputsConfigured.sort((a, b) => a.reference.localeCompare(b.reference));
+                    break;
+                case 4:
+                    this.inputsConfigured.sort((a, b) => b.reference.localeCompare(a.reference));
+                    break;
+            }
+            const debug = this.enableDebugMode ? this.emit('debug', `Inputs display order: ${JSON.stringify(this.inputsConfigured, null, 2)}`) : false;
+
+            const displayOrder = this.inputsConfigured.map(input => input.identifier);
+            this.televisionService.setCharacteristic(Characteristic.DisplayOrder, Encode(1, displayOrder).toString('base64'));
+            return true;
+        } catch (error) {
+            throw new Error(`Display order error: ${error}`);
+        };
+    }
+
+    //prepare accessory
     async prepareAccessory() {
         try {
             //accessory
@@ -1384,10 +914,6 @@ class LgWebOsDevice extends EventEmitter {
                             return input.name;
                         })
                         .onSet(async (value) => {
-                            if (value === this.savedInputsNames[inputReference]) {
-                                return;
-                            }
-
                             try {
                                 input.name = value;
                                 this.savedInputsNames[inputReference] = value;
@@ -1408,10 +934,6 @@ class LgWebOsDevice extends EventEmitter {
                             return input.visibility;
                         })
                         .onSet(async (state) => {
-                            if (state === this.savedInputsTargetVisibility[inputReference]) {
-                                return;
-                            }
-
                             try {
                                 input.visibility = state;
                                 this.savedInputsTargetVisibility[inputReference] = state;
@@ -2104,6 +1626,477 @@ class LgWebOsDevice extends EventEmitter {
             return accessory;
         } catch (error) {
             throw new Error(error)
+        };
+    };
+
+    //start
+    async start() {
+        //Wake On Lan
+        try {
+            this.wol = new WakeOnLan({
+                mac: this.mac,
+                broadcastAddress: this.broadcastAddress,
+                enableDebugMode: this.enableDebugMode
+            })
+                .on('error', (error) => {
+                    this.emit('warn', error);
+                })
+                .on('debug', (debug) => {
+                    this.emit('debug', debug);
+                });
+        } catch (error) {
+            this.emit('warn', `Wake On Lan start error: ${error}`);
+        };
+
+        try {
+            //lg tv client
+            this.lgWebOsSocket = new LgWebOsSocket({
+                host: this.host,
+                inputs: this.inputs,
+                keyFile: this.keyFile,
+                devInfoFile: this.devInfoFile,
+                inputsFile: this.inputsFile,
+                channelsFile: this.channelsFile,
+                getInputsFromDevice: this.getInputsFromDevice,
+                serviceMenu: this.serviceMenu,
+                ezAdjustMenu: this.ezAdjustMenu,
+                filterSystemApps: this.filterSystemApps,
+                enableDebugMode: this.enableDebugMode,
+                sslWebSocket: this.sslWebSocket
+            });
+
+            this.lgWebOsSocket.on('deviceInfo', (modelName, productName, deviceId, firmwareRevision) => {
+                this.emit('devInfo', `-------- ${this.name} --------`);
+                this.emit('devInfo', `Manufacturer: LG Electronics`);
+                this.emit('devInfo', `Model: ${modelName}`);
+                this.emit('devInfo', `System: ${productName}`);
+                this.emit('devInfo', `Serialnr: ${deviceId}`);
+                this.emit('devInfo', `Firmware: ${firmwareRevision}`);
+                this.emit('devInfo', `----------------------------------`);
+            })
+                .on('powerState', (power, screenState) => {
+                    if (this.televisionService) {
+                        this.televisionService
+                            .updateCharacteristic(Characteristic.Active, power);
+                    };
+
+                    if (this.turnScreenOnOffService) {
+                        const state = power ? screenState === 'Screen Off' : false;
+                        this.turnScreenOnOffService
+                            .updateCharacteristic(Characteristic.On, state);
+                    };
+
+                    if (this.turnScreenSaverOnOffService) {
+                        const state = power ? screenState === 'Screen Saver' : false;
+                        this.turnScreenSaverOnOffService
+                            .updateCharacteristic(Characteristic.On, state)
+                    }
+
+                    if (this.sensorPowerService) {
+                        this.sensorPowerService
+                            .updateCharacteristic(Characteristic.ContactSensorState, power);
+                    }
+
+                    if (this.sensorPixelRefreshService) {
+                        const state = power ? screenState === 'Active Standby' : false;
+                        this.sensorPixelRefreshService
+                            .updateCharacteristic(Characteristic.ContactSensorState, state);
+                    }
+
+                    if (this.sensorScreenOnOffService) {
+                        const state = power ? screenState === 'Screen Off' : false;
+                        this.sensorScreenOnOffService
+                            .updateCharacteristic(Characteristic.ContactSensorState, state);
+                    }
+
+                    if (this.sensorScreenSaverService) {
+                        const state = power ? screenState === 'Screen Saver' : false;
+                        this.sensorScreenSaverService
+                            .updateCharacteristic(Characteristic.ContactSensorState, state);
+                    }
+
+                    if (this.buttonsConfiguredCount > 0 && !power) {
+                        for (let i = 0; i < this.buttonsConfiguredCount; i++) {
+                            const button = this.buttonsConfigured[i];
+                            const state = false;
+                            button.state = state;
+                            if (this.buttonsServices && !power) {
+                                this.buttonsServices[i]
+                                    .updateCharacteristic(Characteristic.On, state);
+                            }
+                        }
+                    }
+
+                    this.power = power;
+                    this.pixelRefreshState = power ? screenState === 'Active Standby' : false;
+                    this.screenStateOff = power ? screenState === 'Screen Off' : false;
+                    this.screenSaverState = power ? screenState === 'Screen Saver' : false;
+                    if (!this.disableLogInfo) {
+                        this.emit('info', `Power: ${power ? 'ON' : 'OFF'}`);
+                    };
+                })
+                .on('currentApp', (appId) => {
+                    const input = this.inputsConfigured.find(input => input.reference === appId) ?? false;
+                    const inputIdentifier = input ? input.identifier : this.inputIdentifier;
+                    const inputName = input ? input.name : appId;
+
+                    if (this.televisionService) {
+                        this.televisionService
+                            .updateCharacteristic(Characteristic.ActiveIdentifier, inputIdentifier);
+                    };
+
+                    if (appId !== appId) {
+                        for (let i = 0; i < 2; i++) {
+                            const state = this.power ? [true, false][i] : false;
+                            if (this.sensorInputService) {
+                                this.sensorInputService
+                                    .updateCharacteristic(Characteristic.ContactSensorState, state)
+                                this.sensorInputState = state;
+                            }
+                        }
+                    }
+
+                    if (this.sensorsInputsConfiguredCount > 0) {
+                        for (let i = 0; i < this.sensorsInputsConfiguredCount; i++) {
+                            const sensorInput = this.sensorsInputsConfigured[i];
+                            const state = this.power ? sensorInput.reference === appId : false;
+                            sensorInput.state = state;
+                            if (this.sensorsInputsServices) {
+                                const characteristicType = sensorInput.characteristicType;
+                                this.sensorsInputsServices[i]
+                                    .updateCharacteristic(characteristicType, state);
+                            }
+                        }
+                    }
+
+                    if (this.buttonsConfiguredCount > 0) {
+                        for (let i = 0; i < this.buttonsConfiguredCount; i++) {
+                            const button = this.buttonsConfigured[i];
+                            const state = this.power ? button.reference === appId : false;
+                            button.state = state;
+                            if (this.buttonsServices) {
+                                this.buttonsServices[i]
+                                    .updateCharacteristic(Characteristic.On, state);
+                            }
+                        }
+                    }
+
+                    this.inputIdentifier = inputIdentifier;
+                    this.appId = appId;
+                    if (!this.disableLogInfo) {
+                        this.emit('info', `Input Name: ${inputName}`);
+                    };
+                })
+                .on('audioState', (volume, mute) => {
+                    if (this.speakerService) {
+                        this.speakerService
+                            .updateCharacteristic(Characteristic.Volume, volume)
+
+                        if (this.volumeService) {
+                            this.volumeService
+                                .updateCharacteristic(Characteristic.Brightness, volume)
+                        };
+
+                        if (this.volumeServiceFan) {
+                            this.volumeServiceFan
+                                .updateCharacteristic(Characteristic.RotationSpeed, volume)
+                        };
+                    };
+
+                    if (this.speakerService) {
+                        this.speakerService
+                            .updateCharacteristic(Characteristic.Mute, mute);
+
+                        if (this.volumeService) {
+                            this.volumeService
+                                .updateCharacteristic(Characteristic.On, !mute);
+                        };
+
+                        if (this.volumeServiceFan) {
+                            this.volumeServiceFan
+                                .updateCharacteristic(Characteristic.On, !mute);
+                        };
+                    };
+
+                    if (volume !== this.volume) {
+                        for (let i = 0; i < 2; i++) {
+                            const state = this.power ? [true, false][i] : false;
+                            if (this.sensorMuteService) {
+                                this.sensorVolumeService
+                                    .updateCharacteristic(Characteristic.ContactSensorState, state)
+                                this.sensorVolumeState = state;
+                            }
+                        }
+                    }
+
+                    if (this.sensorMuteService) {
+                        const state = this.power ? mute : false;
+                        this.sensorMuteService
+                            .updateCharacteristic(Characteristic.ContactSensorState, state);
+                    }
+
+                    this.volume = volume;
+                    this.mute = mute;
+                    if (!this.disableLogInfo) {
+                        this.emit('info', `Volume: ${volume}%`);
+                        this.emit('info', `Mute: ${mute ? 'ON' : 'OFF'}`);
+                    };
+                })
+                .on('currentChannel', (channelId, channelName, channelNumber) => {
+                    const input = this.inputsConfigured.find(input => input.reference === channelId) ?? false;
+                    const inputIdentifier = input ? input.identifier : this.inputIdentifier;
+
+                    if (this.televisionService) {
+                        this.televisionService
+                            .updateCharacteristic(Characteristic.ActiveIdentifier, inputIdentifier);
+                    };
+
+                    if (channelId !== this.channelId) {
+                        for (let i = 0; i < 2; i++) {
+                            const state = this.power ? [true, false][i] : false;
+                            if (this.sensorChannelService) {
+                                this.sensorChannelService
+                                    .updateCharacteristic(Characteristic.ContactSensorState, state)
+                                this.sensorChannelState = state;
+                            }
+                        }
+                    }
+
+                    if (this.buttonsConfiguredCount > 0) {
+                        for (let i = 0; i < this.buttonsConfiguredCount; i++) {
+                            const button = this.buttonsConfigured[i];
+                            const state = this.power ? this.appId === 'com.webos.app.livetv' && button.reference === channelId : false;
+                            button.state = state;
+                            if (this.buttonsServices) {
+                                this.buttonsServices[i]
+                                    .updateCharacteristic(Characteristic.On, state);
+                            }
+                        }
+                    }
+
+                    this.inputIdentifier = inputIdentifier;
+                    this.channelId = channelId;
+                    this.channelName = channelName !== undefined ? channelName : this.channelName;
+                    this.channelNumber = channelNumber !== undefined ? channelNumber : this.channelNumber;
+                    if (!this.disableLogInfo) {
+                        this.emit('info', `Channel Number: ${channelNumber}`);
+                        this.emit('info', `Channel Name: ${channelName}`);
+                    };
+                })
+                .on('pictureSettings', (brightness, backlight, contrast, color, power) => {
+                    if (this.televisionService) {
+                        this.televisionService
+                            .updateCharacteristic(Characteristic.Brightness, brightness);
+                    };
+
+                    if (this.brightnessService) {
+                        this.brightnessService
+                            .updateCharacteristic(Characteristic.On, power)
+                            .updateCharacteristic(Characteristic.Brightness, brightness);
+                    };
+
+                    if (this.backlightService) {
+                        this.backlightService
+                            .updateCharacteristic(Characteristic.On, power)
+                            .updateCharacteristic(Characteristic.Brightness, backlight);
+                    };
+
+                    if (this.contrastService) {
+                        this.contrastService
+                            .updateCharacteristic(Characteristic.On, power)
+                            .updateCharacteristic(Characteristic.Brightness, contrast);
+                    };
+
+                    if (this.colorService) {
+                        this.colorService
+                            .updateCharacteristic(Characteristic.On, power)
+                            .updateCharacteristic(Characteristic.Brightness, color);
+                    };
+
+                    this.brightness = brightness;
+                    this.backlight = backlight;
+                    this.contrast = contrast;
+                    this.color = color;
+                    if (!this.disableLogInfo) {
+                        this.emit('info', `Brightness: ${brightness}%`);
+                        this.emit('info', `Backlight: ${backlight}%`);
+                        this.emit('info', `Contrast: ${contrast}%`);
+                        this.emit('info', `Color: ${color}%`);
+                    };
+                })
+                .on('pictureMode', (pictureMode, power) => {
+                    if (this.televisionService) {
+                        const mode = 1;
+                        this.pictureModeHomeKit = mode;
+                        this.televisionService
+                            .updateCharacteristic(Characteristic.PictureMode, mode);
+                    };
+
+                    if (this.picturesModesConfiguredCount > 0) {
+                        for (let i = 0; i < this.picturesModesConfiguredCount; i++) {
+                            const mode = this.picturesModesConfigured[i];
+                            const state = power ? mode.reference === pictureMode : false;
+                            mode.state = state;
+                            if (this.picturesModesServices) {
+                                this.picturesModesServices[i]
+                                    .updateCharacteristic(Characteristic.On, state);
+                            };
+                        };
+                    };
+
+                    if (pictureMode !== this.pictureMode) {
+                        for (let i = 0; i < 2; i++) {
+                            const state = power ? [true, false][i] : false;
+                            if (this.sensorPicturedModeService) {
+                                this.sensorPicturedModeService
+                                    .updateCharacteristic(Characteristic.ContactSensorState, state)
+                                this.sensorPicturedModeState = state;
+                            }
+                        }
+                    }
+
+                    this.pictureMode = pictureMode;
+                    if (!this.disableLogInfo) {
+                        this.emit('info', `Picture Mode: ${PictureModes[pictureMode] ?? 'Unknown'}`);
+                    };
+                })
+                .on('soundMode', (soundMode, power) => {
+                    if (this.soundsModesConfiguredCount > 0) {
+                        for (let i = 0; i < this.soundsModesConfiguredCount; i++) {
+                            const mode = this.soundsModesConfigured[i];
+                            const state = power ? mode.reference === soundMode : false;
+                            mode.state = state;
+                            if (this.soundsModesServices) {
+                                this.soundsModesServices[i]
+                                    .updateCharacteristic(Characteristic.On, state);
+                            };
+                        };
+                    };
+
+                    if (soundMode !== this.soundMode) {
+                        for (let i = 0; i < 2; i++) {
+                            const state = power ? [true, false][i] : false;
+                            if (this.sensorSoundModeService) {
+                                this.sensorSoundModeService
+                                    .updateCharacteristic(Characteristic.ContactSensorState, state)
+                                this.sensorSoundModeState = state;
+                            }
+                        }
+                    }
+
+                    this.soundMode = soundMode;
+                    if (!this.disableLogInfo) {
+                        this.emit('info', `Sound Mode: ${SoundModes[soundMode] ?? 'Unknown'}`);
+                    };
+                })
+                .on('soundOutput', (soundOutput, power) => {
+                    if (this.soundsOutputsConfiguredCount > 0) {
+                        for (let i = 0; i < this.soundsOutputsConfiguredCount; i++) {
+                            const output = this.soundsOutputsConfigured[i];
+                            const state = power ? output.reference === soundOutput : false;
+                            output.state = state;
+                            if (this.soundsOutputsServices) {
+                                this.soundsOutputsServices[i]
+                                    .updateCharacteristic(Characteristic.On, state);
+                            };
+                        };
+                    };
+
+                    if (this.soundMode !== this.soundOutput) {
+                        for (let i = 0; i < 2; i++) {
+                            const state = power ? [true, false][i] : false;
+                            if (this.sensorSoundOutputService) {
+                                this.sensorSoundOutputService
+                                    .updateCharacteristic(Characteristic.ContactSensorState, state)
+                                this.sensorSoundOutputState = state;
+                            }
+                        }
+                    }
+
+                    this.soundOutput = soundOutput;
+                    if (!this.disableLogInfo) {
+                        this.emit('info', `Sound Output: ${SoundOutputs[soundOutput] ?? 'Unknown'}`);
+                    };
+                })
+                .on('success', (success) => {
+                    this.emit('success', success);
+                })
+                .on('info', (info) => {
+                    this.emit('info', info);
+                })
+                .on('debug', (debug) => {
+                    this.emit('debug', debug);
+                })
+                .on('warn', (warn) => {
+                    this.emit('warn', warn);
+                })
+                .on('error', (error) => {
+                    this.emit('error', error);
+                })
+                .on('restFul', (path, data) => {
+                    const restFul = this.restFulConnected ? this.restFul1.update(path, data) : false;
+                })
+                .on('mqtt', (topic, message) => {
+                    const mqtt = this.mqttConnected ? this.mqtt1.emit('publish', topic, message) : false;
+                });
+
+            //connect
+            const connect = await this.lgWebOsSocket.connect();
+            if (!connect) {
+                return false;
+            }
+
+            //start external integrations
+            const startExternalIntegrations = this.restFul.enable || this.mqtt.enable ? await this.externalIntegrations() : false;
+
+            //prepare accessory
+            if (this.startPrepareAccessory) {
+                const pairingKey = await this.readData(this.keyFile);
+                const key = pairingKey.length > 10 ? pairingKey.toString() : '0';
+
+                if (key !== '0') {
+                    //prepare data for accessory
+                    await this.prepareDataForAccessory();
+
+                    //prepare accessory
+                    const accessory = await this.prepareAccessory();
+                    this.emit('publishAccessory', accessory);
+                    this.startPrepareAccessory = false;
+
+                    //start impulse generator
+                    await new Promise(resolve => setTimeout(resolve, 3000));
+                    await this.lgWebOsSocket.impulseGenerator.start([{ name: 'heartBeat', sampling: 10000 }]);
+                }
+
+                if (key === '0') {
+                    const intervalId = setInterval(async () => {
+                        if (this.startPrepareAccessory) {
+                            const pairingKey = await this.readData(this.keyFile);
+                            const key = pairingKey.length > 10 ? pairingKey.toString() : '0';
+
+                            if (key !== '0') {
+                                //prepare data for accessory
+                                await this.prepareDataForAccessory();
+
+                                //prepare accessory
+                                const accessory = await this.prepareAccessory();
+                                this.emit('publishAccessory', accessory);
+                                this.startPrepareAccessory = false;
+
+                                //start impulse generator
+                                await new Promise(resolve => setTimeout(resolve, 3000));
+                                await this.lgWebOsSocket.impulseGenerator.start([{ name: 'heartBeat', sampling: 10000 }]);
+
+                                clearInterval(intervalId);
+                            }
+                        }
+                    }, 5000);
+                }
+
+            }
+            return true;
+        } catch (error) {
+            throw new Error(`Start error: ${error}`);
         };
     };
 };
