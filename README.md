@@ -87,6 +87,7 @@ Tested with OLED65G6V, 32LM6300PLA, 49SK8500, OLED65C7T, 55SK800PLB, OLED48CX.
 | `sensorPictureMode`| If enabled, then the Picture Mode will be exposed as a `Contact Sensor`, fired on every Picture Mode change, webOS >= 4.0. |
 | `sensorScreenOnOff`| If enabled, then the Screen On/Off will be exposed as a `Contact Sensor`, fired on Screen OFF, webOS >= 4.0. |
 | `sensorScreenSaver`| If enabled, then the Screen Saver will be exposed as a `Contact Sensor`, fired on Screen Saver ON, webOS >= 4.0. |
+| `sensorPlayState`| If enabled, then the Play State will be exposed as a `Contact Sensor`, fired on Playing, webOS >= 7.0. |
 | `sensorInputs`| Her create custom Inputs sensor, sensors will be exposed as a `Contact Sensor`, fired if switch to it. |
 | `sensorInputs.name` | Here set own *Name* which You want expose to the *Homebridge/HomeKit* for this sensor. |
 | `sensorInputs.reference` | Here set *Reference* like `com.webos.app.hdmi1` to be exposed as sensor (active on switch to this Input). |
@@ -149,7 +150,7 @@ Tested with OLED65G6V, 32LM6300PLA, 49SK8500, OLED65C7T, 55SK800PLB, OLED48CX.
 
 | Method | URL | Path | Response | Type |
 | --- | --- | --- | --- | --- |
-| GET | `http//ip:port` | `systeminfo`, `softwareinfo`, `channels`, `apps`, `power`, `audio`, `currentapp`, `currentchannel`, `picturesettings`, `soundmode`, `soundoutput`, `externalinputlist`. | `{"state": Active}` | JSON object. |
+| GET | `http//ip:port` | `systeminfo`, `softwareinfo`, `channels`, `apps`, `power`, `audio`, `currentapp`, `currentchannel`, `picturesettings`, `soundmode`, `soundoutput`, `externalinputlist`, `mediainfo`. | `{"state": Active}` | JSON object. |
 
 | Method | URL | Key | Value | Type | Description |
 | --- | --- | --- | --- | --- | --- |
@@ -165,6 +166,7 @@ Tested with OLED65G6V, 32LM6300PLA, 49SK8500, OLED65C7T, 55SK800PLB, OLED48CX.
 |      | `http//ip:port` | `PictureMode` | `picture mode reference` | string | Set picture mode. |
 |      | `http//ip:port` | `SoundMode` | `sound mode reference` | string | Set sound mode. |
 |      | `http//ip:port` | `SoundOutput` | `sound output reference` | string | Set sound output. |
+|      | `http//ip:port` | `PlayState` | `play`, `pause` | string | Set media play state. |
 |      | `http//ip:port` | `RcControl` | `REWIND` | string | Send RC command. |
 
 ### MQTT Integration
@@ -177,7 +179,7 @@ Tested with OLED65G6V, 32LM6300PLA, 49SK8500, OLED65C7T, 55SK800PLB, OLED48CX.
 
 | Method | Topic | Message | Type |
 | --- | --- | --- | --- |
-| Publish | `System Info`, `Software Info`, `Channels`, `Apps`, `Power`, `Audio`, `Current App`, `Current Channel`, `Picture Settings`, `Sound Mode`, `Sound Output`, `External Input List` | `{"state": Active}` | JSON object. |
+| Publish | `System Info`, `Software Info`, `Channels`, `Apps`, `Power`, `Audio`, `Current App`, `Current Channel`, `Picture Settings`, `Sound Mode`, `Sound Output`, `External Input List`, `Media Info` | `{"state": Active}` | JSON object. |
 
 | Method | Topic | Key | Value | Type | Description |
 | --- | --- | --- | --- | --- | --- |
@@ -193,4 +195,5 @@ Tested with OLED65G6V, 32LM6300PLA, 49SK8500, OLED65C7T, 55SK800PLB, OLED48CX.
 |           | `Set` | `PictureMode` | `picture mode reference` | string | Set picture mode. |
 |           | `Set` | `SoundMode` | `sound mode reference` | string | Set sound mode. |
 |           | `Set` | `SoundOutput` | `sound output reference` | string | Set sound output. |
+|           | `Set` | `PlayState` | `play`, `pause` | string | Set media play state. |
 |           | `Set` | `RcControl` | `REWIND` | string | Send RC command. |

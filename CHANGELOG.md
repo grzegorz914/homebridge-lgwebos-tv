@@ -5,6 +5,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ### After update to v3.0.0 RESTFull and MQTT config settings need to be updated
 
+## [3.6.0] - (18.01.2025)
+
+## Changes
+
+- added media play state sensor
+- added media info to MQTT and RESTFul
+
 ## [3.5.6] - (16.01.2025)
 
 ## Changes

@@ -41,6 +41,7 @@ class LgWebOsDevice extends EventEmitter {
         this.sensorPictureMode = device.sensorPictureMode || false;
         this.sensorScreenOnOff = device.sensorScreenOnOff || false;
         this.sensorScreenSaver = device.sensorScreenSaver || false;
+        this.sensorPlayState = device.sensorPlayState || false;
         this.sensorInputs = device.sensorInputs || [];
         this.brightnessControl = device.brightnessControl || false;
         this.backlightControl = device.backlightControl || false;
@@ -94,6 +95,8 @@ class LgWebOsDevice extends EventEmitter {
         this.appId = '';
         this.volume = 0;
         this.mute = true;
+        this.playState = false;
+        this.appType = '';
         this.channelId = 0;
         this.channelName = '';
         this.channelNumber = 0;
@@ -321,11 +324,18 @@ class LgWebOsDevice extends EventEmitter {
                     const cid10 = await this.lgWebOsSocket.getCid('SoundOutput');
                     set = await this.lgWebOsSocket.send('request', ApiUrls.SetSoundOutput, payload10, cid10);
                     break;
-                case 'RcControl':
+                case 'PlayState':
                     const payload11 = {
+                        playState: value
+                    };
+                    const cid11 = await this.lgWebOsSocket.getCid('MediaInfo');
+                    set = await this.lgWebOsSocket.send('request', ApiUrls.GetForegroundAppMediaInfo, payload11, cid11);
+                    break;
+                case 'RcControl':
+                    const payload12 = {
                         name: value
                     };
-                    set = await this.lgWebOsSocket.send('button', undefined, payload11);
+                    set = await this.lgWebOsSocket.send('button', undefined, payload12);
                     break;
                 default:
                     this.emit('warn', `${integration}, received key: ${key}, value: ${value}`);
@@ -1510,6 +1520,19 @@ class LgWebOsDevice extends EventEmitter {
                 this.allServices.push(this.sensorPictureModeService);
             };
 
+            if (this.sensorPlayState && this.webOS >= 7.0) {
+                const debug = this.enableDebugMode ? this.emit('debug', `Prepare play state sensor service`) : false;
+                this.sensorPlayStateService = accessory.addService(Service.ContactSensor, `${accessoryName} Play State Sensor`, `Play State Sensor`);
+                this.sensorPlayStateService.addOptionalCharacteristic(Characteristic.ConfiguredName);
+                this.sensorPlayStateService.setCharacteristic(Characteristic.ConfiguredName, `${accessoryName} Pilay State Sensor`);
+                this.sensorPlayStateService.getCharacteristic(Characteristic.ContactSensorState)
+                    .onGet(async () => {
+                        const state = this.playState;
+                        return state;
+                    });
+                this.allServices.push(this.sensorPlayStateService);
+            };
+
             //prepare sonsor service
             const possibleSensorInputsCount = 99 - this.allServices.length;
             const maxSensorInputsCount = this.sensorsInputsConfiguredCount >= possibleSensorInputsCount ? possibleSensorInputsCount : this.sensorsInputsConfiguredCount;
@@ -2016,6 +2039,18 @@ class LgWebOsDevice extends EventEmitter {
                     this.soundOutput = soundOutput;
                     if (!this.disableLogInfo) {
                         this.emit('info', `Sound Output: ${SoundOutputs[soundOutput] ?? 'Unknown'}`);
+                    };
+                })
+                .on('mediaInfo', (playState, appType) => {
+                    if (this.sensorPlayStateService) {
+                        this.sensorPlayStateService
+                            .updateCharacteristic(Characteristic.ContactSensorState, playState)
+                    }
+
+                    this.playState = playState;
+                    this.appType = appType;
+                    if (!this.disableLogInfo) {
+                        this.emit('info', `Play state: ${playState ? 'Playing' : 'Paused'}`);
                     };
                 })
                 .on('success', (success) => {

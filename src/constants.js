@@ -44,6 +44,7 @@ export const ApiUrls = {
     "GetChannelList": "ssap://tv/getChannelList",
     "GetPowerState": "ssap://com.webos.service.tvpower/power/getPowerState",
     "GetForegroundAppInfo": "ssap://com.webos.applicationManager/getForegroundAppInfo",
+    "GetForegroundAppMediaInfo": "ssap://com.webos.media/getForegroundAppInfo",
     "GetCurrentChannel": "ssap://tv/getCurrentChannel",
     "GetChannelProgramInfo": "ssap://tv/getChannelProgramInfo",
     "GetExternalInputList": "ssap://tv/getExternalInputList",

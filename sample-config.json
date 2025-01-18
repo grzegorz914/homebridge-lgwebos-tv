@@ -116,6 +116,7 @@
                     "sensorPictureMode": false,
                     "sensorScreenOnOff": false,
                     "sensorScreenSaver": false,
+                    "sensorPlayState": false,
                     "sensorInputs": [
                         {
                             "name": "HDMI 1",

@@ -19,7 +19,8 @@ class RestFul extends EventEmitter {
             picturesettings: 'This data is not available in your system at this time.',
             soundmode: 'This data is not available in your system at this time.',
             soundoutput: 'This data is not available in your system at this time.',
-            externalinputlist: 'This data is not available in your system at this time.'
+            externalinputlist: 'This data is not available in your system at this time.',
+            mediainfo: 'This data is not available in your system at this time.'
         };
         this.connect();
     };
@@ -41,6 +42,7 @@ class RestFul extends EventEmitter {
             restFul.get('/soundmode', (req, res) => { res.json(this.restFulData.soundmode) });
             restFul.get('/soundoutput', (req, res) => { res.json(this.restFulData.soundoutput) });
             restFul.get('/externalinputlist', (req, res) => { res.json(this.restFulData.externalinputlist) });
+            restFul.get('/mediainfo', (req, res) => { res.json(this.restFulData.externalinputlist) });
 
             //post data
             restFul.post('/', (req, res) => {
@@ -102,6 +104,9 @@ class RestFul extends EventEmitter {
                 break;
             case 'externalinputlist':
                 this.restFulData.externalinputlist = data;
+                break;
+            case 'mediainfo':
+                this.restFulData.mediainfo = data;
                 break;
             default:
                 this.emit('error', `RESTFul update unknown path: ${path}, data: ${data}`)

@@ -660,6 +660,13 @@
               "description": "This expose Screen Saver as a Motion Sensor to use with automations, fired if Screen Saver ON, webOS >= 4.0.",
               "required": false
             },
+            "sensorPlayState": {
+              "title": "Play State",
+              "type": "boolean",
+              "default": false,
+              "description": "This expose Play State as a Motion Sensor to use with automations, fired if Playing, webOS >= 7.0.",
+              "required": false
+            },
             "sensorInputs": {
               "type": "array",
               "items": {
@@ -1606,6 +1613,7 @@
                     "devices[].sensorScreenOnOff",
                     "devices[].sensorScreenSaver",
                     "devices[].sensorPixelRefresh",
+                    "devices[].sensorPlayState",
                     {
                       "key": "devices[]",
                       "type": "section",
