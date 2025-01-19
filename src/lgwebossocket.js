@@ -81,7 +81,7 @@ class LgWebOsSocket extends EventEmitter {
             const socket = this.sslWebSocket ? new WebSocket(this.url, { rejectUnauthorized: false }) : new WebSocket(this.url);
             socket.on('open', async () => {
                 const debug = this.enableDebugMode ? this.emit('debug', `Plugin received heartbeat from TV`) : false
-                const debug1 = this.enableDebugMode ? this.emit('debug', `Socked connected`) : false;
+                const debug1 = this.enableDebugMode ? this.emit('debug', `Socket connected`) : false;
                 this.socket = socket;
                 this.socketConnected = true;
 
@@ -90,17 +90,17 @@ class LgWebOsSocket extends EventEmitter {
 
                 const heartbeat = setInterval(() => {
                     if (socket.readyState === socket.OPEN) {
-                        const debug = this.enableDebugMode ? this.emit('debug', `Socked send heartbeat`) : false;
+                        const debug = this.enableDebugMode ? this.emit('debug', `Socket send heartbeat`) : false;
                         socket.ping(null, false, 'UTF-8');
                     }
                 }, 5000);
 
                 socket.on('pong', () => {
-                    const debug = this.enableDebugMode ? this.emit('debug', `Socked received heartbeat`) : false;
+                    const debug = this.enableDebugMode ? this.emit('debug', `Socket received heartbeat`) : false;
                 });
 
                 socket.on('close', () => {
-                    const debug = this.enableDebugMode ? this.emit('debug', `Socked closed`) : false;
+                    const debug = this.enableDebugMode ? this.emit('debug', `Socket closed`) : false;
                     clearInterval(heartbeat);
                     socket.emit('disconnect');
                 });

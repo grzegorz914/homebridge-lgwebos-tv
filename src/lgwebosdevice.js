@@ -368,11 +368,14 @@ class LgWebOsDevice extends EventEmitter {
                             this.emit('warn', `RESTFul set error: ${error}`);
                         };
                     })
-                    .on('error', (error) => {
-                        this.emit('warn', error);
+                    .on('warn', (warn) => {
+                        this.emit('warn', warn);
                     })
                     .on('debug', (debug) => {
                         this.emit('debug', debug);
+                    })
+                    .on('error', (error) => {
+                        this.emit('error', error);
                     });
             }
 
@@ -403,11 +406,14 @@ class LgWebOsDevice extends EventEmitter {
                             this.emit('warn', `MQTT set error: ${error}`);
                         };
                     })
+                    .on('warn', (warn) => {
+                        this.emit('warn', warn);
+                    })
                     .on('debug', (debug) => {
                         this.emit('debug', debug);
                     })
                     .on('error', (error) => {
-                        this.emit('warn', error);
+                        this.emit('error', error);
                     });
             };
 
