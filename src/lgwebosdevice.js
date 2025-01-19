@@ -368,11 +368,11 @@ class LgWebOsDevice extends EventEmitter {
                             this.emit('warn', `RESTFul set error: ${error}`);
                         };
                     })
-                    .on('warn', (warn) => {
-                        this.emit('warn', warn);
-                    })
                     .on('debug', (debug) => {
                         this.emit('debug', debug);
+                    })
+                    .on('warn', (warn) => {
+                        this.emit('warn', warn);
                     })
                     .on('error', (error) => {
                         this.emit('error', error);
@@ -406,11 +406,11 @@ class LgWebOsDevice extends EventEmitter {
                             this.emit('warn', `MQTT set error: ${error}`);
                         };
                     })
-                    .on('warn', (warn) => {
-                        this.emit('warn', warn);
-                    })
                     .on('debug', (debug) => {
                         this.emit('debug', debug);
+                    })
+                    .on('warn', (warn) => {
+                        this.emit('warn', warn);
                     })
                     .on('error', (error) => {
                         this.emit('error', error);
@@ -1667,11 +1667,14 @@ class LgWebOsDevice extends EventEmitter {
                 broadcastAddress: this.broadcastAddress,
                 enableDebugMode: this.enableDebugMode
             })
-                .on('error', (error) => {
-                    this.emit('warn', error);
-                })
                 .on('debug', (debug) => {
                     this.emit('debug', debug);
+                })
+                .on('warn', (warn) => {
+                    this.emit('warn', warn);
+                })
+                .on('error', (error) => {
+                    this.emit('error', error);
                 });
         } catch (error) {
             this.emit('warn', `Wake On Lan start error: ${error}`);
