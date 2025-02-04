@@ -5,6 +5,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ### After update to v3.0.0 RESTFull and MQTT config settings need to be updated
 
+## [3.6.2] - (04.02.2025)
+
+## Changes
+
+- update RESTFul
+
 ## [3.6.0] - (18.01.2025)
 
 ## Changes
