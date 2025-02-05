@@ -142,7 +142,7 @@ Tested with OLED65G6V, 32LM6300PLA, 49SK8500, OLED65C7T, 55SK800PLB, OLED48CX.
 
 ### RESTFul Integration
 
-* POST data as a JSON Object `{Power: true}`
+* POST data as a JSON Object `{Power: true}`, content type must be `application/json`
 * References:
   * Picture Mode - `cinema`, `eco`, `expert1`, `expert2`, `game`, `normal`, `photo`, `sports`, `technicolor`, `vivid`, `hdrEffect`, `hdrFilmMaker`, `hdrCinema`, `hdrCinemaBright`, `hdrStandard`, `hdrEffect`, `hdrGame`, `hdrVivid`, `hdrTechnicolor`, `hdrExternal`, `dolbyHdrCinema`, `dolbyHdrCinemaBright`, `dolbyHdrDarkAmazon`, `dolbyHdrStandard`, `dolbyHdrGame`, `dolbyHdrVivid`.
   * Sound Mode - `aiSoundPlus`, `standard`, `movie`, `clearVoice`, `news`, `sport`, `music`, `game`.
