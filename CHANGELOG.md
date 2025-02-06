@@ -5,6 +5,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ### After update to v3.0.0 RESTFull and MQTT config settings need to be updated
 
+## [3.6.3] - (02.06.2025)
+
+## Changes
+
+- fix HAP-NodeJS WARNING: The accessory has an invalid 'Name' characteristic 'configuredName'
+- Please use only alphanumeric, space, and apostrophe characters
+- Ensure it starts and ends with an alphabetic or numeric character, and avoid emojis
+
 ## [3.6.2] - (04.02.2025)
 
 ## Changes
