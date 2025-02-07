@@ -11,7 +11,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 - stability and improvements
 
-## [3.6.3] - (02.06.2025)
+## [3.6.3] - (06.02.2025)
 
 ## Changes
 
