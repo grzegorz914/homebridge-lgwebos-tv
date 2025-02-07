@@ -473,6 +473,17 @@ class LgWebOsDevice extends EventEmitter {
         }
     }
 
+    async startImpulseGenerator() {
+        try {
+            //start impulse generator
+            await new Promise(resolve => setTimeout(resolve, 3000));
+            await this.lgWebOsSocket.impulseGenerator.start([{ name: 'heartBeat', sampling: 10000 }]);
+            return true;
+        } catch (error) {
+            throw new Error(`Impulse generator start error: ${error}`);
+        };
+    }
+
     async displayOrder() {
         try {
             switch (this.inputsDisplayOrder) {
@@ -2126,10 +2137,6 @@ class LgWebOsDevice extends EventEmitter {
                     const accessory = await this.prepareAccessory();
                     this.emit('publishAccessory', accessory);
                     this.startPrepareAccessory = false;
-
-                    //start impulse generator
-                    await new Promise(resolve => setTimeout(resolve, 3000));
-                    await this.lgWebOsSocket.impulseGenerator.start([{ name: 'heartBeat', sampling: 10000 }]);
                 }
 
                 if (key === '0') {
@@ -2139,6 +2146,8 @@ class LgWebOsDevice extends EventEmitter {
                             const key = pairingKey.length > 10 ? pairingKey.toString() : '0';
 
                             if (key !== '0') {
+                                clearInterval(intervalId);
+
                                 //prepare data for accessory
                                 await this.prepareDataForAccessory();
 
@@ -2146,12 +2155,6 @@ class LgWebOsDevice extends EventEmitter {
                                 const accessory = await this.prepareAccessory();
                                 this.emit('publishAccessory', accessory);
                                 this.startPrepareAccessory = false;
-
-                                //start impulse generator
-                                await new Promise(resolve => setTimeout(resolve, 3000));
-                                await this.lgWebOsSocket.impulseGenerator.start([{ name: 'heartBeat', sampling: 10000 }]);
-
-                                clearInterval(intervalId);
                             }
                         }
                     }, 5000);

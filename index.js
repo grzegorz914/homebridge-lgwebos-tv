@@ -112,6 +112,9 @@ class LgWebOsPlatform {
 						try {
 							const startDone = await lgWebOsDevice.start();
 							const stopImpulseGenerator = startDone ? await impulseGenerator.stop() : false;
+
+							//start device impulse generator 
+							const startImpulseGenerator = startDone ? await lgWebOsDevice.startImpulseGenerator() : false;
 						} catch (error) {
 							const emitLog = disableLogError ? false : log.error(`Device: ${host} ${deviceName}, ${error}, trying again.`);
 						};
