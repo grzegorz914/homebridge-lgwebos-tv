@@ -1681,7 +1681,7 @@ class LgWebOsDevice extends EventEmitter {
             };
 
             //sort inputs list
-            await this.displayOrder();
+            this.televisionService ? await this.displayOrder() : false;
 
             return accessory;
         } catch (error) {
