@@ -994,6 +994,9 @@ class LgWebOsDevice extends EventEmitter {
                     this.televisionService.addLinkedService(inputService);
                     this.allServices.push(inputService);
                 }
+
+                //sort inputs list
+                await this.displayOrder();
             }
 
 
@@ -1679,9 +1682,6 @@ class LgWebOsDevice extends EventEmitter {
                     accessory.addService(buttonService);
                 };
             };
-
-            //sort inputs list
-            await this.displayOrder();
 
             return accessory;
         } catch (error) {

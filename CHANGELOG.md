@@ -5,6 +5,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ### After update to v3.0.0 RESTFull and MQTT config settings need to be updated
 
+## [3.6.5] - (13.02.2025)
+
+## Changes
+
+- fix plugin crash if tv services are disabled in plugin config
+
+
 ## [3.6.4] - (07.02.2025)
 
 ## Changes
