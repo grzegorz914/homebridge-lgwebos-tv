@@ -137,5 +137,5 @@ class LgWebOsPlatform {
 }
 
 export default (api) => {
-	api.registerPlatform(PluginName, PlatformName, LgWebOsPlatform, true);
+	api.registerPlatform(PluginName, PlatformName, LgWebOsPlatform);
 };
