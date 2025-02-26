@@ -235,6 +235,82 @@ class LgWebOsDevice extends EventEmitter {
         return str;
     }
 
+    async externalIntegrations() {
+        try {
+            //RESTFul server
+            const restFulEnabled = this.restFul.enable || false;
+            if (restFulEnabled) {
+                this.restFul1 = new RestFul({
+                    port: this.restFul.port || 3000,
+                    debug: this.restFul.debug || false
+                });
+
+                this.restFul1.on('connected', (message) => {
+                    this.emit('success', message);
+                    this.restFulConnected = true;
+                })
+                    .on('set', async (key, value) => {
+                        try {
+                            await this.setOverExternalIntegration('RESTFul', key, value);
+                        } catch (error) {
+                            this.emit('warn', `RESTFul set error: ${error}`);
+                        };
+                    })
+                    .on('debug', (debug) => {
+                        this.emit('debug', debug);
+                    })
+                    .on('warn', (warn) => {
+                        this.emit('warn', warn);
+                    })
+                    .on('error', (error) => {
+                        this.emit('error', error);
+                    });
+            }
+
+            //mqtt client
+            const mqttEnabled = this.mqtt.enable || false;
+            if (mqttEnabled) {
+                this.mqtt1 = new Mqtt({
+                    host: this.mqtt.host,
+                    port: this.mqtt.port || 1883,
+                    clientId: this.mqtt.clientId || `lgwebos_${Math.random().toString(16).slice(3)}`,
+                    prefix: `${this.mqtt.prefix}/${this.name}`,
+                    user: this.mqtt.user,
+                    passwd: this.mqtt.passwd,
+                    debug: this.mqtt.debug || false
+                });
+
+                this.mqtt1.on('connected', (message) => {
+                    this.emit('success', message);
+                    this.mqttConnected = true;
+                })
+                    .on('subscribed', (message) => {
+                        this.emit('success', message);
+                    })
+                    .on('set', async (key, value) => {
+                        try {
+                            await this.setOverExternalIntegration('MQTT', key, value);
+                        } catch (error) {
+                            this.emit('warn', `MQTT set error: ${error}`);
+                        };
+                    })
+                    .on('debug', (debug) => {
+                        this.emit('debug', debug);
+                    })
+                    .on('warn', (warn) => {
+                        this.emit('warn', warn);
+                    })
+                    .on('error', (error) => {
+                        this.emit('error', error);
+                    });
+            };
+
+            return true;
+        } catch (error) {
+            this.emit('warn', `External integration start error: ${error}`);
+        };
+    }
+
     async setOverExternalIntegration(integration, key, value) {
         try {
             let set = false
@@ -360,82 +436,6 @@ class LgWebOsDevice extends EventEmitter {
             return set;
         } catch (error) {
             throw new Error(`${integration} set key: ${key}, value: ${value}, error: ${error}`);
-        };
-    }
-
-    async externalIntegrations() {
-        try {
-            //RESTFul server
-            const restFulEnabled = this.restFul.enable || false;
-            if (restFulEnabled) {
-                this.restFul1 = new RestFul({
-                    port: this.restFul.port || 3000,
-                    debug: this.restFul.debug || false
-                });
-
-                this.restFul1.on('connected', (message) => {
-                    this.emit('success', message);
-                    this.restFulConnected = true;
-                })
-                    .on('set', async (key, value) => {
-                        try {
-                            await this.setOverExternalIntegration('RESTFul', key, value);
-                        } catch (error) {
-                            this.emit('warn', `RESTFul set error: ${error}`);
-                        };
-                    })
-                    .on('debug', (debug) => {
-                        this.emit('debug', debug);
-                    })
-                    .on('warn', (warn) => {
-                        this.emit('warn', warn);
-                    })
-                    .on('error', (error) => {
-                        this.emit('error', error);
-                    });
-            }
-
-            //mqtt client
-            const mqttEnabled = this.mqtt.enable || false;
-            if (mqttEnabled) {
-                this.mqtt1 = new Mqtt({
-                    host: this.mqtt.host,
-                    port: this.mqtt.port || 1883,
-                    clientId: this.mqtt.clientId || `lgwebos_${Math.random().toString(16).slice(3)}`,
-                    prefix: `${this.mqtt.prefix}/${this.name}`,
-                    user: this.mqtt.user,
-                    passwd: this.mqtt.passwd,
-                    debug: this.mqtt.debug || false
-                });
-
-                this.mqtt1.on('connected', (message) => {
-                    this.emit('success', message);
-                    this.mqttConnected = true;
-                })
-                    .on('subscribed', (message) => {
-                        this.emit('success', message);
-                    })
-                    .on('set', async (key, value) => {
-                        try {
-                            await this.setOverExternalIntegration('MQTT', key, value);
-                        } catch (error) {
-                            this.emit('warn', `MQTT set error: ${error}`);
-                        };
-                    })
-                    .on('debug', (debug) => {
-                        this.emit('debug', debug);
-                    })
-                    .on('warn', (warn) => {
-                        this.emit('warn', warn);
-                    })
-                    .on('error', (error) => {
-                        this.emit('error', error);
-                    });
-            };
-
-            return true;
-        } catch (error) {
-            this.emit('warn', `External integration start error: ${error}`);
         };
     }
 
