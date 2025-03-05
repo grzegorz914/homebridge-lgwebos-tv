@@ -172,6 +172,8 @@
                     "title": "Mode",
                     "type": "integer",
                     "description": "Here select the function mode.",
+                    "minimum": 0,
+                    "maximum": 2,
                     "default": 0,
                     "oneOf": [
                       {
@@ -1579,10 +1581,27 @@
                 "devices[].buttons[].name",
                 "devices[].buttons[].mode",
                 "devices[].buttons[].reference",
+                "devices[].buttons[].displayType",
+                "devices[].buttons[].namePrefix"
+              ],
+              "condition": {
+                "functionBody": "return model.devices[arrayIndices].buttons[arrayIndices].mode <= 1;"
+              }
+            },
+            {
+              "key": "devices[].buttons",
+              "type": "tabarray",
+              "title": "{{ value.name || 'button' }}",
+              "items": [
+                "devices[].buttons[].name",
+                "devices[].buttons[].mode",
                 "devices[].buttons[].command",
                 "devices[].buttons[].displayType",
                 "devices[].buttons[].namePrefix"
-              ]
+              ],
+              "condition": {
+                "functionBody": "return model.devices[arrayIndices].buttons[arrayIndices].mode === 2;"
+              }
             }
           ]
         },
