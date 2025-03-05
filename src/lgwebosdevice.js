@@ -1626,11 +1626,8 @@ class LgWebOsDevice extends EventEmitter {
                     //get button mode
                     const buttonMode = button.mode;
 
-                    //get button reference
-                    const buttonReference = button.reference;
-
                     //get button command
-                    const buttonCommand = button.command;
+                    const buttonCommand = [button.reference, button.command][buttonMode];
 
                     //get button name prefix
                     const namePrefix = button.namePrefix || false;
@@ -1652,16 +1649,16 @@ class LgWebOsDevice extends EventEmitter {
                                 switch (buttonMode) {
                                     case 0: //App Control
                                         const cid = this.power && state ? await this.lgWebOsSocket.getCid('App') : false;
-                                        const send = this.power && state ? await this.lgWebOsSocket.send('request', ApiUrls.LaunchApp, { id: buttonReference }, cid) : false;
-                                        const debug = this.power && state && this.enableDebugMode ? this.emit('debug', `Set Input, Name: ${buttonName}, Reference: ${buttonReference}`) : false;
+                                        const send = this.power && state ? await this.lgWebOsSocket.send('request', ApiUrls.LaunchApp, { id: buttonCommand }, cid) : false;
+                                        const debug = this.power && state && this.enableDebugMode ? this.emit('debug', `Set Input, Name: ${buttonName}, Reference: ${buttonCommand}`) : false;
                                         break;
                                     case 1: //Channel Control
                                         const liveTv = 'com.webos.app.livetv';
                                         const cid1 = this.power && state && this.appId !== liveTv ? await this.lgWebOsSocket.getCid('App') : false;
                                         const openLiveTv = this.appId !== liveTv ? await this.lgWebOsSocket.send('request', ApiUrls.LaunchApp, { id: liveTv }, cid1) : false;
                                         const cid2 = this.power && state ? await this.lgWebOsSocket.getCid('Channel') : false;
-                                        const send1 = this.power && state ? await this.lgWebOsSocket.send('request', ApiUrls.OpenChannel, { channelId: buttonReference }, cid2) : false;
-                                        const debug1 = this.power && state && this.enableDebugMode ? this.emit('debug', `Set Channel, Name: ${buttonName}, Reference: ${buttonReference}`) : false;
+                                        const send1 = this.power && state ? await this.lgWebOsSocket.send('request', ApiUrls.OpenChannel, { channelId: buttonCommand }, cid2) : false;
+                                        const debug1 = this.power && state && this.enableDebugMode ? this.emit('debug', `Set Channel, Name: ${buttonName}, Reference: ${buttonCommand}`) : false;
                                         break;
                                     case 2: //RC Control
                                         const send2 = state ? await this.lgWebOsSocket.send('button', undefined, { name: buttonCommand }) : false;
