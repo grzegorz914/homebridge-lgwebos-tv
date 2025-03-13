@@ -5,6 +5,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ### After update to v3.0.0 RESTFull and MQTT config settings need to be updated
 
+## [3.7.0] - (13.03.2025)
+
+## Changes
+
+- added possibility to disable indyvidual accessory
+- bump dependencies
+- config schema updated
+- redme updated
+- cleanup
+
 ## [3.6.8] - (05.03.2025)
 
 ## Changes

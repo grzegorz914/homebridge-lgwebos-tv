@@ -63,6 +63,7 @@ Tested with OLED65G6V, 32LM6300PLA, 49SK8500, OLED65C7T, 55SK800PLB, OLED48CX.
 | `host` | Here set the *Hsostname or Address IP* of TV. |
 | `mac` | Here set the *Mac Address* of TV. |
 | `broadcastAddress` | Here set the *Broadcast address* of network interaface to send WOL packet, default is `255.255.255.255`. |
+| `disableAccessory` | If enabled, the accessory will be disabled. |
 | `getInputsFromDevice` | This enable load inputs and apps direct from device. |
 | `filterSystemApps` | This enable filter sysem apps, only if `getInputsFromDevice` is `true`. |
 | `disableLoadDefaultInputs` | This function disable load default inputs `Live TV`, `HDMI 1`, `HDMI 2` in to the inputs list. |

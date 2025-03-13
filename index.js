@@ -24,6 +24,13 @@ class LgWebOsPlatform {
 
 		api.on('didFinishLaunching', async () => {
 			for (const device of config.devices) {
+
+				//check accessory is enabled
+				const disableAccessory = device.disableAccessory || false;
+				if (disableAccessory) {
+					continue;
+				}
+
 				const deviceName = device.name;
 				const host = device.host;
 				const mac = device.mac

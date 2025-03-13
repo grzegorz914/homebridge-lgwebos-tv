@@ -43,6 +43,13 @@
               "description": "Her set Your own broadcast address, only if You have problem to Power ON TV.",
               "required": false
             },
+            "disableAccessory": {
+              "title": "Disable Accessory",
+              "type": "boolean",
+              "default": false,
+              "description": "Here You can disable this accessory.",
+              "required": false
+            },
             "getInputsFromDevice": {
               "title": "Load Inputs From Device",
               "type": "boolean",
@@ -1540,6 +1547,7 @@
         "devices[].host",
         "devices[].mac",
         "devices[].broadcastAddress",
+        "devices[].disableAccessory",
         {
           "key": "devices[]",
           "type": "section",
@@ -1564,7 +1572,10 @@
                 "functionBody": "return model.devices[arrayIndices].getInputsFromDevice === false;"
               }
             }
-          ]
+          ],
+          "condition": {
+            "functionBody": "return model.devices[arrayIndices].disableAccessory === false;"
+          }
         },
         {
           "key": "devices[]",
@@ -1603,7 +1614,10 @@
                 "functionBody": "return model.devices[arrayIndices].buttons[arrayIndices].mode === 2;"
               }
             }
-          ]
+          ],
+          "condition": {
+            "functionBody": "return model.devices[arrayIndices].disableAccessory === false;"
+          }
         },
         {
           "key": "devices[]",
@@ -1798,7 +1812,10 @@
                 }
               ]
             }
-          ]
+          ],
+          "condition": {
+            "functionBody": "return model.devices[arrayIndices].disableAccessory === false;"
+          }
         }
       ]
     }
