@@ -214,6 +214,7 @@
                   "command": {
                     "title": "RC Command",
                     "type": "string",
+                    "default": "POWER",
                     "oneOf": [
                       {
                         "title": "0",
@@ -589,8 +590,7 @@
                     "required": false
                   }
                 }
-              },
-              "required": false
+              }
             },
             "sensorPower": {
               "title": "Power",
@@ -737,8 +737,7 @@
                     "required": false
                   }
                 }
-              },
-              "required": false
+              }
             },
             "turnScreenOnOff": {
               "title": "Turn Screen ON/OFF",
@@ -805,6 +804,7 @@
                   "reference": {
                     "title": "Mode",
                     "type": "string",
+                    "default": "normal",
                     "description": "Here choice the Picture Mode.",
                     "oneOf": [
                       {
@@ -1000,8 +1000,7 @@
                     "required": false
                   }
                 }
-              },
-              "required": false
+              }
             },
             "volumeControlNamePrefix": {
               "title": "Volume Control Name Prefix",
@@ -1069,6 +1068,7 @@
                   "reference": {
                     "title": "Mode",
                     "type": "string",
+                    "default": "standard",
                     "description": "Here choice the Sound Mode.",
                     "oneOf": [
                       {
@@ -1156,8 +1156,7 @@
                     "required": false
                   }
                 }
-              },
-              "required": false
+              }
             },
             "soundOutputControl": {
               "title": "Sound Output",
@@ -1182,6 +1181,7 @@
                   "reference": {
                     "title": "Output",
                     "type": "string",
+                    "default": "tv_speaker",
                     "description": "Here choice the Sound Output.",
                     "oneOf": [
                       {
@@ -1281,8 +1281,7 @@
                     "required": false
                   }
                 }
-              },
-              "required": false
+              }
             },
             "serviceMenu": {
               "title": "Service Menu",
