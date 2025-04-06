@@ -132,7 +132,7 @@ class LgWebOsPlatform {
 					//start impulse generator
 					await impulseGenerator.start([{ name: 'start', sampling: 45000 }]);
 				} catch (error) {
-					throw new Error(`Device: ${host} ${deviceName}, Did finish launching error: ${error}.`);
+					const emitLog = disableLogError ? false : log.error(`Device: ${host} ${deviceName}, Did finish launching error: ${error}.`);
 				}
 			}
 		});
