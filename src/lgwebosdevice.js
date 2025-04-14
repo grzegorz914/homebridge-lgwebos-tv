@@ -1878,7 +1878,7 @@ class LgWebOsDevice extends EventEmitter {
                     if (volume !== this.volume) {
                         for (let i = 0; i < 2; i++) {
                             const state = this.power ? [true, false][i] : false;
-                            if (this.sensorMuteService) {
+                            if (this.sensorVolumeService) {
                                 this.sensorVolumeService
                                     .updateCharacteristic(Characteristic.ContactSensorState, state)
                                 this.sensorVolumeState = state;
