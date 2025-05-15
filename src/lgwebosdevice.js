@@ -331,8 +331,12 @@ class LgWebOsDevice extends EventEmitter {
                     set = await this.lgWebOsSocket.send('request', ApiUrls.LaunchApp, { id: value }, cid);
                     break;
                 case 'Channel':
-                    const cid1 = await this.lgWebOsSocket.getCid('Channel');
-                    set = await this.lgWebOsSocket.send('request', ApiUrls.OpenChannel, { channelId: value }, cid1)
+                    const cid0 = await this.lgWebOsSocket.getCid('Channel');
+                    set = await this.lgWebOsSocket.send('request', ApiUrls.OpenChannel, { channelId: value }, cid0)
+                    break;
+                case 'Input':
+                    const cid1 = await this.lgWebOsSocket.getCid('App');
+                    set = await this.lgWebOsSocket.send('request', ApiUrls.LaunchApp, { id: value }, cid1);
                     break;
                 case 'Volume':
                     const volume = (value < 0 || value > 100) ? this.volume : value;
@@ -1848,29 +1852,17 @@ class LgWebOsDevice extends EventEmitter {
                     if (this.speakerService) {
                         this.speakerService
                             .updateCharacteristic(Characteristic.Volume, volume)
-
-                        if (this.volumeService) {
-                            this.volumeService
-                                .updateCharacteristic(Characteristic.Brightness, volume)
-                        };
-
-                        if (this.volumeServiceFan) {
-                            this.volumeServiceFan
-                                .updateCharacteristic(Characteristic.RotationSpeed, volume)
-                        };
-                    };
-
-                    if (this.speakerService) {
-                        this.speakerService
                             .updateCharacteristic(Characteristic.Mute, mute);
 
                         if (this.volumeService) {
                             this.volumeService
+                                .updateCharacteristic(Characteristic.Brightness, volume)
                                 .updateCharacteristic(Characteristic.On, !mute);
                         };
 
                         if (this.volumeServiceFan) {
                             this.volumeServiceFan
+                                .updateCharacteristic(Characteristic.RotationSpeed, volume)
                                 .updateCharacteristic(Characteristic.On, !mute);
                         };
                     };
