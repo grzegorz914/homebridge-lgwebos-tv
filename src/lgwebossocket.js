@@ -31,7 +31,7 @@ class LgWebOsSocket extends EventEmitter {
         this.appId = '';
         this.appType = '';
         this.volume = 0;
-        this.mute = true;
+        this.mute = false;
         this.playState = false;
 
         this.brightness = 0;
@@ -736,7 +736,7 @@ class LgWebOsSocket extends EventEmitter {
                 //update TV state
                 this.emit('powerState', false, this.screenState);
                 this.emit('playState', false, this.appType);
-                this.emit('audioState', this.volume, true);
+                this.emit('audioState', this.volume, this.mute);
                 this.emit('pictureSettings', 0, 0, 0, 0, false);
                 this.emit('pictureMode', 'Unknown', false);
                 this.emit('soundMode', this.soundMode, false);
@@ -751,7 +751,7 @@ class LgWebOsSocket extends EventEmitter {
                 //update TV state
                 this.emit('powerState', false, 'Suspend');
                 this.emit('playState', false, this.appType);
-                this.emit('audioState', this.volume, true);
+                this.emit('audioState', this.volume, this.mute);
                 this.emit('pictureSettings', 0, 0, 0, 0, false);
                 this.emit('pictureMode', this.pictureMode, false);
                 this.emit('soundMode', this.soundMode, false);

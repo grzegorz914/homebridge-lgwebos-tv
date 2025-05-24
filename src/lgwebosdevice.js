@@ -94,7 +94,7 @@ class LgWebOsDevice extends EventEmitter {
         this.screenSaverState = false;
         this.appId = '';
         this.volume = 0;
-        this.mute = true;
+        this.mute = false;
         this.playState = false;
         this.appType = '';
         this.channelId = 0;
@@ -896,7 +896,7 @@ class LgWebOsDevice extends EventEmitter {
 
                 this.speakerService.getCharacteristic(Characteristic.Mute)
                     .onGet(async () => {
-                        const state = this.power ? this.mute : true;
+                        const state = this.mute;
                         return state;
                     })
                     .onSet(async (state) => {
