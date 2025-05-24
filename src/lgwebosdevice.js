@@ -586,8 +586,10 @@ class LgWebOsDevice extends EventEmitter {
 
                             switch (this.power) {
                                 case false:
-                                    await new Promise(resolve => setTimeout(resolve, 4000));
-                                    const tryAgain = this.power ? this.televisionService.setCharacteristic(Characteristic.ActiveIdentifier, activeIdentifier) : false;
+                                    for (let attempt = 0; attempt < 10; attempt++) {
+                                        await new Promise(resolve => setTimeout(resolve, 2000));
+                                        const setInput = this.power && this.inputIdentifier !== activeIdentifier ? this.televisionService.setCharacteristic(Characteristic.ActiveIdentifier, activeIdentifier) : false;
+                                    }
                                     break;
                                 case true:
                                     switch (inputMode) {
