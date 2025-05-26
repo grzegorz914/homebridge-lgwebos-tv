@@ -1035,7 +1035,7 @@ class LgWebOsDevice extends EventEmitter {
                         });
                     this.volumeService.getCharacteristic(Characteristic.On)
                         .onGet(async () => {
-                            const state = !this.mute;
+                            const state = this.power ? !this.mute : false;
                             return state;
                         })
                         .onSet(async (state) => {
@@ -1079,7 +1079,7 @@ class LgWebOsDevice extends EventEmitter {
                         });
                     this.volumeServiceFan.getCharacteristic(Characteristic.On)
                         .onGet(async () => {
-                            const state = !this.mute;
+                            const state = this.power ? !this.mute : false;
                             return state;
                         })
                         .onSet(async (state) => {
@@ -1857,15 +1857,17 @@ class LgWebOsDevice extends EventEmitter {
                             .updateCharacteristic(Characteristic.Mute, mute);
 
                         if (this.volumeService) {
+                            const muteV = this.power ? !mute : false;
                             this.volumeService
                                 .updateCharacteristic(Characteristic.Brightness, volume)
-                                .updateCharacteristic(Characteristic.On, !mute);
+                                .updateCharacteristic(Characteristic.On, muteV);
                         };
 
                         if (this.volumeServiceFan) {
+                            const muteV = this.power ? !mute : false;
                             this.volumeServiceFan
                                 .updateCharacteristic(Characteristic.RotationSpeed, volume)
-                                .updateCharacteristic(Characteristic.On, !mute);
+                                .updateCharacteristic(Characteristic.On, muteV);
                         };
                     };
 
