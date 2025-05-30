@@ -55,7 +55,7 @@ class LgWebOsPlatform {
 						...device.mqtt,
 						passwd: 'removed'
 					}
-				};
+				}
 				const debug1 = !enableDebugMode ? false : log.info(`Device: ${host} ${deviceName}, Config: ${JSON.stringify(config, null, 2)}.`);
 
 				//check files exists, if not then create it
@@ -124,7 +124,7 @@ class LgWebOsPlatform {
 							const startImpulseGenerator = startDone ? await lgWebOsDevice.startImpulseGenerator() : false;
 						} catch (error) {
 							const emitLog = disableLogError ? false : log.error(`Device: ${host} ${deviceName}, ${error}, trying again.`);
-						};
+						}
 					}).on('state', (state) => {
 						const emitLog = !enableDebugMode ? false : state ? log.info(`Device: ${host} ${deviceName}, Start impulse generator started.`) : log.info(`Device: ${host} ${deviceName}, Start impulse generator stopped.`);
 					});
@@ -145,4 +145,4 @@ class LgWebOsPlatform {
 
 export default (api) => {
 	api.registerPlatform(PluginName, PlatformName, LgWebOsPlatform);
-};
+}

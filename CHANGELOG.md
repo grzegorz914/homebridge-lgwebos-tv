@@ -5,6 +5,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ### After update to v3.0.0 RESTFull and MQTT config settings need to be updated
 
+## [3.8.0] - (30.05.2025)
+
+## Changes
+
+- added speaker option to volume control
+- now if volume control option is set to disable/nonethe  also TV Speakers (hardware control) is disabled
+- stability improvements
+- cleanup
+
 ## [3.7.6] - (24.05.2025)
 
 ## Changes

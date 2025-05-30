@@ -33,11 +33,11 @@ class Mqtt extends EventEmitter {
                         this.emit('set', key, value);
                     } catch (error) {
                         this.emit('warn', `MQTT Parse object error: ${error}`);
-                    };
+                    }
                 });
             } catch (error) {
                 this.emit('warn', `MQTT Connect error: ${error}`);
-            };
+            }
         }).on('publish', async (topic, message) => {
             try {
                 const fullTopic = `${config.prefix}/${topic}`;
@@ -46,10 +46,10 @@ class Mqtt extends EventEmitter {
                 const emitDebug = config.debug ? this.emit('debug', `MQTT Publish topic: ${fullTopic}, message: ${publishMessage}`) : false;
             } catch (error) {
                 this.emit('warn', `MQTT Publish error: ${error}`);
-            };
+            }
         });
 
         this.emit('connect');
-    };
-};
+    }
+}
 export default Mqtt

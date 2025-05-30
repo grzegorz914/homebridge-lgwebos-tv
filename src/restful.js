@@ -21,9 +21,9 @@ class RestFul extends EventEmitter {
             soundoutput: 'This data is not available in your system at this time.',
             externalinputlist: 'This data is not available in your system at this time.',
             mediainfo: 'This data is not available in your system at this time.'
-        };
+        }
         this.connect();
-    };
+    }
 
     connect() {
         try {
@@ -73,7 +73,7 @@ class RestFul extends EventEmitter {
         } catch (error) {
             this.emit('warn', `RESTful Connect error: ${error}`)
         }
-    };
+    }
 
     update(path, data) {
         switch (path) {
@@ -119,8 +119,8 @@ class RestFul extends EventEmitter {
             default:
                 this.emit('warn', `RESTFul update unknown path: ${path}, data: ${data}`)
                 break;
-        };
+        }
         const emitDebug = this.restFulDebug ? this.emit('debug', `RESTFul update path: ${path}, data: ${JSON.stringify(data, null, 2)}`) : false;
-    };
-};
+    }
+}
 export default RestFul;

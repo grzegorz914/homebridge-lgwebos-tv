@@ -1020,7 +1020,7 @@
               "title": "Volume Control",
               "type": "integer",
               "minimum": 0,
-              "maximum": 2,
+              "maximum": 3,
               "default": 0,
               "oneOf": [
                 {
@@ -1040,9 +1040,15 @@
                   "enum": [
                     2
                   ]
+                },
+                {
+                  "title": "Speaker",
+                  "enum": [
+                    3
+                  ]
                 }
               ],
-              "description": "Here select what a volume control mode You want to use. If select *None/Disabled* only hardware buttons in RC app can be used to control volume.",
+              "description": "Here select what a volume control mode You want to use.",
               "required": true
             },
             "soundModeControl": {
@@ -1690,12 +1696,12 @@
                             "devices[].pictureModes[].reference",
                             "devices[].pictureModes[].displayType",
                             "devices[].pictureModes[].namePrefix"
-                          ],
-                          "condition": {
-                            "functionBody": "return model.devices[arrayIndices].pictureModeControl === true;"
-                          }
+                          ]
                         }
-                      ]
+                      ],
+                      "condition": {
+                        "functionBody": "return model.devices[arrayIndices].pictureModeControl === true;"
+                      }
                     }
                   ]
                 },
@@ -1718,12 +1724,12 @@
                             "devices[].soundModes[].reference",
                             "devices[].soundModes[].displayType",
                             "devices[].soundModes[].namePrefix"
-                          ],
-                          "condition": {
-                            "functionBody": "return model.devices[arrayIndices].soundModeControl === true;"
-                          }
+                          ]
                         }
-                      ]
+                      ],
+                      "condition": {
+                        "functionBody": "return model.devices[arrayIndices].soundModeControl === true;"
+                      }
                     },
                     "devices[].soundOutputControl",
                     {
@@ -1737,12 +1743,12 @@
                             "devices[].soundOutputs[].reference",
                             "devices[].soundOutputs[].displayType",
                             "devices[].soundOutputs[].namePrefix"
-                          ],
-                          "condition": {
-                            "functionBody": "return model.devices[arrayIndices].soundOutputControl === true;"
-                          }
+                          ]
                         }
-                      ]
+                      ],
+                      "condition": {
+                        "functionBody": "return model.devices[arrayIndices].soundOutputControl === true;"
+                      }
                     }
                   ]
                 },

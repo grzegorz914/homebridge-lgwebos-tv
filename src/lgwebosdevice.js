@@ -197,17 +197,17 @@ class LgWebOsDevice extends EventEmitter {
             };
         }
         this.buttonsConfiguredCount = this.buttonsConfigured.length || 0;
-    };
+    }
 
     async saveData(path, data) {
         try {
             data = JSON.stringify(data, null, 2);
             await fsPromises.writeFile(path, data);
             const debug = !this.enableDebugMode ? false : this.emit('debug', `Saved data: ${data}`);
-            return true;;
+            return true;
         } catch (error) {
             throw new Error(`Save data error: ${error}`);
-        };
+        }
     }
 
     async readData(path) {
@@ -216,7 +216,7 @@ class LgWebOsDevice extends EventEmitter {
             return data;
         } catch (error) {
             throw new Error(`Read data error: ${error}`);
-        };
+        }
     }
 
     async sanitizeString(str) {
@@ -364,7 +364,7 @@ class LgWebOsDevice extends EventEmitter {
             return set;
         } catch (error) {
             throw new Error(`${integration} set key: ${key}, value: ${value}, error: ${error}`);
-        };
+        }
     }
 
     async externalIntegrations() {
@@ -386,7 +386,7 @@ class LgWebOsDevice extends EventEmitter {
                             await this.setOverExternalIntegration('RESTFul', key, value);
                         } catch (error) {
                             this.emit('warn', `RESTFul set error: ${error}`);
-                        };
+                        }
                     })
                     .on('debug', (debug) => {
                         this.emit('debug', debug);
@@ -410,7 +410,7 @@ class LgWebOsDevice extends EventEmitter {
                     user: this.mqtt.user,
                     passwd: this.mqtt.passwd,
                     debug: this.mqtt.debug || false
-                });
+                })
 
                 this.mqtt1.on('connected', (message) => {
                     this.emit('success', message);
@@ -424,7 +424,7 @@ class LgWebOsDevice extends EventEmitter {
                             await this.setOverExternalIntegration('MQTT', key, value);
                         } catch (error) {
                             this.emit('warn', `MQTT set error: ${error}`);
-                        };
+                        }
                     })
                     .on('debug', (debug) => {
                         this.emit('debug', debug);
@@ -435,12 +435,12 @@ class LgWebOsDevice extends EventEmitter {
                     .on('error', (error) => {
                         this.emit('error', error);
                     });
-            };
+            }
 
             return true;
         } catch (error) {
             this.emit('warn', `External integration start error: ${error}`);
-        };
+        }
     }
 
     async prepareDataForAccessory() {
@@ -485,7 +485,7 @@ class LgWebOsDevice extends EventEmitter {
             return true;
         } catch (error) {
             throw new Error(`Impulse generator start error: ${error}`);
-        };
+        }
     }
 
     async displayOrder() {
@@ -514,7 +514,7 @@ class LgWebOsDevice extends EventEmitter {
             return true;
         } catch (error) {
             throw new Error(`Display order error: ${error}`);
-        };
+        }
     }
 
     //prepare accessory
@@ -544,7 +544,6 @@ class LgWebOsDevice extends EventEmitter {
                 this.televisionService = accessory.addService(Service.Television, `${accessoryName} Television`, 'Television');
                 this.televisionService.setCharacteristic(Characteristic.ConfiguredName, accessoryName);
                 this.televisionService.setCharacteristic(Characteristic.SleepDiscoveryMode, 1);
-
                 this.televisionService.getCharacteristic(Characteristic.Active)
                     .onGet(async () => {
                         const state = this.power;
@@ -644,7 +643,7 @@ class LgWebOsDevice extends EventEmitter {
                             }
                         } catch (error) {
                             this.emit('warn', `set Input or Channel error: ${error}`);
-                        };
+                        }
                     });
 
                 this.televisionService.getCharacteristic(Characteristic.RemoteKey)
@@ -700,7 +699,7 @@ class LgWebOsDevice extends EventEmitter {
                             const info = this.disableLogInfo ? false : this.emit('info', `set Remote Key: ${command}`);
                         } catch (error) {
                             this.emit('warn', `set Remote Key error: ${error}`);
-                        };
+                        }
                     });
 
                 //optional television characteristics
@@ -714,7 +713,7 @@ class LgWebOsDevice extends EventEmitter {
                             const info = this.disableLogInfo ? false : this.emit('info', `set Closed Captions: ${state}`);
                         } catch (error) {
                             this.emit('warn', `set Closed Captions error: ${error}`);
-                        };
+                        }
                     });
 
                 this.televisionService.getCharacteristic(Characteristic.CurrentMediaState)
@@ -737,7 +736,7 @@ class LgWebOsDevice extends EventEmitter {
                             const info = this.disableLogInfo ? false : this.emit('info', `set Media: ${['PLAY', 'PAUSE', 'STOP', 'LOADING', 'INTERRUPTED'][value]}`);
                         } catch (error) {
                             this.emit('warn', `set Media error: ${error}`);
-                        };
+                        }
                     });
 
                 this.televisionService.getCharacteristic(Characteristic.PowerModeSelection)
@@ -759,7 +758,7 @@ class LgWebOsDevice extends EventEmitter {
                             const info = this.disableLogInfo ? false : this.emit('info', `set Power Mode Selection: ${command === 'MENU' ? 'SHOW' : 'HIDE'}`);
                         } catch (error) {
                             this.emit('warn', `set Power Mode Selection error: ${error}`);
-                        };
+                        }
                     });
 
                 if (this.webOS >= 4.0) {
@@ -782,7 +781,7 @@ class LgWebOsDevice extends EventEmitter {
                                 const info = this.disableLogInfo ? false : this.emit('info', `set Brightness: ${value}`);
                             } catch (error) {
                                 this.emit('warn', `set Brightness error: ${error}`);
-                            };
+                            }
                         });
 
                     this.televisionService.getCharacteristic(Characteristic.PictureMode)
@@ -831,88 +830,10 @@ class LgWebOsDevice extends EventEmitter {
                                 const info = this.disableLogInfo ? false : this.emit('info', `set Picture Mode: ${PictureModes[command] ?? 'Unknown'}`);
                             } catch (error) {
                                 this.emit('warn', `set Picture Mode error: ${error}`);
-                            };
+                            }
                         });
-                };
+                }
                 this.allServices.push(this.televisionService);
-
-                //Prepare speaker service
-                const debug3 = this.enableDebugMode ? this.emit('debug', `Prepare speaker service`) : false;
-                this.speakerService = accessory.addService(Service.TelevisionSpeaker, `${accessoryName} Speaker`, 'Speaker');
-                this.speakerService.getCharacteristic(Characteristic.Active)
-                    .onGet(async () => {
-                        const state = this.power;
-                        return state;
-                    })
-                    .onSet(async (state) => {
-                    });
-
-                this.speakerService.getCharacteristic(Characteristic.VolumeControlType)
-                    .onGet(async () => {
-                        const state = 3; //none, relative, relative with current, absolute
-                        return state;
-                    });
-
-                this.speakerService.getCharacteristic(Characteristic.VolumeSelector)
-                    .onSet(async (command) => {
-                        try {
-                            switch (command) {
-                                case Characteristic.VolumeSelector.INCREMENT:
-                                    command = 'VOLUMEUP';
-                                    break;
-                                case Characteristic.VolumeSelector.DECREMENT:
-                                    command = 'VOLUMEDOWN';
-                                    break;
-                            };
-
-                            const payload = {
-                                name: command
-                            };
-                            await this.lgWebOsSocket.send('button', undefined, payload);
-                            const info = this.disableLogInfo ? false : this.emit('info', `set Volume Selector: ${command}`);
-                        } catch (error) {
-                            this.emit('warn', `set Volume Selector error: ${error}`);
-                        };
-                    });
-
-                this.speakerService.getCharacteristic(Characteristic.Volume)
-                    .onGet(async () => {
-                        const volume = this.volume;
-                        return volume;
-                    })
-                    .onSet(async (volume) => {
-                        try {
-                            const payload = {
-                                volume: volume
-                            };
-
-                            const cid = await this.lgWebOsSocket.getCid('Audio');
-                            await this.lgWebOsSocket.send('request', ApiUrls.SetVolume, payload, cid);
-                            const info = this.disableLogInfo ? false : this.emit('info', `set Volume: ${volume}`);
-                        } catch (error) {
-                            this.emit('warn', `set Volume error: ${error}`);
-                        };
-                    });
-
-                this.speakerService.getCharacteristic(Characteristic.Mute)
-                    .onGet(async () => {
-                        const state = this.mute;
-                        return state;
-                    })
-                    .onSet(async (state) => {
-                        try {
-                            const payload = {
-                                mute: state
-                            };
-
-                            const cid = await this.lgWebOsSocket.getCid('Audio');
-                            await this.lgWebOsSocket.send('request', ApiUrls.SetMute, payload, cid);
-                            const info = this.disableLogInfo ? false : this.emit('info', `set Mute: ${state ? 'ON' : 'OFF'}`);
-                        } catch (error) {
-                            this.emit('warn', `set Mute error: ${error}`);
-                        };
-                    });
-                this.allServices.push(this.speakerService);
 
                 //prepare inputs service
                 const debug = this.enableDebugMode ? this.emit('debug', `Prepare inputs service`) : false;
@@ -960,7 +881,7 @@ class LgWebOsDevice extends EventEmitter {
                         .setCharacteristic(Characteristic.Name, sanitizedName)
                         .setCharacteristic(Characteristic.IsConfigured, isConfigured)
                         .setCharacteristic(Characteristic.InputSourceType, inputSourceType)
-                        .setCharacteristic(Characteristic.CurrentVisibilityState, input.visibility)
+                        .setCharacteristic(Characteristic.CurrentVisibilityState, input.visibility);
 
                     inputService.getCharacteristic(Characteristic.ConfiguredName)
                         .onGet(async () => {
@@ -1007,95 +928,227 @@ class LgWebOsDevice extends EventEmitter {
 
 
             //Prepare volume service
-            if (this.volumeControl) {
-                const debug = this.enableDebugMode ? this.emit('debug', `Prepare volume service`) : false;
+            if (this.volumeControl > 0) {
+                const debug3 = this.enableDebugMode ? this.emit('debug', `Prepare television speaker service`) : false;
                 const volumeServiceName = this.volumeControlNamePrefix ? `${accessoryName} ${this.volumeControlName}` : this.volumeControlName;
-                if (this.volumeControl === 1) {
-                    this.volumeService = accessory.addService(Service.Lightbulb, `${volumeServiceName}`, volumeServiceName);
-                    this.volumeService.addOptionalCharacteristic(Characteristic.ConfiguredName);
-                    this.volumeService.setCharacteristic(Characteristic.ConfiguredName, `${volumeServiceName}`);
-                    this.volumeService.getCharacteristic(Characteristic.Brightness)
-                        .onGet(async () => {
-                            const volume = this.volume;
-                            return volume;
-                        })
-                        .onSet(async (volume) => {
-                            try {
-                                volume = (volume <= 0 || volume >= 100) ? this.volume : volume;
-                                const payload = {
-                                    volume: volume
-                                };
+                this.volumeServiceTvSpeaker = accessory.addService(Service.TelevisionSpeaker, volumeServiceName, 'TV Speaker');
+                this.volumeServiceTvSpeaker.addOptionalCharacteristic(Characteristic.ConfiguredName);
+                this.volumeServiceTvSpeaker.setCharacteristic(Characteristic.ConfiguredName, volumeServiceName);
+                this.volumeServiceTvSpeaker.getCharacteristic(Characteristic.Active)
+                    .onGet(async () => {
+                        const state = this.power;
+                        return state;
+                    })
+                    .onSet(async (state) => {
+                    });
 
-                                const cid = await this.lgWebOsSocket.getCid('Audio');
-                                await this.lgWebOsSocket.send('request', ApiUrls.SetVolume, payload, cid);
-                                const info = this.disableLogInfo ? false : this.emit('info', `set Volume: ${volume}`);
-                            } catch (error) {
-                                this.emit('warn', `set Volume error: ${error}`);
+                this.volumeServiceTvSpeaker.getCharacteristic(Characteristic.VolumeControlType)
+                    .onGet(async () => {
+                        const state = 3; //none, relative, relative with current, absolute
+                        return state;
+                    });
+
+                this.volumeServiceTvSpeaker.getCharacteristic(Characteristic.VolumeSelector)
+                    .onSet(async (command) => {
+                        try {
+                            switch (command) {
+                                case Characteristic.VolumeSelector.INCREMENT:
+                                    command = 'VOLUMEUP';
+                                    break;
+                                case Characteristic.VolumeSelector.DECREMENT:
+                                    command = 'VOLUMEDOWN';
+                                    break;
                             };
-                        });
-                    this.volumeService.getCharacteristic(Characteristic.On)
-                        .onGet(async () => {
-                            const state = this.power ? !this.mute : false;
-                            return state;
-                        })
-                        .onSet(async (state) => {
-                            try {
-                                const payload = {
-                                    mute: !state
-                                };
 
-                                const cid = await this.lgWebOsSocket.getCid('Audio');
-                                await this.lgWebOsSocket.send('request', ApiUrls.SetMute, payload, cid);
-                                const info = this.disableLogInfo ? false : this.emit('info', `set Mute: ${!state ? 'ON' : 'OFF'}`);
-                            } catch (error) {
-                                this.emit('warn', `set Mute error: ${error}`);
+                            const payload = {
+                                name: command
                             };
-                        });
-                    this.allServices.push(this.volumeService);
-                }
+                            await this.lgWebOsSocket.send('button', undefined, payload);
+                            const info = this.disableLogInfo ? false : this.emit('info', `set Volume Selector: ${command}`);
+                        } catch (error) {
+                            this.emit('warn', `set Volume Selector error: ${error}`);
+                        }
+                    });
 
-                if (this.volumeControl === 2) {
-                    this.volumeServiceFan = accessory.addService(Service.Fan, `${volumeServiceName}`, volumeServiceName);
-                    this.volumeServiceFan.addOptionalCharacteristic(Characteristic.ConfiguredName);
-                    this.volumeServiceFan.setCharacteristic(Characteristic.ConfiguredName, `${volumeServiceName}`);
-                    this.volumeServiceFan.getCharacteristic(Characteristic.RotationSpeed)
-                        .onGet(async () => {
-                            const volume = this.volume;
-                            return volume;
-                        })
-                        .onSet(async (volume) => {
-                            try {
-                                volume = (volume <= 0 || volume >= 100) ? this.volume : volume;
-                                const payload = {
-                                    volume: volume
-                                };
-
-                                const cid = await this.lgWebOsSocket.getCid('Audio');
-                                await this.lgWebOsSocket.send('request', ApiUrls.SetVolume, payload, cid);
-                                const info = this.disableLogInfo ? false : this.emit('info', `set Volume: ${volume}`);
-                            } catch (error) {
-                                this.emit('warn', `set Volume error: ${error}`);
+                this.volumeServiceTvSpeaker.getCharacteristic(Characteristic.Volume)
+                    .onGet(async () => {
+                        const volume = this.volume;
+                        return volume;
+                    })
+                    .onSet(async (volume) => {
+                        try {
+                            const payload = {
+                                volume: volume
                             };
-                        });
-                    this.volumeServiceFan.getCharacteristic(Characteristic.On)
-                        .onGet(async () => {
-                            const state = this.power ? !this.mute : false;
-                            return state;
-                        })
-                        .onSet(async (state) => {
-                            try {
-                                const payload = {
-                                    mute: !state
-                                };
 
-                                const cid = await this.lgWebOsSocket.getCid('Audio')
-                                await this.lgWebOsSocket.send('request', ApiUrls.SetMute, payload, cid);
-                                const info = this.disableLogInfo ? false : this.emit('info', `set Mute: ${!state ? 'ON' : 'OFF'}`);
-                            } catch (error) {
-                                this.emit('warn', `set Mute error: ${error}`);
+                            const cid = await this.lgWebOsSocket.getCid('Audio');
+                            await this.lgWebOsSocket.send('request', ApiUrls.SetVolume, payload, cid);
+                            const info = this.disableLogInfo ? false : this.emit('info', `set Volume: ${volume}`);
+                        } catch (error) {
+                            this.emit('warn', `set Volume error: ${error}`);
+                        }
+                    });
+
+                this.volumeServiceTvSpeaker.getCharacteristic(Characteristic.Mute)
+                    .onGet(async () => {
+                        const state = this.mute;
+                        return state;
+                    })
+                    .onSet(async (state) => {
+                        try {
+                            const payload = {
+                                mute: state
                             };
-                        });
-                    this.allServices.push(this.volumeServiceFan);
+
+                            const cid = await this.lgWebOsSocket.getCid('Audio');
+                            await this.lgWebOsSocket.send('request', ApiUrls.SetMute, payload, cid);
+                            const info = this.disableLogInfo ? false : this.emit('info', `set Mute: ${state ? 'ON' : 'OFF'}`);
+                        } catch (error) {
+                            this.emit('warn', `set Mute error: ${error}`);
+                        }
+                    });
+                this.allServices.push(this.volumeServiceTvSpeaker);
+
+                //legacy control
+                switch (this.volumeControl) {
+                    case 1: //lightbulb
+                        const debug = this.enableDebugMode ? this.emit('debug', `Prepare volume service lightbulb`) : false;
+                        this.volumeServiceLightbulb = accessory.addService(Service.Lightbulb, volumeServiceName, 'Lightbulb Speaker');
+                        this.volumeServiceLightbulb.addOptionalCharacteristic(Characteristic.ConfiguredName);
+                        this.volumeServiceLightbulb.setCharacteristic(Characteristic.ConfiguredName, volumeServiceName);
+                        this.volumeServiceLightbulb.getCharacteristic(Characteristic.Brightness)
+                            .onGet(async () => {
+                                const volume = this.volume;
+                                return volume;
+                            })
+                            .onSet(async (volume) => {
+                                try {
+                                    volume = (volume <= 0 || volume >= 100) ? this.volume : volume;
+                                    const payload = {
+                                        volume: volume
+                                    };
+
+                                    const cid = await this.lgWebOsSocket.getCid('Audio');
+                                    await this.lgWebOsSocket.send('request', ApiUrls.SetVolume, payload, cid);
+                                    const info = this.disableLogInfo ? false : this.emit('info', `set Volume: ${volume}`);
+                                } catch (error) {
+                                    this.emit('warn', `set Volume error: ${error}`);
+                                }
+                            });
+                        this.volumeServiceLightbulb.getCharacteristic(Characteristic.On)
+                            .onGet(async () => {
+                                const state = this.power ? !this.mute : false;
+                                return state;
+                            })
+                            .onSet(async (state) => {
+                                try {
+                                    const payload = {
+                                        mute: !state
+                                    };
+
+                                    const cid = await this.lgWebOsSocket.getCid('Audio');
+                                    await this.lgWebOsSocket.send('request', ApiUrls.SetMute, payload, cid);
+                                    const info = this.disableLogInfo ? false : this.emit('info', `set Mute: ${!state ? 'ON' : 'OFF'}`);
+                                } catch (error) {
+                                    this.emit('warn', `set Mute error: ${error}`);
+                                }
+                            });
+                        this.allServices.push(this.volumeServiceLightbulb);
+                        break;
+                    case 2: //fan
+                        const debug1 = this.enableDebugMode ? this.emit('debug', `Prepare volume service fan`) : false;
+                        this.volumeServiceFan = accessory.addService(Service.Fan, volumeServiceName, 'Fan Speaker');
+                        this.volumeServiceFan.addOptionalCharacteristic(Characteristic.ConfiguredName);
+                        this.volumeServiceFan.setCharacteristic(Characteristic.ConfiguredName, volumeServiceName);
+                        this.volumeServiceFan.getCharacteristic(Characteristic.RotationSpeed)
+                            .onGet(async () => {
+                                const volume = this.volume;
+                                return volume;
+                            })
+                            .onSet(async (volume) => {
+                                try {
+                                    volume = (volume <= 0 || volume >= 100) ? this.volume : volume;
+                                    const payload = {
+                                        volume: volume
+                                    };
+
+                                    const cid = await this.lgWebOsSocket.getCid('Audio');
+                                    await this.lgWebOsSocket.send('request', ApiUrls.SetVolume, payload, cid);
+                                    const info = this.disableLogInfo ? false : this.emit('info', `set Volume: ${volume}`);
+                                } catch (error) {
+                                    this.emit('warn', `set Volume error: ${error}`);
+                                }
+                            });
+                        this.volumeServiceFan.getCharacteristic(Characteristic.On)
+                            .onGet(async () => {
+                                const state = this.power ? !this.mute : false;
+                                return state;
+                            })
+                            .onSet(async (state) => {
+                                try {
+                                    const payload = {
+                                        mute: !state
+                                    };
+
+                                    const cid = await this.lgWebOsSocket.getCid('Audio')
+                                    await this.lgWebOsSocket.send('request', ApiUrls.SetMute, payload, cid);
+                                    const info = this.disableLogInfo ? false : this.emit('info', `set Mute: ${!state ? 'ON' : 'OFF'}`);
+                                } catch (error) {
+                                    this.emit('warn', `set Mute error: ${error}`);
+                                }
+                            });
+                        this.allServices.push(this.volumeServiceFan);
+                        break;
+                    case 3: // speaker
+                        const debug2 = this.enableDebugMode ? this.emit('debug', `Prepare volume service speaker`) : false;
+                        this.volumeServiceSpeaker = accessory.addService(Service.Speaker, volumeServiceName, 'Speaker');
+                        this.volumeServiceSpeaker.addOptionalCharacteristic(Characteristic.ConfiguredName);
+                        this.volumeServiceSpeaker.setCharacteristic(Characteristic.ConfiguredName, volumeServiceName);
+                        this.volumeServiceSpeaker.getCharacteristic(Characteristic.Mute)
+                            .onGet(async () => {
+                                const state = this.mute;
+                                return state;
+                            })
+                            .onSet(async (state) => {
+                                try {
+                                    const payload = {
+                                        mute: !state
+                                    };
+
+                                    const cid = await this.lgWebOsSocket.getCid('Audio')
+                                    await this.lgWebOsSocket.send('request', ApiUrls.SetMute, payload, cid);
+                                    const info = this.disableLogInfo ? false : this.emit('info', `set Mute: ${!state ? 'ON' : 'OFF'}`);
+                                } catch (error) {
+                                    this.emit('warn', `set Mute error: ${error}`);
+                                }
+                            });
+                        this.volumeServiceSpeaker.getCharacteristic(Characteristic.Active)
+                            .onGet(async () => {
+                                const state = this.power;
+                                return state;
+                            })
+                            .onSet(async (state) => {
+                            });
+                        this.volumeServiceSpeaker.getCharacteristic(Characteristic.Volume)
+                            .onGet(async () => {
+                                const volume = this.volume;
+                                return volume;
+                            })
+                            .onSet(async (volume) => {
+                                try {
+                                    const payload = {
+                                        volume: volume
+                                    };
+
+                                    const cid = await this.lgWebOsSocket.getCid('Audio');
+                                    await this.lgWebOsSocket.send('request', ApiUrls.SetVolume, payload, cid);
+                                    const info = this.disableLogInfo ? false : this.emit('info', `set Volume: ${volume}`);
+                                } catch (error) {
+                                    this.emit('warn', `set Volume error: ${error}`);
+                                }
+                            });
+                        this.allServices.push(this.volumeServiceSpeaker);
+                        break;
                 }
             }
 
@@ -1132,7 +1185,7 @@ class LgWebOsDevice extends EventEmitter {
                                 const info = this.disableLogInfo ? false : this.emit('info', `set Backlight: ${value}`);
                             } catch (error) {
                                 this.emit('warn', `set Backlight error: ${error}`);
-                            };
+                            }
                         });
                     this.allServices.push(this.backlightService);
                 }
@@ -1168,7 +1221,7 @@ class LgWebOsDevice extends EventEmitter {
                                 const info = this.disableLogInfo ? false : this.emit('info', `set Brightness: ${value}`);
                             } catch (error) {
                                 this.emit('warn', `set Brightness error: ${error}`);
-                            };
+                            }
                         });
                     this.allServices.push(this.brightnessService);
                 }
@@ -1204,7 +1257,7 @@ class LgWebOsDevice extends EventEmitter {
                                 const info = this.disableLogInfo ? false : this.emit('info', `set Contrast: ${value}`);
                             } catch (error) {
                                 this.emit('warn', `set Contrast error: ${error}`);
-                            };
+                            }
                         });
                     this.allServices.push(this.contrastService);
                 }
@@ -1240,7 +1293,7 @@ class LgWebOsDevice extends EventEmitter {
                                 const info = this.disableLogInfo ? false : this.emit('info', `set Color: ${value}`);
                             } catch (error) {
                                 this.emit('warn', `set Color error: ${error}`);
-                            };
+                            }
                         });
                     this.allServices.push(this.colorService);
                 }
@@ -1278,7 +1331,7 @@ class LgWebOsDevice extends EventEmitter {
                                     const info = this.disableLogInfo ? false : this.emit('info', `set Picture Mode: ${modeName}`);
                                 } catch (error) {
                                     this.emit('warn', `set Picture Mode error: ${error}`);
-                                };
+                                }
                             });
                         this.picturesModesServices.push(pictureModeService);
                         this.allServices.push(pictureModeService);
@@ -1314,7 +1367,7 @@ class LgWebOsDevice extends EventEmitter {
                                 const info = this.disableLogInfo ? false : this.emit('info', `Turn Screen ${state ? 'ON' : 'OFF'}`);
                             } catch (error) {
                                 this.emit('warn', `Turn Screen ${state ? 'ON' : 'OFF'}, error: ${error}`);
-                            };
+                            }
                         });
                     this.allServices.push(this.turnScreenOnOffService);
                 };
@@ -1338,7 +1391,7 @@ class LgWebOsDevice extends EventEmitter {
                             const info = this.disableLogInfo ? false : this.emit('info', `set Screen Saver: ${state}`);
                         } catch (error) {
                             this.emit('warn', `set Color error: ${error}`);
-                        };
+                        }
                     });
                 this.allServices.push(this.turnScreenSaverOnOffService);
             }
@@ -1376,7 +1429,7 @@ class LgWebOsDevice extends EventEmitter {
                                 const info = this.disableLogInfo ? false : this.emit('info', `set Sound Mode: ${modeName}`);
                             } catch (error) {
                                 this.emit('warn', `set Sound Mode error: ${error}`);
-                            };
+                            }
                         });
                     this.soundsModesServices.push(soundModeService);
                     this.allServices.push(soundModeService);
@@ -1414,7 +1467,7 @@ class LgWebOsDevice extends EventEmitter {
                                 const info = this.disableLogInfo ? false : this.emit('info', `set Sound Output: ${outputName}`);
                             } catch (error) {
                                 this.emit('warn', `set Sound Output error: ${error}`);
-                            };
+                            }
                         });
                     this.soundsOutputsServices.push(soundOutputService);
                     this.allServices.push(soundOutputService);
@@ -1434,7 +1487,7 @@ class LgWebOsDevice extends EventEmitter {
                         return state;
                     });
                 this.allServices.push(this.sensorPowerService);
-            };
+            }
 
             if (this.sensorPixelRefresh) {
                 const debug = this.enableDebugMode ? this.emit('debug', `Prepare pixel refresh sensor service`) : false;
@@ -1447,7 +1500,7 @@ class LgWebOsDevice extends EventEmitter {
                         return state;
                     });
                 this.allServices.push(this.sensorPixelRefreshService);
-            };
+            }
 
             if (this.sensorVolume) {
                 const debug = this.enableDebugMode ? this.emit('debug', `Prepare volume sensor service`) : false;
@@ -1460,7 +1513,7 @@ class LgWebOsDevice extends EventEmitter {
                         return state;
                     });
                 this.allServices.push(this.sensorVolumeService);
-            };
+            }
 
             if (this.sensorMute) {
                 const debug = this.enableDebugMode ? this.emit('debug', `Prepare mute sensor service`) : false;
@@ -1473,7 +1526,7 @@ class LgWebOsDevice extends EventEmitter {
                         return state;
                     });
                 this.allServices.push(this.sensorMuteService);
-            };
+            }
 
             if (this.sensorInput) {
                 const debug = this.enableDebugMode ? this.emit('debug', `Prepare input sensor service`) : false;
@@ -1486,7 +1539,7 @@ class LgWebOsDevice extends EventEmitter {
                         return state;
                     });
                 this.allServices.push(this.sensorInputService);
-            };
+            }
 
             if (this.sensorChannel) {
                 const debug = this.enableDebugMode ? this.emit('debug', `Prepare channel sensor service`) : false;
@@ -1499,7 +1552,7 @@ class LgWebOsDevice extends EventEmitter {
                         return state;
                     });
                 this.allServices.push(this.sensorChannelService);
-            };
+            }
 
             if (this.sensorScreenOnOff && this.webOS >= 4.0) {
                 const debug = this.enableDebugMode ? this.emit('debug', `Prepare screen off sensor service`) : false;
@@ -1512,7 +1565,7 @@ class LgWebOsDevice extends EventEmitter {
                         return state;
                     });
                 this.allServices.push(this.sensorScreenOnOffService);
-            };
+            }
 
             if (this.sensorScreenSaver) {
                 const debug = this.enableDebugMode ? this.emit('debug', `Prepare screen saver sensor service`) : false;
@@ -1525,7 +1578,7 @@ class LgWebOsDevice extends EventEmitter {
                         return state;
                     });
                 this.allServices.push(this.sensorScreenSaverService);
-            };
+            }
 
             if (this.sensorSoundMode && this.webOS >= 6.0) {
                 const debug = this.enableDebugMode ? this.emit('debug', `Prepare sound mode sensor service`) : false;
@@ -1538,7 +1591,7 @@ class LgWebOsDevice extends EventEmitter {
                         return state;
                     });
                 this.allServices.push(this.sensorSoundModeService);
-            };
+            }
 
             if (this.sensorSoundOutput) {
                 const debug = this.enableDebugOutput ? this.emit('debug', `Prepare sound output sensor service`) : false;
@@ -1551,7 +1604,7 @@ class LgWebOsDevice extends EventEmitter {
                         return state;
                     });
                 this.allServices.push(this.sensorSoundOutputService);
-            };
+            }
 
             if (this.sensorPictureMode && this.webOS >= 4.0) {
                 const debug = this.enableDebugMode ? this.emit('debug', `Prepare picture mode sensor service`) : false;
@@ -1564,7 +1617,7 @@ class LgWebOsDevice extends EventEmitter {
                         return state;
                     });
                 this.allServices.push(this.sensorPictureModeService);
-            };
+            }
 
             if (this.sensorPlayState && this.webOS >= 7.0) {
                 const debug = this.enableDebugMode ? this.emit('debug', `Prepare play state sensor service`) : false;
@@ -1577,7 +1630,7 @@ class LgWebOsDevice extends EventEmitter {
                         return state;
                     });
                 this.allServices.push(this.sensorPlayStateService);
-            };
+            }
 
             //prepare sonsor service
             const possibleSensorInputsCount = 99 - this.allServices.length;
@@ -1675,19 +1728,19 @@ class LgWebOsDevice extends EventEmitter {
                                 }
                             } catch (error) {
                                 this.emit('warn', `set ${['Input', 'Channel', 'Command'][buttonMode]} error: ${error}`);
-                            };
+                            }
                         });
                     this.buttonsServices.push(buttonService);
                     this.allServices.push(buttonService);
                     accessory.addService(buttonService);
                 };
-            };
+            }
 
             return accessory;
         } catch (error) {
             throw new Error(error)
         };
-    };
+    }
 
     //start
     async start() {
@@ -1709,7 +1762,7 @@ class LgWebOsDevice extends EventEmitter {
                 });
         } catch (error) {
             this.emit('warn', `Wake On Lan start error: ${error}`);
-        };
+        }
 
         try {
             //lg tv client
@@ -1741,13 +1794,13 @@ class LgWebOsDevice extends EventEmitter {
                     if (this.televisionService) {
                         this.televisionService
                             .updateCharacteristic(Characteristic.Active, power);
-                    };
+                    }
 
                     if (this.turnScreenOnOffService) {
                         const state = power ? screenState === 'Screen Off' : false;
                         this.turnScreenOnOffService
                             .updateCharacteristic(Characteristic.On, state);
-                    };
+                    }
 
                     if (this.turnScreenSaverOnOffService) {
                         const state = power ? screenState === 'Screen Saver' : false;
@@ -1796,7 +1849,7 @@ class LgWebOsDevice extends EventEmitter {
                     this.screenSaverState = power ? screenState === 'Screen Saver' : false;
                     if (!this.disableLogInfo) {
                         this.emit('info', `Power: ${power ? 'ON' : 'OFF'}`);
-                    };
+                    }
                 })
                 .on('currentApp', (appId) => {
                     const input = this.inputsConfigured.find(input => input.reference === appId) ?? false;
@@ -1806,7 +1859,7 @@ class LgWebOsDevice extends EventEmitter {
                     if (this.televisionService) {
                         this.televisionService
                             .updateCharacteristic(Characteristic.ActiveIdentifier, inputIdentifier);
-                    };
+                    }
 
                     if (appId !== appId) {
                         for (let i = 0; i < 2; i++) {
@@ -1848,28 +1901,36 @@ class LgWebOsDevice extends EventEmitter {
                     this.appId = appId;
                     if (!this.disableLogInfo) {
                         this.emit('info', `Input Name: ${inputName}`);
-                    };
+                    }
                 })
-                .on('audioState', (volume, mute) => {
-                    if (this.speakerService) {
-                        this.speakerService
+                .on('audioState', (volume, mute, power) => {
+                    if (this.volumeServiceTvSpeaker) {
+                        this.volumeServiceTvSpeaker
+                            .updateCharacteristic(Characteristic.Active, power)
                             .updateCharacteristic(Characteristic.Volume, volume)
                             .updateCharacteristic(Characteristic.Mute, mute);
+                    }
 
-                        if (this.volumeService) {
-                            const muteV = this.power ? !mute : false;
-                            this.volumeService
-                                .updateCharacteristic(Characteristic.Brightness, volume)
-                                .updateCharacteristic(Characteristic.On, muteV);
-                        };
+                    if (this.volumeServiceLightbulb) {
+                        const muteV = this.power ? !mute : false;
+                        this.volumeServiceLightbulb
+                            .updateCharacteristic(Characteristic.Brightness, volume)
+                            .updateCharacteristic(Characteristic.On, muteV);
+                    }
 
-                        if (this.volumeServiceFan) {
-                            const muteV = this.power ? !mute : false;
-                            this.volumeServiceFan
-                                .updateCharacteristic(Characteristic.RotationSpeed, volume)
-                                .updateCharacteristic(Characteristic.On, muteV);
-                        };
-                    };
+                    if (this.volumeServiceFan) {
+                        const muteV = this.power ? !mute : false;
+                        this.volumeServiceFan
+                            .updateCharacteristic(Characteristic.RotationSpeed, volume)
+                            .updateCharacteristic(Characteristic.On, muteV);
+                    }
+
+                    if (this.volumeServiceSpeaker) {
+                        this.volumeServiceSpeaker
+                            .updateCharacteristic(Characteristic.Active, power)
+                            .updateCharacteristic(Characteristic.Volume, volume)
+                            .updateCharacteristic(Characteristic.Mute, mute);
+                    }
 
                     if (volume !== this.volume) {
                         for (let i = 0; i < 2; i++) {
@@ -1893,7 +1954,7 @@ class LgWebOsDevice extends EventEmitter {
                     if (!this.disableLogInfo) {
                         this.emit('info', `Volume: ${volume}%`);
                         this.emit('info', `Mute: ${mute ? 'ON' : 'OFF'}`);
-                    };
+                    }
                 })
                 .on('currentChannel', (channelId, channelName, channelNumber) => {
                     const input = this.inputsConfigured.find(input => input.reference === channelId) ?? false;
@@ -1902,7 +1963,7 @@ class LgWebOsDevice extends EventEmitter {
                     if (this.televisionService) {
                         this.televisionService
                             .updateCharacteristic(Characteristic.ActiveIdentifier, inputIdentifier);
-                    };
+                    }
 
                     if (channelId !== this.channelId) {
                         for (let i = 0; i < 2; i++) {
@@ -1934,37 +1995,37 @@ class LgWebOsDevice extends EventEmitter {
                     if (!this.disableLogInfo) {
                         this.emit('info', `Channel Number: ${channelNumber}`);
                         this.emit('info', `Channel Name: ${channelName}`);
-                    };
+                    }
                 })
                 .on('pictureSettings', (brightness, backlight, contrast, color, power) => {
                     if (this.televisionService) {
                         this.televisionService
                             .updateCharacteristic(Characteristic.Brightness, brightness);
-                    };
+                    }
 
                     if (this.brightnessService) {
                         this.brightnessService
                             .updateCharacteristic(Characteristic.On, power)
                             .updateCharacteristic(Characteristic.Brightness, brightness);
-                    };
+                    }
 
                     if (this.backlightService) {
                         this.backlightService
                             .updateCharacteristic(Characteristic.On, power)
                             .updateCharacteristic(Characteristic.Brightness, backlight);
-                    };
+                    }
 
                     if (this.contrastService) {
                         this.contrastService
                             .updateCharacteristic(Characteristic.On, power)
                             .updateCharacteristic(Characteristic.Brightness, contrast);
-                    };
+                    }
 
                     if (this.colorService) {
                         this.colorService
                             .updateCharacteristic(Characteristic.On, power)
                             .updateCharacteristic(Characteristic.Brightness, color);
-                    };
+                    }
 
                     this.brightness = brightness;
                     this.backlight = backlight;
@@ -1975,7 +2036,7 @@ class LgWebOsDevice extends EventEmitter {
                         this.emit('info', `Backlight: ${backlight}%`);
                         this.emit('info', `Contrast: ${contrast}%`);
                         this.emit('info', `Color: ${color}%`);
-                    };
+                    }
                 })
                 .on('pictureMode', (pictureMode, power) => {
                     if (this.televisionService) {
@@ -1983,7 +2044,7 @@ class LgWebOsDevice extends EventEmitter {
                         this.pictureModeHomeKit = mode;
                         this.televisionService
                             .updateCharacteristic(Characteristic.PictureMode, mode);
-                    };
+                    }
 
                     if (this.picturesModesConfiguredCount > 0) {
                         for (let i = 0; i < this.picturesModesConfiguredCount; i++) {
@@ -1994,8 +2055,8 @@ class LgWebOsDevice extends EventEmitter {
                                 this.picturesModesServices[i]
                                     .updateCharacteristic(Characteristic.On, state);
                             };
-                        };
-                    };
+                        }
+                    }
 
                     if (pictureMode !== this.pictureMode) {
                         for (let i = 0; i < 2; i++) {
@@ -2011,7 +2072,7 @@ class LgWebOsDevice extends EventEmitter {
                     this.pictureMode = pictureMode;
                     if (!this.disableLogInfo) {
                         this.emit('info', `Picture Mode: ${PictureModes[pictureMode] ?? 'Unknown'}`);
-                    };
+                    }
                 })
                 .on('soundMode', (soundMode, power) => {
                     if (this.soundsModesConfiguredCount > 0) {
@@ -2022,9 +2083,9 @@ class LgWebOsDevice extends EventEmitter {
                             if (this.soundsModesServices) {
                                 this.soundsModesServices[i]
                                     .updateCharacteristic(Characteristic.On, state);
-                            };
-                        };
-                    };
+                            }
+                        }
+                    }
 
                     if (soundMode !== this.soundMode) {
                         for (let i = 0; i < 2; i++) {
@@ -2040,7 +2101,7 @@ class LgWebOsDevice extends EventEmitter {
                     this.soundMode = soundMode;
                     if (!this.disableLogInfo) {
                         this.emit('info', `Sound Mode: ${SoundModes[soundMode] ?? 'Unknown'}`);
-                    };
+                    }
                 })
                 .on('soundOutput', (soundOutput, power) => {
                     if (this.soundsOutputsConfiguredCount > 0) {
@@ -2051,9 +2112,9 @@ class LgWebOsDevice extends EventEmitter {
                             if (this.soundsOutputsServices) {
                                 this.soundsOutputsServices[i]
                                     .updateCharacteristic(Characteristic.On, state);
-                            };
-                        };
-                    };
+                            }
+                        }
+                    }
 
                     if (this.soundMode !== this.soundOutput) {
                         for (let i = 0; i < 2; i++) {
@@ -2069,7 +2130,7 @@ class LgWebOsDevice extends EventEmitter {
                     this.soundOutput = soundOutput;
                     if (!this.disableLogInfo) {
                         this.emit('info', `Sound Output: ${SoundOutputs[soundOutput] ?? 'Unknown'}`);
-                    };
+                    }
                 })
                 .on('mediaInfo', (playState, appType) => {
                     if (this.sensorPlayStateService) {
@@ -2081,7 +2142,7 @@ class LgWebOsDevice extends EventEmitter {
                     this.appType = appType;
                     if (!this.disableLogInfo) {
                         this.emit('info', `Play state: ${playState ? 'Playing' : 'Paused'}`);
-                    };
+                    }
                 })
                 .on('success', (success) => {
                     this.emit('success', success);
@@ -2154,8 +2215,8 @@ class LgWebOsDevice extends EventEmitter {
             return true;
         } catch (error) {
             throw new Error(`Start error: ${error}`);
-        };
-    };
-};
+        }
+    }
+}
 
 export default LgWebOsDevice;

@@ -48,7 +48,7 @@ class WakeOnLan extends EventEmitter {
                                 }
                             });
                         }
-                    };
+                    }
 
                     sendMagicPacket(1); // Start the initial send attempt
                 })
@@ -58,5 +58,4 @@ class WakeOnLan extends EventEmitter {
         }
     }
 }
-
 export default WakeOnLan;
