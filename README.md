@@ -111,7 +111,7 @@ Tested with OLED65G6V, 32LM6300PLA, 49SK8500, OLED65C7T, 55SK800PLB, OLED48CX.
 | `soundOutputs.namePrefix` | Here enable/disable the accessory name as a prefix for sound output.|
 | `volumeControlNamePrefix` | Here enable/disable the accessory name as a prefix for volume control name. |
 | `volumeControlName` | Here set Your own volume control name or leave empty. |
-| `volumeControl` | Here select volume control mode `0 - None/Disabled`, `1 - Slider`, `2 - Fan`. |
+| `volumeControl` | Here select volume control mode `0 - None/Disabled`, `1 - Slider`, `2 - Fan`, `3 - Speaker`. |
 | `turnScreenOnOff` | This enable possibility turn the screen ON/OFF, webOS >= 4.0. |
 | `turnScreenSaverOnOff` | This enable possibility turn the screen saver ON/OFF, webOS >= 4.0. |
 | `infoButtonCommand` | Here select the function of `I` button in RC app. |
