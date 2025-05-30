@@ -835,6 +835,169 @@ class LgWebOsDevice extends EventEmitter {
                 }
                 this.allServices.push(this.televisionService);
 
+                //Prepare volume service
+                if (this.volumeControl > 0) {
+                    const debug3 = this.enableDebugMode ? this.emit('debug', `Prepare television speaker service`) : false;
+                    const volumeServiceName = this.volumeControlNamePrefix ? `${accessoryName} ${this.volumeControlName}` : this.volumeControlName;
+                    this.volumeServiceTvSpeaker = accessory.addService(Service.TelevisionSpeaker, volumeServiceName, 'TV Speaker');
+                    this.volumeServiceTvSpeaker.addOptionalCharacteristic(Characteristic.ConfiguredName);
+                    this.volumeServiceTvSpeaker.setCharacteristic(Characteristic.ConfiguredName, volumeServiceName);
+                    this.volumeServiceTvSpeaker.getCharacteristic(Characteristic.Active)
+                        .onGet(async () => {
+                            const state = this.power;
+                            return state;
+                        })
+                        .onSet(async (state) => {
+                        });
+
+                    this.volumeServiceTvSpeaker.getCharacteristic(Characteristic.VolumeControlType)
+                        .onGet(async () => {
+                            const state = 3; //none, relative, relative with current, absolute
+                            return state;
+                        });
+
+                    this.volumeServiceTvSpeaker.getCharacteristic(Characteristic.VolumeSelector)
+                        .onSet(async (command) => {
+                            try {
+                                switch (command) {
+                                    case Characteristic.VolumeSelector.INCREMENT:
+                                        command = 'VOLUMEUP';
+                                        break;
+                                    case Characteristic.VolumeSelector.DECREMENT:
+                                        command = 'VOLUMEDOWN';
+                                        break;
+                                };
+
+                                const payload = {
+                                    name: command
+                                };
+                                await this.lgWebOsSocket.send('button', undefined, payload);
+                                const info = this.disableLogInfo ? false : this.emit('info', `set Volume Selector: ${command}`);
+                            } catch (error) {
+                                this.emit('warn', `set Volume Selector error: ${error}`);
+                            }
+                        });
+
+                    this.volumeServiceTvSpeaker.getCharacteristic(Characteristic.Volume)
+                        .onGet(async () => {
+                            const volume = this.volume;
+                            return volume;
+                        })
+                        .onSet(async (volume) => {
+                            try {
+                                const payload = {
+                                    volume: volume
+                                };
+
+                                const cid = await this.lgWebOsSocket.getCid('Audio');
+                                await this.lgWebOsSocket.send('request', ApiUrls.SetVolume, payload, cid);
+                                const info = this.disableLogInfo ? false : this.emit('info', `set Volume: ${volume}`);
+                            } catch (error) {
+                                this.emit('warn', `set Volume error: ${error}`);
+                            }
+                        });
+
+                    this.volumeServiceTvSpeaker.getCharacteristic(Characteristic.Mute)
+                        .onGet(async () => {
+                            const state = this.mute;
+                            return state;
+                        })
+                        .onSet(async (state) => {
+                            try {
+                                const payload = {
+                                    mute: state
+                                };
+
+                                const cid = await this.lgWebOsSocket.getCid('Audio');
+                                await this.lgWebOsSocket.send('request', ApiUrls.SetMute, payload, cid);
+                                const info = this.disableLogInfo ? false : this.emit('info', `set Mute: ${state ? 'ON' : 'OFF'}`);
+                            } catch (error) {
+                                this.emit('warn', `set Mute error: ${error}`);
+                            }
+                        });
+                    this.allServices.push(this.volumeServiceTvSpeaker);
+
+                    //legacy control
+                    switch (this.volumeControl) {
+                        case 1: //lightbulb
+                            const debug = this.enableDebugMode ? this.emit('debug', `Prepare volume service lightbulb`) : false;
+                            this.volumeServiceLightbulb = accessory.addService(Service.Lightbulb, volumeServiceName, 'Lightbulb Speaker');
+                            this.volumeServiceLightbulb.addOptionalCharacteristic(Characteristic.ConfiguredName);
+                            this.volumeServiceLightbulb.setCharacteristic(Characteristic.ConfiguredName, volumeServiceName);
+                            this.volumeServiceLightbulb.getCharacteristic(Characteristic.Brightness)
+                                .onGet(async () => {
+                                    const volume = this.volume;
+                                    return volume;
+                                })
+                                .onSet(async (value) => {
+                                    this.volumeServiceTvSpeaker.setCharacteristic(Characteristic.Volume, value);
+                                });
+                            this.volumeServiceLightbulb.getCharacteristic(Characteristic.On)
+                                .onGet(async () => {
+                                    const state = this.power ? !this.mute : false;
+                                    return state;
+                                })
+                                .onSet(async (state) => {
+                                    this.volumeServiceTvSpeaker.setCharacteristic(Characteristic.Mute, !state);
+                                });
+                            this.allServices.push(this.volumeServiceLightbulb);
+                            break;
+                        case 2: //fan
+                            const debug1 = this.enableDebugMode ? this.emit('debug', `Prepare volume service fan`) : false;
+                            this.volumeServiceFan = accessory.addService(Service.Fan, volumeServiceName, 'Fan Speaker');
+                            this.volumeServiceFan.addOptionalCharacteristic(Characteristic.ConfiguredName);
+                            this.volumeServiceFan.setCharacteristic(Characteristic.ConfiguredName, volumeServiceName);
+                            this.volumeServiceFan.getCharacteristic(Characteristic.RotationSpeed)
+                                .onGet(async () => {
+                                    const volume = this.volume;
+                                    return volume;
+                                })
+                                .onSet(async (value) => {
+                                    this.volumeServiceTvSpeaker.setCharacteristic(Characteristic.Volume, value);
+                                });
+                            this.volumeServiceFan.getCharacteristic(Characteristic.On)
+                                .onGet(async () => {
+                                    const state = this.power ? !this.mute : false;
+                                    return state;
+                                })
+                                .onSet(async (state) => {
+                                    this.volumeServiceTvSpeaker.setCharacteristic(Characteristic.Mute, !state);
+                                });
+                            this.allServices.push(this.volumeServiceFan);
+                            break;
+                        case 3: // speaker
+                            const debug2 = this.enableDebugMode ? this.emit('debug', `Prepare volume service speaker`) : false;
+                            this.volumeServiceSpeaker = accessory.addService(Service.Speaker, volumeServiceName, 'Speaker');
+                            this.volumeServiceSpeaker.addOptionalCharacteristic(Characteristic.ConfiguredName);
+                            this.volumeServiceSpeaker.setCharacteristic(Characteristic.ConfiguredName, volumeServiceName);
+                            this.volumeServiceSpeaker.getCharacteristic(Characteristic.Mute)
+                                .onGet(async () => {
+                                    const state = this.mute;
+                                    return state;
+                                })
+                                .onSet(async (state) => {
+                                    this.volumeServiceTvSpeaker.setCharacteristic(Characteristic.Mute, state);
+                                });
+                            this.volumeServiceSpeaker.getCharacteristic(Characteristic.Active)
+                                .onGet(async () => {
+                                    const state = this.power;
+                                    return state;
+                                })
+                                .onSet(async (state) => {
+                                });
+                            this.volumeServiceSpeaker.getCharacteristic(Characteristic.Volume)
+                                .onGet(async () => {
+                                    const volume = this.volume;
+                                    return volume;
+                                })
+                                .onSet(async (value) => {
+                                    this.volumeServiceTvSpeaker.setCharacteristic(Characteristic.Volume, value);
+                                });
+                            this.allServices.push(this.volumeServiceSpeaker);
+                            break;
+                    }
+                }
+
                 //prepare inputs service
                 const debug = this.enableDebugMode ? this.emit('debug', `Prepare inputs service`) : false;
 
@@ -924,232 +1087,6 @@ class LgWebOsDevice extends EventEmitter {
 
                 //sort inputs list
                 await this.displayOrder();
-            }
-
-
-            //Prepare volume service
-            if (this.volumeControl > 0) {
-                const debug3 = this.enableDebugMode ? this.emit('debug', `Prepare television speaker service`) : false;
-                const volumeServiceName = this.volumeControlNamePrefix ? `${accessoryName} ${this.volumeControlName}` : this.volumeControlName;
-                this.volumeServiceTvSpeaker = accessory.addService(Service.TelevisionSpeaker, volumeServiceName, 'TV Speaker');
-                this.volumeServiceTvSpeaker.addOptionalCharacteristic(Characteristic.ConfiguredName);
-                this.volumeServiceTvSpeaker.setCharacteristic(Characteristic.ConfiguredName, volumeServiceName);
-                this.volumeServiceTvSpeaker.getCharacteristic(Characteristic.Active)
-                    .onGet(async () => {
-                        const state = this.power;
-                        return state;
-                    })
-                    .onSet(async (state) => {
-                    });
-
-                this.volumeServiceTvSpeaker.getCharacteristic(Characteristic.VolumeControlType)
-                    .onGet(async () => {
-                        const state = 3; //none, relative, relative with current, absolute
-                        return state;
-                    });
-
-                this.volumeServiceTvSpeaker.getCharacteristic(Characteristic.VolumeSelector)
-                    .onSet(async (command) => {
-                        try {
-                            switch (command) {
-                                case Characteristic.VolumeSelector.INCREMENT:
-                                    command = 'VOLUMEUP';
-                                    break;
-                                case Characteristic.VolumeSelector.DECREMENT:
-                                    command = 'VOLUMEDOWN';
-                                    break;
-                            };
-
-                            const payload = {
-                                name: command
-                            };
-                            await this.lgWebOsSocket.send('button', undefined, payload);
-                            const info = this.disableLogInfo ? false : this.emit('info', `set Volume Selector: ${command}`);
-                        } catch (error) {
-                            this.emit('warn', `set Volume Selector error: ${error}`);
-                        }
-                    });
-
-                this.volumeServiceTvSpeaker.getCharacteristic(Characteristic.Volume)
-                    .onGet(async () => {
-                        const volume = this.volume;
-                        return volume;
-                    })
-                    .onSet(async (volume) => {
-                        try {
-                            const payload = {
-                                volume: volume
-                            };
-
-                            const cid = await this.lgWebOsSocket.getCid('Audio');
-                            await this.lgWebOsSocket.send('request', ApiUrls.SetVolume, payload, cid);
-                            const info = this.disableLogInfo ? false : this.emit('info', `set Volume: ${volume}`);
-                        } catch (error) {
-                            this.emit('warn', `set Volume error: ${error}`);
-                        }
-                    });
-
-                this.volumeServiceTvSpeaker.getCharacteristic(Characteristic.Mute)
-                    .onGet(async () => {
-                        const state = this.mute;
-                        return state;
-                    })
-                    .onSet(async (state) => {
-                        try {
-                            const payload = {
-                                mute: state
-                            };
-
-                            const cid = await this.lgWebOsSocket.getCid('Audio');
-                            await this.lgWebOsSocket.send('request', ApiUrls.SetMute, payload, cid);
-                            const info = this.disableLogInfo ? false : this.emit('info', `set Mute: ${state ? 'ON' : 'OFF'}`);
-                        } catch (error) {
-                            this.emit('warn', `set Mute error: ${error}`);
-                        }
-                    });
-                this.allServices.push(this.volumeServiceTvSpeaker);
-
-                //legacy control
-                switch (this.volumeControl) {
-                    case 1: //lightbulb
-                        const debug = this.enableDebugMode ? this.emit('debug', `Prepare volume service lightbulb`) : false;
-                        this.volumeServiceLightbulb = accessory.addService(Service.Lightbulb, volumeServiceName, 'Lightbulb Speaker');
-                        this.volumeServiceLightbulb.addOptionalCharacteristic(Characteristic.ConfiguredName);
-                        this.volumeServiceLightbulb.setCharacteristic(Characteristic.ConfiguredName, volumeServiceName);
-                        this.volumeServiceLightbulb.getCharacteristic(Characteristic.Brightness)
-                            .onGet(async () => {
-                                const volume = this.volume;
-                                return volume;
-                            })
-                            .onSet(async (volume) => {
-                                try {
-                                    volume = (volume <= 0 || volume >= 100) ? this.volume : volume;
-                                    const payload = {
-                                        volume: volume
-                                    };
-
-                                    const cid = await this.lgWebOsSocket.getCid('Audio');
-                                    await this.lgWebOsSocket.send('request', ApiUrls.SetVolume, payload, cid);
-                                    const info = this.disableLogInfo ? false : this.emit('info', `set Volume: ${volume}`);
-                                } catch (error) {
-                                    this.emit('warn', `set Volume error: ${error}`);
-                                }
-                            });
-                        this.volumeServiceLightbulb.getCharacteristic(Characteristic.On)
-                            .onGet(async () => {
-                                const state = this.power ? !this.mute : false;
-                                return state;
-                            })
-                            .onSet(async (state) => {
-                                try {
-                                    const payload = {
-                                        mute: !state
-                                    };
-
-                                    const cid = await this.lgWebOsSocket.getCid('Audio');
-                                    await this.lgWebOsSocket.send('request', ApiUrls.SetMute, payload, cid);
-                                    const info = this.disableLogInfo ? false : this.emit('info', `set Mute: ${!state ? 'ON' : 'OFF'}`);
-                                } catch (error) {
-                                    this.emit('warn', `set Mute error: ${error}`);
-                                }
-                            });
-                        this.allServices.push(this.volumeServiceLightbulb);
-                        break;
-                    case 2: //fan
-                        const debug1 = this.enableDebugMode ? this.emit('debug', `Prepare volume service fan`) : false;
-                        this.volumeServiceFan = accessory.addService(Service.Fan, volumeServiceName, 'Fan Speaker');
-                        this.volumeServiceFan.addOptionalCharacteristic(Characteristic.ConfiguredName);
-                        this.volumeServiceFan.setCharacteristic(Characteristic.ConfiguredName, volumeServiceName);
-                        this.volumeServiceFan.getCharacteristic(Characteristic.RotationSpeed)
-                            .onGet(async () => {
-                                const volume = this.volume;
-                                return volume;
-                            })
-                            .onSet(async (volume) => {
-                                try {
-                                    volume = (volume <= 0 || volume >= 100) ? this.volume : volume;
-                                    const payload = {
-                                        volume: volume
-                                    };
-
-                                    const cid = await this.lgWebOsSocket.getCid('Audio');
-                                    await this.lgWebOsSocket.send('request', ApiUrls.SetVolume, payload, cid);
-                                    const info = this.disableLogInfo ? false : this.emit('info', `set Volume: ${volume}`);
-                                } catch (error) {
-                                    this.emit('warn', `set Volume error: ${error}`);
-                                }
-                            });
-                        this.volumeServiceFan.getCharacteristic(Characteristic.On)
-                            .onGet(async () => {
-                                const state = this.power ? !this.mute : false;
-                                return state;
-                            })
-                            .onSet(async (state) => {
-                                try {
-                                    const payload = {
-                                        mute: !state
-                                    };
-
-                                    const cid = await this.lgWebOsSocket.getCid('Audio')
-                                    await this.lgWebOsSocket.send('request', ApiUrls.SetMute, payload, cid);
-                                    const info = this.disableLogInfo ? false : this.emit('info', `set Mute: ${!state ? 'ON' : 'OFF'}`);
-                                } catch (error) {
-                                    this.emit('warn', `set Mute error: ${error}`);
-                                }
-                            });
-                        this.allServices.push(this.volumeServiceFan);
-                        break;
-                    case 3: // speaker
-                        const debug2 = this.enableDebugMode ? this.emit('debug', `Prepare volume service speaker`) : false;
-                        this.volumeServiceSpeaker = accessory.addService(Service.Speaker, volumeServiceName, 'Speaker');
-                        this.volumeServiceSpeaker.addOptionalCharacteristic(Characteristic.ConfiguredName);
-                        this.volumeServiceSpeaker.setCharacteristic(Characteristic.ConfiguredName, volumeServiceName);
-                        this.volumeServiceSpeaker.getCharacteristic(Characteristic.Mute)
-                            .onGet(async () => {
-                                const state = this.mute;
-                                return state;
-                            })
-                            .onSet(async (state) => {
-                                try {
-                                    const payload = {
-                                        mute: !state
-                                    };
-
-                                    const cid = await this.lgWebOsSocket.getCid('Audio')
-                                    await this.lgWebOsSocket.send('request', ApiUrls.SetMute, payload, cid);
-                                    const info = this.disableLogInfo ? false : this.emit('info', `set Mute: ${!state ? 'ON' : 'OFF'}`);
-                                } catch (error) {
-                                    this.emit('warn', `set Mute error: ${error}`);
-                                }
-                            });
-                        this.volumeServiceSpeaker.getCharacteristic(Characteristic.Active)
-                            .onGet(async () => {
-                                const state = this.power;
-                                return state;
-                            })
-                            .onSet(async (state) => {
-                            });
-                        this.volumeServiceSpeaker.getCharacteristic(Characteristic.Volume)
-                            .onGet(async () => {
-                                const volume = this.volume;
-                                return volume;
-                            })
-                            .onSet(async (volume) => {
-                                try {
-                                    const payload = {
-                                        volume: volume
-                                    };
-
-                                    const cid = await this.lgWebOsSocket.getCid('Audio');
-                                    await this.lgWebOsSocket.send('request', ApiUrls.SetVolume, payload, cid);
-                                    const info = this.disableLogInfo ? false : this.emit('info', `set Volume: ${volume}`);
-                                } catch (error) {
-                                    this.emit('warn', `set Volume error: ${error}`);
-                                }
-                            });
-                        this.allServices.push(this.volumeServiceSpeaker);
-                        break;
-                }
             }
 
             //Picture Control
@@ -1371,7 +1308,7 @@ class LgWebOsDevice extends EventEmitter {
                         });
                     this.allServices.push(this.turnScreenOnOffService);
                 };
-            };
+            }
 
             //turn screen saver ON/OFF
             if (this.turnScreenSaverOnOff) {

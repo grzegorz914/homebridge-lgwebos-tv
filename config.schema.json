@@ -1002,20 +1002,6 @@
                 }
               }
             },
-            "volumeControlNamePrefix": {
-              "title": "Volume Control Name Prefix",
-              "type": "boolean",
-              "default": false,
-              "description": "Here enable/disable the accessory name as a prefix for volume control name.",
-              "required": false
-            },
-            "volumeControlName": {
-              "title": "Volume Control Name",
-              "type": "string",
-              "placeholder": "Name",
-              "description": "Here set Your own volume control name or leave empty.",
-              "required": false
-            },
             "volumeControl": {
               "title": "Volume Control",
               "type": "integer",
@@ -1050,6 +1036,20 @@
               ],
               "description": "Here select what a volume control mode You want to use.",
               "required": true
+            },
+            "volumeControlName": {
+              "title": "Volume Control Name",
+              "type": "string",
+              "placeholder": "Name",
+              "description": "Here set Your own volume control name or leave empty.",
+              "required": false
+            },
+            "volumeControlNamePrefix": {
+              "title": "Volume Control Name Prefix",
+              "type": "boolean",
+              "default": false,
+              "description": "Here enable/disable the accessory name as a prefix for volume control name.",
+              "required": false
             },
             "soundModeControl": {
               "title": "Sound Modes",
@@ -1709,9 +1709,9 @@
                   "key": "devices[]",
                   "title": "Sound / Volume",
                   "items": [
-                    "devices[].volumeControlNamePrefix",
-                    "devices[].volumeControlName",
                     "devices[].volumeControl",
+                    "devices[].volumeControlName",
+                    "devices[].volumeControlNamePrefix",
                     "devices[].soundModeControl",
                     {
                       "items": [
