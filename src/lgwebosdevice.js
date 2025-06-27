@@ -405,8 +405,8 @@ class LgWebOsDevice extends EventEmitter {
                 this.mqtt1 = new Mqtt({
                     host: this.mqtt.host,
                     port: this.mqtt.port || 1883,
-                    clientId: this.mqtt.clientId || `lg_${Math.random().toString(16).slice(3)}`,
-                    prefix: this.mqtt.prefix || `lg/${this.name}`,
+                    clientId: this.mqtt.clientId ? `lg_${this.mqtt.clientId}_${Math.random().toString(16).slice(3)}` : `lg_${Math.random().toString(16).slice(3)}`,
+                    prefix: this.mqtt.prefix ? `lg/${this.mqtt.prefix}/${this.name}` : `lg/${this.name}`,
                     user: this.mqtt.user,
                     passwd: this.mqtt.passwd,
                     debug: this.mqtt.debug || false
