@@ -585,17 +585,13 @@ class LgWebOsDevice extends EventEmitter {
                             const { mode: inputMode, name: inputName, reference: inputReference } = input;
 
                             if (!this.power) {
-                                if (this.inputIdentifier === activeIdentifier) {
-                                    return;
-                                }
-
                                 // Schedule retry attempts without blocking Homebridge
                                 this.emit('debug', `TV is off, deferring input switch to '${activeIdentifier}'`);
 
                                 (async () => {
                                     for (let attempt = 0; attempt < 10; attempt++) {
                                         await new Promise(resolve => setTimeout(resolve, 1500));
-                                        if (this.power) {
+                                        if (this.power && this.inputIdentifier !== activeIdentifier) {
                                             this.emit('debug', `TV powered on, retrying input switch`);
                                             this.televisionService.setCharacteristic(Characteristic.ActiveIdentifier, activeIdentifier);
                                             break;
