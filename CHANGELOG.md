@@ -5,6 +5,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ### After update to v3.0.0 RESTFull and MQTT config settings need to be updated
 
+## [3.8.6] - (02.07.2025)
+
+## Changes
+
+- fix [#257](https://github.com/grzegorz914/homebridge-lgwebos-tv/issues/257)
+- fix [#253](https://github.com/grzegorz914/homebridge-lgwebos-tv/issues/253)now if volume control option is set to disable/nonethe  also TV Speakers (hardware control) is disabled
+- fix [#255](https://github.com/grzegorz914/homebridge-lgwebos-tv/issues/255)
+- cleanup
+
 ## [3.8.0] - (30.05.2025)
 
 ## Changes

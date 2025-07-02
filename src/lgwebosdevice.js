@@ -491,9 +491,6 @@ class LgWebOsDevice extends EventEmitter {
     async displayOrder() {
         try {
             switch (this.inputsDisplayOrder) {
-                case 0:
-                    this.inputsConfigured.sort((a, b) => a.identifier - b.identifier);
-                    break;
                 case 1:
                     this.inputsConfigured.sort((a, b) => a.name.localeCompare(b.name));
                     break;
@@ -506,12 +503,14 @@ class LgWebOsDevice extends EventEmitter {
                 case 4:
                     this.inputsConfigured.sort((a, b) => b.reference.localeCompare(a.reference));
                     break;
+                default:
+                    return;
             }
             const debug = this.enableDebugMode ? this.emit('debug', `Inputs display order: ${JSON.stringify(this.inputsConfigured, null, 2)}`) : false;
 
             const displayOrder = this.inputsConfigured.map(input => input.identifier);
             this.televisionService.setCharacteristic(Characteristic.DisplayOrder, Encode(1, displayOrder).toString('base64'));
-            return true;
+            return;
         } catch (error) {
             throw new Error(`Display order error: ${error}`);
         }
@@ -550,7 +549,7 @@ class LgWebOsDevice extends EventEmitter {
                         return state;
                     })
                     .onSet(async (state) => {
-                        if (state == this.power) {
+                        if (state === this.power) {
                             return;
                         }
 
@@ -573,78 +572,93 @@ class LgWebOsDevice extends EventEmitter {
 
                 this.televisionService.getCharacteristic(Characteristic.ActiveIdentifier)
                     .onGet(async () => {
-                        const inputIdentifier = this.inputIdentifier;
-                        return inputIdentifier;
+                        return this.inputIdentifier;
                     })
                     .onSet(async (activeIdentifier) => {
                         try {
-                            const input = this.inputsConfigured.find(input => input.identifier === activeIdentifier);
-                            const inputMode = input.mode;
-                            const inputName = input.name;
-                            const inputReference = input.reference;
+                            const input = this.inputsConfigured.find(i => i.identifier === activeIdentifier);
+                            if (!input) {
+                                this.emit('warn', `Input with identifier ${activeIdentifier} not found`);
+                                return;
+                            }
 
-                            switch (this.power) {
-                                case false:
+                            const { mode: inputMode, name: inputName, reference: inputReference } = input;
+
+                            if (!this.power) {
+                                if (this.inputIdentifier === activeIdentifier) {
+                                    return;
+                                }
+
+                                // Schedule retry attempts without blocking Homebridge
+                                this.emit('debug', `TV is off, deferring input switch to '${activeIdentifier}'`);
+
+                                (async () => {
                                     for (let attempt = 0; attempt < 10; attempt++) {
-                                        await new Promise(resolve => setTimeout(resolve, 2000));
-                                        const setInput = this.power && this.inputIdentifier !== activeIdentifier ? this.televisionService.setCharacteristic(Characteristic.ActiveIdentifier, activeIdentifier) : false;
+                                        await new Promise(resolve => setTimeout(resolve, 1500));
+                                        if (this.power) {
+                                            this.emit('debug', `TV powered on, retrying input switch`);
+                                            this.televisionService.setCharacteristic(Characteristic.ActiveIdentifier, activeIdentifier);
+                                            break;
+                                        }
+                                    }
+                                })();
+
+                                return;
+                            }
+
+                            let cid = await this.lgWebOsSocket.getCid('App');
+                            switch (inputMode) {
+                                case 0: // App/Input Source
+                                    switch (inputReference) {
+                                        case 'com.webos.app.screensaver':
+                                            cid = await this.lgWebOsSocket.getCid();
+                                            await this.lgWebOsSocket.send('alert', ApiUrls.TurnOnScreenSaver, undefined, cid, 'Screen Saver', 'ON');
+                                            break;
+                                        case 'service.menu': {
+                                            const payload = {
+                                                id: ApiUrls.ServiceMenu,
+                                                params: { id: 'executeFactory', irKey: 'inStart' }
+                                            };
+                                            await this.lgWebOsSocket.send('request', ApiUrls.LaunchApp, payload, cid);
+                                            break;
+                                        }
+                                        case 'ez.adjust': {
+                                            const payload = {
+                                                id: ApiUrls.ServiceMenu,
+                                                params: { id: 'executeFactory', irKey: 'ezAdjust' }
+                                            };
+                                            await this.lgWebOsSocket.send('request', ApiUrls.LaunchApp, payload, cid);
+                                            break;
+                                        }
+                                        default: {
+                                            const payload = { id: inputReference };
+                                            await this.lgWebOsSocket.send('request', ApiUrls.LaunchApp, payload, cid);
+                                            break;
+                                        }
                                     }
                                     break;
-                                case true:
-                                    switch (inputMode) {
-                                        case 0:
-                                            switch (inputReference) {
-                                                case 'com.webos.app.screensaver': //screen saver
-                                                    const cid = await this.lgWebOsSocket.getCid();
-                                                    await this.lgWebOsSocket.send('alert', ApiUrls.TurnOnScreenSaver, undefined, cid, 'Screen Saver', `ON`);
-                                                    break;
-                                                case 'service.menu': //service menu
-                                                    const payload1 = {
-                                                        id: ApiUrls.ServiceMenu,
-                                                        params: {
-                                                            id: "executeFactory",
-                                                            irKey: "inStart"
-                                                        }
-                                                    }
-                                                    const cid1 = await this.lgWebOsSocket.getCid('App');
-                                                    await this.lgWebOsSocket.send('request', ApiUrls.LaunchApp, payload1, cid1);
-                                                    break;
-                                                case 'ez.adjust': //ez adjust
-                                                    const payload2 = {
-                                                        id: ApiUrls.ServiceMenu,
-                                                        params: {
-                                                            id: "executeFactory",
-                                                            irKey: "ezAdjust"
-                                                        }
-                                                    }
-                                                    const cid2 = await this.lgWebOsSocket.getCid('App');
-                                                    await this.lgWebOsSocket.send('request', ApiUrls.LaunchApp, payload2, cid2);
-                                                    break;
-                                                default:
-                                                    const payload3 = {
-                                                        id: inputReference
-                                                    }
-                                                    const cid3 = await this.lgWebOsSocket.getCid('App');
-                                                    await this.lgWebOsSocket.send('request', ApiUrls.LaunchApp, payload3, cid3);
-                                                    break;
-                                            }
-                                            break;
-                                        case 1:
-                                            const liveTv = 'com.webos.app.livetv';
-                                            const cid1 = this.appId !== liveTv ? await this.lgWebOsSocket.getCid('App') : false;
-                                            const openLiveTv = this.appId !== liveTv ? await this.lgWebOsSocket.send('request', ApiUrls.LaunchApp, { id: liveTv }, cid1) : false;
-                                            const cid2 = await this.lgWebOsSocket.getCid('Channel');
-                                            await this.lgWebOsSocket.send('request', ApiUrls.OpenChannel, { channelId: inputReference }, cid2)
-                                            break;
+                                case 1: // Channel
+                                    const liveTv = 'com.webos.app.livetv';
+                                    if (this.appId !== liveTv) {
+                                        await this.lgWebOsSocket.send('request', ApiUrls.LaunchApp, { id: liveTv }, cid);
                                     }
 
-                                    const info = this.disableLogInfo ? false : this.emit('info', `set ${inputMode === 0 ? 'Input' : 'Channel'}, Name: ${inputName}, Reference: ${inputReference}`);
+                                    cid = await this.lgWebOsSocket.getCid('Channel');
+                                    await this.lgWebOsSocket.send('request', ApiUrls.OpenChannel, { channelId: inputReference }, cid);
                                     break;
+                            }
+
+                            if (!this.disableLogInfo) {
+                                this.emit('info', `set ${inputMode === 0 ? 'Input' : 'Channel'}, Name: ${inputName}, Reference: ${inputReference}`);
                             }
                         } catch (error) {
                             this.emit('warn', `set Input or Channel error: ${error}`);
                         }
                     });
+
+
+
+
 
                 this.televisionService.getCharacteristic(Characteristic.RemoteKey)
                     .onSet(async (command) => {
@@ -1001,85 +1015,81 @@ class LgWebOsDevice extends EventEmitter {
                 //prepare inputs service
                 const debug = this.enableDebugMode ? this.emit('debug', `Prepare inputs service`) : false;
 
-                //check possible inputs count (max 85)
+                // Check possible inputs count (max 85)
                 const inputs = this.savedInputs;
                 const inputsCount = inputs.length;
                 const possibleInputsCount = 85 - this.allServices.length;
-                const maxInputsCount = inputsCount >= possibleInputsCount ? possibleInputsCount : inputsCount;
+                const maxInputsCount = Math.min(inputsCount, possibleInputsCount);
+
                 for (let i = 0; i < maxInputsCount; i++) {
-                    //input
                     const input = inputs[i];
                     const inputIdentifier = i + 1;
-
-                    //get input reference
                     const inputReference = input.reference;
-
-                    //get input name
-                    const name = input.name ?? `Input ${inputIdentifier}`;
-
-                    //saved input name
-                    const savedInputsNames = this.savedInputsNames[inputReference] ?? false;
-                    input.name = savedInputsNames ? savedInputsNames.substring(0, 64) : name.substring(0, 64);
-
-                    //input mode
                     const inputMode = input.mode;
+                    const defaultName = `Input ${inputIdentifier}`;
 
-                    //get input type
-                    const inputSourceType = 0;
+                    // Load or fallback to default name
+                    const savedName = this.savedInputsNames[inputReference] ?? defaultName;
+                    input.name = savedName.substring(0, 64);
 
-                    //get input configured
-                    const isConfigured = 1;
-
-                    //get visibility
+                    // Set visibility
                     input.visibility = this.savedInputsTargetVisibility[inputReference] ?? 0;
 
-                    //add identifier to the input
+                    // Add identifier
                     input.identifier = inputIdentifier;
 
-                    //input service
+                    // Create sanitized HomeKit-compatible name
                     const sanitizedName = await this.sanitizeString(input.name);
+
+                    // Create input service
                     const inputService = accessory.addService(Service.InputSource, sanitizedName, `Input ${inputIdentifier}`);
                     inputService
                         .setCharacteristic(Characteristic.Identifier, inputIdentifier)
                         .setCharacteristic(Characteristic.Name, sanitizedName)
-                        .setCharacteristic(Characteristic.IsConfigured, isConfigured)
-                        .setCharacteristic(Characteristic.InputSourceType, inputSourceType)
+                        .setCharacteristic(Characteristic.IsConfigured, 1)
+                        .setCharacteristic(Characteristic.InputSourceType, 0)
                         .setCharacteristic(Characteristic.CurrentVisibilityState, input.visibility);
 
+                    // Handle ConfiguredName get/set
                     inputService.getCharacteristic(Characteristic.ConfiguredName)
-                        .onGet(async () => {
-                            return sanitizedName;
-                        })
+                        .onGet(async () => sanitizedName)
                         .onSet(async (value) => {
                             try {
                                 input.name = value;
                                 this.savedInputsNames[inputReference] = value;
                                 await this.saveData(this.inputsNamesFile, this.savedInputsNames);
-                                const debug = this.enableDebugMode ? this.emit('debug', `Saved ${inputMode === 0 ? 'Input' : 'Channel'} Name: ${value}, Reference: ${inputReference}`) : false;
 
-                                //sort inputs
-                                const index = this.inputsConfigured.findIndex(input => input.reference === inputReference);
-                                this.inputsConfigured[index].name = value;
+                                if (this.enableDebugMode) {
+                                    this.emit('debug', `Saved ${inputMode === 0 ? 'Input' : 'Channel'} Name: ${value}, Reference: ${inputReference}`);
+                                }
+
+                                const index = this.inputsConfigured.findIndex(i => i.reference === inputReference);
+                                if (index !== -1) this.inputsConfigured[index].name = value;
+
                                 await this.displayOrder();
                             } catch (error) {
-                                this.emit('warn', `save Input error: ${error}`);
+                                this.emit('warn', `Save Input Name error: ${error}`);
                             }
                         });
 
+                    // Handle VisibilityState get/set
                     inputService.getCharacteristic(Characteristic.TargetVisibilityState)
-                        .onGet(async () => {
-                            return input.visibility;
-                        })
+                        .onGet(async () => input.visibility)
                         .onSet(async (state) => {
                             try {
                                 input.visibility = state;
                                 this.savedInputsTargetVisibility[inputReference] = state;
                                 await this.saveData(this.inputsTargetVisibilityFile, this.savedInputsTargetVisibility);
-                                const debug = this.enableDebugMode ? this.emit('debug', `Saved ${inputMode === 0 ? 'Input' : 'Channel'}: ${input.name}, Target Visibility: ${state ? 'HIDEN' : 'SHOWN'}`) : false;
+
+                                if (this.enableDebugMode) {
+                                    this.emit('debug', `Saved ${inputMode === 0 ? 'Input' : 'Channel'}: ${input.name}, Target Visibility: ${state ? 'HIDDEN' : 'SHOWN'}`);
+                                }
                             } catch (error) {
-                                this.emit('warn', `save Target Visibility error: ${error}`);
+                                this.emit('warn', `Save Target Visibility error: ${error}`);
                             }
                         });
+
+                    // Store and link input service
                     this.inputsConfigured.push(input);
                     this.televisionService.addLinkedService(inputService);
                     this.allServices.push(inputService);
@@ -1792,6 +1802,8 @@ class LgWebOsDevice extends EventEmitter {
                     const input = this.inputsConfigured.find(input => input.reference === appId) ?? false;
                     const inputIdentifier = input ? input.identifier : this.inputIdentifier;
                     const inputName = input ? input.name : appId;
+                    this.inputIdentifier = inputIdentifier;
+                    this.appId = appId;
 
                     if (this.televisionService) {
                         this.televisionService
@@ -1834,8 +1846,6 @@ class LgWebOsDevice extends EventEmitter {
                         }
                     }
 
-                    this.inputIdentifier = inputIdentifier;
-                    this.appId = appId;
                     if (!this.disableLogInfo) {
                         this.emit('info', `Input Name: ${inputName}`);
                     }
