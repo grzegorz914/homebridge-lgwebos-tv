@@ -6,133 +6,115 @@ import { PluginName, PlatformName } from './src/constants.js';
 
 class LgWebOsPlatform {
 	constructor(log, config, api) {
-		// only load if configured
 		if (!config || !Array.isArray(config.devices)) {
 			log.warn(`No configuration found for ${PluginName}.`);
 			return;
-		};
+		}
+
 		this.accessories = [];
 
-		//check if prefs directory exist
 		const prefDir = join(api.user.storagePath(), 'lgwebosTv');
 		try {
 			mkdirSync(prefDir, { recursive: true });
-		} catch (error) {
-			log.error(`Prepare directory error: ${error}.`);
+		} catch (err) {
+			log.error(`Prepare directory error: ${err}`);
 			return;
 		}
 
 		api.on('didFinishLaunching', async () => {
 			for (const device of config.devices) {
+				if (device.disableAccessory) continue;
 
-				//check accessory is enabled
-				const disableAccessory = device.disableAccessory || false;
-				if (disableAccessory) {
-					continue;
-				}
+				const { name, host, mac, generation = 0 } = device;
+				const macValid = /^([A-Fa-f0-9]{2}:){5}[A-Fa-f0-9]{2}$/.test(mac);
 
-				const deviceName = device.name;
-				const host = device.host;
-				const mac = device.mac
-
-				const macRegex = /^([A-Fa-f0-9]{2}:){5}[A-Fa-f0-9]{2}$/;
-				if (!deviceName || !host || !macRegex.test(mac)) {
-					log.warn(`Name: ${deviceName ? 'OK' : deviceName}, host: ${host ? 'OK' : host}, mac: ${macRegex.test(mac) ? 'OK' : mac}, in config wrong or missing.`);
+				if (!name || !host || !macValid) {
+					log.warn(`Invalid config: Name: ${name || 'missing'}, Host: ${host || 'missing'}, MAC: ${mac || 'missing'}`);
 					return;
 				}
 
-				//log config
-				const enableDebugMode = device.enableDebugMode || false;
-				const disableLogDeviceInfo = device.disableLogDeviceInfo || false;
-				const disableLogInfo = device.disableLogInfo || false;
-				const disableLogSuccess = device.disableLogSuccess || false;
-				const disableLogWarn = device.disableLogWarn || false;
-				const disableLogError = device.disableLogError || false;
-				const debug = !enableDebugMode ? false : log.info(`Device: ${host} ${deviceName}, did finish launching.`);
-				const config = {
-					...device,
-					mqtt: {
-						...device.mqtt,
-						passwd: 'removed'
-					}
-				}
-				const debug1 = !enableDebugMode ? false : log.info(`Device: ${host} ${deviceName}, Config: ${JSON.stringify(config, null, 2)}.`);
+				const enableDebugMode = !!device.enableDebugMode;
+				const logLevel = {
+					debug: enableDebugMode,
+					info: !device.disableLogInfo,
+					success: !device.disableLogSuccess,
+					warn: !device.disableLogWarn,
+					error: !device.disableLogError,
+					devInfo: !device.disableLogDeviceInfo,
+				};
 
-				//check files exists, if not then create it
-				const postFix = host.split('.').join('');
-				const keyFile = `${prefDir}/key_${postFix}`;
-				const devInfoFile = `${prefDir}/devInfo_${postFix}`;
-				const inputsFile = `${prefDir}/inputs_${postFix}`;
-				const channelsFile = `${prefDir}/channels_${postFix}`;
-				const inputsNamesFile = `${prefDir}/inputsNames_${postFix}`;
-				const inputsTargetVisibilityFile = `${prefDir}/inputsTargetVisibility_${postFix}`;
+				if (enableDebugMode) {
+					log.info(`Device: ${host} ${name}, did finish launching.`);
+					const safeConfig = {
+						...device,
+						mqtt: {
+							...device.mqtt,
+							passwd: 'removed',
+						},
+					};
+					log.info(`Device: ${host} ${name}, Config: ${JSON.stringify(safeConfig, null, 2)}`);
+				}
+
+				const postFix = host.replace(/\./g, '');
+				const files = {
+					key: `${prefDir}/key_${postFix}`,
+					devInfo: `${prefDir}/devInfo_${postFix}`,
+					inputs: `${prefDir}/inputs_${postFix}`,
+					channels: `${prefDir}/channels_${postFix}`,
+					inputsNames: `${prefDir}/inputsNames_${postFix}`,
+					inputsVisibility: `${prefDir}/inputsTargetVisibility_${postFix}`,
+				};
 
 				try {
-					const files = [
-						keyFile,
-						devInfoFile,
-						inputsFile,
-						channelsFile,
-						inputsNamesFile,
-						inputsTargetVisibilityFile
-					];
-
-					files.forEach((file) => {
+					Object.values(files).forEach((file) => {
 						if (!existsSync(file)) {
 							writeFileSync(file, '');
 						}
 					});
-				} catch (error) {
-					const emitLog = disableLogError ? false : log.error(`Device: ${host} ${deviceName}, Prepare files error: ${error}.`);
+				} catch (err) {
+					if (logLevel.error) log.error(`Device: ${host} ${name}, Prepare files error: ${err}`);
 					return;
 				}
 
-				//webos device
 				try {
-					const lgWebOsDevice = new LgWebOsDevice(api, device, keyFile, devInfoFile, inputsFile, channelsFile, inputsNamesFile, inputsTargetVisibilityFile);
-					lgWebOsDevice.on('publishAccessory', (accessory) => {
-						api.publishExternalAccessories(PluginName, [accessory]);
-						const emitLog = disableLogSuccess ? false : log.success(`Device: ${host} ${deviceName}, Published as external accessory.`);
-					})
-						.on('devInfo', (devInfo) => {
-							const emitLog = disableLogDeviceInfo ? false : log.info(devInfo);
+					const lgDevice = new LgWebOsDevice(api, device,
+						files.key, files.devInfo, files.inputs, files.channels,
+						files.inputsNames, files.inputsVisibility
+					);
+
+					lgDevice
+						.on('publishAccessory', (accessory) => {
+							api.publishExternalAccessories(PluginName, [accessory]);
+							if (logLevel.success) log.success(`Device: ${host} ${name}, Published as external accessory.`);
 						})
-						.on('success', (success) => {
-							const emitLog = disableLogSuccess ? false : log.success(`Device: ${host} ${deviceName}, ${success}.`);
+						.on('devInfo', (info) => logLevel.devInfo && log.info(info))
+						.on('success', (msg) => logLevel.success && log.success(`Device: ${host} ${name}, ${msg}`))
+						.on('info', (msg) => logLevel.info && log.info(`Device: ${host} ${name}, ${msg}`))
+						.on('debug', (msg) => logLevel.debug && log.info(`Device: ${host} ${name}, debug: ${msg}`))
+						.on('warn', (msg) => logLevel.warn && log.warn(`Device: ${host} ${name}, ${msg}`))
+						.on('error', (msg) => logLevel.error && log.error(`Device: ${host} ${name}, ${msg}`));
+
+					const impulseGenerator = new ImpulseGenerator();
+					impulseGenerator
+						.on('start', async () => {
+							try {
+								if (await lgDevice.start()) {
+									await impulseGenerator.stop();
+									await lgDevice.startImpulseGenerator();
+								}
+							} catch (err) {
+								if (logLevel.error) log.error(`Device: ${host} ${name}, ${err}, trying again.`);
+							}
 						})
-						.on('info', (info) => {
-							const emitLog = disableLogInfo ? false : log.info(`Device: ${host} ${deviceName}, ${info}.`);
-						})
-						.on('debug', (debug) => {
-							const emitLog = !enableDebugMode ? false : log.info(`Device: ${host} ${deviceName}, debug: ${debug}.`);
-						})
-						.on('warn', (warn) => {
-							const lemitLog = disableLogWarn ? false : log.warn(`Device: ${host} ${deviceName}, ${warn}.`);
-						})
-						.on('error', (error) => {
-							const emitLog = disableLogError ? false : log.error(`Device: ${host} ${deviceName}, ${error}.`);
+						.on('state', (state) => {
+							if (logLevel.debug) {
+								log.info(`Device: ${host} ${name}, Start impulse generator ${state ? 'started' : 'stopped'}.`);
+							}
 						});
 
-					//create impulse generator
-					const impulseGenerator = new ImpulseGenerator();
-					impulseGenerator.on('start', async () => {
-						try {
-							const startDone = await lgWebOsDevice.start();
-							const stopImpulseGenerator = startDone ? await impulseGenerator.stop() : false;
-
-							//start device impulse generator 
-							const startImpulseGenerator = startDone ? await lgWebOsDevice.startImpulseGenerator() : false;
-						} catch (error) {
-							const emitLog = disableLogError ? false : log.error(`Device: ${host} ${deviceName}, ${error}, trying again.`);
-						}
-					}).on('state', (state) => {
-						const emitLog = !enableDebugMode ? false : state ? log.info(`Device: ${host} ${deviceName}, Start impulse generator started.`) : log.info(`Device: ${host} ${deviceName}, Start impulse generator stopped.`);
-					});
-
-					//start impulse generator
 					await impulseGenerator.start([{ name: 'start', sampling: 45000 }]);
-				} catch (error) {
-					const emitLog = disableLogError ? false : log.error(`Device: ${host} ${deviceName}, Did finish launching error: ${error}.`);
+				} catch (err) {
+					if (logLevel.error) log.error(`Device: ${host} ${name}, Did finish launching error: ${err}`);
 				}
 			}
 		});
@@ -145,4 +127,5 @@ class LgWebOsPlatform {
 
 export default (api) => {
 	api.registerPlatform(PluginName, PlatformName, LgWebOsPlatform);
-}
+};
+
