@@ -490,27 +490,27 @@ class LgWebOsDevice extends EventEmitter {
 
     async displayOrder() {
         try {
-            switch (this.inputsDisplayOrder) {
-                case 1:
-                    this.inputsConfigured.sort((a, b) => a.name.localeCompare(b.name));
-                    break;
-                case 2:
-                    this.inputsConfigured.sort((a, b) => b.name.localeCompare(a.name));
-                    break;
-                case 3:
-                    this.inputsConfigured.sort((a, b) => a.reference.localeCompare(b.reference));
-                    break;
-                case 4:
-                    this.inputsConfigured.sort((a, b) => b.reference.localeCompare(a.reference));
-                    break;
-                default:
-                    return;
-            }
-            const debug = this.enableDebugMode ? this.emit('debug', `Inputs display order: ${JSON.stringify(this.inputsConfigured, null, 2)}`) : false;
+            const sortStrategies = {
+                1: (a, b) => a.name.localeCompare(b.name),
+                2: (a, b) => b.name.localeCompare(a.name),
+                3: (a, b) => a.reference.localeCompare(b.reference),
+                4: (a, b) => b.reference.localeCompare(a.reference)
+            };
 
-            const displayOrder = this.inputsConfigured.map(input => input.identifier);
-            this.televisionService.setCharacteristic(Characteristic.DisplayOrder, Encode(1, displayOrder).toString('base64'));
-            return;
+            const sortFn = sortStrategies[this.inputsDisplayOrder];
+            if (sortFn) {
+                this.inputsConfigured.sort(sortFn);
+
+                if (this.enableDebugMode) {
+                    this.emit('debug', `Inputs display order: ${JSON.stringify(this.inputsConfigured, null, 2)}`);
+                }
+
+                const displayOrder = this.inputsConfigured.map(input => input.identifier);
+                this.televisionService.setCharacteristic(
+                    Characteristic.DisplayOrder,
+                    Encode(1, displayOrder).toString('base64')
+                );
+            }
         } catch (error) {
             throw new Error(`Display order error: ${error}`);
         }
@@ -651,9 +651,6 @@ class LgWebOsDevice extends EventEmitter {
                             this.emit('warn', `set Input or Channel error: ${error}`);
                         }
                     });
-
-
-
 
 
                 this.televisionService.getCharacteristic(Characteristic.RemoteKey)
