@@ -494,27 +494,27 @@ class LgWebOsDevice extends EventEmitter {
                 1: (a, b) => a.name.localeCompare(b.name),
                 2: (a, b) => b.name.localeCompare(a.name),
                 3: (a, b) => a.reference.localeCompare(b.reference),
-                4: (a, b) => b.reference.localeCompare(a.reference)
+                4: (a, b) => b.reference.localeCompare(a.reference),
             };
 
             const sortFn = sortStrategies[this.inputsDisplayOrder];
-            if (sortFn) {
-                this.inputsConfigured.sort(sortFn);
+            if (!sortFn) return;
 
-                if (this.enableDebugMode) {
-                    this.emit('debug', `Inputs display order: ${JSON.stringify(this.inputsConfigured, null, 2)}`);
-                }
+            this.inputsConfigured.sort(sortFn);
 
-                const displayOrder = this.inputsConfigured.map(input => input.identifier);
-                this.televisionService.setCharacteristic(
-                    Characteristic.DisplayOrder,
-                    Encode(1, displayOrder).toString('base64')
-                );
+            if (this.enableDebugMode) {
+                this.emit('debug', `Inputs display order:\n${JSON.stringify(this.inputsConfigured, null, 2)}`);
             }
+
+            const displayOrder = this.inputsConfigured.map(input => input.identifier);
+            const encodedOrder = Encode(1, displayOrder).toString('base64');
+
+            this.televisionService.setCharacteristic(Characteristic.DisplayOrder, encodedOrder);
         } catch (error) {
             throw new Error(`Display order error: ${error}`);
         }
     }
+
 
     //prepare accessory
     async prepareAccessory() {
