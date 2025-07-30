@@ -80,9 +80,7 @@ class LgWebOsPlatform {
 					const lgDevice = new LgWebOsDevice(api, device,
 						files.key, files.devInfo, files.inputs, files.channels,
 						files.inputsNames, files.inputsVisibility
-					);
-
-					lgDevice
+					)
 						.on('publishAccessory', (accessory) => {
 							api.publishExternalAccessories(PluginName, [accessory]);
 							if (logLevel.success) log.success(`Device: ${host} ${name}, Published as external accessory.`);

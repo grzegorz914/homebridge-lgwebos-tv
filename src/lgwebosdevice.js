@@ -1719,17 +1719,16 @@ class LgWebOsDevice extends EventEmitter {
                 filterSystemApps: this.filterSystemApps,
                 enableDebugMode: this.enableDebugMode,
                 sslWebSocket: this.sslWebSocket
-            });
-
-            this.lgWebOsSocket.on('deviceInfo', (modelName, productName, deviceId, firmwareRevision) => {
-                this.emit('devInfo', `-------- ${this.name} --------`);
-                this.emit('devInfo', `Manufacturer: LG Electronics`);
-                this.emit('devInfo', `Model: ${modelName}`);
-                this.emit('devInfo', `System: ${productName}`);
-                this.emit('devInfo', `Serialnr: ${deviceId}`);
-                this.emit('devInfo', `Firmware: ${firmwareRevision}`);
-                this.emit('devInfo', `----------------------------------`);
             })
+                .on('deviceInfo', (modelName, productName, deviceId, firmwareRevision) => {
+                    this.emit('devInfo', `-------- ${this.name} --------`);
+                    this.emit('devInfo', `Manufacturer: LG Electronics`);
+                    this.emit('devInfo', `Model: ${modelName}`);
+                    this.emit('devInfo', `System: ${productName}`);
+                    this.emit('devInfo', `Serialnr: ${deviceId}`);
+                    this.emit('devInfo', `Firmware: ${firmwareRevision}`);
+                    this.emit('devInfo', `----------------------------------`);
+                })
                 .on('powerState', (power, screenState) => {
                     if (this.televisionService) {
                         this.televisionService
