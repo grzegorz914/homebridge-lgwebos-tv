@@ -1016,36 +1016,37 @@ class LgWebOsDevice extends EventEmitter {
 
                 for (let i = 0; i < maxInputsCount; i++) {
                     const input = inputs[i];
+                    if (!input) continue;
+
                     const inputIdentifier = i + 1;
                     const inputReference = input.reference;
                     const inputMode = input.mode;
-                    const defaultName = `Input ${inputIdentifier}`;
+                    const inputTypeLabel = inputMode === 0 ? 'Input' : 'Channel';
 
                     // Load or fallback to default name
-                    const savedName = this.savedInputsNames[inputReference] ?? defaultName;
-                    input.name = savedName.substring(0, 64);
+                    const savedName = this.savedInputsNames[inputReference] ?? input.name;
+                    input.name = savedName; // Sanitization will be handled later
 
-                    // Set visibility
+                    // Load visibility state
                     input.visibility = this.savedInputsTargetVisibility[inputReference] ?? 0;
 
                     // Add identifier
                     input.identifier = inputIdentifier;
 
-                    // Create sanitized HomeKit-compatible name
+                    // Sanitize and create service
                     const sanitizedName = await this.sanitizeString(input.name);
-
-                    // Create input service
                     const inputService = accessory.addService(Service.InputSource, sanitizedName, `Input ${inputIdentifier}`);
+
                     inputService
                         .setCharacteristic(Characteristic.Identifier, inputIdentifier)
                         .setCharacteristic(Characteristic.Name, sanitizedName)
+                        .setCharacteristic(Characteristic.ConfiguredName, sanitizedName)
                         .setCharacteristic(Characteristic.IsConfigured, 1)
                         .setCharacteristic(Characteristic.InputSourceType, 0)
-                        .setCharacteristic(Characteristic.CurrentVisibilityState, input.visibility);
+                        .setCharacteristic(Characteristic.CurrentVisibilityState, input.visibility)
+                        .setCharacteristic(Characteristic.TargetVisibilityState, input.visibility);
 
-                    // Handle ConfiguredName get/set
                     inputService.getCharacteristic(Characteristic.ConfiguredName)
-                        .onGet(async () => sanitizedName)
                         .onSet(async (value) => {
                             try {
                                 input.name = value;
@@ -1053,7 +1054,7 @@ class LgWebOsDevice extends EventEmitter {
                                 await this.saveData(this.inputsNamesFile, this.savedInputsNames);
 
                                 if (this.enableDebugMode) {
-                                    this.emit('debug', `Saved ${inputMode === 0 ? 'Input' : 'Channel'} Name: ${value}, Reference: ${inputReference}`);
+                                    this.emit('debug', `Saved ${inputTypeLabel} Name: ${value}, Reference: ${inputReference}`);
                                 }
 
                                 const index = this.inputsConfigured.findIndex(i => i.reference === inputReference);
@@ -1065,9 +1066,7 @@ class LgWebOsDevice extends EventEmitter {
                             }
                         });
 
-                    // Handle VisibilityState get/set
                     inputService.getCharacteristic(Characteristic.TargetVisibilityState)
-                        .onGet(async () => input.visibility)
                         .onSet(async (state) => {
                             try {
                                 input.visibility = state;
@@ -1075,14 +1074,13 @@ class LgWebOsDevice extends EventEmitter {
                                 await this.saveData(this.inputsTargetVisibilityFile, this.savedInputsTargetVisibility);
 
                                 if (this.enableDebugMode) {
-                                    this.emit('debug', `Saved ${inputMode === 0 ? 'Input' : 'Channel'}: ${input.name}, Target Visibility: ${state ? 'HIDDEN' : 'SHOWN'}`);
+                                    this.emit('debug', `Saved ${inputTypeLabel}: ${input.name}, Target Visibility: ${state ? 'HIDDEN' : 'SHOWN'}`);
                                 }
                             } catch (error) {
                                 this.emit('warn', `Save Target Visibility error: ${error}`);
                             }
                         });
 
-                    // Store and link input service
                     this.inputsConfigured.push(input);
                     this.televisionService.addLinkedService(inputService);
                     this.allServices.push(inputService);
