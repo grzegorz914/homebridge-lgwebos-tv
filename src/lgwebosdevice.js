@@ -375,12 +375,11 @@ class LgWebOsDevice extends EventEmitter {
                 this.restFul1 = new RestFul({
                     port: this.restFul.port || 3000,
                     debug: this.restFul.debug || false
-                });
-
-                this.restFul1.on('connected', (message) => {
-                    this.emit('success', message);
-                    this.restFulConnected = true;
                 })
+                    .on('connected', (message) => {
+                        this.emit('success', message);
+                        this.restFulConnected = true;
+                    })
                     .on('set', async (key, value) => {
                         try {
                             await this.setOverExternalIntegration('RESTFul', key, value);
@@ -411,11 +410,10 @@ class LgWebOsDevice extends EventEmitter {
                     passwd: this.mqtt.passwd,
                     debug: this.mqtt.debug || false
                 })
-
-                this.mqtt1.on('connected', (message) => {
-                    this.emit('success', message);
-                    this.mqttConnected = true;
-                })
+                    .on('connected', (message) => {
+                        this.emit('success', message);
+                        this.mqttConnected = true;
+                    })
                     .on('subscribed', (message) => {
                         this.emit('success', message);
                     })

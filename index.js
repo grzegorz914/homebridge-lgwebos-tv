@@ -92,9 +92,8 @@ class LgWebOsPlatform {
 						.on('warn', (msg) => logLevel.warn && log.warn(`Device: ${host} ${name}, ${msg}`))
 						.on('error', (msg) => logLevel.error && log.error(`Device: ${host} ${name}, ${msg}`));
 
-					const impulseGenerator = new ImpulseGenerator();
-					impulseGenerator
-						.on('start', async () => {
+					const impulseGenerator = new ImpulseGenerator()
+					.on('start', async () => {
 							try {
 								if (await lgDevice.start()) {
 									await impulseGenerator.stop();
