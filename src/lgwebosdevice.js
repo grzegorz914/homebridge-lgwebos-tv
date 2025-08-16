@@ -447,7 +447,7 @@ class LgWebOsDevice extends EventEmitter {
             const savedInfo = await this.readData(this.devInfoFile);
             this.savedInfo = savedInfo.toString().trim() !== '' ? JSON.parse(savedInfo) : {};
             const debug = this.enableDebugMode ? this.emit('debug', `Read saved Info: ${JSON.stringify(this.savedInfo, null, 2)}`) : false;
-            this.webOS = this.savedInfo.webOS ?? 2.0;
+            this.webOS = this.savedInfo.webOS ?? 200;
 
             //read inputs file
             const savedInputs = await this.readData(this.inputsFile);
@@ -587,7 +587,7 @@ class LgWebOsDevice extends EventEmitter {
                                 this.emit('debug', `TV is off, deferring input switch to '${activeIdentifier}'`);
 
                                 (async () => {
-                                    for (let attempt = 0; attempt < 15; attempt++) {
+                                    for (let attempt = 0; attempt < 20; attempt++) {
                                         await new Promise(resolve => setTimeout(resolve, 1500));
                                         if (this.power && this.inputIdentifier !== activeIdentifier) {
                                             this.emit('debug', `TV powered on, retrying input switch`);
@@ -766,7 +766,7 @@ class LgWebOsDevice extends EventEmitter {
                         }
                     });
 
-                if (this.webOS >= 4.0) {
+                if (this.webOS >= 400) {
                     this.televisionService.getCharacteristic(Characteristic.Brightness)
                         .onGet(async () => {
                             const brightness = this.brightness;
@@ -1089,7 +1089,7 @@ class LgWebOsDevice extends EventEmitter {
             }
 
             //Picture Control
-            if (this.webOS >= 4.0) {
+            if (this.webOS >= 400) {
                 //Backlight
                 if (this.backlightControl) {
                     const debug = this.enableDebugMode ? this.emit('debug', `Prepare backlight service`) : false;
@@ -1291,10 +1291,10 @@ class LgWebOsDevice extends EventEmitter {
                                 let url;
                                 switch (state) {
                                     case true:
-                                        url = this.webOS >= 4.5 ? ApiUrls.TurnOffScreen45 : ApiUrls.TurnOffScreen;
+                                        url = this.webOS >= 450 ? ApiUrls.TurnOffScreen45 : ApiUrls.TurnOffScreen;
                                         break;
                                     case false:
-                                        url = this.webOS >= 4.5 ? ApiUrls.TurnOnScreen45 : ApiUrls.TurnOnScreen;
+                                        url = this.webOS >= 450 ? ApiUrls.TurnOnScreen45 : ApiUrls.TurnOnScreen;
                                         break;
                                 }
 
@@ -1333,7 +1333,7 @@ class LgWebOsDevice extends EventEmitter {
             }
 
             //Sound mode
-            if (this.soundsModesConfiguredCount > 0 && this.webOS >= 6.0) {
+            if (this.soundsModesConfiguredCount > 0 && this.webOS >= 600) {
                 this.soundsModesServices = [];
                 const debug = this.enableDebugMode ? this.emit('debug', `Prepare sound mode service`) : false;
                 for (let i = 0; i < this.soundsModesConfiguredCount; i++) {
@@ -1490,7 +1490,7 @@ class LgWebOsDevice extends EventEmitter {
                 this.allServices.push(this.sensorChannelService);
             }
 
-            if (this.sensorScreenOnOff && this.webOS >= 4.0) {
+            if (this.sensorScreenOnOff && this.webOS >= 400) {
                 const debug = this.enableDebugMode ? this.emit('debug', `Prepare screen off sensor service`) : false;
                 this.sensorScreenOnOffService = accessory.addService(Service.ContactSensor, `${accessoryName} Screen On/Off Sensor`, `Screen On/Off Sensor`);
                 this.sensorScreenOnOffService.addOptionalCharacteristic(Characteristic.ConfiguredName);
@@ -1516,7 +1516,7 @@ class LgWebOsDevice extends EventEmitter {
                 this.allServices.push(this.sensorScreenSaverService);
             }
 
-            if (this.sensorSoundMode && this.webOS >= 6.0) {
+            if (this.sensorSoundMode && this.webOS >= 600) {
                 const debug = this.enableDebugMode ? this.emit('debug', `Prepare sound mode sensor service`) : false;
                 this.sensorSoundModeService = accessory.addService(Service.ContactSensor, `${accessoryName} Sound Mode Sensor`, `Sound Mode Sensor`);
                 this.sensorSoundModeService.addOptionalCharacteristic(Characteristic.ConfiguredName);
@@ -1542,7 +1542,7 @@ class LgWebOsDevice extends EventEmitter {
                 this.allServices.push(this.sensorSoundOutputService);
             }
 
-            if (this.sensorPictureMode && this.webOS >= 4.0) {
+            if (this.sensorPictureMode && this.webOS >= 400) {
                 const debug = this.enableDebugMode ? this.emit('debug', `Prepare picture mode sensor service`) : false;
                 this.sensorPictureModeService = accessory.addService(Service.ContactSensor, `${accessoryName} Picture Mode Sensor`, `Picture Mode Sensor`);
                 this.sensorPictureModeService.addOptionalCharacteristic(Characteristic.ConfiguredName);
@@ -1555,7 +1555,7 @@ class LgWebOsDevice extends EventEmitter {
                 this.allServices.push(this.sensorPictureModeService);
             }
 
-            if (this.sensorPlayState && this.webOS >= 7.0) {
+            if (this.sensorPlayState && this.webOS >= 700) {
                 const debug = this.enableDebugMode ? this.emit('debug', `Prepare play state sensor service`) : false;
                 this.sensorPlayStateService = accessory.addService(Service.ContactSensor, `${accessoryName} Play State Sensor`, `Play State Sensor`);
                 this.sensorPlayStateService.addOptionalCharacteristic(Characteristic.ConfiguredName);
@@ -1716,13 +1716,13 @@ class LgWebOsDevice extends EventEmitter {
                 enableDebugMode: this.enableDebugMode,
                 sslWebSocket: this.sslWebSocket
             })
-                .on('deviceInfo', (modelName, productName, deviceId, firmwareRevision) => {
+                .on('deviceInfo', (info) => {
                     this.emit('devInfo', `-------- ${this.name} --------`);
                     this.emit('devInfo', `Manufacturer: LG Electronics`);
-                    this.emit('devInfo', `Model: ${modelName}`);
-                    this.emit('devInfo', `System: ${productName}`);
-                    this.emit('devInfo', `Serialnr: ${deviceId}`);
-                    this.emit('devInfo', `Firmware: ${firmwareRevision}`);
+                    this.emit('devInfo', `Model: ${info.modelName}`);
+                    this.emit('devInfo', `System: ${info.productName}`);
+                    this.emit('devInfo', `Serialnr: ${info.deviceId}`);
+                    this.emit('devInfo', `Firmware: ${info.firmwareRevision}`);
                     this.emit('devInfo', `----------------------------------`);
                 })
                 .on('powerState', (power, screenState) => {
@@ -2145,7 +2145,6 @@ class LgWebOsDevice extends EventEmitter {
                         }
                     }, 5000);
                 }
-
             }
             return true;
         } catch (error) {

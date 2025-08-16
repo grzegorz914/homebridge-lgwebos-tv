@@ -5,6 +5,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ### After update to v3.0.0 RESTFull and MQTT config settings need to be updated
 
+## [3.9.0] - (16.08.2025)
+
+## Changes
+
+- fix [#264](https://github.com/grzegorz914/homebridge-lgwebos-tv/issues/264)
+- fix [#249](https://github.com/grzegorz914/homebridge-lgwebos-tv/issues/249)
+- cleanup
+
 ## [3.8.8] - (08.07.2025)
 
 ## Changes

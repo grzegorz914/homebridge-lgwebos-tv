@@ -24,6 +24,7 @@ class LgWebOsSocket extends EventEmitter {
         this.webSocketPort = this.sslWebSocket ? 3001 : 3000;
 
         this.externalInputsArr = [];
+        this.appsArr = [];
         this.socketConnected = false;
         this.specjalizedSocketConnected = false;
         this.power = false;
@@ -43,8 +44,15 @@ class LgWebOsSocket extends EventEmitter {
         this.soundOutput = '';
 
         this.cidCount = 0;
-        this.webOS = 2.0;
-        this.modelName = 'LG TV';
+
+        this.tvInfo = {
+            manufacturer: 'LG Electronics',
+            modelName: 'LG TV',
+            productName: '',
+            deviceId: '',
+            firmwareRevision: '',
+            webOS: 200
+        }
 
         //create impulse generator
         this.impulseGenerator = new ImpulseGenerator();
@@ -80,26 +88,26 @@ class LgWebOsSocket extends EventEmitter {
             //Socket
             const socket = this.sslWebSocket ? new WebSocket(this.url, { rejectUnauthorized: false }) : new WebSocket(this.url);
             socket.on('open', async () => {
-                    const debug = this.enableDebugMode ? this.emit('debug', `Plugin received heartbeat from TV`) : false
-                    const debug1 = this.enableDebugMode ? this.emit('debug', `Socket connected`) : false;
-                    this.socket = socket;
-                    this.socketConnected = true;
+                const debug = this.enableDebugMode ? this.emit('debug', `Plugin received heartbeat from TV`) : false
+                const debug1 = this.enableDebugMode ? this.emit('debug', `Socket connected`) : false;
+                this.socket = socket;
+                this.socketConnected = true;
 
-                    //connect to device success
-                    this.emit('success', `Socket Connect Success`)
+                //connect to device success
+                this.emit('success', `Socket Connect Success`)
 
-                    this.heartbeat = setInterval(() => {
-                        if (socket.readyState === socket.OPEN) {
-                            const debug = this.enableDebugMode ? this.emit('debug', `Socket send heartbeat`) : false;
-                            socket.ping(null, false, 'UTF-8');
-                        }
-                    }, 5000);
+                this.heartbeat = setInterval(() => {
+                    if (socket.readyState === socket.OPEN) {
+                        const debug = this.enableDebugMode ? this.emit('debug', `Socket send heartbeat`) : false;
+                        socket.ping(null, false, 'UTF-8');
+                    }
+                }, 5000);
 
-                    //Register to tv
-                    Pairing['client-key'] = this.pairingKey;
-                    this.registerId = await this.getCid();
-                    await this.send('register', undefined, Pairing, this.registerId);
-                })
+                //Register to tv
+                Pairing['client-key'] = this.pairingKey;
+                this.registerId = await this.getCid();
+                await this.send('register', undefined, Pairing, this.registerId);
+            })
                 .on('pong', () => {
                     const debug = this.enableDebugMode ? this.emit('debug', `Socket received heartbeat`) : false;
                 })
@@ -144,6 +152,7 @@ class LgWebOsSocket extends EventEmitter {
                                     //Request software info data
                                     this.softwareInfoId = await this.getCid();
                                     await this.send('request', ApiUrls.GetSoftwareInfo, undefined, this.softwareInfoId);
+                                    await new Promise(resolve => setTimeout(resolve, 2000));
 
                                     //Request channels list
                                     this.channelsId = await this.getCid();
@@ -151,7 +160,7 @@ class LgWebOsSocket extends EventEmitter {
 
                                     //Request external inputs list
                                     this.externalInputListId = await this.getCid();
-                                    await this.send('subscribe', ApiUrls.GetExternalInputList, undefined, this.externalInputListId);
+                                    await this.send('request', ApiUrls.GetExternalInputList, undefined, this.externalInputListId);
 
                                     //Request apps list
                                     this.appsId = await this.getCid();
@@ -212,7 +221,7 @@ class LgWebOsSocket extends EventEmitter {
                             switch (messageType) {
                                 case 'response':
                                     const debug = this.enableDebugMode ? this.emit('debug', `System info: ${stringifyMessage}`) : false;
-                                    this.modelName = messageData.modelName ?? 'LG TV';
+                                    this.tvInfo.modelName = messageData.modelName ?? 'LG TV';
 
                                     //restFul
                                     this.emit('restFul', 'systeminfo', messageData);
@@ -233,25 +242,16 @@ class LgWebOsSocket extends EventEmitter {
                                 case 'response':
                                     const debug = this.enableDebugMode ? this.emit('debug', `Software Info: ${stringifyMessage}`) : false;
 
-                                    const productName = messageData.product_name;
-                                    const deviceId = messageData.device_id;
-                                    const firmwareRevision = `${messageData.major_ver}.${messageData.minor_ver}`;
-                                    const match = productName.match(/\d+(\.\d+)?/);
-                                    this.webOS = match ? parseFloat(match[0]) : this.webOS;
+                                    this.tvInfo.productName = messageData.product_name;
+                                    this.tvInfo.deviceId = messageData.device_id;
+                                    this.tvInfo.firmwareRevision = `${messageData.major_ver}.${messageData.minor_ver}`;
+                                    const minor = messageData.minor_ver.split('.')[0];
+                                    this.tvInfo.webOS = parseInt(messageData.major_ver + minor, 10) ?? this.tvInfo.webOS;
 
-                                    //save device info to the file
-                                    const obj = {
-                                        manufacturer: 'LG Electronics',
-                                        modelName: this.modelName,
-                                        productName: productName,
-                                        deviceId: deviceId,
-                                        firmwareRevision: firmwareRevision,
-                                        webOS: this.webOS
-                                    }
-                                    await this.saveData(this.devInfoFile, obj);
+                                    await this.saveData(this.devInfoFile, this.tvInfo);
 
                                     //emit device info
-                                    this.emit('deviceInfo', this.modelName, productName, deviceId, firmwareRevision);
+                                    this.emit('deviceInfo', this.tvInfo);
 
                                     //restFul
                                     this.emit('restFul', 'softwareinfo', messageData);
@@ -356,7 +356,6 @@ class LgWebOsSocket extends EventEmitter {
                                     }
 
                                     //parse apps
-                                    const appsArr = [];
                                     for (const input of appsList) {
                                         const name = input.title;
                                         const reference = input.id;
@@ -366,7 +365,7 @@ class LgWebOsSocket extends EventEmitter {
                                             'reference': reference,
                                             'mode': mode
                                         }
-                                        appsArr.push(obj);
+                                        this.appsArr.push(obj);
                                     }
 
                                     //add service menu
@@ -374,19 +373,19 @@ class LgWebOsSocket extends EventEmitter {
                                         'name': 'Service Menu',
                                         'reference': 'service.menu',
                                         'mode': 0
-                                    }
-                                    const pushServiceMenu = this.serviceMenu ? appsArr.push(serviceMenuInput) : false;
+                                    };
+                                    const pushServiceMenu = this.serviceMenu ? this.appsArr.push(serviceMenuInput) : false;
 
                                     //add ez adjust menu
                                     const ezAdjustMenuInput = {
                                         'name': 'EZ Adjust',
                                         'reference': 'ez.adjust',
                                         'mode': 0
-                                    }
-                                    const pushEzAdjusteMenu = this.ezAdjustMenu ? appsArr.push(ezAdjustMenuInput) : false;
+                                    };
+                                    const pushEzAdjusteMenu = this.ezAdjustMenu ? this.appsArr.push(ezAdjustMenuInput) : false;
 
                                     //add external inputs and apps to array
-                                    const inputsApps = this.getInputsFromDevice ? [...this.externalInputsArr, ...appsArr] : this.inputs;
+                                    const inputsApps = this.getInputsFromDevice ? [...this.externalInputsArr, ...this.appsArr] : this.inputs;
 
                                     //chack duplicated object in array and filter system apps
                                     const inputsArr = [];
@@ -458,12 +457,12 @@ class LgWebOsSocket extends EventEmitter {
                                     this.emit('mqtt', 'Power', messageData);
                                     break;
                                 case 'error':
-                                    if (this.webOS < 3.0) {
+                                    if (this.tvInfo.webOS < 300) {
                                         this.power = this.socketConnected;
                                         this.screenState = this.socketConnected ? 'Active' : 'Suspend';
                                         this.emit('powerState', this.power, this.screenState);
                                         const disconnect = !this.power ? socket.emit('powerOff') : false;
-                                        const debug1 = this.enableDebugMode ? this.emit('debug', `Installed system webOS: ${this.webOS}`) : false;
+                                        const debug1 = this.enableDebugMode ? this.emit('debug', `Installed system webOS: ${this.tvInfo.webOS}`) : false;
                                     } else {
                                         const debug1 = this.enableDebugMode ? this.emit('debug', `Power error: ${stringifyMessage}`) : false;
                                     }
@@ -713,7 +712,7 @@ class LgWebOsSocket extends EventEmitter {
                                 return;
                             }
 
-                            const closeAlert = this.webOS >= 4.0 ? await this.send('request', ApiUrls.CloseAletrt, { alertId: alertId }) : await this.send('button', undefined, { name: 'ENTER' });
+                            const closeAlert = this.tvInfo.webOS >= 400 ? await this.send('request', ApiUrls.CloseAletrt, { alertId: alertId }) : await this.send('button', undefined, { name: 'ENTER' });
                             break;
                         case this.toastCid:
                             const debug1 = this.enableDebugMode ? this.emit('debug', `Toast: ${stringifyMessage}`) : false;
@@ -722,7 +721,7 @@ class LgWebOsSocket extends EventEmitter {
                                 return;
                             }
 
-                            const closeToast = this.webOS >= 4.0 ? await this.send('request', ApiUrls.CloseToast, { toastId: toastId }) : await this.send('button', undefined, { name: 'ENTER' });
+                            const closeToast = this.tvInfo.webOS >= 400 ? await this.send('request', ApiUrls.CloseToast, { toastId: toastId }) : await this.send('button', undefined, { name: 'ENTER' });
                             break;
                         default:
                             const debug3 = this.enableDebugMode ? this.emit('debug', `Received message type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`) : false;
@@ -790,7 +789,6 @@ class LgWebOsSocket extends EventEmitter {
     async readData(path) {
         try {
             const data = await fsPromises.readFile(path);
-            const debug = this.enableDebugMode ? this.emit('debug', `Read data: ${JSON.stringify(data, null, 2)}`) : false;
             return data;;
         } catch (error) {
             throw new Error(`Read data error: ${error}`);
@@ -811,7 +809,7 @@ class LgWebOsSocket extends EventEmitter {
             await this.send('subscribe', ApiUrls.GetSoundOutput, undefined, this.soundOutputId);
 
             //picture settings
-            if (this.webOS >= 4.0) {
+            if (this.tvInfo.webOS >= 400) {
                 const payload = {
                     category: 'picture',
                     keys: ['brightness', 'backlight', 'contrast', 'color']
@@ -821,7 +819,7 @@ class LgWebOsSocket extends EventEmitter {
             }
 
             //picture mode
-            if (this.webOS >= 4.0) {
+            if (this.tvInfo.webOS >= 400) {
                 const payload = {
                     category: 'picture',
                     keys: ['pictureMode']
@@ -831,7 +829,7 @@ class LgWebOsSocket extends EventEmitter {
             }
 
             //sound mode
-            if (this.webOS >= 6.0) {
+            if (this.tvInfo.webOS >= 600) {
                 const payload = {
                     category: 'sound',
                     keys: ['soundMode']
@@ -841,7 +839,7 @@ class LgWebOsSocket extends EventEmitter {
             }
 
             //media info
-            if (this.webOS >= 7.0) {
+            if (this.tvInfo.webOS >= 700) {
                 this.mediaInfoId = await this.getCid();
                 await this.send('subscribe', ApiUrls.GetForegroundAppMediaInfo, undefined, this.mediaInfoId);
             }

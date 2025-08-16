@@ -304,7 +304,6 @@ export const SystemApps = [
     "com.webos.service.billing.app",
     "com.webos.app.liveginga",
     "com.webos.app.liveinteractivecontent",
-    "com.webos.app.lifeonscreen",
     "com.webos.app.roomconnect-full",
     "com.webos.app.voiceview",
     "com.webos.app.iot-thirdparty-login",
