@@ -5,6 +5,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ### After update to v3.0.0 RESTFull and MQTT config settings need to be updated
 
+## [3.9.1] - (17.08.2025)
+
+## Changes
+
+- added dynamic input/app add/remove if load from device
+- added dynamic firmware info update if changed
+- cleanup
+
 ## [3.9.0] - (16.08.2025)
 
 ## Changes
@@ -100,7 +108,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ## Changes
 
 - fix plugin crash if tv services are disabled in plugin config
-
 
 ## [3.6.4] - (07.02.2025)
 

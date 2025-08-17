@@ -24,7 +24,7 @@ class LgWebOsSocket extends EventEmitter {
         this.webSocketPort = this.sslWebSocket ? 3001 : 3000;
 
         this.externalInputsArr = [];
-        this.appsArr = [];
+        this.inputsArr = [];
         this.socketConnected = false;
         this.specjalizedSocketConnected = false;
         this.power = false;
@@ -152,22 +152,9 @@ class LgWebOsSocket extends EventEmitter {
                                     //Request software info data
                                     this.softwareInfoId = await this.getCid();
                                     await this.send('request', ApiUrls.GetSoftwareInfo, undefined, this.softwareInfoId);
-                                    await new Promise(resolve => setTimeout(resolve, 2000));
-
-                                    //Request channels list
-                                    this.channelsId = await this.getCid();
-                                    await this.send('request', ApiUrls.GetChannelList, undefined, this.channelsId);
-
-                                    //Request external inputs list
-                                    this.externalInputListId = await this.getCid();
-                                    await this.send('request', ApiUrls.GetExternalInputList, undefined, this.externalInputListId);
-
-                                    //Request apps list
-                                    this.appsId = await this.getCid();
-                                    await this.send('request', ApiUrls.GetInstalledApps, undefined, this.appsId);
 
                                     //Subscribe tv status
-                                    await new Promise(resolve => setTimeout(resolve, 3000));
+                                    await new Promise(resolve => setTimeout(resolve, 5000));
                                     const debug4 = this.enableDebugMode ? this.emit('debug', `Subscirbe tv status`) : false;
                                     await this.subscribeTvStatus();
                                     const debug5 = this.enableDebugMode ? this.emit('debug', `Subscribe tv status successful`) : false;
@@ -349,56 +336,62 @@ class LgWebOsSocket extends EventEmitter {
                             switch (messageType) {
                                 case 'response':
                                     const debug = this.enableDebugMode ? this.emit('debug', `Apps list: ${stringifyMessage}`) : false;
-                                    const appsList = messageData.apps;
-                                    const appsListExist = Array.isArray(appsList) ? appsList.length > 0 : false;
-                                    if (!appsListExist) {
+
+                                    // Handle app change reason
+                                    const appInstalled = messageData.changeReason === 'appInstalled';
+                                    const appUninstalled = messageData.changeReason === 'appUninstalled';
+
+                                    // --- Handle uninstall ---
+                                    if (appUninstalled && messageData.app) {
+                                        this.inputsArr = this.inputsArr.filter(inp => inp.reference !== messageData.app.id);
+
+                                        this.emit('app', { name: messageData.app.title, reference: messageData.app.id }, true);
+                                        await this.saveData(this.inputsFile, this.inputsArr);
                                         return;
                                     }
 
-                                    //parse apps
-                                    for (const input of appsList) {
-                                        const name = input.title;
-                                        const reference = input.id;
-                                        const mode = 0;
-                                        const obj = {
-                                            'name': name,
-                                            'reference': reference,
-                                            'mode': mode
+                                    // --- Build apps list ---
+                                    const appsList = appInstalled ? [messageData.app] : messageData.apps;
+                                    if (!Array.isArray(appsList) || appsList.length === 0) return;
+
+                                    // Reset apps array to avoid duplicates
+                                    this.appsArr = [];
+
+                                    // Parse apps into appsArr
+                                    for (const app of appsList) {
+                                        if (app?.id && app?.title) {
+                                            this.appsArr.push({ name: app.title, reference: app.id, mode: 0 });
                                         }
-                                        this.appsArr.push(obj);
                                     }
 
-                                    //add service menu
-                                    const serviceMenuInput = {
-                                        'name': 'Service Menu',
-                                        'reference': 'service.menu',
-                                        'mode': 0
-                                    };
-                                    const pushServiceMenu = this.serviceMenu ? this.appsArr.push(serviceMenuInput) : false;
+                                    // Add special menus (only on full refresh)
+                                    if (!appInstalled) {
+                                        if (this.serviceMenu) {
+                                            this.appsArr.push({ name: 'Service Menu', reference: 'service.menu', mode: 0 });
+                                        }
+                                        if (this.ezAdjustMenu) {
+                                            this.appsArr.push({ name: 'EZ Adjust', reference: 'ez.adjust', mode: 0 });
+                                        }
+                                    }
 
-                                    //add ez adjust menu
-                                    const ezAdjustMenuInput = {
-                                        'name': 'EZ Adjust',
-                                        'reference': 'ez.adjust',
-                                        'mode': 0
-                                    };
-                                    const pushEzAdjusteMenu = this.ezAdjustMenu ? this.appsArr.push(ezAdjustMenuInput) : false;
-
-                                    //add external inputs and apps to array
+                                    // --- Merge external inputs + apps ---
                                     const inputsApps = this.getInputsFromDevice ? [...this.externalInputsArr, ...this.appsArr] : this.inputs;
 
-                                    //chack duplicated object in array and filter system apps
-                                    const inputsArr = [];
+                                    // --- Deduplicate and update inputsArr ---
+                                    const existingRefs = new Set(this.inputsArr.map(i => i.reference));
+
                                     for (const input of inputsApps) {
-                                        const inputName = input.name;
-                                        const inputReference = input.reference;
-                                        const duplicatedInput = inputsArr.some(input => input.reference === inputReference);
-                                        const filter = this.filterSystemApps ? SystemApps.includes(inputReference) : false;
-                                        const push = inputName && inputReference && !filter && !duplicatedInput ? inputsArr.push(input) : false;
+                                        if (!input?.name || !input?.reference) continue;
+                                        if (this.filterSystemApps && SystemApps.includes(input.reference)) continue;
+                                        if (existingRefs.has(input.reference)) continue;
+
+                                        this.inputsArr.push(input);
+                                        this.emit('app', input, false);
+                                        existingRefs.add(input.reference);
                                     }
 
-                                    //save apps to the file                             
-                                    await this.saveData(this.inputsFile, inputsArr);
+                                    // --- Save result ---
+                                    await this.saveData(this.inputsFile, this.inputsArr);
 
                                     //restFul
                                     this.emit('restFul', 'apps', messageData);
@@ -797,6 +790,12 @@ class LgWebOsSocket extends EventEmitter {
 
     async subscribeTvStatus() {
         try {
+            this.channelsId = await this.getCid();
+            await this.send('subscribe', ApiUrls.GetChannelList, undefined, this.channelsId);
+            this.externalInputListId = await this.getCid();
+            await this.send('subscribe', ApiUrls.GetExternalInputList, undefined, this.externalInputListId);
+            this.appsId = await this.getCid();
+            await this.send('subscribe', ApiUrls.GetInstalledApps, undefined, this.appsId);
             this.powerStateId = await this.getCid();
             await this.send('subscribe', ApiUrls.GetPowerState, undefined, this.powerStateId);
             this.currentAppId = await this.getCid();
