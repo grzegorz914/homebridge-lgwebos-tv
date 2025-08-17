@@ -3,7 +3,7 @@ import tcpp from 'tcp-ping';
 import WebSocket from 'ws';
 import EventEmitter from 'events';
 import ImpulseGenerator from './impulsegenerator.js';
-import { ApiUrls, Pairing, SystemApps } from './constants.js';
+import { ApiUrls, Pairing } from './constants.js';
 
 class LgWebOsSocket extends EventEmitter {
     constructor(config) {
@@ -15,7 +15,6 @@ class LgWebOsSocket extends EventEmitter {
         this.inputsFile = config.inputsFile;
         this.channelsFile = config.channelsFile;
         this.getInputsFromDevice = config.getInputsFromDevice;
-        this.filterSystemApps = config.filterSystemApps;
         this.serviceMenu = config.serviceMenu;
         this.ezAdjustMenu = config.ezAdjustMenu;
         this.enableDebugMode = config.enableDebugMode;
@@ -345,8 +344,12 @@ class LgWebOsSocket extends EventEmitter {
                                     // --- Handle uninstall ---
                                     if (appUninstalled && messageData.app) {
                                         this.inputsArr = this.inputsArr.filter(inp => inp.reference !== messageData.app.id);
+                                        const input = {
+                                            name: messageData.app.title,
+                                            reference: messageData.app.id
+                                        };
 
-                                        this.emit('addRemoveInput', { name: messageData.app.title, reference: messageData.app.id }, true);
+                                        this.emit('addRemoveOrUpdateInput', input, true);
                                         await this.saveData(this.inputsFile, this.inputsArr);
                                         return;
                                     }
@@ -356,35 +359,32 @@ class LgWebOsSocket extends EventEmitter {
                                     if (!Array.isArray(appsList) || appsList.length === 0) return;
 
                                     // Reset apps array to avoid duplicates
-                                    this.appsArr = [];
+                                    const appsArr = [];
 
                                     // Parse apps into appsArr
                                     for (const app of appsList) {
                                         if (app?.id && app?.title) {
-                                            this.appsArr.push({ name: app.title, reference: app.id, mode: 0 });
+                                            const input = {
+                                                name: app.title,
+                                                reference: app.id,
+                                                mode: 0
+                                            };
+                                            appsArr.push(input);
                                         }
                                     }
 
                                     // Add special menus on app updated
                                     if (appUpdated) {
-                                        if (this.serviceMenu) this.appsArr.push({ name: 'Service Menu', reference: 'service.menu', mode: 0 });
-                                        if (this.ezAdjustMenu) this.appsArr.push({ name: 'EZ Adjust', reference: 'ez.adjust', mode: 0 });
+                                        if (this.serviceMenu) appsArr.push({ name: 'Service Menu', reference: 'service.menu', mode: 0 });
+                                        if (this.ezAdjustMenu) appsArr.push({ name: 'EZ Adjust', reference: 'ez.adjust', mode: 0 });
                                     }
 
                                     // --- Merge external inputs + apps ---
-                                    const inputsApps = this.getInputsFromDevice ? [...this.externalInputsArr, ...this.appsArr] : this.inputs;
-
-                                    // --- Deduplicate and update inputsArr ---
-                                    const existingRefs = new Set(this.inputsArr.map(i => i.reference));
-
-                                    for (const input of inputsApps) {
+                                    this.inputsArr = this.getInputsFromDevice ? [...this.externalInputsArr, ...appsArr] : this.inputs;
+                                    for (const input of this.inputsArr) {
                                         if (!input?.name || !input?.reference) continue;
-                                        if (this.filterSystemApps && SystemApps.includes(input.reference)) continue;
-                                        if (existingRefs.has(input.reference)) continue;
 
-                                        this.inputsArr.push(input);
-                                        this.emit('addRemoveInput', input, false);
-                                        existingRefs.add(input.reference);
+                                        this.emit('addRemoveOrUpdateInput', input, false);
                                     }
 
                                     // --- Save result ---
