@@ -340,12 +340,13 @@ class LgWebOsSocket extends EventEmitter {
                                     // Handle app change reason
                                     const appInstalled = messageData.changeReason === 'appInstalled';
                                     const appUninstalled = messageData.changeReason === 'appUninstalled';
+                                    const appUpdated = !appInstalled && !appUninstalled;
 
                                     // --- Handle uninstall ---
                                     if (appUninstalled && messageData.app) {
                                         this.inputsArr = this.inputsArr.filter(inp => inp.reference !== messageData.app.id);
 
-                                        this.emit('app', { name: messageData.app.title, reference: messageData.app.id }, true);
+                                        this.emit('addRemoveInput', { name: messageData.app.title, reference: messageData.app.id }, true);
                                         await this.saveData(this.inputsFile, this.inputsArr);
                                         return;
                                     }
@@ -364,14 +365,10 @@ class LgWebOsSocket extends EventEmitter {
                                         }
                                     }
 
-                                    // Add special menus (only on full refresh)
-                                    if (!appInstalled) {
-                                        if (this.serviceMenu) {
-                                            this.appsArr.push({ name: 'Service Menu', reference: 'service.menu', mode: 0 });
-                                        }
-                                        if (this.ezAdjustMenu) {
-                                            this.appsArr.push({ name: 'EZ Adjust', reference: 'ez.adjust', mode: 0 });
-                                        }
+                                    // Add special menus on app updated
+                                    if (appUpdated) {
+                                        if (this.serviceMenu) this.appsArr.push({ name: 'Service Menu', reference: 'service.menu', mode: 0 });
+                                        if (this.ezAdjustMenu) this.appsArr.push({ name: 'EZ Adjust', reference: 'ez.adjust', mode: 0 });
                                     }
 
                                     // --- Merge external inputs + apps ---
@@ -386,7 +383,7 @@ class LgWebOsSocket extends EventEmitter {
                                         if (existingRefs.has(input.reference)) continue;
 
                                         this.inputsArr.push(input);
-                                        this.emit('app', input, false);
+                                        this.emit('addRemoveInput', input, false);
                                         existingRefs.add(input.reference);
                                     }
 

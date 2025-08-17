@@ -520,9 +520,9 @@ class LgWebOsDevice extends EventEmitter {
         }
     }
 
-    async addRemoveInput(input, uninstall) {
+    async addRemoveInput(input, remove) {
         try {
-            if (uninstall) {
+            if (remove) {
                 // --- REMOVE ---
                 const inputToRemove = this.inputsServices.find(svc => svc.reference === input.reference);
                 this.emit('debug', `Removing input: ${input.name} (${input.reference})`);
@@ -537,6 +537,7 @@ class LgWebOsDevice extends EventEmitter {
 
                     return true;
                 }
+                const debug = this.enableDebugMode ? this.emit('debug', `Removed input fail: ${input.name} (${input.reference})`) : false;
                 return false;
             }
 
@@ -577,9 +578,6 @@ class LgWebOsDevice extends EventEmitter {
             throw new Error(`Add/Remove input error: ${error}`);
         }
     }
-
-
-
 
     //prepare accessory
     async prepareAccessory() {
@@ -1803,9 +1801,9 @@ class LgWebOsDevice extends EventEmitter {
 
                     this.informationService?.updateCharacteristic(Characteristic.FirmwareRevision, info.firmwareRevision)
                 })
-                .on('app', async (input, uninstall) => {
+                .on('addRemoveInput', async (input, remove) => {
                     if (!this.startPrepareAccessory && this.inputsServices) {
-                        await this.addRemoveInput(input, uninstall);
+                        await this.addRemoveInput(input, remove);
                     }
                 })
                 .on('powerState', (power, screenState) => {
