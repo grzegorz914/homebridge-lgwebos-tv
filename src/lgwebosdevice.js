@@ -79,9 +79,6 @@ class LgWebOsDevice extends EventEmitter {
         this.mqtt = device.mqtt ?? {};
         this.mqttConnected = false;
 
-        //accessory services
-        this.allServices = [];
-
         //add configured inputs to the default inputs
         this.inputs = this.disableLoadDefaultInputs ? this.inputs : [...DefaultInputs, ...this.inputs];
         this.inputIdentifier = 1;
@@ -635,7 +632,6 @@ class LgWebOsDevice extends EventEmitter {
 
                 this.inputsServices.push(inputService);
                 this.televisionService.addLinkedService(inputService);
-                this.allServices.push(inputService);
 
                 if (this.enableDebugMode) this.emit('debug', `Added new input: ${input.name} (${inputReference})`);
             }
@@ -668,7 +664,6 @@ class LgWebOsDevice extends EventEmitter {
                 .setCharacteristic(Characteristic.SerialNumber, this.savedInfo.deviceId ?? 'Serial Number')
                 .setCharacteristic(Characteristic.FirmwareRevision, this.savedInfo.firmwareRevision ?? 'Firmware Revision')
                 .setCharacteristic(Characteristic.ConfiguredName, accessoryName);
-            this.allServices.push(this.informationService);
 
             //prepare television service 
             if (!this.disableTvService) {
@@ -973,7 +968,6 @@ class LgWebOsDevice extends EventEmitter {
                             }
                         });
                 }
-                this.allServices.push(this.televisionService);
 
                 //Prepare volume service
                 if (this.volumeControl > 0) {
@@ -1055,7 +1049,6 @@ class LgWebOsDevice extends EventEmitter {
                                 this.emit('warn', `set Mute error: ${error}`);
                             }
                         });
-                    this.allServices.push(this.volumeServiceTvSpeaker);
 
                     //legacy control
                     switch (this.volumeControl) {
@@ -1080,7 +1073,6 @@ class LgWebOsDevice extends EventEmitter {
                                 .onSet(async (state) => {
                                     this.volumeServiceTvSpeaker.setCharacteristic(Characteristic.Mute, !state);
                                 });
-                            this.allServices.push(this.volumeServiceLightbulb);
                             break;
                         case 2: //fan
                             const debug1 = this.enableDebugMode ? this.emit('debug', `Prepare volume service fan`) : false;
@@ -1103,7 +1095,6 @@ class LgWebOsDevice extends EventEmitter {
                                 .onSet(async (state) => {
                                     this.volumeServiceTvSpeaker.setCharacteristic(Characteristic.Mute, !state);
                                 });
-                            this.allServices.push(this.volumeServiceFan);
                             break;
                         case 3: // speaker
                             const debug2 = this.enableDebugMode ? this.emit('debug', `Prepare volume service speaker`) : false;
@@ -1133,7 +1124,6 @@ class LgWebOsDevice extends EventEmitter {
                                 .onSet(async (value) => {
                                     this.volumeServiceTvSpeaker.setCharacteristic(Characteristic.Volume, value);
                                 });
-                            this.allServices.push(this.volumeServiceSpeaker);
                             break;
                     }
                 }
@@ -1183,7 +1173,6 @@ class LgWebOsDevice extends EventEmitter {
                                 this.emit('warn', `set Backlight error: ${error}`);
                             }
                         });
-                    this.allServices.push(this.backlightService);
                 }
 
                 //Brightness
@@ -1219,7 +1208,6 @@ class LgWebOsDevice extends EventEmitter {
                                 this.emit('warn', `set Brightness error: ${error}`);
                             }
                         });
-                    this.allServices.push(this.brightnessService);
                 }
 
                 //Contrast
@@ -1255,7 +1243,6 @@ class LgWebOsDevice extends EventEmitter {
                                 this.emit('warn', `set Contrast error: ${error}`);
                             }
                         });
-                    this.allServices.push(this.contrastService);
                 }
 
                 //Color
@@ -1291,7 +1278,6 @@ class LgWebOsDevice extends EventEmitter {
                                 this.emit('warn', `set Color error: ${error}`);
                             }
                         });
-                    this.allServices.push(this.colorService);
                 }
 
                 //Picture mode
@@ -1330,7 +1316,6 @@ class LgWebOsDevice extends EventEmitter {
                                 }
                             });
                         this.picturesModesServices.push(pictureModeService);
-                        this.allServices.push(pictureModeService);
                         accessory.addService(pictureModeService);
                     }
                 }
@@ -1365,7 +1350,6 @@ class LgWebOsDevice extends EventEmitter {
                                 this.emit('warn', `Turn Screen ${state ? 'ON' : 'OFF'}, error: ${error}`);
                             }
                         });
-                    this.allServices.push(this.turnScreenOnOffService);
                 };
             }
 
@@ -1389,7 +1373,6 @@ class LgWebOsDevice extends EventEmitter {
                             this.emit('warn', `set Color error: ${error}`);
                         }
                     });
-                this.allServices.push(this.turnScreenSaverOnOffService);
             }
 
             //Sound mode
@@ -1428,7 +1411,6 @@ class LgWebOsDevice extends EventEmitter {
                             }
                         });
                     this.soundsModesServices.push(soundModeService);
-                    this.allServices.push(soundModeService);
                     accessory.addService(soundModeService);
                 }
             }
@@ -1466,7 +1448,6 @@ class LgWebOsDevice extends EventEmitter {
                             }
                         });
                     this.soundsOutputsServices.push(soundOutputService);
-                    this.allServices.push(soundOutputService);
                     accessory.addService(soundOutputService);
                 }
             }
@@ -1482,7 +1463,6 @@ class LgWebOsDevice extends EventEmitter {
                         const state = this.power;
                         return state;
                     });
-                this.allServices.push(this.sensorPowerService);
             }
 
             if (this.sensorPixelRefresh) {
@@ -1495,7 +1475,6 @@ class LgWebOsDevice extends EventEmitter {
                         const state = this.pixelRefreshState;
                         return state;
                     });
-                this.allServices.push(this.sensorPixelRefreshService);
             }
 
             if (this.sensorVolume) {
@@ -1508,7 +1487,6 @@ class LgWebOsDevice extends EventEmitter {
                         const state = this.sensorVolumeState;
                         return state;
                     });
-                this.allServices.push(this.sensorVolumeService);
             }
 
             if (this.sensorMute) {
@@ -1521,7 +1499,6 @@ class LgWebOsDevice extends EventEmitter {
                         const state = this.mute;
                         return state;
                     });
-                this.allServices.push(this.sensorMuteService);
             }
 
             if (this.sensorInput) {
@@ -1534,7 +1511,6 @@ class LgWebOsDevice extends EventEmitter {
                         const state = this.sensorInputState;
                         return state;
                     });
-                this.allServices.push(this.sensorInputService);
             }
 
             if (this.sensorChannel) {
@@ -1547,7 +1523,6 @@ class LgWebOsDevice extends EventEmitter {
                         const state = this.sensorChannelState;
                         return state;
                     });
-                this.allServices.push(this.sensorChannelService);
             }
 
             if (this.sensorScreenOnOff && this.webOS >= 400) {
@@ -1560,7 +1535,6 @@ class LgWebOsDevice extends EventEmitter {
                         const state = this.power ? this.screenStateOff : false;
                         return state;
                     });
-                this.allServices.push(this.sensorScreenOnOffService);
             }
 
             if (this.sensorScreenSaver) {
@@ -1573,7 +1547,6 @@ class LgWebOsDevice extends EventEmitter {
                         const state = this.power ? this.screenSaverState : false;
                         return state;
                     });
-                this.allServices.push(this.sensorScreenSaverService);
             }
 
             if (this.sensorSoundMode && this.webOS >= 600) {
@@ -1586,7 +1559,6 @@ class LgWebOsDevice extends EventEmitter {
                         const state = this.power ? this.sensorSoundModeState : false;
                         return state;
                     });
-                this.allServices.push(this.sensorSoundModeService);
             }
 
             if (this.sensorSoundOutput) {
@@ -1599,7 +1571,6 @@ class LgWebOsDevice extends EventEmitter {
                         const state = this.power ? this.sensorSoundOutputState : false;
                         return state;
                     });
-                this.allServices.push(this.sensorSoundOutputService);
             }
 
             if (this.sensorPictureMode && this.webOS >= 400) {
@@ -1612,7 +1583,6 @@ class LgWebOsDevice extends EventEmitter {
                         const state = this.power ? this.pictureMode : false;
                         return state;
                     });
-                this.allServices.push(this.sensorPictureModeService);
             }
 
             if (this.sensorPlayState && this.webOS >= 700) {
@@ -1625,11 +1595,10 @@ class LgWebOsDevice extends EventEmitter {
                         const state = this.playState;
                         return state;
                     });
-                this.allServices.push(this.sensorPlayStateService);
             }
 
             //prepare sonsor service
-            const possibleSensorInputsCount = 99 - this.allServices.length;
+            const possibleSensorInputsCount = 99 - this.accessory.services.length.length;
             const maxSensorInputsCount = this.sensorsInputsConfiguredCount >= possibleSensorInputsCount ? possibleSensorInputsCount : this.sensorsInputsConfiguredCount;
             if (maxSensorInputsCount > 0) {
                 this.sensorsInputsServices = []
@@ -1660,13 +1629,12 @@ class LgWebOsDevice extends EventEmitter {
                             return state;
                         });
                     this.sensorsInputsServices.push(sensorInputService);
-                    this.allServices.push(sensorInputService);
                     accessory.addService(sensorInputService);
                 }
             }
 
             //Prepare inputs button services
-            const possibleButtonsCount = 99 - this.allServices.length;
+            const possibleButtonsCount = 99 - this.accessory.services.length.length;
             const maxButtonsCount = this.buttonsConfiguredCount >= possibleButtonsCount ? possibleButtonsCount : this.buttonsConfiguredCount;
             if (maxButtonsCount > 0) {
                 this.buttonsServices = [];
@@ -1727,7 +1695,6 @@ class LgWebOsDevice extends EventEmitter {
                             }
                         });
                     this.buttonsServices.push(buttonService);
-                    this.allServices.push(buttonService);
                     accessory.addService(buttonService);
                 };
             }
