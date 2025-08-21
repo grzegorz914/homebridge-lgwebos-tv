@@ -545,7 +545,7 @@ class LgWebOsDevice extends EventEmitter {
                 const inputVisibility = this.savedInputsTargetVisibility[inputReference] ?? 0;
 
                 if (inputService) {
-                    if (inputService.name === inputName) continue;
+                    if (inputService.name === inputName) return;
 
                     // === UPDATE EXISTING ===
                     inputService.name = sanitizedName;
@@ -566,8 +566,6 @@ class LgWebOsDevice extends EventEmitter {
                         name: inputName,
                         mode: inputMode,
                         visibility: inputVisibility,
-                        displayType: inputDisplayType,
-                        namePrefix: inputNamePrefix,
                     });
 
                     inputService
