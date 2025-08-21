@@ -538,23 +538,22 @@ class LgWebOsDevice extends EventEmitter {
                 // --- ADD OR UPDATE ---
                 let inputService = this.inputsServices.find(s => s.reference === inputReference);
 
-                const savedName = this.savedInputsNames[inputReference] ?? input.name;
+                const inputName = input.name;
+                const savedName = this.savedInputsNames[inputReference] ?? inputName;
                 const sanitizedName = await this.sanitizeString(savedName);
                 const inputMode = input.mode ?? 0;
                 const inputVisibility = this.savedInputsTargetVisibility[inputReference] ?? 0;
 
                 if (inputService) {
+                    if (inputService.name === inputName) continue;
+
                     // === UPDATE EXISTING ===
                     inputService.name = sanitizedName;
-                    inputService.visibility = inputVisibility;
-
                     inputService
                         .updateCharacteristic(Characteristic.Name, sanitizedName)
                         .updateCharacteristic(Characteristic.ConfiguredName, sanitizedName)
-                        .updateCharacteristic(Characteristic.TargetVisibilityState, inputVisibility)
-                        .updateCharacteristic(Characteristic.CurrentVisibilityState, inputVisibility);
 
-                    if (this.enableDebugMode) this.emit('debug', `Updated input: ${input.name} (${inputReference})`);
+                    if (this.enableDebugMode) this.emit('debug', `Updated input: ${inputName} (${inputReference})`);
                 } else {
                     // === CREATE NEW ===
                     const identifier = this.inputsServices.length + 1;
@@ -564,16 +563,18 @@ class LgWebOsDevice extends EventEmitter {
                     Object.assign(inputService, {
                         identifier,
                         reference: inputReference,
-                        name: sanitizedName,
+                        name: inputName,
                         mode: inputMode,
                         visibility: inputVisibility,
+                        displayType: inputDisplayType,
+                        namePrefix: inputNamePrefix,
                     });
 
                     inputService
                         .setCharacteristic(Characteristic.Identifier, identifier)
                         .setCharacteristic(Characteristic.Name, sanitizedName)
                         .setCharacteristic(Characteristic.ConfiguredName, sanitizedName)
-                        .setCharacteristic(Characteristic.IsConfigured, 1)
+                        .setCharacteristic(Characteristic.IsConfigured, 0)
                         .setCharacteristic(Characteristic.InputSourceType, inputMode) // 0=HDMI-like Input, 1=Tuner/Channel
                         .setCharacteristic(Characteristic.CurrentVisibilityState, inputVisibility)
                         .setCharacteristic(Characteristic.TargetVisibilityState, inputVisibility);
@@ -614,7 +615,7 @@ class LgWebOsDevice extends EventEmitter {
                     this.inputsServices.push(inputService);
                     this.televisionService.addLinkedService(inputService);
 
-                    if (this.enableDebugMode) this.emit('debug', `Added new input: ${input.name} (${inputReference})`);
+                    if (this.enableDebugMode) this.emit('debug', `Added new input: ${inputName} (${inputReference})`);
                 }
             }
 
