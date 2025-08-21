@@ -512,111 +512,121 @@ class LgWebOsDevice extends EventEmitter {
         }
     }
 
-    async addRemoveOrUpdateInput(inputs, remove = false) {
+    async addRemoveOrUpdateInput(input, remove = false) {
         try {
-            if (!this.inputsServices) return;
+            // Safety: no services or too many inputs (only block on add)
+            if (!this.inputsServices || (this.inputsServices.length >= 85 && !remove)) return;
 
-            for (const input of inputs) {
-                if (this.inputsServices.length >= 85 && !remove) continue;
+            // Input reference
+            const inputReference = input.reference;
 
-                const inputReference = input.reference;
-
-                // --- REMOVE ---
-                if (remove) {
-                    const svc = this.inputsServices.find(s => s.reference === inputReference);
-                    if (svc) {
-                        if (this.enableDebugMode) this.emit('debug', `Removing input: ${input.name} (${inputReference})`);
-                        this.accessory.removeService(svc);
-                        this.inputsServices = this.inputsServices.filter(s => s.reference !== inputReference);
-                        await this.displayOrder();
-                        return true;
-                    }
-                    if (this.enableDebugMode) this.emit('debug', `Remove failed (not found): ${input.name} (${inputReference})`);
-                    return false;
-                }
-
-                // --- ADD OR UPDATE ---
-                let inputService = this.inputsServices.find(s => s.reference === inputReference);
-
-                const inputName = input.name;
-                const savedName = this.savedInputsNames[inputReference] ?? inputName;
-                const sanitizedName = await this.sanitizeString(savedName);
-                const inputMode = input.mode ?? 0;
-                const inputVisibility = this.savedInputsTargetVisibility[inputReference] ?? 0;
-
-                if (inputService) {
-                    if (inputService.name === inputName) return;
-
-                    // === UPDATE EXISTING ===
-                    inputService.name = sanitizedName;
-                    inputService
-                        .updateCharacteristic(Characteristic.Name, sanitizedName)
-                        .updateCharacteristic(Characteristic.ConfiguredName, sanitizedName)
-
-                    if (this.enableDebugMode) this.emit('debug', `Updated input: ${inputName} (${inputReference})`);
-                } else {
-                    // === CREATE NEW ===
-                    const identifier = this.inputsServices.length + 1;
-                    inputService = this.accessory.addService(Service.InputSource, sanitizedName, `Input ${identifier}`);
-
-                    // Custom props
-                    Object.assign(inputService, {
-                        identifier,
-                        reference: inputReference,
-                        name: inputName,
-                        mode: inputMode,
-                        visibility: inputVisibility,
-                    });
-
-                    inputService
-                        .setCharacteristic(Characteristic.Identifier, identifier)
-                        .setCharacteristic(Characteristic.Name, sanitizedName)
-                        .setCharacteristic(Characteristic.ConfiguredName, sanitizedName)
-                        .setCharacteristic(Characteristic.IsConfigured, 0)
-                        .setCharacteristic(Characteristic.InputSourceType, inputMode) // 0=HDMI-like Input, 1=Tuner/Channel
-                        .setCharacteristic(Characteristic.CurrentVisibilityState, inputVisibility)
-                        .setCharacteristic(Characteristic.TargetVisibilityState, inputVisibility);
-
-                    // --- ConfiguredName rename persistence ---
-                    inputService.getCharacteristic(Characteristic.ConfiguredName)
-                        .onSet(async (value) => {
-                            try {
-                                inputService.name = value;
-                                this.savedInputsNames[inputReference] = value;
-                                await this.saveData(this.inputsNamesFile, this.savedInputsNames);
-
-                                if (this.enableDebugMode) this.emit('debug', `Saved Input: ${inputService.name}, Reference: ${inputReference}`);
-
-                                const index = this.inputsServices.findIndex(s => s.reference === inputReference);
-                                if (index !== -1) this.inputsServices[index].name = value;
-
-                                await this.displayOrder();
-                            } catch (error) {
-                                this.emit('warn', `Save Input Name error: ${error}`);
-                            }
-                        });
-
-                    // --- TargetVisibility persistence ---
-                    inputService.getCharacteristic(Characteristic.TargetVisibilityState)
-                        .onSet(async (state) => {
-                            try {
-                                inputService.visibility = state;
-                                this.savedInputsTargetVisibility[inputReference] = state;
-                                await this.saveData(this.inputsTargetVisibilityFile, this.savedInputsTargetVisibility);
-
-                                if (this.enableDebugMode) this.emit('debug', `Saved Input: ${inputService.name}, Target Visibility: ${state ? 'HIDDEN' : 'SHOWN'}`);
-                            } catch (error) {
-                                this.emit('warn', `Save Target Visibility error: ${error}`);
-                            }
-                        });
-
-                    this.inputsServices.push(inputService);
-                    this.televisionService.addLinkedService(inputService);
-
-                    if (this.enableDebugMode) this.emit('debug', `Added new input: ${inputName} (${inputReference})`);
-                }
+            // Filter system apps (only block on add)
+            if (this.filterSystemApps && !remove && SystemApps.includes(inputReference)) {
+                if (this.enableDebugMode) this.emit('debug', `Skipped system app: ${inputReference}`);
+                return;
             }
 
+            // --- REMOVE ---
+            if (remove) {
+                const svc = this.inputsServices.find(s => s.reference === inputReference);
+                if (svc) {
+                    if (this.enableDebugMode) this.emit('debug', `Removing input: ${input.name} (${inputReference})`);
+                    this.accessory.removeService(svc);
+                    this.inputsServices = this.inputsServices.filter(s => s.reference !== inputReference);
+                    await this.displayOrder();
+                    return true;
+                }
+                if (this.enableDebugMode) this.emit('debug', `Remove failed (not found): ${input.name} (${inputReference})`);
+                return false;
+            }
+
+            // --- ADD OR UPDATE ---
+            let inputService = this.inputsServices.find(s => s.reference === inputReference);
+
+            const savedName = this.savedInputsNames[inputReference] ?? input.name;
+            const sanitizedName = await this.sanitizeString(savedName);
+            const inputMode = input.mode;
+            const inputVisibility = this.savedInputsTargetVisibility[inputReference] ?? 0;
+
+            if (inputService) {
+                // === UPDATE EXISTING ===
+                inputService.name = sanitizedName;
+                inputService.mode = inputMode;
+                inputService.visibility = inputVisibility;
+
+                inputService
+                    .updateCharacteristic(Characteristic.Name, sanitizedName)
+                    .updateCharacteristic(Characteristic.ConfiguredName, sanitizedName)
+                    .updateCharacteristic(Characteristic.TargetVisibilityState, inputVisibility)
+                    .updateCharacteristic(Characteristic.CurrentVisibilityState, inputVisibility);
+
+                if (this.enableDebugMode) this.emit('debug', `Updated input: ${input.name} (${inputReference})`);
+            } else {
+                // === CREATE NEW ===
+                const identifier = this.inputsServices.length + 1;
+                inputService = this.accessory.addService(Service.InputSource, sanitizedName, `Input ${identifier}`);
+
+                // Custom props
+                inputService.identifier = identifier;
+                inputService.reference = inputReference;
+                inputService.name = sanitizedName;
+                inputService.mode = inputMode;
+                inputService.visibility = inputVisibility;
+
+                inputService
+                    .setCharacteristic(Characteristic.Identifier, identifier)
+                    .setCharacteristic(Characteristic.Name, sanitizedName)
+                    .setCharacteristic(Characteristic.ConfiguredName, sanitizedName)
+                    .setCharacteristic(Characteristic.IsConfigured, 1)
+                    .setCharacteristic(Characteristic.InputSourceType, inputMode) // 0=HDMI-like Input, 1=Tuner/Channel
+                    .setCharacteristic(Characteristic.CurrentVisibilityState, inputVisibility)
+                    .setCharacteristic(Characteristic.TargetVisibilityState, inputVisibility);
+
+                // --- ConfiguredName rename persistence ---
+                inputService.getCharacteristic(Characteristic.ConfiguredName)
+                    .onSet(async (value) => {
+                        try {
+                            inputService.name = value;
+                            this.savedInputsNames[inputReference] = value;
+                            await this.saveData(this.inputsNamesFile, this.savedInputsNames);
+
+                            if (this.enableDebugMode) {
+                                this.emit('debug', `Saved Input: ${inputService.name}, Reference: ${inputReference}`);
+                            }
+
+                            // keep in sync
+                            const index = this.inputsServices.findIndex(s => s.reference === inputReference);
+                            if (index !== -1) this.inputsServices[index].name = value;
+
+                            await this.displayOrder();
+                        } catch (error) {
+                            this.emit('warn', `Save Input Name error: ${error}`);
+                        }
+                    });
+
+                // --- TargetVisibility persistence ---
+                inputService.getCharacteristic(Characteristic.TargetVisibilityState)
+                    .onSet(async (state) => {
+                        try {
+                            inputService.visibility = state;
+                            this.savedInputsTargetVisibility[inputReference] = state;
+                            await this.saveData(this.inputsTargetVisibilityFile, this.savedInputsTargetVisibility);
+
+                            if (this.enableDebugMode) {
+                                this.emit('debug', `Saved Input: ${inputService.name}, Target Visibility: ${state ? 'HIDDEN' : 'SHOWN'}`);
+                            }
+                        } catch (error) {
+                            this.emit('warn', `Save Target Visibility error: ${error}`);
+                        }
+                    });
+
+                this.inputsServices.push(inputService);
+                this.televisionService.addLinkedService(inputService);
+
+                if (this.enableDebugMode) this.emit('debug', `Added new input: ${input.name} (${inputReference})`);
+            }
+
+            // Normalize identifiers and order
             await this.displayOrder();
             return true;
         } catch (error) {
@@ -949,13 +959,6 @@ class LgWebOsDevice extends EventEmitter {
                         });
                 }
 
-                //prepare inputs service
-                if (this.enableDebugMode) this.emit('debug', `Prepare inputs services`);
-                this.inputsServices = [];
-                if (this.savedInputs && this.savedInputs.length > 0) {
-                    await this.addRemoveOrUpdateInput(this.savedInputs, false);
-                }
-
                 //Prepare volume service
                 if (this.volumeControl > 0) {
                     const debug3 = this.enableDebugMode ? this.emit('debug', `Prepare television speaker service`) : false;
@@ -1113,6 +1116,15 @@ class LgWebOsDevice extends EventEmitter {
                                 });
                             break;
                     }
+                }
+
+                //prepare inputs service
+                const debug = this.enableDebugMode ? this.emit('debug', `Prepare inputs service`) : false;
+
+                // Check possible inputs count (max 85)
+                this.inputsServices = [];
+                for (const input of this.savedInputs) {
+                    await this.addRemoveOrUpdateInput(input, false);
                 }
             }
 
@@ -1731,8 +1743,8 @@ class LgWebOsDevice extends EventEmitter {
 
                     this.informationService?.updateCharacteristic(Characteristic.FirmwareRevision, info.firmwareRevision)
                 })
-                .on('addRemoveOrUpdateInput', async (inputs, remove) => {
-                    await this.addRemoveOrUpdateInput(inputs, remove);
+                .on('addRemoveOrUpdateInput', async (input, remove) => {
+                    await this.addRemoveOrUpdateInput(input, remove);
                 })
                 .on('powerState', (power, screenState) => {
                     if (this.televisionService) {

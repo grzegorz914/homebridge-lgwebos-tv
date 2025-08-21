@@ -344,10 +344,10 @@ class LgWebOsSocket extends EventEmitter {
                                     // --- Handle uninstall ---
                                     if (appUninstalled && messageData.app) {
                                         this.inputsArr = this.inputsArr.filter(inp => inp.reference !== messageData.app.id);
-                                        const inputs = [{
+                                        const inputs = {
                                             name: messageData.app.title,
                                             reference: messageData.app.id
-                                        }];
+                                        };
 
                                         await this.saveData(this.inputsFile, this.inputsArr);
                                         this.emit('addRemoveOrUpdateInput', inputs, true);
@@ -386,7 +386,11 @@ class LgWebOsSocket extends EventEmitter {
                                     await this.saveData(this.inputsFile, this.inputsArr);
                                     // Emit the inputs
 
-                                    this.emit('addRemoveOrUpdateInput', this.inputsArr, false);
+                                    for (const input of this.inputsArr) {
+                                        if (!input?.name || !input?.reference) continue;
+
+                                        this.emit('addRemoveOrUpdateInput', input, false);
+                                    }
 
                                     //restFul
                                     this.emit('restFul', 'apps', messageData);
