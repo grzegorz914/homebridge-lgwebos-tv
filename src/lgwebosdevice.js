@@ -540,6 +540,7 @@ class LgWebOsDevice extends EventEmitter {
 
                 const savedName = this.savedInputsNames[inputReference] ?? input.name;
                 const sanitizedName = await this.sanitizeString(savedName);
+                const inputMode = input.mode;
                 const inputVisibility = this.savedInputsTargetVisibility[inputReference] ?? 0;
 
                 if (inputService) {
@@ -564,7 +565,7 @@ class LgWebOsDevice extends EventEmitter {
                         identifier,
                         reference: inputReference,
                         name: sanitizedName,
-                        mode: input.mode,
+                        mode: inputMode,
                         visibility: inputVisibility,
                     });
 
@@ -573,7 +574,7 @@ class LgWebOsDevice extends EventEmitter {
                         .setCharacteristic(Characteristic.Name, sanitizedName)
                         .setCharacteristic(Characteristic.ConfiguredName, sanitizedName)
                         .setCharacteristic(Characteristic.IsConfigured, 1)
-                        .setCharacteristic(Characteristic.InputSourceType, 0)
+                        .setCharacteristic(Characteristic.InputSourceType, inputMode) // 0=HDMI-like Input, 1=Tuner/Channel
                         .setCharacteristic(Characteristic.CurrentVisibilityState, inputVisibility)
                         .setCharacteristic(Characteristic.TargetVisibilityState, inputVisibility);
 
