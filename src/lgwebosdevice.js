@@ -540,7 +540,7 @@ class LgWebOsDevice extends EventEmitter {
 
                 const savedName = this.savedInputsNames[inputReference] ?? input.name;
                 const sanitizedName = await this.sanitizeString(savedName);
-                const inputMode = input.mode;
+                const inputMode = input.mode ?? 0;
                 const inputVisibility = this.savedInputsTargetVisibility[inputReference] ?? 0;
 
                 if (inputService) {
