@@ -344,13 +344,13 @@ class LgWebOsSocket extends EventEmitter {
                                     // --- Handle uninstall ---
                                     if (appUninstalled && messageData.app) {
                                         this.inputsArr = this.inputsArr.filter(inp => inp.reference !== messageData.app.id);
-                                        const input = {
+                                        const inputs = [{
                                             name: messageData.app.title,
                                             reference: messageData.app.id
-                                        };
+                                        }];
 
-                                        this.emit('addRemoveOrUpdateInput', input, true);
                                         await this.saveData(this.inputsFile, this.inputsArr);
+                                        this.emit('addRemoveOrUpdateInput', inputs, true);
                                         return;
                                     }
 
@@ -381,14 +381,12 @@ class LgWebOsSocket extends EventEmitter {
 
                                     // --- Merge external inputs + apps ---
                                     this.inputsArr = this.getInputsFromDevice ? [...this.externalInputsArr, ...appsArr] : this.inputs;
-                                    for (const input of this.inputsArr) {
-                                        if (!input?.name || !input?.reference) continue;
-
-                                        this.emit('addRemoveOrUpdateInput', input, false);
-                                    }
 
                                     // --- Save result ---
                                     await this.saveData(this.inputsFile, this.inputsArr);
+                                    // Emit the inputs
+
+                                    this.emit('addRemoveOrUpdateInput', this.inputsArr, false);
 
                                     //restFul
                                     this.emit('restFul', 'apps', messageData);
