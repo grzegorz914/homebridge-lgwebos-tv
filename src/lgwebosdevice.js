@@ -550,17 +550,22 @@ class LgWebOsDevice extends EventEmitter {
 
             if (inputService) {
                 // === UPDATE EXISTING ===
-                inputService.name = sanitizedName;
-                inputService.mode = inputMode;
-                inputService.visibility = inputVisibility;
+                const nameChanged = inputService.name !== sanitizedName;
 
-                inputService
-                    .updateCharacteristic(Characteristic.Name, sanitizedName)
-                    .updateCharacteristic(Characteristic.ConfiguredName, sanitizedName)
-                    .updateCharacteristic(Characteristic.TargetVisibilityState, inputVisibility)
-                    .updateCharacteristic(Characteristic.CurrentVisibilityState, inputVisibility);
+                if (nameChanged) {
+                    inputService.name = sanitizedName;
+                    inputService
+                        .updateCharacteristic(Characteristic.Name, sanitizedName)
+                        .updateCharacteristic(Characteristic.ConfiguredName, sanitizedName)
 
-                if (this.enableDebugMode) this.emit('debug', `Updated input: ${input.name} (${inputReference})`);
+                    if (this.enableDebugMode) {
+                        this.emit('debug', `Updated input: ${input.name} (${inputReference})`);
+                    }
+                } else {
+                    if (this.enableDebugMode) {
+                        this.emit('debug', `No update needed: ${input.name} (${inputReference})`);
+                    }
+                }
             } else {
                 // === CREATE NEW ===
                 const identifier = this.inputsServices.length + 1;
