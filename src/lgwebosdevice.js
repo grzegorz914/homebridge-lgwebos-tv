@@ -1819,14 +1819,13 @@ class LgWebOsDevice extends EventEmitter {
                     const inputIdentifier = input ? input.identifier : this.inputIdentifier;
                     const inputName = input ? input.name : appId;
                     this.inputIdentifier = inputIdentifier;
-                    this.appId = appId;
 
                     if (this.televisionService) {
                         this.televisionService
                             .updateCharacteristic(Characteristic.ActiveIdentifier, inputIdentifier);
                     }
 
-                    if (appId !== appId) {
+                    if (appId !== this.appId) {
                         for (let i = 0; i < 2; i++) {
                             const state = this.power ? [true, false][i] : false;
                             if (this.sensorInputService) {
@@ -1862,6 +1861,7 @@ class LgWebOsDevice extends EventEmitter {
                         }
                     }
 
+                    this.appId = appId;
                     if (!this.disableLogInfo) {
                         this.emit('info', `Input Name: ${inputName}`);
                     }
@@ -2035,9 +2035,7 @@ class LgWebOsDevice extends EventEmitter {
                     }
 
                     this.pictureMode = pictureMode;
-                    if (!this.disableLogInfo) {
-                        this.emit('info', `Picture Mode: ${PictureModes[pictureMode] ?? 'Unknown'}`);
-                    }
+                    if (!this.disableLogInfo) this.emit('info', `Picture Mode: ${PictureModes[pictureMode] ?? 'Unknown'}`);
                 })
                 .on('soundMode', (soundMode, power) => {
                     if (this.soundsModesConfiguredCount > 0) {
@@ -2064,9 +2062,7 @@ class LgWebOsDevice extends EventEmitter {
                     }
 
                     this.soundMode = soundMode;
-                    if (!this.disableLogInfo) {
-                        this.emit('info', `Sound Mode: ${SoundModes[soundMode] ?? 'Unknown'}`);
-                    }
+                    if (!this.disableLogInfo) this.emit('info', `Sound Mode: ${SoundModes[soundMode] ?? 'Unknown'}`);
                 })
                 .on('soundOutput', (soundOutput, power) => {
                     if (this.soundsOutputsConfiguredCount > 0) {
@@ -2081,7 +2077,7 @@ class LgWebOsDevice extends EventEmitter {
                         }
                     }
 
-                    if (this.soundMode !== this.soundOutput) {
+                    if (soundOutput !== this.soundOutput) {
                         for (let i = 0; i < 2; i++) {
                             const state = power ? [true, false][i] : false;
                             if (this.sensorSoundOutputService) {
@@ -2093,9 +2089,7 @@ class LgWebOsDevice extends EventEmitter {
                     }
 
                     this.soundOutput = soundOutput;
-                    if (!this.disableLogInfo) {
-                        this.emit('info', `Sound Output: ${SoundOutputs[soundOutput] ?? 'Unknown'}`);
-                    }
+                    if (!this.disableLogInfo) this.emit('info', `Sound Output: ${SoundOutputs[soundOutput] ?? 'Unknown'}`);
                 })
                 .on('mediaInfo', (playState, appType) => {
                     if (this.sensorPlayStateService) {
@@ -2105,30 +2099,18 @@ class LgWebOsDevice extends EventEmitter {
 
                     this.playState = playState;
                     this.appType = appType;
-                    if (!this.disableLogInfo) {
-                        this.emit('info', `Play state: ${playState ? 'Playing' : 'Paused'}`);
-                    }
+                    if (!this.disableLogInfo) this.emit('info', `Play state: ${playState ? 'Playing' : 'Paused'}`);
                 })
-                .on('success', (success) => {
-                    this.emit('success', success);
-                })
-                .on('info', (info) => {
-                    this.emit('info', info);
-                })
-                .on('debug', (debug) => {
-                    this.emit('debug', debug);
-                })
-                .on('warn', (warn) => {
-                    this.emit('warn', warn);
-                })
-                .on('error', (error) => {
-                    this.emit('error', error);
-                })
+                .on('success', (success) => this.emit('success', success))
+                .on('info', (info) => this.emit('info', info))
+                .on('debug', (debug) => this.emit('debug', debug))
+                .on('warn', (warn) => this.emit('warn', warn))
+                .on('error', (error) => this.emit('error', error))
                 .on('restFul', (path, data) => {
-                    const restFul = this.restFulConnected ? this.restFul1.update(path, data) : false;
+                    if (this.restFulConnected) this.restFul1.update(path, data);
                 })
                 .on('mqtt', (topic, message) => {
-                    const mqtt = this.mqttConnected ? this.mqtt1.emit('publish', topic, message) : false;
+                    if (this.mqttConnected) this.mqtt1.emit('publish', topic, message);
                 });
 
             //connect
@@ -2138,45 +2120,32 @@ class LgWebOsDevice extends EventEmitter {
             }
 
             //start external integrations
-            const startExternalIntegrations = this.restFul.enable || this.mqtt.enable ? await this.externalIntegrations() : false;
+            if (this.restFul.enable || this.mqtt.enable) await this.externalIntegrations();
 
             //prepare accessory
-            if (this.startPrepareAccessory) {
-                const pairingKey = await this.readData(this.keyFile);
-                const key = pairingKey.length > 10 ? pairingKey.toString() : '0';
+            const pairingKey = await this.readData(this.keyFile);
+            const key = pairingKey.length > 10 ? pairingKey.toString() : '0';
 
-                if (key !== '0') {
-                    //prepare data for accessory
-                    await this.prepareDataForAccessory();
-
-                    //prepare accessory
-                    const accessory = await this.prepareAccessory();
-                    this.emit('publishAccessory', accessory);
-                    this.startPrepareAccessory = false;
-                }
-
-                if (key === '0') {
+            if (key !== '0') {
+                await this.prepareDataForAccessory();
+                const accessory = await this.prepareAccessory();
+                return accessory;
+            } else {
+                return new Promise((resolve) => {
                     const intervalId = setInterval(async () => {
-                        if (this.startPrepareAccessory) {
-                            const pairingKey = await this.readData(this.keyFile);
-                            const key = pairingKey.length > 10 ? pairingKey.toString() : '0';
+                        const pairingKey = await this.readData(this.keyFile);
+                        const key = pairingKey.length > 10 ? pairingKey.toString() : '0';
 
-                            if (key !== '0') {
-                                clearInterval(intervalId);
+                        if (key !== '0') {
+                            clearInterval(intervalId);
 
-                                //prepare data for accessory
-                                await this.prepareDataForAccessory();
-
-                                //prepare accessory
-                                const accessory = await this.prepareAccessory();
-                                this.emit('publishAccessory', accessory);
-                                this.startPrepareAccessory = false;
-                            }
+                            await this.prepareDataForAccessory();
+                            const accessory = await this.prepareAccessory();
+                            resolve(accessory);
                         }
                     }, 5000);
-                }
+                });
             }
-            return true;
         } catch (error) {
             throw new Error(`Start error: ${error}`);
         }
