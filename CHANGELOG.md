@@ -5,10 +5,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ### After update to v3.0.0 RESTFull and MQTT config settings need to be updated
 
+## [3.9.13] - (24.08.2025)
+
+## Changes
+
+- fix [#260](https://github.com/grzegorz914/homebridge-lgwebos-tv/issues/260)
+- better handle sanitized names
+- cleanup
+
 ## [3.9.11] - (22.08.2025)
 
 ## Changes
 
+- fix [#260](https://github.com/grzegorz914/homebridge-lgwebos-tv/issues/260)
 - fix sound output sensor
 - fix app sensor
 - cleanup

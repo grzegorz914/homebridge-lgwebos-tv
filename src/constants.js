@@ -63,6 +63,7 @@ export const ApiUrls = {
     "TurnOnScreen45": "ssap://com.webos.service.tvpower/power/turnOnScreen",
     "LaunchApp": "ssap://system.launcher/launch",
     "CloseApp": "ssap://system.launcher/close",
+    "OpenMediaViewer": "ssap://media.viewer/open",
     "CloseMediaViewer": "ssap://media.viewer/close",
     "CloseWebApp": "ssap://webapp/closeWebApp",
     "OpenChannel": "ssap://tv/openChannel",
@@ -262,7 +263,7 @@ export const SystemApps = [
     "com.webos.app.oobe",
     "com.webos.app.beanbrowser",
     "com.webos.app.remoteservice",
-    "com.webos.app.tvsimpleviewer",
+    //"com.webos.app.tvsimpleviewer",
     "com.webos.app.magicnum",
     "com.webos.app.dvrpopup",
     "com.webos.app.btspeakerapp",
@@ -334,7 +335,8 @@ export const SystemApps = [
     "com.webos.app.shoppinghdmi3",
     "alibaba.genie",
     "alibaba.genie.view",
-    "amazon.alexa.view",
+    //"amazon.alexa.view",
+    "amazon.alexapr",
     "com.webos.app.adhdmi1",
     "com.webos.app.adhdmi2",
     "com.webos.app.adhdmi3",
@@ -343,7 +345,7 @@ export const SystemApps = [
     "com.webos.app.adoverlayex",
     "com.webos.app.overlaymembership",
     "com.webos.chromecast",
-    "com.webos.chromecast-settings"
+    //"com.webos.chromecast-settings"
 ];
 
 export const PictureModes = {
@@ -395,4 +397,34 @@ export const SoundOutputs = {
     "tv_external_headphone": "TV External Headphone",
     "bt_soundbar": "BT Soundbar",
     "soundbar": "Soundbar"
+};
+
+export const DiacriticsMap = {
+    // Polish
+    'ą': 'a', 'ć': 'c', 'ę': 'e', 'ł': 'l', 'ń': 'n',
+    'ó': 'o', 'ś': 's', 'ź': 'z', 'ż': 'z',
+    'Ą': 'A', 'Ć': 'C', 'Ę': 'E', 'Ł': 'L', 'Ń': 'N',
+    'Ó': 'O', 'Ś': 'S', 'Ź': 'Z', 'Ż': 'Z',
+
+    // German
+    'ä': 'a', 'ö': 'o', 'ü': 'u', 'ß': 'ss',
+    'Ä': 'A', 'Ö': 'O', 'Ü': 'U',
+
+    // French
+    'à': 'a', 'â': 'a', 'ç': 'c', 'é': 'e', 'è': 'e',
+    'ê': 'e', 'ë': 'e', 'î': 'i', 'ï': 'i', 'ô': 'o',
+    'û': 'u', 'ù': 'u', 'ü': 'u', 'ÿ': 'y',
+    'À': 'A', 'Â': 'A', 'Ç': 'C', 'É': 'E', 'È': 'E',
+    'Ê': 'E', 'Ë': 'E', 'Î': 'I', 'Ï': 'I', 'Ô': 'O',
+    'Û': 'U', 'Ù': 'U', 'Ü': 'U', 'Ÿ': 'Y',
+
+    // Spanish & Portuguese
+    'á': 'a', 'í': 'i', 'ó': 'o', 'ú': 'u', 'ñ': 'n',
+    'Á': 'A', 'Í': 'I', 'Ó': 'O', 'Ú': 'U', 'Ñ': 'N',
+
+    // Scandinavian
+    'å': 'a', 'Å': 'A', 'ø': 'o', 'Ø': 'O', 'æ': 'ae', 'Æ': 'AE',
+
+    // Other common
+    'Š': 'S', 'š': 's', 'Ž': 'Z', 'ž': 'z'
 };

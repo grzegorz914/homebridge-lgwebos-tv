@@ -207,14 +207,13 @@
                   "reference": {
                     "title": "Reference",
                     "type": "string",
-                    "placeholder": "Input/App, Channel reference",
-                    "description": "Here set the Input/App or Channel reference.",
+                    "placeholder": "com.webos.app.sheduler",
+                    "description": "Here set the Input/App/Channel reference.",
                     "required": false
                   },
                   "command": {
                     "title": "RC Command",
                     "type": "string",
-                    "default": "POWER",
                     "oneOf": [
                       {
                         "title": "0",
@@ -1597,27 +1596,10 @@
                 "devices[].buttons[].name",
                 "devices[].buttons[].mode",
                 "devices[].buttons[].reference",
-                "devices[].buttons[].displayType",
-                "devices[].buttons[].namePrefix"
-              ],
-              "condition": {
-                "functionBody": "return model.devices[arrayIndices].buttons[arrayIndices].mode <= 1;"
-              }
-            },
-            {
-              "key": "devices[].buttons",
-              "type": "tabarray",
-              "title": "{{ value.name || 'button' }}",
-              "items": [
-                "devices[].buttons[].name",
-                "devices[].buttons[].mode",
                 "devices[].buttons[].command",
                 "devices[].buttons[].displayType",
                 "devices[].buttons[].namePrefix"
-              ],
-              "condition": {
-                "functionBody": "return model.devices[arrayIndices].buttons[arrayIndices].mode === 2;"
-              }
+              ]
             }
           ],
           "condition": {

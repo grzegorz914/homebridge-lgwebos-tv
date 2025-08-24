@@ -72,7 +72,7 @@ class LgWebOsSocket extends EventEmitter {
                 this.emit('error', `Impulse generatotr error: ${error}, trying again`);
             }
         }).on('state', (state) => {
-            const emit = state ? this.emit('success', `Heartbeat started`) : this.emit('warn', `Heartbeat stopped`);
+            this.emit('success', `Heartbeat ${state ? 'started' : 'stopped'}`);
         });
     };
 
