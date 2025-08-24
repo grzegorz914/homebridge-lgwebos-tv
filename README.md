@@ -28,6 +28,7 @@ Tested with OLED65G6V, 32LM6300PLA, 49SK8500, OLED65C7T, 55SK800PLB, OLED48CX.
 
 ## Abut The Plugin
 
+* Support SSL Web Socket for newer TV, plugin config `Advanced Settings >> Device >> SSL WebSocket`
 * Power and Screen ON/OFF short press tile in HomeKit app.
 * RC/Media control is possible after you go to the RC app on iPhone/iPad.
 * Speaker control is possible after you go to RC app on iPhone/iPad `Speaker Service`.
