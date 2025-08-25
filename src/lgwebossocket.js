@@ -384,13 +384,9 @@ class LgWebOsSocket extends EventEmitter {
 
                                     // --- Save result ---
                                     await this.saveData(this.inputsFile, this.inputsArr);
+
                                     // Emit the inputs
-
-                                    for (const input of this.inputsArr) {
-                                        if (!input?.name || !input?.reference) continue;
-
-                                        this.emit('addRemoveOrUpdateInput', input, false);
-                                    }
+                                    this.emit('addRemoveOrUpdateInput', this.inputsArr, false);
 
                                     //restFul
                                     this.emit('restFul', 'apps', messageData);
