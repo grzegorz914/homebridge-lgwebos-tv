@@ -12,50 +12,57 @@ class WakeOnLan extends EventEmitter {
     }
 
     async wakeOnLan() {
-        try {
-            // Create the magic packet
-            const magicPacket = Buffer.alloc(102);
-            magicPacket.fill(0xFF, 0, 6);
-            for (let i = 6; i < 102; i += 6) {
-                this.mac.split(':').map(hex => parseInt(hex, 16)).forEach((byte, j) => {
-                    magicPacket.writeUInt8(byte, i + j);
-                });
-            }
+        return new Promise((resolve, reject) => {
+            try {
+                // Parse MAC once
+                const macBytes = this.mac.split(':').map(hex => parseInt(hex, 16));
+                const magicPacket = Buffer.alloc(102);
+                magicPacket.fill(0xFF, 0, 6);
+                for (let i = 6; i < 102; i += 6) {
+                    macBytes.forEach((byte, j) => magicPacket.writeUInt8(byte, i + j));
+                }
 
-            const socket = Dgram.createSocket(this.udpType);
-            socket.on('error', (error) => {
-                this.emit('error', error);
-            })
-                .on('close', () => {
-                    const debug1 = this.debugLog ? this.emit('debug', `WoL closed`) : false;
-                })
-                .on('listening', () => {
-                    socket.setBroadcast(true);
-                    const address = socket.address();
-                    const debug1 = this.debugLog ? this.emit('debug', `WoL start listening: ${address.address}:${address.port}`) : false;
+                const socket = Dgram.createSocket(this.udpType)
+                    .on('error', (error) => {
+                        this.emit('error', error);
+                        reject(error);
+                    })
+                    .on('close', () => {
+                        if (this.debugLog) this.emit('debug', `WoL socket closed`);
+                        resolve(true);
+                    })
+                    .on('listening', () => {
+                        if (this.udpType === 'udp4') socket.setBroadcast(true);
 
-                    const sendMagicPacket = (attempt) => {
-                        if (attempt > 3) {
-                            socket.close();
-                            return true;
-                        } else {
+                        const address = socket.address();
+                        if (this.debugLog) this.emit('debug', `WoL listening: ${address.address}:${address.port}`);
+
+                        const sendMagicPacket = (attempt) => {
+                            if (attempt > 4) {
+                                socket.close();
+                                return;
+                            }
                             socket.send(magicPacket, 0, magicPacket.length, 9, this.broadcastAddress, (error, bytes) => {
                                 if (error) {
                                     this.emit('error', error);
+                                    socket.close();
                                 } else {
-                                    const debug = this.debugLog ? this.emit('debug', `Send WoL to: ${this.broadcastAddress}:${9}, ${bytes}B`) : false;
+                                    if (this.debugLog) this.emit('debug', `Sent WoL to ${this.broadcastAddress}:9, ${bytes}B (try ${attempt})`);
                                     setTimeout(() => sendMagicPacket(attempt + 1), 100);
                                 }
                             });
-                        }
-                    }
+                        };
 
-                    sendMagicPacket(1); // Start the initial send attempt
-                })
-                .bind();
-        } catch (error) {
-            throw new Error(error);
-        }
+                        sendMagicPacket(1);
+                    })
+                    .bind({ port: 0, exclusive: true });
+            } catch (error) {
+                this.emit('error', error);
+                reject(error);
+            }
+        });
     }
 }
+
 export default WakeOnLan;
+

@@ -26,7 +26,6 @@ class LgWebOsDevice extends EventEmitter {
         this.broadcastAddress = device.broadcastAddress || '255.255.255.255';
         this.getInputsFromDevice = device.getInputsFromDevice || false;
         this.filterSystemApps = this.getInputsFromDevice ? device.filterSystemApps : false;
-        this.disableLoadDefaultInputs = device.disableLoadDefaultInputs || false;
         this.inputs = device.inputs || [];
         this.inputsDisplayOrder = device.inputsDisplayOrder || 0;
         this.buttons = device.buttons || [];
@@ -80,7 +79,7 @@ class LgWebOsDevice extends EventEmitter {
         this.mqttConnected = false;
 
         //add configured inputs to the default inputs
-        this.inputs = this.disableLoadDefaultInputs ? this.inputs : [...DefaultInputs, ...this.inputs];
+        this.inputs = [...DefaultInputs, ...this.inputs];
         this.inputIdentifier = 1;
 
         //state variable
@@ -391,15 +390,9 @@ class LgWebOsDevice extends EventEmitter {
                             this.emit('warn', `RESTFul set error: ${error}`);
                         }
                     })
-                    .on('debug', (debug) => {
-                        this.emit('debug', debug);
-                    })
-                    .on('warn', (warn) => {
-                        this.emit('warn', warn);
-                    })
-                    .on('error', (error) => {
-                        this.emit('error', error);
-                    });
+                    .on('debug', (debug) => this.emit('debug', debug))
+                    .on('warn', (warn) => this.emit('warn', warn))
+                    .on('error', (error) => this.emit('error', error));
             }
 
             //mqtt client
@@ -428,15 +421,9 @@ class LgWebOsDevice extends EventEmitter {
                             this.emit('warn', `MQTT set error: ${error}`);
                         }
                     })
-                    .on('debug', (debug) => {
-                        this.emit('debug', debug);
-                    })
-                    .on('warn', (warn) => {
-                        this.emit('warn', warn);
-                    })
-                    .on('error', (error) => {
-                        this.emit('error', error);
-                    });
+                    .on('debug', (debug) => this.emit('debug', debug))
+                    .on('warn', (warn) => this.emit('warn', warn))
+                    .on('error', (error) => this.emit('error', error));
             }
 
             return true;
@@ -455,7 +442,7 @@ class LgWebOsDevice extends EventEmitter {
 
             //read inputs file
             const savedInputs = await this.readData(this.inputsFile);
-            this.savedInputs = savedInputs.toString().trim() !== '' ? JSON.parse(savedInputs) : this.inputs;
+            this.savedInputs = savedInputs.toString().trim() !== '' ? JSON.parse(savedInputs) : [];
             if (this.enableDebugMode) this.emit('debug', `Read saved Inputs: ${JSON.stringify(this.savedInputs, null, 2)}`);
 
             //read channels from file
@@ -527,13 +514,15 @@ class LgWebOsDevice extends EventEmitter {
             for (const input of inputs) {
                 if (this.inputsServices.length >= 85 && !remove) continue;
 
-                const inputReference = input.reference;
+                // Filter
+                const systemApp = this.filterSystemApps && SystemApps.includes(input.reference);
+                if (systemApp) continue;
 
-                // Filter system apps (only block on add)
-                if (this.filterSystemApps && !remove && SystemApps.includes(inputReference)) {
-                    if (this.enableDebugMode) this.emit('debug', `Skipped system app: ${inputReference}`);
-                    continue;
-                }
+                const inputReference = input.reference;
+                const savedName = this.savedInputsNames[inputReference] ?? input.name;
+                const sanitizedName = await this.sanitizeString(savedName);
+                const inputMode = input.mode ?? 0;
+                const inputVisibility = this.savedInputsTargetVisibility[inputReference] ?? 0;
 
                 if (remove) {
                     const svc = this.inputsServices.find(s => s.reference === inputReference);
@@ -547,12 +536,6 @@ class LgWebOsDevice extends EventEmitter {
                 }
 
                 let inputService = this.inputsServices.find(s => s.reference === inputReference);
-
-                const savedName = this.savedInputsNames[inputReference] ?? input.name;
-                const sanitizedName = await this.sanitizeString(savedName);
-                const inputMode = input.mode ?? 0;
-                const inputVisibility = this.savedInputsTargetVisibility[inputReference] ?? 0;
-
                 if (inputService) {
                     const nameChanged = inputService.name !== sanitizedName;
                     if (nameChanged) {
@@ -1693,15 +1676,9 @@ class LgWebOsDevice extends EventEmitter {
                 broadcastAddress: this.broadcastAddress,
                 enableDebugMode: this.enableDebugMode
             })
-                .on('debug', (debug) => {
-                    this.emit('debug', debug);
-                })
-                .on('warn', (warn) => {
-                    this.emit('warn', warn);
-                })
-                .on('error', (error) => {
-                    this.emit('error', error);
-                });
+                .on('debug', (debug) => this.emit('debug', debug))
+                .on('warn', (warn) => this.emit('warn', warn))
+                .on('error', (error) => this.emit('error', error));
         } catch (error) {
             this.emit('warn', `Wake On Lan start error: ${error}`);
         }
@@ -1711,11 +1688,11 @@ class LgWebOsDevice extends EventEmitter {
             this.lgWebOsSocket = new LgWebOsSocket({
                 host: this.host,
                 inputs: this.inputs,
+                getInputsFromDevice: this.getInputsFromDevice,
                 keyFile: this.keyFile,
                 devInfoFile: this.devInfoFile,
                 inputsFile: this.inputsFile,
                 channelsFile: this.channelsFile,
-                getInputsFromDevice: this.getInputsFromDevice,
                 serviceMenu: this.serviceMenu,
                 ezAdjustMenu: this.ezAdjustMenu,
                 enableDebugMode: this.enableDebugMode,
@@ -1732,7 +1709,7 @@ class LgWebOsDevice extends EventEmitter {
 
                     this.informationService?.setCharacteristic(Characteristic.FirmwareRevision, info.firmwareRevision)
                 })
-                .on('addRemoveOrUpdateInput', async (inputs, remove) => {
+                .on('installedApps', async (inputs, remove) => {
                     await this.addRemoveOrUpdateInput(inputs, remove);
                 })
                 .on('powerState', (power, screenState) => {
@@ -1768,9 +1745,7 @@ class LgWebOsDevice extends EventEmitter {
                     }
                 })
                 .on('currentApp', (appId) => {
-                    if (!this.inputsServices) return;
-
-                    const input = this.inputsServices.find(input => input.reference === appId) ?? false;
+                    const input = this.inputsServices?.find(input => input.reference === appId) ?? false;
                     const inputIdentifier = input ? input.identifier : this.inputIdentifier;
                     const inputName = input ? input.name : appId;
                     this.inputIdentifier = inputIdentifier;

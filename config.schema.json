@@ -57,16 +57,6 @@
               "description": "This function get all available inputs and apps direct from device, manually configured inputs will be skipped.",
               "required": false
             },
-            "disableLoadDefaultInputs": {
-              "title": "Disable Load Default Inputs",
-              "type": "boolean",
-              "default": false,
-              "description": "This function disable load default inputs Live TV, HDMI 1, HDMI 2 in to the inputs list.",
-              "condition": {
-                "functionBody": "return model.devices[arrayIndices].getInputsFromDevice === false"
-              },
-              "required": false
-            },
             "filterSystemApps": {
               "title": "Hide System Apps",
               "type": "boolean",
@@ -1561,7 +1551,6 @@
           "items": [
             "devices[].getInputsFromDevice",
             "devices[].filterSystemApps",
-            "devices[].disableLoadDefaultInputs",
             "devices[].inputsDisplayOrder",
             {
               "key": "devices[].inputs",
