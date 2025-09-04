@@ -115,9 +115,9 @@ class LgWebOsSocket extends EventEmitter {
         }
     }
 
-    async saveData(path, data) {
+    async saveData(path, data, pairingKey = false) {
         try {
-            data = JSON.stringify(data, null, 2);
+            data = pairingKey ? data : JSON.stringify(data, null, 2);
             await fsPromises.writeFile(path, data);
             if (this.enableDebugMode) this.emit('debug', `Saved data: ${data}`);
             return true;
@@ -318,7 +318,7 @@ class LgWebOsSocket extends EventEmitter {
 
             //Read pairing key from file
             const pairingKey = await this.readData(this.keyFile);
-            this.pairingKey = pairingKey.toString().trim() !== '' ? pairingKey.toString() : '';
+            this.pairingKey = pairingKey.length > 10 ? pairingKey.toString() : '0';
 
             //Socket
             const url = this.sslWebSocket ? ApiUrls.WssUrl.replace('lgwebostv', this.host) : ApiUrls.WsUrl.replace('lgwebostv', this.host);
@@ -383,7 +383,7 @@ class LgWebOsSocket extends EventEmitter {
                                     //Save key in file if not saved before
                                     const pairingKey = messageData['client-key'];
                                     if (pairingKey !== this.pairingKey) {
-                                        await this.saveData(this.keyFile, pairingKey);
+                                        await this.saveData(this.keyFile, pairingKey, true);
                                         this.emit('success', 'Pairing key saved');
                                     }
 
