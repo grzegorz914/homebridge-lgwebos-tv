@@ -19,7 +19,6 @@ class LgWebOsSocket extends EventEmitter {
         this.ezAdjustMenu = config.ezAdjustMenu;
         this.enableDebugMode = config.enableDebugMode;
         this.sslWebSocket = config.sslWebSocket;
-        this.url = this.sslWebSocket ? ApiUrls.WssUrl.replace('lgwebostv', this.host) : ApiUrls.WsUrl.replace('lgwebostv', this.host);
         this.webSocketPort = this.sslWebSocket ? 3001 : 3000;
 
         this.socket = null;
@@ -319,53 +318,50 @@ class LgWebOsSocket extends EventEmitter {
 
             //Read pairing key from file
             const pairingKey = await this.readData(this.keyFile);
-            this.pairingKey = pairingKey.length > 10 ? pairingKey.toString() : '0';
+            this.pairingKey = pairingKey.toString().trim() !== '' ? pairingKey.toString() : '';
 
             //Socket
-            const socket = this.sslWebSocket ? new WebSocket(this.url, { rejectUnauthorized: false }) : new WebSocket(this.url);
-            socket.on('open', async () => {
-                if (this.enableDebugMode) this.emit('debug', `Plugin received heartbeat from TV`);
-
-                this.socket = socket;
-                this.socketConnected = true;
-
-                // connect to device success
-                this.emit('success', `Socket Connect Success`);
-
-                // start heartbeat
-                this.heartbeat = setInterval(() => {
-                    if (socket.readyState === socket.OPEN) {
-                        if (this.enableDebugMode) this.emit('debug', `Socket send heartbeat`);
-                        socket.ping();
-                    }
-                }, 5000);
-
-                // Register to TV
-                try {
-                    Pairing['client-key'] = this.pairingKey;
-                    this.registerId = await this.getCid();
-                    await this.send('register', undefined, Pairing, this.registerId);
-                } catch (err) {
-                    this.emit('error', `Socket register error: ${err}`);
-                }
-            })
-                .on('pong', () => {
-                    if (this.enableDebugMode) this.emit('debug', `Socket received heartbeat`);
+            const url = this.sslWebSocket ? ApiUrls.WssUrl.replace('lgwebostv', this.host) : ApiUrls.WsUrl.replace('lgwebostv', this.host);
+            const options = this.sslWebSocket ? { rejectUnauthorized: false } : {};
+            const socket = new WebSocket(url, options)
+                .on('error', (error) => {
+                    if (this.enableDebugMode) this.emit('debug', `Socket connect error: ${error}`);
+                    this.cleanupSocket();
+                    this.updateTvState();
                 })
                 .on('close', () => {
                     if (this.enableDebugMode) this.emit('debug', `Socket closed`);
                     this.cleanupSocket();
                     this.updateTvState();
                 })
-                .on('error', (error) => {
-                    if (this.enableDebugMode) this.emit('debug', `Socket connect error: ${error}`);
-                    if (this.heartbeat) {
-                        clearInterval(this.heartbeat);
-                        this.heartbeat = null;
+                .on('open', async () => {
+                    if (this.enableDebugMode) this.emit('debug', `Plugin received heartbeat from TV`);
+
+                    this.socket = socket;
+                    this.socketConnected = true;
+
+                    // connect to device success
+                    this.emit('success', `Socket Connect Success`);
+
+                    // start heartbeat
+                    this.heartbeat = setInterval(() => {
+                        if (socket.readyState === socket.OPEN) {
+                            if (this.enableDebugMode) this.emit('debug', `Socket send heartbeat`);
+                            socket.ping();
+                        }
+                    }, 5000);
+
+                    // Register to TV
+                    try {
+                        Pairing['client-key'] = this.pairingKey;
+                        this.registerId = await this.getCid();
+                        await this.send('register', undefined, Pairing, this.registerId);
+                    } catch (err) {
+                        this.emit('error', `Socket register error: ${err}`);
                     }
-                    this.socket = null;
-                    this.socketConnected = false;
-                    this.updateTvState();
+                })
+                .on('pong', () => {
+                    if (this.enableDebugMode) this.emit('debug', `Socket received heartbeat`);
                 })
                 .on('message', async (message) => {
                     const parsedMessage = JSON.parse(message);
@@ -379,7 +375,7 @@ class LgWebOsSocket extends EventEmitter {
                             switch (messageType) {
                                 case 'response':
                                     if (this.enableDebugMode) this.emit('debug', `Start registering to TV: ${stringifyMessage}`);
-                                    this.emit('info', 'Please accept authorization on TV');
+                                    this.emit('warn', 'Please accept authorization on TV');
                                     break;
                                 case 'registered':
                                     if (this.enableDebugMode) this.emit('debug', `Registered to TV with key: ${messageData['client-key']}`);
@@ -388,7 +384,7 @@ class LgWebOsSocket extends EventEmitter {
                                     const pairingKey = messageData['client-key'];
                                     if (pairingKey !== this.pairingKey) {
                                         await this.saveData(this.keyFile, pairingKey);
-                                        this.emit('info', 'Pairing key saved');
+                                        this.emit('success', 'Pairing key saved');
                                     }
 
                                     //Request specjalized socket
@@ -407,7 +403,7 @@ class LgWebOsSocket extends EventEmitter {
                                     await this.subscribeTvStatus();
                                     break;
                                 case 'error':
-                                    if (this.enableDebugMode) this.emit('debug', `Register to TV error: ${stringifyMessage}`);
+                                    this.emit('error', `Register to TV error: ${stringifyMessage}`);
                                     break;
                                 default:
                                     if (this.enableDebugMode) this.emit('debug', this.emit('debug', `Register to TV unknown message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`));

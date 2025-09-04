@@ -1982,7 +1982,7 @@ class LgWebOsDevice extends EventEmitter {
 
             //prepare accessory
             const pairingKey = await this.readData(this.keyFile);
-            const key = pairingKey.length > 10 ? pairingKey.toString() : '0';
+            const key = pairingKey.toString().trim() !== '' ? pairingKey.toString() : '';
 
             if (key !== '0') {
                 await this.prepareDataForAccessory();
@@ -1992,7 +1992,7 @@ class LgWebOsDevice extends EventEmitter {
                 return new Promise((resolve) => {
                     const intervalId = setInterval(async () => {
                         const pairingKey = await this.readData(this.keyFile);
-                        const key = pairingKey.length > 10 ? pairingKey.toString() : '0';
+                        const key = pairingKey.toString().trim() !== '' ? pairingKey.toString() : '';
 
                         if (key !== '0') {
                             clearInterval(intervalId);
