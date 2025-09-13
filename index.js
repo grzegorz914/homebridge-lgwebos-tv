@@ -16,8 +16,8 @@ class LgWebOsPlatform {
 		const prefDir = join(api.user.storagePath(), 'lgwebosTv');
 		try {
 			mkdirSync(prefDir, { recursive: true });
-		} catch (err) {
-			log.error(`Prepare directory error: ${err}`);
+		} catch (error) {
+			log.error(`Prepare directory error: ${error.message ?? error}`);
 			return;
 		}
 
@@ -30,7 +30,7 @@ class LgWebOsPlatform {
 
 				if (!name || !host || !macValid) {
 					log.warn(`Invalid config: Name: ${name || 'missing'}, Host: ${host || 'missing'}, MAC: ${mac || 'missing'}`);
-					return;
+					continue;
 				}
 
 				const enableDebugMode = !!device.enableDebugMode;
@@ -71,9 +71,9 @@ class LgWebOsPlatform {
 							writeFileSync(file, '');
 						}
 					});
-				} catch (err) {
-					if (logLevel.error) log.error(`Device: ${host} ${name}, Prepare files error: ${err}`);
-					return;
+				} catch (error) {
+					if (logLevel.error) log.error(`Device: ${host} ${name}, Prepare files error: ${error.message ?? error}`);
+					continue;
 				}
 
 				try {
@@ -96,8 +96,8 @@ class LgWebOsPlatform {
 									await impulseGenerator.stop();
 									await lgDevice.startImpulseGenerator();
 								}
-							} catch (err) {
-								if (logLevel.error) log.error(`Device: ${host} ${name}, ${err}, trying again.`);
+							} catch (error) {
+								if (logLevel.error) log.error(`Device: ${host} ${name}, ${error.message ?? error}, trying again.`);
 							}
 						})
 						.on('state', (state) => {
@@ -105,11 +105,9 @@ class LgWebOsPlatform {
 						});
 
 					await impulseGenerator.start([{ name: 'start', sampling: 45000 }]);
-				} catch (err) {
-					if (logLevel.error) log.error(`Device: ${host} ${name}, Did finish launching error: ${err}`);
+				} catch (error) {
+					if (logLevel.error) log.error(`Device: ${host} ${name}, Did finish launching error: ${error.message ?? error}`);
 				}
-
-				await new Promise((resolve) => setTimeout(resolve, 300));
 			}
 		});
 	}
