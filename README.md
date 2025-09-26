@@ -114,7 +114,7 @@ Tested with OLED65G6V, 32LM6300PLA, 49SK8500, OLED65C7T, 55SK800PLB, OLED48CX.
 | `sound.outputs[]`| Sound outputs array. |
 | `sound.outputs[].name` | Here set own *Name* which You want expose to the *Homebridge/HomeKit* for this sensor. |
 | `sound.outputs[].reference` | Here select output to be exposed in *Homebridge/HomeKit*. |
-| `soundo.utputs[].displayType` | Here select display type in HomeKit app, possible `0 - None/Disabled`, `1 - Outlet`, `2 - Switch`.|
+| `sound.outputs[].displayType` | Here select display type in HomeKit app, possible `0 - None/Disabled`, `1 - Outlet`, `2 - Switch`.|
 | `sound.outputs[].namePrefix` | Here enable/disable the accessory name as a prefix for sound output.|
 | `screen{}` | Screen object. |
 | `screen.turnOnOff` | This enable possibility turn the screen ON/OFF, webOS >= 4.0. |
