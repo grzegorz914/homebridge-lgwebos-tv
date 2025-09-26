@@ -312,7 +312,7 @@ export const SystemApps = [
     "com.webos.app.lgnlp",
     "com.webos.app.actionhandler",
     "com.webos.app.channeledit",
-    "com.webos.app.factorywin",
+    //"com.webos.app.factorywin",
     "com.webos.exampleapp.enyoapp.epg",
     "com.webos.exampleapp.qmlapp.hbbtv",
     "com.webos.exampleapp.qmlapp.client.positive.one",

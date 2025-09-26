@@ -22,34 +22,24 @@
                     "name": "LG TV",
                     "host": "192.168.1.8",
                     "mac": "ab:cd:ef:fe:dc:ba",
-                    "broadcastAddress": "255.255.255.255",
                     "disableAccessory": false,
-                    "getInputsFromDevice": false,
-                    "filterSystemApps": false,
-                    "disableLoadDefaultInputs": false,
-                    "inputsDisplayOrder": 0,
-                    "inputs": [
-                        {
-                            "name": "HDMI 3",
-                            "reference": "com.webos.app.hdmi3",
-                            "mode": 0
-                        },
-                        {
-                            "name": "HDMI 4",
-                            "reference": "com.webos.app.hdmi4",
-                            "mode": 0
-                        },
-                        {
-                            "name": "Netflix",
-                            "reference": "netflix",
-                            "mode": 0
-                        },
-                        {
-                            "name": "BBC ONE HD",
-                            "reference": "1_45_101_101_16521_17540_9018",
-                            "mode": 1
-                        }
-                    ],
+                    "inputs": {
+                        "getFromDevice": false,
+                        "filterSystemApps": false,
+                        "displayOrder": 0,
+                        "data": [
+                            {
+                                "name": "HDMI 3",
+                                "reference": "com.webos.app.hdmi3",
+                                "mode": 0
+                            },
+                            {
+                                "name": "BBC ONE HD",
+                                "reference": "1_45_101_101_16521_17540_9018",
+                                "mode": 1
+                            }
+                        ]
+                    },
                     "buttons": [
                         {
                             "name": "HDMI 3",
@@ -57,88 +47,89 @@
                             "mode": 0,
                             "displayType": 0,
                             "namePrefix": false
-                        },
-                        {
-                            "name": "BBC ONE HD",
-                            "reference": "1_45_101_101_16521_17540_9018",
-                            "mode": 1,
-                            "displayType": 0,
-                            "namePrefix": false
-                        },
-                        {
-                            "name": "Menu Up",
-                            "mode": 2,
-                            "command": "UP",
-                            "displayType": 0,
-                            "namePrefix": false
                         }
                     ],
-                    "backlightControl": false,
-                    "brightnessControl": false,
-                    "contrastControl": false,
-                    "colorControl": false,
-                    "pictureModeControl": false,
-                    "pictureModes": [
-                        {
-                            "name": "Cinema",
-                            "reference": "cinema",
-                            "displayType": 0,
-                            "namePrefix": false
-                        }
-                    ],
-                    "soundModeControl": false,
-                    "soundModes": [
-                        {
-                            "name": "Cinema",
-                            "reference": "movie",
-                            "displayType": 0,
-                            "namePrefix": false
-                        }
-                    ],
-                    "soundOutputControl": false,
-                    "soundOutputs": [
-                        {
-                            "name": "TV Speaker",
-                            "reference": "tv_speaker",
-                            "displayType": 0,
-                            "namePrefix": false
-                        }
-                    ],
-                    "volumeControlNamePrefix": false,
-                    "volumeControlName": "Volume",
-                    "volumeControl": 0,
-                    "sensorPower": false,
-                    "sensorPixelRefresh": false,
-                    "sensorVolume": false,
-                    "sensorMute": false,
-                    "sensorInput": false,
-                    "sensorChannel": false,
-                    "sensorSoundMode": false,
-                    "sensorPictureMode": false,
-                    "sensorScreenOnOff": false,
-                    "sensorScreenSaver": false,
-                    "sensorPlayState": false,
-                    "sensorInputs": [
-                        {
-                            "name": "HDMI 1",
-                            "reference": "com.webos.app.hdmi1",
-                            "displayType": 0,
-                            "namePrefix": false
-                        }
-                    ],
-                    "turnScreenOnOff": false,
-                    "turnScreenSaverOnOff": false,
-                    "infoButtonCommand": "MENU",
+                    "sensors": {
+                        "power": false,
+                        "pixelRefresh": false,
+                        "volume": false,
+                        "mute": false,
+                        "soundMode": false,
+                        "pictureMode": false,
+                        "screenOnOff": false,
+                        "screenSaver": false,
+                        "playState": false,
+                        "channel": false,
+                        "input": false,
+                        "inputs": [
+                            {
+                                "displayType": 0,
+                                "name": "HDMI 1",
+                                "reference": "com.webos.app.hdmi1",
+                                "namePrefix": false
+                            }
+                        ]
+                    },
+                    "power": {
+                        "broadcastAddress": "255.255.255.255",
+                        "startInput": false,
+                        "startInputReference": "com.webos.app.home"
+                    },
+                    "volume": {
+                        "displayType": 0,
+                        "name": "Volume",
+                        "namePrefix": false
+                    },
+                    "sound": {
+                        "modeControl": false,
+                        "modes": [
+                            {
+                                "name": "Cinema",
+                                "reference": "movie",
+                                "displayType": 0,
+                                "namePrefix": false
+                            }
+                        ],
+                        "outputControl": false,
+                        "outputs": [
+                            {
+                                "name": "TV Speaker",
+                                "reference": "tv_speaker",
+                                "displayType": 0,
+                                "namePrefix": false
+                            }
+                        ]
+                    },
+                    "picture": {
+                        "backlightControl": false,
+                        "brightnessControl": false,
+                        "contrastControl": false,
+                        "colorControl": false,
+                        "modeControl": false,
+                        "modes": [
+                            {
+                                "name": "Cinema",
+                                "reference": "cinema",
+                                "displayType": 0,
+                                "namePrefix": false
+                            }
+                        ]
+                    },
+                    "screen": {
+                        "turnOnOff": false,
+                        "saverOnOff": false
+                    },
+                    "log": {
+                        "deviceInfo": true,
+                        "success": true,
+                        "info": false,
+                        "warn": true,
+                        "error": true,
+                        "debug": false
+                    },
                     "sslWebSocket": false,
-                    "serviceMenu": false,
-                    "ezAdjustMenu": false,
                     "disableTvService": false,
-                    "disableLogDeviceInfo": false,
-                    "disableLogInfo": false,
-                    "disableLogSuccess": false,
-                    "disableLogWarn": false,
-                    "disableLogError": false,
-                    "enableDebugMode": false,
+                    "infoButtonCommand": "MENU",
                     "restFul": {
                         "enable": false,
                         "port": 3000,
@@ -146,14 +137,16 @@
                     },
                     "mqtt": {
                         "enable": false,
-                        "host": "192.168.1.33",
+                        "host": "",
                         "port": 1883,
                         "clientId": "",
-                        "prefix": "home/envoy",
-                        "auth": false,
-                        "user": "user",
-                        "pass": "password",
-                        "debug": false
+                        "prefix": "",
+                        "debug": false,
+                        "auth": {
+                            "enable": false,
+                            "user": "",
+                            "passwd": ""
+                        }
                     }
                 }
             ]

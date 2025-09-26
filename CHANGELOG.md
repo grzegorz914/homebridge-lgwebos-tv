@@ -3,7 +3,24 @@
 All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
-### After update to v3.0.0 RESTFull and MQTT config settings need to be updated
+### NOTE
+
+- After update to v3.0.0 RESTFull and MQTT config settings need to be updated
+- After update to v3.10.0 plugin need to be reconfigured
+
+## [3.10.0] - (24.09.2025)
+
+## Changes
+
+- config schema and json refactor
+  - plugin need to be reconfigured
+  
+- added [#265](https://github.com/grzegorz914/homebridge-lgwebos-tv/issues/265)
+- fix [#269](https://github.com/grzegorz914/homebridge-lgwebos-tv/issues/269)
+- stability improvements
+- bump dependencies
+- redme updated
+- cleanup
 
 ## [3.9.17] - (31.08.2025)
 

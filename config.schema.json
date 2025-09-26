@@ -35,119 +35,113 @@
               "pattern": "^([A-Fa-f0-9]{2}:){5}[A-Fa-f0-9]{2}$",
               "required": true
             },
-            "broadcastAddress": {
-              "title": "Broadcast address",
-              "type": "string",
-              "placeholder": "255.255.255.255",
-              "format": "ipv4",
-              "description": "Her set Your own broadcast address, only if You have problem to Power ON TV.",
-              "required": false
-            },
             "disableAccessory": {
               "title": "Disable Accessory",
               "type": "boolean",
               "default": false,
-              "description": "Here You can disable this accessory.",
-              "required": false
-            },
-            "getInputsFromDevice": {
-              "title": "Load Inputs From Device",
-              "type": "boolean",
-              "default": false,
-              "description": "This function get all available inputs and apps direct from device, manually configured inputs will be skipped.",
-              "required": false
-            },
-            "filterSystemApps": {
-              "title": "Hide System Apps",
-              "type": "boolean",
-              "default": false,
-              "description": "If enabled, all System Apps will not be displayed on the list of inputs.",
-              "condition": {
-                "functionBody": "return model.devices[arrayIndices].getInputsFromDevice === true"
-              },
-              "required": false
-            },
-            "inputsDisplayOrder": {
-              "title": "Inputs Display Order",
-              "type": "integer",
-              "minimum": 0,
-              "maximum": 4,
-              "default": 0,
-              "description": "Here select display order of the inputs list.",
-              "oneOf": [
-                {
-                  "title": "None",
-                  "enum": [
-                    0
-                  ]
-                },
-                {
-                  "title": "Ascending by Name",
-                  "enum": [
-                    1
-                  ]
-                },
-                {
-                  "title": "Descending by Name",
-                  "enum": [
-                    2
-                  ]
-                },
-                {
-                  "title": "Ascending by Reference",
-                  "enum": [
-                    3
-                  ]
-                },
-                {
-                  "title": "Descending by Reference",
-                  "enum": [
-                    4
-                  ]
-                }
-              ],
-              "required": true
+              "description": "Here You can disable this accessory."
             },
             "inputs": {
-              "type": "array",
-              "items": {
-                "title": "Input",
-                "type": "object",
-                "properties": {
-                  "name": {
-                    "title": "Name",
-                    "type": "string",
-                    "placeholder": "Name",
-                    "description": "Here set Your own name.",
-                    "required": false
-                  },
-                  "reference": {
-                    "title": "Reference",
-                    "type": "string",
-                    "placeholder": "Input/App, Channel reference",
-                    "description": "Here set the Input/App, Channel reference.",
-                    "required": false
-                  },
-                  "mode": {
-                    "title": "Mode",
-                    "type": "integer",
-                    "description": "Here select the function mode.",
-                    "default": 0,
-                    "oneOf": [
-                      {
-                        "title": "Input/App",
-                        "enum": [
-                          0
-                        ]
+              "title": "Inputs",
+              "type": "object",
+              "properties": {
+                "getFromDevice": {
+                  "title": "Load Inputs From Device",
+                  "type": "boolean",
+                  "default": false,
+                  "description": "This function get all available inputs direct from device, manually configured inputs will be skipped."
+                },
+                "filterSystemApps": {
+                  "title": "Hide System Apps",
+                  "type": "boolean",
+                  "default": false,
+                  "description": "If enabled, all System Apps will not be displayed on the list of inputs."
+                },
+                "displayOrder": {
+                  "title": "Display Order",
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 4,
+                  "default": 0,
+                  "description": "Here select display order of the inputs list.",
+                  "oneOf": [
+                    {
+                      "title": "None",
+                      "enum": [
+                        0
+                      ]
+                    },
+                    {
+                      "title": "Ascending by Name",
+                      "enum": [
+                        1
+                      ]
+                    },
+                    {
+                      "title": "Descending by Name",
+                      "enum": [
+                        2
+                      ]
+                    },
+                    {
+                      "title": "Ascending by Reference",
+                      "enum": [
+                        3
+                      ]
+                    },
+                    {
+                      "title": "Descending by Reference",
+                      "enum": [
+                        4
+                      ]
+                    }
+                  ],
+                  "required": true
+                },
+                "data": {
+                  "title": "Inputs",
+                  "type": "array",
+                  "items": {
+                    "title": "Input",
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "title": "Name",
+                        "type": "string",
+                        "placeholder": "Name",
+                        "description": "Here set Your own name."
                       },
-                      {
-                        "title": "Live TV Channel",
-                        "enum": [
-                          1
-                        ]
+                      "reference": {
+                        "title": "Reference",
+                        "type": "string",
+                        "placeholder": "Input/App, Channel reference",
+                        "description": "Here set the Input/App, Channel reference."
+                      },
+                      "mode": {
+                        "title": "Mode",
+                        "type": "integer",
+                        "description": "Here select the function mode.",
+                        "default": 0,
+                        "oneOf": [
+                          {
+                            "title": "Input/App",
+                            "enum": [
+                              0
+                            ]
+                          },
+                          {
+                            "title": "Live TV Channel",
+                            "enum": [
+                              1
+                            ]
+                          }
+                        ],
+                        "required": true
                       }
-                    ],
-                    "required": true
+                    }
+                  },
+                  "condition": {
+                    "functionBody": "return model.devices && model.devices[arrayIndices].inputs.getFromDevice === false"
                   }
                 }
               }
@@ -158,12 +152,40 @@
                 "title": "Button",
                 "type": "object",
                 "properties": {
+                  "displayType": {
+                    "title": "Display Type",
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 2,
+                    "default": 0,
+                    "oneOf": [
+                      {
+                        "title": "None/Disabled",
+                        "enum": [
+                          0
+                        ]
+                      },
+                      {
+                        "title": "Outlet",
+                        "enum": [
+                          1
+                        ]
+                      },
+                      {
+                        "title": "Switch",
+                        "enum": [
+                          2
+                        ]
+                      }
+                    ],
+                    "description": "Here select display type in HomeKit app.",
+                    "required": true
+                  },
                   "name": {
                     "title": "Name",
                     "type": "string",
                     "placeholder": "Name",
-                    "description": "Here set Your own name.",
-                    "required": false
+                    "description": "Here set Your own name."
                   },
                   "mode": {
                     "title": "Mode",
@@ -198,8 +220,7 @@
                     "title": "Reference",
                     "type": "string",
                     "placeholder": "com.webos.app.sheduler",
-                    "description": "Here set the Input/App/Channel reference.",
-                    "required": false
+                    "description": "Here set the Input/App/Channel reference."
                   },
                   "command": {
                     "title": "RC Command",
@@ -542,769 +563,770 @@
                         ]
                       }
                     ],
-                    "description": "Here select the remote control command.",
-                    "required": false
-                  },
-                  "displayType": {
-                    "title": "Display Type",
-                    "type": "integer",
-                    "default": 0,
-                    "oneOf": [
-                      {
-                        "title": "None/Disabled",
-                        "enum": [
-                          0
-                        ]
-                      },
-                      {
-                        "title": "Outlet",
-                        "enum": [
-                          1
-                        ]
-                      },
-                      {
-                        "title": "Switch",
-                        "enum": [
-                          2
-                        ]
-                      }
-                    ],
-                    "description": "Here select display type in HomeKit app.",
-                    "required": true
+                    "description": "Here select the remote control command."
                   },
                   "namePrefix": {
                     "title": "Prefix",
                     "type": "boolean",
-                    "description": "Here enable/disable the accessory name as a prefix for button name.",
-                    "required": false
+                    "description": "Here enable/disable the accessory name as a prefix for button name."
                   }
                 }
               }
             },
-            "sensorPower": {
+            "sensors": {
+              "title": "Sensors",
+              "type": "object",
+              "properties": {
+                "power": {
+                  "title": "Power",
+                  "type": "boolean",
+                  "default": false,
+                  "description": "This expose Power as a Motion Sensor to use with automations, fired if Power ON."
+                },
+                "pixelRefresh": {
+                  "title": "Pixel Refresh",
+                  "type": "boolean",
+                  "default": false,
+                  "description": "This expose Pixel Refresh as a Motion Sensor to use with automations, fired if PixelRefresh ON."
+                },
+                "volume": {
+                  "title": "Volume",
+                  "type": "boolean",
+                  "default": false,
+                  "description": "This expose Volume as a Motion Sensor to use with automations, fired on every Volume change."
+                },
+                "mute": {
+                  "title": "Mute",
+                  "type": "boolean",
+                  "default": false,
+                  "description": "This expose Mute as a Motion Sensor to use with automations, fired if Mute ON."
+                },
+                "soundMode": {
+                  "title": "Sound Mode",
+                  "type": "boolean",
+                  "default": false,
+                  "description": "This expose Sound Mode as a Motion Sensor to use with automations, fired on every Sound Mode change, webOS >= 6.0."
+                },
+                "soundOutput": {
+                  "title": "Sound Output",
+                  "type": "boolean",
+                  "default": false,
+                  "description": "This expose Sound Output as a Motion Sensor to use with automations, fired on every Sound Output change."
+                },
+                "pictureMode": {
+                  "title": "Picture Mode",
+                  "type": "boolean",
+                  "default": false,
+                  "description": "This expose Picture Mode as a Motion Sensor to use with automations, fired on every Picture Mode change, webOS >= 4.0."
+                },
+                "screenOnOff": {
+                  "title": "Screen Off",
+                  "type": "boolean",
+                  "default": false,
+                  "description": "This expose Screen ON/OFF as a Motion Sensor to use with automations, fired if Screen Off, webOS >= 4.0."
+                },
+                "screenSaver": {
+                  "title": "Screen Saver",
+                  "type": "boolean",
+                  "default": false,
+                  "description": "This expose Screen Saver as a Motion Sensor to use with automations, fired if Screen Saver ON, webOS >= 4.0."
+                },
+                "playState": {
+                  "title": "Play State",
+                  "type": "boolean",
+                  "default": false,
+                  "description": "This expose Play State as a Motion Sensor to use with automations, fired if Playing, webOS >= 7.0."
+                },
+                "channel": {
+                  "title": "Channel",
+                  "type": "boolean",
+                  "default": false,
+                  "description": "This expose Channel as a Motion Sensor to use with automations, fired on every Input change."
+                },
+                "input": {
+                  "title": "Input",
+                  "type": "boolean",
+                  "default": false,
+                  "description": "This expose Input as a Motion Sensor to use with automations, fired on every Input change."
+                },
+                "inputs": {
+                  "type": "array",
+                  "items": {
+                    "title": "Inputs",
+                    "type": "object",
+                    "description": "Here create Input/App Sensors based on reference, sensor will active if switch to it.",
+                    "properties": {
+                      "displayType": {
+                        "title": "Type",
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 3,
+                        "default": 0,
+                        "oneOf": [
+                          {
+                            "title": "None/Disabled",
+                            "enum": [
+                              0
+                            ]
+                          },
+                          {
+                            "title": "Motion Sensor",
+                            "enum": [
+                              1
+                            ]
+                          },
+                          {
+                            "title": "Occupancy Sensor",
+                            "enum": [
+                              2
+                            ]
+                          },
+                          {
+                            "title": "Contact Sensor",
+                            "enum": [
+                              3
+                            ]
+                          }
+                        ],
+                        "description": "Here select sensor type to be exposed in HomeKit app.",
+                        "required": true
+                      },
+                      "name": {
+                        "title": "Name",
+                        "type": "string",
+                        "placeholder": "Name",
+                        "description": "Here set Your own name."
+                      },
+                      "reference": {
+                        "title": "Reference",
+                        "type": "string",
+                        "placeholder": "Input/App reference",
+                        "description": "Here set the Input/App reference."
+                      },
+                      "namePrefix": {
+                        "title": "Prefix",
+                        "type": "boolean",
+                        "description": "Here enable/disable the accessory name as a prefix for sensor name."
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "power": {
               "title": "Power",
-              "type": "boolean",
-              "default": false,
-              "description": "This expose Power as a Motion Sensor to use with automations, fired if Power ON.",
-              "required": false
-            },
-            "sensorPixelRefresh": {
-              "title": "Pixel Refresh",
-              "type": "boolean",
-              "default": false,
-              "description": "This expose Pixel Refresh as a Motion Sensor to use with automations, fired if PixelRefresh ON.",
-              "required": false
-            },
-            "sensorVolume": {
-              "title": "Volume",
-              "type": "boolean",
-              "default": false,
-              "description": "This expose Volume as a Motion Sensor to use with automations, fired on every Volume change.",
-              "required": false
-            },
-            "sensorMute": {
-              "title": "Mute",
-              "type": "boolean",
-              "default": false,
-              "description": "This expose Mute as a Motion Sensor to use with automations, fired if Mute ON.",
-              "required": false
-            },
-            "sensorInput": {
-              "title": "Input",
-              "type": "boolean",
-              "default": false,
-              "description": "This expose Input as a Motion Sensor to use with automations, fired on every Input change.",
-              "required": false
-            },
-            "sensorChannel": {
-              "title": "Channel",
-              "type": "boolean",
-              "default": false,
-              "description": "This expose Channel as a Motion Sensor to use with automations, fired on every Input change.",
-              "required": false
-            },
-            "sensorSoundMode": {
-              "title": "Sound Mode",
-              "type": "boolean",
-              "default": false,
-              "description": "This expose Sound Mode as a Motion Sensor to use with automations, fired on every Sound Mode change, webOS >= 6.0.",
-              "required": false
-            },
-            "sensorSoundOutput": {
-              "title": "Sound Output",
-              "type": "boolean",
-              "default": false,
-              "description": "This expose Sound Output as a Motion Sensor to use with automations, fired on every Sound Output change.",
-              "required": false
-            },
-            "sensorPictureMode": {
-              "title": "Picture Mode",
-              "type": "boolean",
-              "default": false,
-              "description": "This expose Picture Mode as a Motion Sensor to use with automations, fired on every Picture Mode change, webOS >= 4.0.",
-              "required": false
-            },
-            "sensorScreenOnOff": {
-              "title": "Screen Off",
-              "type": "boolean",
-              "default": false,
-              "description": "This expose Screen ON/OFF as a Motion Sensor to use with automations, fired if Screen Off, webOS >= 4.0.",
-              "required": false
-            },
-            "sensorScreenSaver": {
-              "title": "Screen Saver",
-              "type": "boolean",
-              "default": false,
-              "description": "This expose Screen Saver as a Motion Sensor to use with automations, fired if Screen Saver ON, webOS >= 4.0.",
-              "required": false
-            },
-            "sensorPlayState": {
-              "title": "Play State",
-              "type": "boolean",
-              "default": false,
-              "description": "This expose Play State as a Motion Sensor to use with automations, fired if Playing, webOS >= 7.0.",
-              "required": false
-            },
-            "sensorInputs": {
-              "type": "array",
-              "items": {
-                "title": "Inputs",
-                "type": "object",
-                "description": "Here create Input/App Sensors based on reference, sensor will active if switch to it.",
-                "properties": {
-                  "name": {
-                    "title": "Name",
-                    "type": "string",
-                    "placeholder": "Name",
-                    "description": "Here set Your own name.",
-                    "required": false
-                  },
-                  "reference": {
-                    "title": "Reference",
-                    "type": "string",
-                    "placeholder": "Input/App reference",
-                    "description": "Here set the Input/App reference.",
-                    "required": false
-                  },
-                  "displayType": {
-                    "title": "Type",
-                    "type": "integer",
-                    "default": 0,
-                    "oneOf": [
-                      {
-                        "title": "None/Disabled",
-                        "enum": [
-                          0
-                        ]
-                      },
-                      {
-                        "title": "Motion Sensor",
-                        "enum": [
-                          1
-                        ]
-                      },
-                      {
-                        "title": "Occupancy Sensor",
-                        "enum": [
-                          2
-                        ]
-                      },
-                      {
-                        "title": "Contact Sensor",
-                        "enum": [
-                          3
-                        ]
-                      }
-                    ],
-                    "description": "Here select sensor type to be exposed in HomeKit app.",
-                    "required": true
-                  },
-                  "namePrefix": {
-                    "title": "Prefix",
-                    "type": "boolean",
-                    "description": "Here enable/disable the accessory name as a prefix for sensor name.",
-                    "required": false
+              "type": "object",
+              "properties": {
+                "broadcastAddress": {
+                  "title": "Broadcast address",
+                  "type": "string",
+                  "placeholder": "255.255.255.255",
+                  "format": "ipv4",
+                  "description": "Her set network broadcast address, only if You have problem Power ON the TV."
+                },
+                "startInput": {
+                  "title": "Default Input",
+                  "type": "boolean",
+                  "default": false,
+                  "description": "This enable possibilty to set default Input/App after Power ON TV."
+                },
+                "startInputReference": {
+                  "title": "Input Reference",
+                  "type": "string",
+                  "placeholder": "Input/App reference",
+                  "description": "Here set the default Input/App reference.",
+                  "condition": {
+                    "functionBody": "return model.devices && model.devices[arrayIndices].power.startInput === true"
                   }
                 }
               }
             },
-            "turnScreenOnOff": {
-              "title": "Turn Screen ON/OFF",
-              "type": "boolean",
-              "default": false,
-              "description": "This enable possibility turn screen ON/OFF, webOS >= 4.0.",
-              "required": false
-            },
-            "turnScreenSaverOnOff": {
-              "title": "Turn Screen Saver ON/OFF",
-              "type": "boolean",
-              "default": false,
-              "description": "This enable possibility turn screen saver ON/OFF, webOS >= 4.0.",
-              "required": false
-            },
-            "brightnessControl": {
-              "title": "Brightness",
-              "type": "boolean",
-              "default": false,
-              "description": "This enable possibility adjust the Brightness.",
-              "required": false
-            },
-            "backlightControl": {
-              "title": "Backlight",
-              "type": "boolean",
-              "default": false,
-              "description": "This enable possibility adjust the Backlight.",
-              "required": false
-            },
-            "contrastControl": {
-              "title": "Contrast",
-              "type": "boolean",
-              "default": false,
-              "description": "This enable possibility adjust the Contrast.",
-              "required": false
-            },
-            "colorControl": {
-              "title": "Color",
-              "type": "boolean",
-              "default": false,
-              "description": "This enable possibility adjust the Color.",
-              "required": false
-            },
-            "pictureModeControl": {
-              "title": "Picture Modes",
-              "type": "boolean",
-              "default": false,
-              "description": "This enable possibility change the Picture Mode, webOS >= 4.0.",
-              "required": false
-            },
-            "pictureModes": {
-              "title": "Picture Mode",
-              "type": "array",
-              "items": {
-                "type": "object",
-                "properties": {
-                  "name": {
-                    "title": "Name",
-                    "type": "string",
-                    "placeholder": "Picture Mode Name",
-                    "description": "Here set Your own Picture Mode name.",
-                    "required": false
-                  },
-                  "reference": {
-                    "title": "Mode",
-                    "type": "string",
-                    "default": "normal",
-                    "description": "Here choice the Picture Mode.",
-                    "oneOf": [
-                      {
-                        "title": "Normal",
-                        "enum": [
-                          "normal"
-                        ]
-                      },
-                      {
-                        "title": "Cinema",
-                        "enum": [
-                          "cinema"
-                        ]
-                      },
-                      {
-                        "title": "Eco",
-                        "enum": [
-                          "eco"
-                        ]
-                      },
-                      {
-                        "title": "Game",
-                        "enum": [
-                          "game"
-                        ]
-                      },
-                      {
-                        "title": "Photo",
-                        "enum": [
-                          "photo"
-                        ]
-                      },
-                      {
-                        "title": "Sports",
-                        "enum": [
-                          "sports"
-                        ]
-                      },
-                      {
-                        "title": "Vivid",
-                        "enum": [
-                          "vivid"
-                        ]
-                      },
-                      {
-                        "title": "Technicolor",
-                        "enum": [
-                          "technicoloro"
-                        ]
-                      },
-                      {
-                        "title": "Filmmaker",
-                        "enum": [
-                          "filmMaker"
-                        ]
-                      },
-                      {
-                        "title": "HDR Filmmaker",
-                        "enum": [
-                          "hdrFilmMaker"
-                        ]
-                      },
-                      {
-                        "title": "HDR Cinema",
-                        "enum": [
-                          "hdrCinema"
-                        ]
-                      },
-                      {
-                        "title": "HDR Cinema Bright",
-                        "enum": [
-                          "hdrCinemaBright"
-                        ]
-                      },
-                      {
-                        "title": "HDR Standard",
-                        "enum": [
-                          "hdrStandard"
-                        ]
-                      },
-                      {
-                        "title": "HDR Effect",
-                        "enum": [
-                          "hdrEffect"
-                        ]
-                      },
-                      {
-                        "title": "HDR Game",
-                        "enum": [
-                          "hdrGame"
-                        ]
-                      },
-                      {
-                        "title": "HDR Vivid",
-                        "enum": [
-                          "hdrVivid"
-                        ]
-                      },
-                      {
-                        "title": "HDR Technicolor",
-                        "enum": [
-                          "hdrTechnicolor"
-                        ]
-                      },
-                      {
-                        "title": "HDR External",
-                        "enum": [
-                          "hdrExternal"
-                        ]
-                      },
-                      {
-                        "title": "Dolby HDR Cinema",
-                        "enum": [
-                          "dolbyHdrCinema"
-                        ]
-                      },
-                      {
-                        "title": "Dolby HDR Cinema Bright",
-                        "enum": [
-                          "dolbyHdrCinemaBright"
-                        ]
-                      },
-                      {
-                        "title": "Dolby HDR Cinema Dark",
-                        "enum": [
-                          "dolbyHdrDarkAmazon"
-                        ]
-                      },
-                      {
-                        "title": "Dolby HDR Standard",
-                        "enum": [
-                          "dolbyHdrStandard"
-                        ]
-                      },
-                      {
-                        "title": "Dolby HDR Vivid",
-                        "enum": [
-                          "dolbyHdrVivid"
-                        ]
-                      },
-                      {
-                        "title": "Dolby HDR Game",
-                        "enum": [
-                          "dolbyHdrGame"
-                        ]
-                      },
-                      {
-                        "title": "Expert 1",
-                        "enum": [
-                          "expert1"
-                        ]
-                      },
-                      {
-                        "title": "Expert 2",
-                        "enum": [
-                          "expert2"
-                        ]
-                      }
-                    ],
-                    "required": false
-                  },
-                  "displayType": {
-                    "title": "Display Type",
-                    "type": "integer",
-                    "default": 0,
-                    "oneOf": [
-                      {
-                        "title": "None/Disabled",
-                        "enum": [
-                          0
-                        ]
-                      },
-                      {
-                        "title": "Outlet",
-                        "enum": [
-                          1
-                        ]
-                      },
-                      {
-                        "title": "Switch",
-                        "enum": [
-                          2
-                        ]
-                      }
-                    ],
-                    "description": "Here select display type in HomeKit app.",
-                    "required": true
-                  },
-                  "namePrefix": {
-                    "title": "Prefix",
-                    "type": "boolean",
-                    "description": "Here enable/disable the accessory name as a prefix for picture mode.",
-                    "required": false
-                  }
-                }
-              }
-            },
-            "volumeControl": {
+            "volume": {
               "title": "Volume Control",
-              "type": "integer",
-              "minimum": 0,
-              "maximum": 3,
-              "default": 0,
-              "oneOf": [
-                {
-                  "title": "None/Disabled",
-                  "enum": [
-                    0
-                  ]
+              "type": "object",
+              "properties": {
+                "displayType": {
+                  "title": "Display Type",
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 3,
+                  "default": 0,
+                  "description": "Here select what a extra volume/mute control type You want to use.",
+                  "oneOf": [
+                    {
+                      "title": "None/Disabled",
+                      "enum": [
+                        0
+                      ]
+                    },
+                    {
+                      "title": "Lightbulb",
+                      "enum": [
+                        1
+                      ]
+                    },
+                    {
+                      "title": "Fan",
+                      "enum": [
+                        2
+                      ]
+                    },
+                    {
+                      "title": "Speaker",
+                      "enum": [
+                        3
+                      ]
+                    }
+                  ],
+                  "required": true
                 },
-                {
-                  "title": "Slider",
-                  "enum": [
-                    1
-                  ]
+                "name": {
+                  "title": "Name",
+                  "type": "string",
+                  "placeholder": "Volume Control Name",
+                  "description": "Here set Your own volume control name or leave empty.",
+                  "condition": {
+                    "functionBody": "return model.devices[arrayIndices].volume.displayType > 0;"
+                  }
                 },
-                {
-                  "title": "Fan",
-                  "enum": [
-                    2
-                  ]
-                },
-                {
-                  "title": "Speaker",
-                  "enum": [
-                    3
-                  ]
-                }
-              ],
-              "description": "Here select what a volume control mode You want to use.",
-              "required": true
-            },
-            "volumeControlName": {
-              "title": "Volume Control Name",
-              "type": "string",
-              "placeholder": "Name",
-              "description": "Here set Your own volume control name or leave empty.",
-              "required": false
-            },
-            "volumeControlNamePrefix": {
-              "title": "Volume Control Name Prefix",
-              "type": "boolean",
-              "default": false,
-              "description": "Here enable/disable the accessory name as a prefix for volume control name.",
-              "required": false
-            },
-            "soundModeControl": {
-              "title": "Sound Modes",
-              "type": "boolean",
-              "default": false,
-              "description": "This enable possibility change the Sound Mode, only for webOS >= 6.0.",
-              "required": false
-            },
-            "soundModes": {
-              "title": "Sound Mode",
-              "type": "array",
-              "items": {
-                "type": "object",
-                "properties": {
-                  "name": {
-                    "title": "Name",
-                    "type": "string",
-                    "placeholder": "Sound Mode Name",
-                    "description": "Here set Your own Sound Mode name.",
-                    "required": false
-                  },
-                  "reference": {
-                    "title": "Mode",
-                    "type": "string",
-                    "default": "standard",
-                    "description": "Here choice the Sound Mode.",
-                    "oneOf": [
-                      {
-                        "title": "Ai Sound Plus",
-                        "enum": [
-                          "aiSoundPlus"
-                        ]
-                      },
-                      {
-                        "title": "Standard",
-                        "enum": [
-                          "standard"
-                        ]
-                      },
-                      {
-                        "title": "Movie",
-                        "enum": [
-                          "movie"
-                        ]
-                      },
-                      {
-                        "title": "Clear Voice",
-                        "enum": [
-                          "clearVoice"
-                        ]
-                      },
-                      {
-                        "title": "News",
-                        "enum": [
-                          "news"
-                        ]
-                      },
-                      {
-                        "title": "Sports",
-                        "enum": [
-                          "sports"
-                        ]
-                      },
-                      {
-                        "title": "Music",
-                        "enum": [
-                          "music"
-                        ]
-                      },
-                      {
-                        "title": "Game",
-                        "enum": [
-                          "game"
-                        ]
-                      }
-                    ],
-                    "required": false
-                  },
-                  "displayType": {
-                    "title": "Display Type",
-                    "type": "integer",
-                    "default": 0,
-                    "oneOf": [
-                      {
-                        "title": "None/Disabled",
-                        "enum": [
-                          0
-                        ]
-                      },
-                      {
-                        "title": "Outlet",
-                        "enum": [
-                          1
-                        ]
-                      },
-                      {
-                        "title": "Switch",
-                        "enum": [
-                          2
-                        ]
-                      }
-                    ],
-                    "description": "Here select display type in HomeKit app.",
-                    "required": true
-                  },
-                  "namePrefix": {
-                    "title": "Prefix",
-                    "type": "boolean",
-                    "description": "Here enable/disable the accessory name as a prefix for sound mode.",
-                    "required": false
+                "namePrefix": {
+                  "title": "Volume Control Name Prefix",
+                  "type": "boolean",
+                  "default": false,
+                  "description": "Here enable/disable the accessory name as a prefix for volume control name.",
+                  "condition": {
+                    "functionBody": "return model.devices[arrayIndices].volume.displayType > 0;"
                   }
                 }
               }
             },
-            "soundOutputControl": {
-              "title": "Sound Output",
-              "type": "boolean",
-              "default": false,
-              "description": "This enable possibility change the Sound Output.",
-              "required": false
-            },
-            "soundOutputs": {
-              "title": "Sound Outputs",
-              "type": "array",
-              "items": {
-                "type": "object",
-                "properties": {
-                  "name": {
-                    "title": "Name",
-                    "type": "string",
-                    "placeholder": "Sound Output Name",
-                    "description": "Here set Your own Sound Output name.",
-                    "required": false
-                  },
-                  "reference": {
-                    "title": "Output",
-                    "type": "string",
-                    "default": "tv_speaker",
-                    "description": "Here choice the Sound Output.",
-                    "oneOf": [
-                      {
-                        "title": "TV Speaker",
-                        "enum": [
-                          "tv_speaker"
+            "sound": {
+              "title": "Sound",
+              "type": "object",
+              "properties": {
+                "modeControl": {
+                  "title": "Mode Control",
+                  "type": "boolean",
+                  "default": false,
+                  "description": "This enable possibility change the Sound Mode, only for webOS >= 6.0."
+                },
+                "modes": {
+                  "title": "Sound Mode",
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "displayType": {
+                        "title": "Display Type",
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 2,
+                        "default": 0,
+                        "oneOf": [
+                          {
+                            "title": "None/Disabled",
+                            "enum": [
+                              0
+                            ]
+                          },
+                          {
+                            "title": "Outlet",
+                            "enum": [
+                              1
+                            ]
+                          },
+                          {
+                            "title": "Switch",
+                            "enum": [
+                              2
+                            ]
+                          }
+                        ],
+                        "description": "Here select display type in HomeKit app.",
+                        "required": true
+                      },
+                      "name": {
+                        "title": "Name",
+                        "type": "string",
+                        "placeholder": "Sound Mode Name",
+                        "description": "Here set Your own Sound Mode name."
+                      },
+                      "reference": {
+                        "title": "Mode",
+                        "type": "string",
+                        "default": "standard",
+                        "description": "Here choice the Sound Mode.",
+                        "oneOf": [
+                          {
+                            "title": "Ai Sound Plus",
+                            "enum": [
+                              "aiSoundPlus"
+                            ]
+                          },
+                          {
+                            "title": "Standard",
+                            "enum": [
+                              "standard"
+                            ]
+                          },
+                          {
+                            "title": "Movie",
+                            "enum": [
+                              "movie"
+                            ]
+                          },
+                          {
+                            "title": "Clear Voice",
+                            "enum": [
+                              "clearVoice"
+                            ]
+                          },
+                          {
+                            "title": "News",
+                            "enum": [
+                              "news"
+                            ]
+                          },
+                          {
+                            "title": "Sports",
+                            "enum": [
+                              "sports"
+                            ]
+                          },
+                          {
+                            "title": "Music",
+                            "enum": [
+                              "music"
+                            ]
+                          },
+                          {
+                            "title": "Game",
+                            "enum": [
+                              "game"
+                            ]
+                          }
                         ]
                       },
-                      {
-                        "title": "External Speaker",
-                        "enum": [
-                          "external_speaker"
-                        ]
-                      },
-                      {
-                        "title": "External Optical",
-                        "enum": [
-                          "external_optical"
-                        ]
-                      },
-                      {
-                        "title": "External ARC",
-                        "enum": [
-                          "external_arc"
-                        ]
-                      },
-                      {
-                        "title": "Line Out",
-                        "enum": [
-                          "lineout"
-                        ]
-                      },
-                      {
-                        "title": "Headphone",
-                        "enum": [
-                          "headphone"
-                        ]
-                      },
-                      {
-                        "title": "TV External Speaker",
-                        "enum": [
-                          "tv_external_speaker"
-                        ]
-                      },
-                      {
-                        "title": "TV Speaker Headphone",
-                        "enum": [
-                          "tv_speaker_headphone"
-                        ]
-                      },
-                      {
-                        "title": "BT Soundbar",
-                        "enum": [
-                          "bt_soundbar"
-                        ]
-                      },
-                      {
-                        "title": "Soundbar",
-                        "enum": [
-                          "soundbar"
-                        ]
+                      "namePrefix": {
+                        "title": "Prefix",
+                        "type": "boolean",
+                        "description": "Here enable/disable the accessory name as a prefix for sound mode."
                       }
-                    ],
-                    "required": false
+                    }
                   },
-                  "displayType": {
-                    "title": "Display Type",
-                    "type": "integer",
-                    "default": 0,
-                    "oneOf": [
-                      {
-                        "title": "None/Disabled",
-                        "enum": [
-                          0
+                  "condition": {
+                    "functionBody": "return model.devices[arrayIndices].sound.modeControl === true;"
+                  }
+                },
+                "outputControl": {
+                  "title": "Output Control",
+                  "type": "boolean",
+                  "default": false,
+                  "description": "This enable possibility change the Sound Output."
+                },
+                "outputs": {
+                  "title": "Sound Output",
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "displayType": {
+                        "title": "Display Type",
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 2,
+                        "default": 0,
+                        "oneOf": [
+                          {
+                            "title": "None/Disabled",
+                            "enum": [
+                              0
+                            ]
+                          },
+                          {
+                            "title": "Outlet",
+                            "enum": [
+                              1
+                            ]
+                          },
+                          {
+                            "title": "Switch",
+                            "enum": [
+                              2
+                            ]
+                          }
+                        ],
+                        "description": "Here select display type in HomeKit app.",
+                        "required": true
+                      },
+                      "name": {
+                        "title": "Name",
+                        "type": "string",
+                        "placeholder": "Sound Output Name",
+                        "description": "Here set Your own Sound Output name."
+                      },
+                      "reference": {
+                        "title": "Output",
+                        "type": "string",
+                        "default": "tv_speaker",
+                        "description": "Here choice the Sound Output.",
+                        "oneOf": [
+                          {
+                            "title": "TV Speaker",
+                            "enum": [
+                              "tv_speaker"
+                            ]
+                          },
+                          {
+                            "title": "External Speaker",
+                            "enum": [
+                              "external_speaker"
+                            ]
+                          },
+                          {
+                            "title": "External Optical",
+                            "enum": [
+                              "external_optical"
+                            ]
+                          },
+                          {
+                            "title": "External ARC",
+                            "enum": [
+                              "external_arc"
+                            ]
+                          },
+                          {
+                            "title": "Line Out",
+                            "enum": [
+                              "lineout"
+                            ]
+                          },
+                          {
+                            "title": "Headphone",
+                            "enum": [
+                              "headphone"
+                            ]
+                          },
+                          {
+                            "title": "TV External Speaker",
+                            "enum": [
+                              "tv_external_speaker"
+                            ]
+                          },
+                          {
+                            "title": "TV Speaker Headphone",
+                            "enum": [
+                              "tv_speaker_headphone"
+                            ]
+                          },
+                          {
+                            "title": "BT Soundbar",
+                            "enum": [
+                              "bt_soundbar"
+                            ]
+                          },
+                          {
+                            "title": "Soundbar",
+                            "enum": [
+                              "soundbar"
+                            ]
+                          }
                         ]
                       },
-                      {
-                        "title": "Outlet",
-                        "enum": [
-                          1
-                        ]
-                      },
-                      {
-                        "title": "Switch",
-                        "enum": [
-                          2
-                        ]
+                      "namePrefix": {
+                        "title": "Prefix",
+                        "type": "boolean",
+                        "description": "Here enable/disable the accessory name as a prefix for sound output."
                       }
-                    ],
-                    "description": "Here select display type in HomeKit app.",
-                    "required": true
+                    }
                   },
-                  "namePrefix": {
-                    "title": "Prefix",
-                    "type": "boolean",
-                    "description": "Here enable/disable the accessory name as a prefix for sound output.",
-                    "required": false
+                  "condition": {
+                    "functionBody": "return model.devices[arrayIndices].sound.outputControl === true;"
                   }
                 }
               }
             },
-            "serviceMenu": {
-              "title": "Service Menu",
-              "type": "boolean",
-              "default": false,
-              "description": "This enable access to the service menu from input list.",
-              "required": false
+            "picture": {
+              "title": "Picture",
+              "type": "object",
+              "properties": {
+                "brightnessControl": {
+                  "title": "Brightness",
+                  "type": "boolean",
+                  "default": false,
+                  "description": "This enable possibility adjust the Brightness."
+                },
+                "backlightControl": {
+                  "title": "Backlight",
+                  "type": "boolean",
+                  "default": false,
+                  "description": "This enable possibility adjust the Backlight."
+                },
+                "contrastControl": {
+                  "title": "Contrast",
+                  "type": "boolean",
+                  "default": false,
+                  "description": "This enable possibility adjust the Contrast."
+                },
+                "colorControl": {
+                  "title": "Color",
+                  "type": "boolean",
+                  "default": false,
+                  "description": "This enable possibility adjust the Color."
+                },
+                "modeControl": {
+                  "title": "Mode Control",
+                  "type": "boolean",
+                  "default": false,
+                  "description": "This enable possibility change the Picture Mode, webOS >= 4.0."
+                },
+                "modes": {
+                  "title": "Mode",
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "displayType": {
+                        "title": "Display Type",
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 2,
+                        "default": 0,
+                        "oneOf": [
+                          {
+                            "title": "None/Disabled",
+                            "enum": [
+                              0
+                            ]
+                          },
+                          {
+                            "title": "Outlet",
+                            "enum": [
+                              1
+                            ]
+                          },
+                          {
+                            "title": "Switch",
+                            "enum": [
+                              2
+                            ]
+                          }
+                        ],
+                        "description": "Here select display type in HomeKit app.",
+                        "required": true
+                      },
+                      "name": {
+                        "title": "Name",
+                        "type": "string",
+                        "placeholder": "Picture Mode Name",
+                        "description": "Here set Your own Picture Mode name."
+                      },
+                      "reference": {
+                        "title": "Mode",
+                        "type": "string",
+                        "default": "normal",
+                        "description": "Here choice the Picture Mode.",
+                        "oneOf": [
+                          {
+                            "title": "Normal",
+                            "enum": [
+                              "normal"
+                            ]
+                          },
+                          {
+                            "title": "Cinema",
+                            "enum": [
+                              "cinema"
+                            ]
+                          },
+                          {
+                            "title": "Eco",
+                            "enum": [
+                              "eco"
+                            ]
+                          },
+                          {
+                            "title": "Game",
+                            "enum": [
+                              "game"
+                            ]
+                          },
+                          {
+                            "title": "Photo",
+                            "enum": [
+                              "photo"
+                            ]
+                          },
+                          {
+                            "title": "Sports",
+                            "enum": [
+                              "sports"
+                            ]
+                          },
+                          {
+                            "title": "Vivid",
+                            "enum": [
+                              "vivid"
+                            ]
+                          },
+                          {
+                            "title": "Technicolor",
+                            "enum": [
+                              "technicoloro"
+                            ]
+                          },
+                          {
+                            "title": "Filmmaker",
+                            "enum": [
+                              "filmMaker"
+                            ]
+                          },
+                          {
+                            "title": "HDR Filmmaker",
+                            "enum": [
+                              "hdrFilmMaker"
+                            ]
+                          },
+                          {
+                            "title": "HDR Cinema",
+                            "enum": [
+                              "hdrCinema"
+                            ]
+                          },
+                          {
+                            "title": "HDR Cinema Bright",
+                            "enum": [
+                              "hdrCinemaBright"
+                            ]
+                          },
+                          {
+                            "title": "HDR Standard",
+                            "enum": [
+                              "hdrStandard"
+                            ]
+                          },
+                          {
+                            "title": "HDR Effect",
+                            "enum": [
+                              "hdrEffect"
+                            ]
+                          },
+                          {
+                            "title": "HDR Game",
+                            "enum": [
+                              "hdrGame"
+                            ]
+                          },
+                          {
+                            "title": "HDR Vivid",
+                            "enum": [
+                              "hdrVivid"
+                            ]
+                          },
+                          {
+                            "title": "HDR Technicolor",
+                            "enum": [
+                              "hdrTechnicolor"
+                            ]
+                          },
+                          {
+                            "title": "HDR External",
+                            "enum": [
+                              "hdrExternal"
+                            ]
+                          },
+                          {
+                            "title": "Dolby HDR Cinema",
+                            "enum": [
+                              "dolbyHdrCinema"
+                            ]
+                          },
+                          {
+                            "title": "Dolby HDR Cinema Bright",
+                            "enum": [
+                              "dolbyHdrCinemaBright"
+                            ]
+                          },
+                          {
+                            "title": "Dolby HDR Cinema Dark",
+                            "enum": [
+                              "dolbyHdrDarkAmazon"
+                            ]
+                          },
+                          {
+                            "title": "Dolby HDR Standard",
+                            "enum": [
+                              "dolbyHdrStandard"
+                            ]
+                          },
+                          {
+                            "title": "Dolby HDR Vivid",
+                            "enum": [
+                              "dolbyHdrVivid"
+                            ]
+                          },
+                          {
+                            "title": "Dolby HDR Game",
+                            "enum": [
+                              "dolbyHdrGame"
+                            ]
+                          },
+                          {
+                            "title": "Expert 1",
+                            "enum": [
+                              "expert1"
+                            ]
+                          },
+                          {
+                            "title": "Expert 2",
+                            "enum": [
+                              "expert2"
+                            ]
+                          }
+                        ]
+                      },
+                      "namePrefix": {
+                        "title": "Prefix",
+                        "type": "boolean",
+                        "description": "Here enable/disable the accessory name as a prefix for picture mode."
+                      }
+                    }
+                  },
+                  "condition": {
+                    "functionBody": "return model.devices[arrayIndices].picture.modeControl === true;"
+                  }
+                }
+              }
+            },
+            "screen": {
+              "title": "Screen",
+              "type": "object",
+              "properties": {
+                "turnOnOff": {
+                  "title": "Turn Screen ON/OFF",
+                  "type": "boolean",
+                  "default": false,
+                  "description": "This enable possibility turn screen ON/OFF, webOS >= 4.0."
+                },
+                "saverOnOff": {
+                  "title": "Turn Screen Saver ON/OFF",
+                  "type": "boolean",
+                  "default": false,
+                  "description": "This enable possibility turn screen saver ON/OFF, webOS >= 4.0."
+                }
+              }
             },
             "sslWebSocket": {
               "title": "SSL WebSocket",
               "type": "boolean",
               "default": false,
-              "description": "This enable SSL WebSocket, support TV with new firmware.",
-              "required": false
+              "description": "This enable SSL WebSocket, support TV with new firmware."
             },
             "disableTvService": {
               "title": "Disable TV Service",
               "type": "boolean",
               "default": false,
-              "description": "This disable TV service and prevent display double services if TV already support HomeKit native.",
-              "required": false
-            },
-            "ezAdjustMenu": {
-              "title": "EZ Adjust Menu",
-              "type": "boolean",
-              "default": false,
-              "description": "This enable access to the ez adjust menu from input list.",
-              "required": false
+              "description": "This disable TV service and prevent display double services if TV already support HomeKit native."
             },
             "infoButtonCommand": {
               "title": "Info Button",
@@ -1360,45 +1382,44 @@
                   ]
                 }
               ],
-              "description": "Here select the function of info button in RC.",
-              "required": false
+              "description": "Here select the function of info button in RC."
             },
-            "disableLogDeviceInfo": {
-              "title": "Disable Log Device Info",
-              "type": "boolean",
-              "default": false,
-              "description": "This disable logging device info by every connections device to the network.",
-              "required": false
-            },
-            "disableLogInfo": {
-              "title": "Disable Log Info",
-              "type": "boolean",
-              "default": false,
-              "required": false
-            },
-            "disableLogSuccess": {
-              "title": "Disable Log Success",
-              "type": "boolean",
-              "default": false,
-              "required": false
-            },
-            "disableLogWarn": {
-              "title": "Disable Log Warn",
-              "type": "boolean",
-              "default": false,
-              "required": false
-            },
-            "disableLogError": {
-              "title": "Disable Log Error",
-              "type": "boolean",
-              "default": false,
-              "required": false
-            },
-            "enableDebugMode": {
-              "title": "Enable Log Debug",
-              "type": "boolean",
-              "default": false,
-              "required": false
+            "log": {
+              "title": "Log",
+              "type": "object",
+              "properties": {
+                "deviceInfo": {
+                  "title": "Device Info",
+                  "type": "boolean",
+                  "default": true,
+                  "description": "This enable logging device info by every connections device to the network."
+                },
+                "success": {
+                  "title": "Log Success",
+                  "type": "boolean",
+                  "default": true
+                },
+                "info": {
+                  "title": "Log Info",
+                  "type": "boolean",
+                  "default": false
+                },
+                "warn": {
+                  "title": "Log Warn",
+                  "type": "boolean",
+                  "default": true
+                },
+                "error": {
+                  "title": "Log Error",
+                  "type": "boolean",
+                  "default": true
+                },
+                "debug": {
+                  "title": "Log Debug",
+                  "type": "boolean",
+                  "default": false
+                }
+              }
             },
             "restFul": {
               "title": "RESTFul",
@@ -1410,16 +1431,6 @@
                   "default": false,
                   "description": "This enable RESTful server."
                 },
-                "debug": {
-                  "title": "Debug",
-                  "type": "boolean",
-                  "default": false,
-                  "description": "This enable debug mode for RESTFul.",
-                  "condition": {
-                    "functionBody": "return model.devices[arrayIndices].restFul.enable === true;"
-                  },
-                  "required": false
-                },
                 "port": {
                   "title": "Port",
                   "type": "integer",
@@ -1427,8 +1438,16 @@
                   "description": "Here set the listening Port for RESTful server.",
                   "condition": {
                     "functionBody": "return model.devices[arrayIndices].restFul.enable === true;"
-                  },
-                  "required": false
+                  }
+                },
+                "debug": {
+                  "title": "Debug",
+                  "type": "boolean",
+                  "default": false,
+                  "description": "This enable debug mode for RESTFul.",
+                  "condition": {
+                    "functionBody": "return model.devices[arrayIndices].restFul.enable === true;"
+                  }
                 }
               }
             },
@@ -1442,16 +1461,6 @@
                   "default": false,
                   "description": "This enable MQTT client."
                 },
-                "debug": {
-                  "title": "Debug",
-                  "type": "boolean",
-                  "default": false,
-                  "description": "This enable debug mode for MQTT.",
-                  "condition": {
-                    "functionBody": "return model.devices[arrayIndices].mqtt.enable === true;"
-                  },
-                  "required": false
-                },
                 "host": {
                   "title": "IP/Hostname",
                   "type": "string",
@@ -1460,8 +1469,7 @@
                   "description": "Here set the IP/Hostname of MQTT Broker.",
                   "condition": {
                     "functionBody": "return model.devices[arrayIndices].mqtt.enable === true;"
-                  },
-                  "required": false
+                  }
                 },
                 "port": {
                   "title": "Port",
@@ -1470,8 +1478,7 @@
                   "description": "Here set the port of MQTT Broker.",
                   "condition": {
                     "functionBody": "return model.devices[arrayIndices].mqtt.enable === true;"
-                  },
-                  "required": false
+                  }
                 },
                 "clientId": {
                   "title": "Client ID",
@@ -1480,49 +1487,59 @@
                   "description": "Here optional set the Client ID of MQTT Broker.",
                   "condition": {
                     "functionBody": "return model.devices[arrayIndices].mqtt.enable === true"
-                  },
-                  "required": false
+                  }
                 },
                 "prefix": {
                   "title": "Prefix",
                   "type": "string",
-                  "placeholder": "home/envoy",
+                  "placeholder": "home",
                   "description": "Here set the prefix.",
                   "condition": {
                     "functionBody": "return model.devices[arrayIndices].mqtt.enable === true;"
-                  },
-                  "required": false
+                  }
+                },
+                "debug": {
+                  "title": "Debug",
+                  "type": "boolean",
+                  "default": false,
+                  "description": "This enable debug mode for MQTT.",
+                  "condition": {
+                    "functionBody": "return model.devices[arrayIndices].mqtt.enable === true;"
+                  }
                 },
                 "auth": {
                   "title": "Authorization",
-                  "type": "boolean",
-                  "default": false,
-                  "description": "This enable authorization for MQTT Broker.",
+                  "type": "object",
+                  "properties": {
+                    "enable": {
+                      "title": "Enable",
+                      "type": "boolean",
+                      "default": false,
+                      "description": "This enable authorization for MQTT Broker."
+                    },
+                    "user": {
+                      "title": "User",
+                      "type": "string",
+                      "placeholder": "user",
+                      "description": "Here set the user of MQTT Broker.",
+                      "condition": {
+                        "functionBody": "return model.devices[arrayIndices].mqtt.auth.enable === true;"
+                      }
+                    },
+                    "passwd": {
+                      "title": "Password",
+                      "type": "string",
+                      "placeholder": "password",
+                      "description": "Here set the password of MQTT Broker.",
+                      "format": "password",
+                      "condition": {
+                        "functionBody": "return model.devices[arrayIndices].mqtt.auth.enable === true;"
+                      }
+                    }
+                  },
                   "condition": {
                     "functionBody": "return model.devices[arrayIndices].mqtt.enable === true;"
-                  },
-                  "required": false
-                },
-                "user": {
-                  "title": "User",
-                  "type": "string",
-                  "placeholder": "user",
-                  "description": "Here set the user of MQTT Broker.",
-                  "condition": {
-                    "functionBody": "return model.devices[arrayIndices].mqtt.enable === true && model.devices[arrayIndices].mqtt.auth === true;"
-                  },
-                  "required": false
-                },
-                "passwd": {
-                  "title": "Password",
-                  "type": "string",
-                  "placeholder": "password",
-                  "description": "Here set the password of MQTT Broker.",
-                  "format": "password",
-                  "condition": {
-                    "functionBody": "return model.devices[arrayIndices].mqtt.enable === true && model.devices[arrayIndices].mqtt.auth === true;"
-                  },
-                  "required": false
+                  }
                 }
               }
             }
@@ -1540,30 +1557,26 @@
         "devices[].name",
         "devices[].host",
         "devices[].mac",
-        "devices[].broadcastAddress",
         "devices[].disableAccessory",
         {
-          "key": "devices[]",
+          "key": "devices[].inputs",
           "type": "section",
           "title": "Inputs",
           "expandable": true,
           "expanded": false,
           "items": [
-            "devices[].getInputsFromDevice",
-            "devices[].filterSystemApps",
-            "devices[].inputsDisplayOrder",
+            "devices[].inputs.getFromDevice",
+            "devices[].inputs.filterSystemApps",
+            "devices[].inputs.displayOrder",
             {
-              "key": "devices[].inputs",
+              "key": "devices[].inputs.data",
               "type": "tabarray",
               "title": "{{ value.name || 'input' }}",
               "items": [
-                "devices[].inputs[].name",
-                "devices[].inputs[].reference",
-                "devices[].inputs[].mode"
-              ],
-              "condition": {
-                "functionBody": "return model.devices[arrayIndices].getInputsFromDevice === false;"
-              }
+                "devices[].inputs.data[].name",
+                "devices[].inputs.data[].reference",
+                "devices[].inputs.data[].mode"
+              ]
             }
           ],
           "condition": {
@@ -1582,11 +1595,11 @@
               "type": "tabarray",
               "title": "{{ value.name || 'button' }}",
               "items": [
+                "devices[].buttons[].displayType",
                 "devices[].buttons[].name",
                 "devices[].buttons[].mode",
                 "devices[].buttons[].reference",
                 "devices[].buttons[].command",
-                "devices[].buttons[].displayType",
                 "devices[].buttons[].namePrefix"
               ]
             }
@@ -1608,37 +1621,37 @@
               "title": "{{ value.title }}",
               "items": [
                 {
-                  "key": "devices[]",
+                  "key": "devices[].sensors",
                   "title": "Sensors",
                   "items": [
-                    "devices[].sensorPower",
-                    "devices[].sensorVolume",
-                    "devices[].sensorMute",
-                    "devices[].sensorInput",
-                    "devices[].sensorChannel",
-                    "devices[].sensorSoundMode",
-                    "devices[].sensorSoundOutput",
-                    "devices[].sensorPictureMode",
-                    "devices[].sensorScreenOnOff",
-                    "devices[].sensorScreenSaver",
-                    "devices[].sensorPixelRefresh",
-                    "devices[].sensorPlayState",
+                    "devices[].sensors.power",
+                    "devices[].sensors.volume",
+                    "devices[].sensors.mute",
+                    "devices[].sensors.soundMode",
+                    "devices[].sensors.soundOutput",
+                    "devices[].sensors.pictureMode",
+                    "devices[].sensors.screenOnOff",
+                    "devices[].sensors.screenSaver",
+                    "devices[].sensors.pixelRefresh",
+                    "devices[].sensors.playState",
+                    "devices[].sensors.channel",
+                    "devices[].sensors.input",
                     {
-                      "key": "devices[]",
+                      "key": "devices[].sensors",
                       "type": "section",
-                      "title": "Custom Inputs",
+                      "title": "Inputs",
                       "expandable": true,
                       "expanded": false,
                       "items": [
                         {
-                          "key": "devices[].sensorInputs",
+                          "key": "devices[].sensors.inputs",
                           "type": "tabarray",
                           "title": "{{ value.name || 'sensor' }}",
                           "items": [
-                            "devices[].sensorInputs[].name",
-                            "devices[].sensorInputs[].reference",
-                            "devices[].sensorInputs[].displayType",
-                            "devices[].sensorInputs[].namePrefix"
+                            "devices[].sensors.inputs[].displayType",
+                            "devices[].sensors.inputs[].name",
+                            "devices[].sensors.inputs[].reference",
+                            "devices[].sensors.inputs[].namePrefix"
                           ]
                         }
                       ]
@@ -1646,81 +1659,93 @@
                   ]
                 },
                 {
-                  "key": "devices[]",
-                  "title": "Picture / Screen",
+                  "key": "devices[].power",
+                  "title": "Power",
                   "items": [
-                    "devices[].turnScreenOnOff",
-                    "devices[].turnScreenSaverOnOff",
-                    "devices[].brightnessControl",
-                    "devices[].backlightControl",
-                    "devices[].contrastControl",
-                    "devices[].colorControl",
-                    "devices[].pictureModeControl",
+                    "devices[].power.broadcastAddress",
+                    "devices[].power.startInput",
+                    "devices[].power.startInputReference"
+                  ]
+                },
+                {
+                  "key": "devices[].volume",
+                  "title": "Volume",
+                  "items": [
+                    "devices[].volume.displayType",
+                    "devices[].volume.name",
+                    "devices[].volume.namePrefix"
+                  ]
+                },
+                {
+                  "key": "devices[].sound",
+                  "title": "Sound",
+                  "items": [
+                    "devices[].sound.modeControl",
                     {
                       "items": [
                         {
-                          "key": "devices[].pictureModes",
+                          "key": "devices[].sound.modes",
                           "type": "tabarray",
                           "title": "{{ value.name || 'mode' }}",
                           "items": [
-                            "devices[].pictureModes[].name",
-                            "devices[].pictureModes[].reference",
-                            "devices[].pictureModes[].displayType",
-                            "devices[].pictureModes[].namePrefix"
+                            "devices[].sound.modes[].displayType",
+                            "devices[].sound.modes[].name",
+                            "devices[].sound.modes[].reference",
+                            "devices[].sound.modes[].namePrefix"
                           ]
                         }
-                      ],
-                      "condition": {
-                        "functionBody": "return model.devices[arrayIndices].pictureModeControl === true;"
-                      }
+                      ]
+                    },
+                    "devices[].sound.outputControl",
+                    {
+                      "items": [
+                        {
+                          "key": "devices[].sound.outputs",
+                          "type": "tabarray",
+                          "title": "{{ value.name || 'output' }}",
+                          "items": [
+                            "devices[].sound.outputs[].displayType",
+                            "devices[].sound.outputs[].name",
+                            "devices[].sound.outputs[].reference",
+                            "devices[].sound.outputs[].namePrefix"
+                          ]
+                        }
+                      ]
                     }
                   ]
                 },
                 {
-                  "key": "devices[]",
-                  "title": "Sound / Volume",
+                  "key": "devices[].picture",
+                  "title": "Picture",
                   "items": [
-                    "devices[].volumeControl",
-                    "devices[].volumeControlName",
-                    "devices[].volumeControlNamePrefix",
-                    "devices[].soundModeControl",
+                    "devices[].picture.brightnessControl",
+                    "devices[].picture.backlightControl",
+                    "devices[].picture.contrastControl",
+                    "devices[].picture.colorControl",
+                    "devices[].picture.modeControl",
                     {
                       "items": [
                         {
-                          "key": "devices[].soundModes",
+                          "key": "devices[].picture.modes",
                           "type": "tabarray",
                           "title": "{{ value.name || 'mode' }}",
                           "items": [
-                            "devices[].soundModes[].name",
-                            "devices[].soundModes[].reference",
-                            "devices[].soundModes[].displayType",
-                            "devices[].soundModes[].namePrefix"
+                            "devices[].picture.modes[].displayType",
+                            "devices[].picture.modes[].name",
+                            "devices[].picture.modes[].reference",
+                            "devices[].picture.modes[].namePrefix"
                           ]
                         }
-                      ],
-                      "condition": {
-                        "functionBody": "return model.devices[arrayIndices].soundModeControl === true;"
-                      }
-                    },
-                    "devices[].soundOutputControl",
-                    {
-                      "items": [
-                        {
-                          "key": "devices[].soundOutputs",
-                          "type": "tabarray",
-                          "title": "{{ value.name || 'output' }}",
-                          "items": [
-                            "devices[].soundOutputs[].name",
-                            "devices[].soundOutputs[].reference",
-                            "devices[].soundOutputs[].displayType",
-                            "devices[].soundOutputs[].namePrefix"
-                          ]
-                        }
-                      ],
-                      "condition": {
-                        "functionBody": "return model.devices[arrayIndices].soundOutputControl === true;"
-                      }
+                      ]
                     }
+                  ]
+                },
+                {
+                  "key": "devices[].screen",
+                  "title": "Screen",
+                  "items": [
+                    "devices[].screen.turnOnOff",
+                    "devices[].screen.saverOnOff"
                   ]
                 },
                 {
@@ -1728,22 +1753,20 @@
                   "title": "Device",
                   "items": [
                     "devices[].sslWebSocket",
-                    "devices[].serviceMenu",
-                    "devices[].ezAdjustMenu",
-                    "devices[].infoButtonCommand",
-                    "devices[].disableTvService"
+                    "devices[].disableTvService",
+                    "devices[].infoButtonCommand"
                   ]
                 },
                 {
-                  "key": "devices[]",
+                  "key": "devices[].log",
                   "title": "Log",
                   "items": [
-                    "devices[].disableLogDeviceInfo",
-                    "devices[].disableLogInfo",
-                    "devices[].disableLogSuccess",
-                    "devices[].disableLogWarn",
-                    "devices[].disableLogError",
-                    "devices[].enableDebugMode"
+                    "devices[].log.deviceInfo",
+                    "devices[].log.success",
+                    "devices[].log.info",
+                    "devices[].log.warn",
+                    "devices[].log.error",
+                    "devices[].log.debug"
                   ]
                 },
                 {
@@ -1760,8 +1783,8 @@
                           "title": "RESTFul",
                           "items": [
                             "devices[].restFul.enable",
-                            "devices[].restFul.debug",
-                            "devices[].restFul.port"
+                            "devices[].restFul.port",
+                            "devices[].restFul.debug"
                           ]
                         },
                         {
@@ -1769,16 +1792,22 @@
                           "title": "MQTT",
                           "items": [
                             "devices[].mqtt.enable",
-                            "devices[].mqtt.debug",
                             "devices[].mqtt.host",
                             "devices[].mqtt.port",
                             "devices[].mqtt.clientId",
                             "devices[].mqtt.prefix",
-                            "devices[].mqtt.auth",
-                            "devices[].mqtt.user",
+                            "devices[].mqtt.debug",
                             {
-                              "key": "devices[].mqtt.passwd",
-                              "type": "password"
+                              "key": "devices[].mqtt.auth",
+                              "title": "Authorization",
+                              "items": [
+                                "devices[].mqtt.auth.enable",
+                                "devices[].mqtt.auth.user",
+                                {
+                                  "key": "devices[].mqtt.auth.passwd",
+                                  "type": "password"
+                                }
+                              ]
                             }
                           ]
                         }

@@ -25,7 +25,7 @@ class LgWebOsPlatform {
 			for (const device of config.devices) {
 				if (device.disableAccessory) continue;
 
-				const { name, host, mac, generation = 0 } = device;
+				const { name, host, mac } = device;
 				const macValid = /^([A-Fa-f0-9]{2}:){5}[A-Fa-f0-9]{2}$/.test(mac);
 
 				if (!name || !host || !macValid) {
@@ -33,23 +33,25 @@ class LgWebOsPlatform {
 					continue;
 				}
 
-				const enableDebugMode = !!device.enableDebugMode;
+				//log config
 				const logLevel = {
-					debug: enableDebugMode,
-					info: !device.disableLogInfo,
-					success: !device.disableLogSuccess,
-					warn: !device.disableLogWarn,
-					error: !device.disableLogError,
-					devInfo: !device.disableLogDeviceInfo,
+					devInfo: device.log.deviceInfo,
+					success: device.log.success,
+					info: device.log.info,
+					warn: device.log.warn,
+					error: device.log.error,
+					debug: device.log.debug
 				};
 
-				if (enableDebugMode) {
+				if (logLevel.debug) {
 					log.info(`Device: ${host} ${name}, did finish launching.`);
 					const safeConfig = {
 						...device,
 						mqtt: {
-							...device.mqtt,
-							passwd: 'removed',
+							auth: {
+								...device.mqtt?.auth,
+								passwd: 'removed',
+							}
 						},
 					};
 					log.info(`Device: ${host} ${name}, Config: ${JSON.stringify(safeConfig, null, 2)}`);
@@ -77,17 +79,18 @@ class LgWebOsPlatform {
 				}
 
 				try {
-					const lgDevice = new LgWebOsDevice(api, device, files.key, files.devInfo, files.inputs, files.channels, files.inputsNames, files.inputsVisibility)
-						.on('devInfo', (info) => logLevel.devInfo && log.info(info))
-						.on('success', (msg) => logLevel.success && log.success(`Device: ${host} ${name}, ${msg}`))
-						.on('info', (msg) => logLevel.info && log.info(`Device: ${host} ${name}, ${msg}`))
-						.on('debug', (msg) => logLevel.debug && log.info(`Device: ${host} ${name}, debug: ${msg}`))
-						.on('warn', (msg) => logLevel.warn && log.warn(`Device: ${host} ${name}, ${msg}`))
-						.on('error', (msg) => logLevel.error && log.error(`Device: ${host} ${name}, ${msg}`));
-
+					// create impulse generator
 					const impulseGenerator = new ImpulseGenerator()
 						.on('start', async () => {
 							try {
+								const lgDevice = new LgWebOsDevice(api, device, files.key, files.devInfo, files.inputs, files.channels, files.inputsNames, files.inputsVisibility)
+									.on('devInfo', (info) => logLevel.devInfo && log.info(info))
+									.on('success', (msg) => logLevel.success && log.success(`Device: ${host} ${name}, ${msg}`))
+									.on('info', (msg) => logLevel.info && log.info(`Device: ${host} ${name}, ${msg}`))
+									.on('debug', (msg) => logLevel.debug && log.info(`Device: ${host} ${name}, debug: ${msg}`))
+									.on('warn', (msg) => logLevel.warn && log.warn(`Device: ${host} ${name}, ${msg}`))
+									.on('error', (msg) => logLevel.error && log.error(`Device: ${host} ${name}, ${msg}`));
+
 								const accessory = await lgDevice.start();
 								if (accessory) {
 									api.publishExternalAccessories(PluginName, [accessory]);
@@ -97,14 +100,15 @@ class LgWebOsPlatform {
 									await lgDevice.startImpulseGenerator();
 								}
 							} catch (error) {
-								if (logLevel.error) log.error(`Device: ${host} ${name}, ${error.message ?? error}, trying again.`);
+								if (logLevel.error) log.error(`Device: ${host} ${name}, Start impulse generator error: ${error.message ?? error}, trying again.`);
 							}
 						})
 						.on('state', (state) => {
 							if (logLevel.debug) log.info(`Device: ${host} ${name}, Start impulse generator ${state ? 'started' : 'stopped'}.`);
 						});
 
-					await impulseGenerator.start([{ name: 'start', sampling: 45000 }]);
+					// start impulse generator
+					await impulseGenerator.start([{ name: 'start', sampling: 60000 }]);
 				} catch (error) {
 					if (logLevel.error) log.error(`Device: ${host} ${name}, Did finish launching error: ${error.message ?? error}`);
 				}

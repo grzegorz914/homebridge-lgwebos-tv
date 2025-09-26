@@ -63,82 +63,95 @@ Tested with OLED65G6V, 32LM6300PLA, 49SK8500, OLED65C7T, 55SK800PLB, OLED48CX.
 | `name` | Here set the accessory *Name* to be displayed in *Homebridge/HomeKit*. |
 | `host` | Here set the *Hsostname or Address IP* of TV. |
 | `mac` | Here set the *Mac Address* of TV. |
-| `broadcastAddress` | Here set the *Broadcast address* of network interaface to send WOL packet, default is `255.255.255.255`. |
 | `disableAccessory` | If enabled, the accessory will be disabled. |
-| `getInputsFromDevice` | This enable load inputs and apps direct from device. |
-| `filterSystemApps` | This enable filter sysem apps, only if `getInputsFromDevice` is `true`. |
-| `inputsDisplayOrder` | Here select display order of the inputs list, `0 - None`, `1 - Ascending by Name`, `2 - Descending by Name`, `3 - Ascending by Reference`, `4 - Ascending by Reference`.. |
-| `inputs.name` | Here set *Name* which You want expose to the *Homebridge/HomeKit*. |
-| `inputs.reference` | Here set *Reference*. `Live TV`, `HDMI 1`, `HDMI 2` are created by default. |
-| `inputs.mode` | Here select input mode, `0 - Input/App`, `1 - Live TV Channel`. |
-| `buttons.name` | Here set *Name* which You want expose to the *Homebridge/HomeKit*. |
-| `buttons.mode` | Here select button mode, `0 - Input/App`, `1 - Live TV Channel`, `2 - Remote Control`. |
-| `buttons.reference` | Here set *Reference*, only for `Input/App` or `Live TV Channel` mode, in other case leave empty. |
-| `buttons.command` | Here select `Remote Control` command which will be assigned to the button. |
-| `buttons.displayType` | Here select display type in HomeKit app, possible `0 - None/Disabled`, `1 - Outlet`, `2 - Switch`.|
-| `buttons.namePrefix` | Here enable/disable the accessory name as a prefix for button name.|
-| `sensorPower`| If enabled, then the Power will be exposed as a `Contact Sensor`, fired if Power ON. |
-| `sensorPixelRefresh`| If enabled, then the PoPixel Refresh will be exposed as a `Contact Sensor`, fired if Pixel Refresh ON. |
-| `sensorVolume`| If enabled, then the Volume will be exposed as a `Contact Sensor`, fired on every Volume change. |
-| `sensorMute`| If enabled, then the Mute will be exposed as a `Contact Sensor`, fired if Mmute ON. |
-| `sensorInput`| If enabled, then the Input will be exposed as a `Contact Sensor`, fired on every Input change. |
-| `sensorChannel`| If enabled, then the Channel will be exposed as a `Contact Sensor`, fired on every Channel change. |
-| `sensorSoundMode`| If enabled, then the Sound Mode will be exposed as a `Contact Sensor`, fired on every Sound Mode change, webOS >= 6.0. |
-| `sensorSoundOutput`| If enabled, then the Sound Output will be exposed as a `Contact Sensor`, ffired on every Sound Output change. |
-| `sensorPictureMode`| If enabled, then the Picture Mode will be exposed as a `Contact Sensor`, fired on every Picture Mode change, webOS >= 4.0. |
-| `sensorScreenOnOff`| If enabled, then the Screen On/Off will be exposed as a `Contact Sensor`, fired on Screen OFF, webOS >= 4.0. |
-| `sensorScreenSaver`| If enabled, then the Screen Saver will be exposed as a `Contact Sensor`, fired on Screen Saver ON, webOS >= 4.0. |
-| `sensorPlayState`| If enabled, then the Play State will be exposed as a `Contact Sensor`, fired on Playing, webOS >= 7.0. |
-| `sensorInputs`| Her create custom Inputs sensor, sensors will be exposed as a `Contact Sensor`, fired if switch to it. |
-| `sensorInputs.name` | Here set own *Name* which You want expose to the *Homebridge/HomeKit* for this sensor. |
-| `sensorInputs.reference` | Here set *Reference* like `com.webos.app.hdmi1` to be exposed as sensor (active on switch to this Input). |
-| `sensorInputs.displayType` | Here select sensor type to be exposed in HomeKit app, possible `0 - None/Disabled`, `1 - Motion Sensor`, `2 - Occupancy Sensor`, `3 - Contact Sensor`. |
-| `sensorInputs.namePrefix` | Here enable/disable the accessory name as a prefix for sensor name.|
-| `pictureModeControl` | Here enable/disable control of picture mode, webOS >= 4.0. |
-| `pictureModes.name` | Here set own *Name* which You want expose to the *Homebridge/HomeKit* for this sensor. |
-| `pictureModes.reference` | Here select mode to be exposed in *Homebridge/HomeKit*. |
-| `pictureModes.displayType` | Here select display type in HomeKit app, possible `0 - None/Disabled`, `1 - Outlet`, `2 - Switch`.|
-| `pictureModes.namePrefix` | Here enable/disable the accessory name as a prefix for picture mode.|
-| `soundModeControl` | Here enable/disable control of sound mode, webOS >= 6.0. |
-| `soundModes.name` | Here set own *Name* which You want expose to the *Homebridge/HomeKit* for this sensor. |
-| `soundModes.reference` | Here select mode to be exposed in *Homebridge/HomeKit*. |
-| `soundModes.displayType` | Here select display type in HomeKit app, possible `0 - None/Disabled`, `1 - Outlet`, `2 - Switch`.|
-| `soundModes.namePrefix` | Here enable/disable the accessory name as a prefix for sound mode.|
-| `soundOutputControl` | Here enable/disable control of sound output. |
-| `soundOutputs.name` | Here set own *Name* which You want expose to the *Homebridge/HomeKit* for this sensor. |
-| `soundOutputs.reference` | Here select output to be exposed in *Homebridge/HomeKit*. |
-| `soundModes.displayType` | Here select display type in HomeKit app, possible `0 - None/Disabled`, `1 - Outlet`, `2 - Switch`.|
-| `soundOutputs.namePrefix` | Here enable/disable the accessory name as a prefix for sound output.|
-| `volumeControlNamePrefix` | Here enable/disable the accessory name as a prefix for volume control name. |
-| `volumeControlName` | Here set Your own volume control name or leave empty. |
-| `volumeControl` | Here select volume control mode `0 - None/Disabled`, `1 - Slider`, `2 - Fan`, `3 - Speaker`. |
-| `turnScreenOnOff` | This enable possibility turn the screen ON/OFF, webOS >= 4.0. |
-| `turnScreenSaverOnOff` | This enable possibility turn the screen saver ON/OFF, webOS >= 4.0. |
-| `infoButtonCommand` | Here select the function of `I` button in RC app. |
+| `inputs{}` | Inputs object. |
+| `inputs.getFromDevice` | This enable load inputs and apps direct from device. |
+| `inputs.filterSystemApps` | This enable filter sysem apps, only if `getInputsFromDevice` is `true`. |
+| `inputs.displayOrder` | Here select display order of the inputs list, `0 - None`, `1 - Ascending by Name`, `2 - Descending by Name`, `3 - Ascending by Reference`, `4 - Ascending by Reference`.. |
+| `inputs.data[].name` | Here set *Name* which You want expose to the *Homebridge/HomeKit*. |
+| `inputs.data[].reference` | Here set *Reference*. `Live TV`, `HDMI 1`, `HDMI 2` are created by default. |
+| `inputs.data[].mode` | Here select input mode, `0 - Input/App`, `1 - Live TV Channel`. |
+| `buttons[]` | Buttons array. |
+| `buttons[].name` | Here set *Name* which You want expose to the *Homebridge/HomeKit*. |
+| `buttons[].mode` | Here select button mode, `0 - Input/App`, `1 - Live TV Channel`, `2 - Remote Control`. |
+| `buttons[].reference` | Here set *Reference*, only for `Input/App` or `Live TV Channel` mode, in other case leave empty. |
+| `buttons[].command` | Here select `Remote Control` command which will be assigned to the button. |
+| `buttons[].displayType` | Here select display type in HomeKit app, possible `0 - None/Disabled`, `1 - Outlet`, `2 - Switch`.|
+| `buttons[].namePrefix` | Here enable/disable the accessory name as a prefix for button name.|
+| `sensors{}` | Sensors object. |
+| `sensors.power`| If enabled, then the Power will be exposed as a `Contact Sensor`, fired if Power ON. |
+| `sensors.pixelRefresh`| If enabled, then the PoPixel Refresh will be exposed as a `Contact Sensor`, fired if Pixel Refresh ON. |
+| `sensors.volume`| If enabled, then the Volume will be exposed as a `Contact Sensor`, fired on every Volume change. |
+| `sensors.mute`| If enabled, then the Mute will be exposed as a `Contact Sensor`, fired if Mmute ON. |
+| `sensors.input`| If enabled, then the Input will be exposed as a `Contact Sensor`, fired on every Input change. |
+| `sensora.channel`| If enabled, then the Channel will be exposed as a `Contact Sensor`, fired on every Channel change. |
+| `sensors.soundMode`| If enabled, then the Sound Mode will be exposed as a `Contact Sensor`, fired on every Sound Mode change, webOS >= 6.0. |
+| `sensors.soundOutput`| If enabled, then the Sound Output will be exposed as a `Contact Sensor`, ffired on every Sound Output change. |
+| `sensors.pictureMode`| If enabled, then the Picture Mode will be exposed as a `Contact Sensor`, fired on every Picture Mode change, webOS >= 4.0. |
+| `sensors.screenOnOff`| If enabled, then the Screen On/Off will be exposed as a `Contact Sensor`, fired on Screen OFF, webOS >= 4.0. |
+| `sensors.screenSaver`| If enabled, then the Screen Saver will be exposed as a `Contact Sensor`, fired on Screen Saver ON, webOS >= 4.0. |
+| `sensors.playState`| If enabled, then the Play State will be exposed as a `Contact Sensor`, fired on Playing, webOS >= 7.0. |
+| `sensors.inputs[]`| Sensor inputs array. |
+| `sensors.inputs[].name` | Here set own *Name* which You want expose to the *Homebridge/HomeKit* for this sensor. |
+| `sensors.inputs[].reference` | Here set *Reference* like `com.webos.app.hdmi1` to be exposed as sensor (active on switch to this Input). |
+| `sensors.inputs[].displayType` | Here select sensor type to be exposed in HomeKit app, possible `0 - None/Disabled`, `1 - Motion Sensor`, `2 - Occupancy Sensor`, `3 - Contact Sensor`. |
+| `sensors.inputs[].namePrefix` | Here enable/disable the accessory name as a prefix for sensor name.|
+| `picture{}` | Picture object. |
+| `picture.modeControl` | Here enable/disable control of picture mode, webOS >= 4.0. |
+| `picture.modes[]`| Picture modes array. |
+| `picture.modes[].name` | Here set own *Name* which You want expose to the *Homebridge/HomeKit* for this sensor. |
+| `picture.modes[].reference` | Here select mode to be exposed in *Homebridge/HomeKit*. |
+| `picture.modes[].displayType` | Here select display type in HomeKit app, possible `0 - None/Disabled`, `1 - Outlet`, `2 - Switch`.|
+| `picture.modes[].namePrefix` | Here enable/disable the accessory name as a prefix for picture mode.|
+| `sound{}` | Sound object. |
+| `sound.modeControl` | Here enable/disable control of sound mode, webOS >= 6.0. |
+| `sound.modes[]`| Sound modes array. |
+| `sound.modes[].name` | Here set own *Name* which You want expose to the *Homebridge/HomeKit* for this sensor. |
+| `sound.modes[].reference` | Here select mode to be exposed in *Homebridge/HomeKit*. |
+| `sound.modes[].displayType` | Here select display type in HomeKit app, possible `0 - None/Disabled`, `1 - Outlet`, `2 - Switch`.|
+| `sound.modes[].namePrefix` | Here enable/disable the accessory name as a prefix for sound mode.|
+| `sound.outputControl` | Here enable/disable control of sound output. |
+| `sound.outputs[]`| Sound outputs array. |
+| `sound.outputs[].name` | Here set own *Name* which You want expose to the *Homebridge/HomeKit* for this sensor. |
+| `sound.outputs[].reference` | Here select output to be exposed in *Homebridge/HomeKit*. |
+| `soundo.utputs[].displayType` | Here select display type in HomeKit app, possible `0 - None/Disabled`, `1 - Outlet`, `2 - Switch`.|
+| `sound.outputs[].namePrefix` | Here enable/disable the accessory name as a prefix for sound output.|
+| `screen{}` | Screen object. |
+| `screen.turnOnOff` | This enable possibility turn the screen ON/OFF, webOS >= 4.0. |
+| `screen.saverOnOff` | This enable possibility turn the screen saver ON/OFF, webOS >= 4.0. |
+| `power{}` | Power object. |
+| `power.broadcastAddress` | Here set the *Broadcast address* of network interaface to send WOL packet, default is `255.255.255.255`. |
+| `power.startInput` | This enable possibilty to set default Input/App after Power ON TV. |
+| `power.startInputReference` | Here set the default Input/App reference. |
+| `volume{}` | Volume object. |
+| `volume.displayType` | Here choice what a additional volume control mode You want to use (`0 - None/Disabled`, `1 - Lightbulb`, `2 - Fan`, `3 - Speaker`), not working yet. |
+| `volume.name` | Here set Your own volume control name or leave empty. |
+| `volume.namePrefix` | Here enable/disable the accessory name as a prefix for volume control name. |
 | `sslWebSocket` | If enabled, SSL WebSocket will support TV with new firmware. |
-| `serviceMenu` | If enabled, service menu will be available from the input list. |
-| `ezAdjustMenu` | If enabled, ez adjust menu will be available from the input list. |
-| `disableTvService` | If enabled, TV service will be disabled and prevent display double services if TV already support HomeKit native. |
-| `disableLogDeviceInfo` | If enabled, add ability to disable log device info by every connections device to the network. |
-| `disableLogInfo` | If enabled, disable log info, all values and state will not be displayed in Homebridge log console. |
-| `disableLogSuccess` | If enabled, disable logging device success. |
-| `disableLogWarn` | If enabled, disable logging device warnings. |
-| `disableLogError` | If enabled, disable logging device error. |
-| `enableDebugMode` | If enabled, deep log will be present in homebridge console. |
-| `restFul` | This is RSTful server. |
-| `enable` | If enabled, RESTful server will start automatically and respond to any path request. |
-| `port` | Here set the listening `Port` for RESTful server. |
-| `debug` | If enabled, deep log will be present in homebridge console for RESTFul server. |
-| `mqtt` | This is MQTT Broker. |
-| `enable` | If enabled, MQTT Broker will start automatically and publish all awailable PV data. |
-| `host` | Here set the `IP Address` or `Hostname` for MQTT Broker. |
-| `port` | Here set the `Port` for MQTT Broker, default 1883. |
-| `clientId` | Here optional set the `Client Id` of MQTT Broker. |
-| `prefix` | Here set the `Prefix` for `Topic` or leave empty. |
-| `auth` | If enabled, MQTT Broker will use authorization credentials. |
-| `user` | Here set the MQTT Broker user. |
-| `passwd` | Here set the MQTT Broker password. |
-| `debug` | If enabled, deep log will be present in homebridge console for MQTT. |
+| `disableTvService` | This disable TV service and prevent display double services if TV already support HomeKit native. |
+| `infoButtonCommand` | Here select the function of `I` button in RC app. |
+| `log{}` | Log object. |
+| `log.deviceInfo` | If enabled, log device info will be displayed by every connections device to the network. |
+| `log.success` | If enabled, success log will be displayed in console. |
+| `log.info` | If enabled, info log will be displayed in console. |
+| `log.warn` | If enabled, warn log will be displayed in console. |
+| `log.error` | If enabled, error log will be displayed in console. |
+| `log.debug` | If enabled, debug log will be displayed in console. |
+| `restFul{}` | RESTFul object. |
+| `restFul.enable` | If enabled, RESTful server will start automatically and respond to any path request. |
+| `restFul.port` | Here set the listening `Port` for RESTful server. |
+| `restFul.debug` | If enabled, deep log will be present in homebridge console for RESTFul server. |
+| `mqtt{}` | MQTT object. |
+| `mqtt.enable` | If enabled, MQTT Broker will start automatically and publish all awailable PV data. |
+| `mqtt.host` | Here set the `IP Address` or `Hostname` for MQTT Broker. |
+| `mqtt.port` | Here set the `Port` for MQTT Broker, default 1883. |
+| `mqtt.clientId` | Here optional set the `Client Id` of MQTT Broker. |
+| `mqtt.prefix` | Here set the `Prefix` for `Topic` or leave empty. |
+| `mqtt.debug` | If enabled, deep log will be present in homebridge console for MQTT. |
+| `mqtt.auth{}` | MQTT authorization object. |
+| `mqtt.auth.enable` | Here enable authorization for MQTT Broker. |
+| `mqtt.auth.user` | Here set the MQTT Broker user. |
+| `mqtt.auth.passwd` | Here set the MQTT Broker password. |
 | `reference` | All can be found in `homebridge_directory/lgwebosTv`, `inputs_xxx` file, where `reference == id`, or `channels_xxx` file, where `reference == channelId`. |
 
 ### RESTFul Integration
