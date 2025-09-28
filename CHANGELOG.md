@@ -6,7 +6,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ### NOTE
 
 - After update to v3.0.0 RESTFull and MQTT config settings need to be updated
-- After update to v3.10.0 plugin need to be reconfigured
+- After update to v3.10.x plugin need to be reconfigured first, in other case will crash!!!
+
+## [3.10.1] - (28.09.2025)
+
+## Changes
+
+- after update to v3.10.x plugin need to be reconfigured first, in other case will crash!!!
+- fix report mute state in buttons
+- fix report app/input state in buttons
+- fix report channel state in buttons
+- update WoL to correct supports VLANS
+  - router/switch need to support IP Directed Broadcast
+- redme updated
+- cleanup
 
 ## [3.10.0] - (24.09.2025)
 

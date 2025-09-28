@@ -120,11 +120,11 @@ Tested with OLED65G6V, 32LM6300PLA, 49SK8500, OLED65C7T, 55SK800PLB, OLED48CX.
 | `screen.turnOnOff` | This enable possibility turn the screen ON/OFF, webOS >= 4.0. |
 | `screen.saverOnOff` | This enable possibility turn the screen saver ON/OFF, webOS >= 4.0. |
 | `power{}` | Power object. |
-| `power.broadcastAddress` | Here set the *Broadcast address* of network interaface to send WOL packet, default is `255.255.255.255`. |
+| `power.broadcastAddress` | Her set network `Broadcast Address`, only if You use VLANS in Your network configuration and Your router/switch support IP Directed Broadcast, default is `255.255.255.255`. |
 | `power.startInput` | This enable possibilty to set default Input/App after Power ON TV. |
 | `power.startInputReference` | Here set the default Input/App reference. |
 | `volume{}` | Volume object. |
-| `volume.displayType` | Here choice what a additional volume control mode You want to use (`0 - None/Disabled`, `1 - Lightbulb`, `2 - Fan`, `3 - Speaker`), not working yet. |
+| `volume.displayType` | Here choice what a additional volume control mode You want to use `0 - None/Disabled`, `1 - Lightbulb`, `2 - Fan`, `3 - Speaker`. |
 | `volume.name` | Here set Your own volume control name or leave empty. |
 | `volume.namePrefix` | Here enable/disable the accessory name as a prefix for volume control name. |
 | `sslWebSocket` | If enabled, SSL WebSocket will support TV with new firmware. |

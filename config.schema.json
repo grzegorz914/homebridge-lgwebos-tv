@@ -190,7 +190,6 @@
                   "mode": {
                     "title": "Mode",
                     "type": "integer",
-                    "description": "Here select the function mode.",
                     "minimum": 0,
                     "maximum": 2,
                     "default": 0,
@@ -214,6 +213,7 @@
                         ]
                       }
                     ],
+                    "description": "Here select the function mode.",
                     "required": true
                   },
                   "reference": {
@@ -722,7 +722,7 @@
                   "type": "string",
                   "placeholder": "255.255.255.255",
                   "format": "ipv4",
-                  "description": "Her set network broadcast address, only if You have problem Power ON the TV."
+                  "description": "Her set network broadcast address, only if You use VLANS in Your network configuration and Your router/switch support IP Directed Broadcast."
                 },
                 "startInput": {
                   "title": "Default Input",

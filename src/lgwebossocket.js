@@ -110,6 +110,7 @@ class LgWebOsSocket extends EventEmitter {
             this.emit('pictureMode', this.pictureMode, false);
             this.emit('soundMode', this.soundMode, false);
             this.emit('soundOutput', this.soundOutput, false);
+            this.emit('mediainfo', this.playState, this.appType, false);
         } catch (error) {
             throw new Error(`Save pairing key error: ${error}`);
         }
@@ -154,7 +155,7 @@ class LgWebOsSocket extends EventEmitter {
         if (this.logDebug) this.emit('debug', `Subscirbe tv status`);
 
         try {
-            await new Promise(resolve => setTimeout(resolve, 3000));
+            //await new Promise(resolve => setTimeout(resolve, 4000));
 
             this.channelsId = await this.getCid();
             await this.send('subscribe', ApiUrls.GetChannelList, undefined, this.channelsId);
@@ -689,7 +690,7 @@ class LgWebOsSocket extends EventEmitter {
                             switch (messageType) {
                                 case 'response':
                                     if (this.logDebug) this.emit('debug', `App: ${stringifyMessage}`);
-                                    const appId = messageData.appId ?? false;
+                                    const appId = messageData.appId;
                                     if (!appId) return;
                                     this.appId = appId;
 
@@ -720,9 +721,8 @@ class LgWebOsSocket extends EventEmitter {
                                     if (volumeStatusKeys) volumeStatusKeys.includes('soundOutput');
 
                                     //data
-                                    const volume = messageData.volume ?? -1;
-                                    const mute = messageData.mute === true;
-                                    if (volume === -1) return;
+                                    const volume = messageData.volume ?? this.volume;
+                                    const mute = !!messageData.mute;
 
                                     this.emit('audioState', volume, mute, this.power);
                                     this.volume = volume;
@@ -746,7 +746,7 @@ class LgWebOsSocket extends EventEmitter {
                             switch (messageType) {
                                 case 'response':
                                     if (this.logDebug) this.emit('debug', `Channel: ${stringifyMessage}`);
-                                    const channelId = messageData.channelId ?? false;
+                                    const channelId = messageData.channelId;
                                     const channelName = messageData.channelName;
                                     const channelNumber = messageData.channelNumber;
                                     if (!channelId) return;
@@ -802,7 +802,7 @@ class LgWebOsSocket extends EventEmitter {
                             switch (messageType) {
                                 case 'response':
                                     if (this.logDebug) this.emit('debug', `Picture mode: ${stringifyMessage}`);
-                                    const pictureMode = stringifyMessage.pictureMode ?? false;
+                                    const pictureMode = stringifyMessage.pictureMode;
                                     if (!pictureMode) return;
 
                                     this.emit('pictureMode', pictureMode, this.power);
@@ -826,7 +826,7 @@ class LgWebOsSocket extends EventEmitter {
                             switch (messageType) {
                                 case 'response':
                                     if (this.logDebug) this.emit('debug', `Sound mode: ${stringifyMessage}`);
-                                    const soundMode = messageData.settings.soundMode ?? false;
+                                    const soundMode = messageData.settings?.soundMode;
                                     if (!soundMode) return;
 
                                     this.emit('soundMode', soundMode, this.power);
@@ -850,7 +850,7 @@ class LgWebOsSocket extends EventEmitter {
                             switch (messageType) {
                                 case 'response':
                                     if (this.logDebug) this.emit('debug', `Sound output: ${stringifyMessage}`);
-                                    const soundOutput = messageData.soundOutput ?? false;
+                                    const soundOutput = messageData.soundOutput;
                                     if (!soundOutput) return;
 
                                     this.emit('soundOutput', soundOutput, this.power);
