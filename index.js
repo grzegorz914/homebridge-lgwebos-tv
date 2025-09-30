@@ -23,7 +23,8 @@ class LgWebOsPlatform {
 
 		api.on('didFinishLaunching', async () => {
 			for (const device of config.devices) {
-				if (device.disableAccessory) continue;
+				const displayType = device.displayType ?? 1;
+				if (displayType === 0) continue;
 
 				const { name, host, mac } = device;
 				const macValid = /^([A-Fa-f0-9]{2}:){5}[A-Fa-f0-9]{2}$/.test(mac);

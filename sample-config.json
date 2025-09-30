@@ -22,7 +22,7 @@
                     "name": "LG TV",
                     "host": "192.168.1.8",
                     "mac": "ab:cd:ef:fe:dc:ba",
-                    "disableAccessory": false,
+                    "displayType": 1,
                     "inputs": {
                         "getFromDevice": false,
                         "filterSystemApps": false,
@@ -81,31 +81,32 @@
                         "namePrefix": false
                     },
                     "sound": {
-                        "modeControl": false,
-                        "modes": [
-                            {
-                                "name": "Cinema",
-                                "reference": "movie",
-                                "displayType": 0,
-                                "namePrefix": false
-                            }
-                        ],
-                        "outputControl": false,
-                        "outputs": [
-                            {
-                                "name": "TV Speaker",
-                                "reference": "tv_speaker",
-                                "displayType": 0,
-                                "namePrefix": false
-                            }
-                        ]
+                        "modes": {
+                            "data": [
+                                {
+                                    "name": "Cinema",
+                                    "reference": "movie",
+                                    "displayType": 0,
+                                    "namePrefix": false
+                                }
+                            ]
+                        },
+                        "outputs": {
+                            "data": [
+                                {
+                                    "name": "TV Speaker",
+                                    "reference": "tv_speaker",
+                                    "displayType": 0,
+                                    "namePrefix": false
+                                }
+                            ]
+                        }
                     },
                     "picture": {
                         "backlightControl": false,
                         "brightnessControl": false,
                         "contrastControl": false,
                         "colorControl": false,
-                        "modeControl": false,
                         "modes": [
                             {
                                 "name": "Cinema",

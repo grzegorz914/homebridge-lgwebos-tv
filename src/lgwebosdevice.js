@@ -23,6 +23,7 @@ class LgWebOsDevice extends EventEmitter {
         this.name = device.name;
         this.host = device.host;
         this.mac = device.mac;
+        this.displayType = device.displayType;
         this.getInputsFromDevice = device.inputs.getFromDevice || false;
         this.filterSystemApps = device.inputs.filterSystemApps || false;
         this.inputsDisplayOrder = device.inputs.displayOrder || 0;
@@ -47,16 +48,13 @@ class LgWebOsDevice extends EventEmitter {
         this.volumeControl = device.volume.displayType || 0;
         this.volumeControlName = device.volume.name || 'Volume';
         this.volumeControlNamePrefix = device.volume.namePrefix || false;
-        this.soundModeControl = device.sound.modeControl || false;
-        this.soundModes = this.soundModeControl ? device.sound.modes || [] : [];
-        this.soundOutputControl = device.sound.outputControl || false;
-        this.soundOutputs = this.soundOutputControl ? device.sound.outputs || [] : [];
+        this.soundModes = device.sound.modes || [];
+        this.soundOutputs = device.sound.outputs || [];
         this.brightnessControl = device.picture.brightnessControl || false;
         this.backlightControl = device.picture.backlightControl || false;
         this.contrastControl = device.picture.contrastControl || false;
         this.colorControl = device.picture.colorControl || false;
-        this.pictureModeControl = device.picture.modeControl || false;
-        this.pictureModes = this.pictureModeControl ? device.picture.modes || [] : [];
+        this.pictureModes = device.picture.modes || [];
         this.turnScreenOnOff = device.screen.turnOnOff || false;
         this.turnScreenSaverOnOff = device.screen.saverOnOff || false;
         this.disableTvService = device.disableTvService || false;
@@ -184,16 +182,16 @@ class LgWebOsDevice extends EventEmitter {
         //buttons variable
         this.buttonsConfigured = [];
         for (const button of this.buttons) {
-            const buttonName = button.name;
-            const buttonMode = button.mode;
-            const buttonReferenceCommand = [button.reference, button.reference, button.command][buttonMode];
-            const buttonDisplayType = button.displayType;
-            if (!buttonDisplayType || !buttonName || !buttonReferenceCommand) {
-                if (this.logWarn && buttonDisplayType) this.emit('warn', `Button Name: ${buttonName ? buttonName : 'Missing'}, ${buttonMode ? 'Command:' : 'Reference:'} ${buttonReferenceCommand ? buttonReferenceCommand : 'Missing'}, Mode: ${buttonMode ? buttonMode : 'Missing'}`);
+            const name = button.name;
+            const mode = button.mode;
+            const reference = [button.reference, button.reference, button.command][mode];
+            const displayType = button.displayType;
+            if (!displayType || !name || !reference) {
+                if (this.logWarn && displayType) this.emit('warn', `Button Name: ${name ? name : 'Missing'}, ${buttonMode ? 'Command:' : 'Reference:'} ${reference ? reference : 'Missing'}, Mode: ${mode ? mode : 'Missing'}`);
                 continue;
             }
 
-            button.serviceType = ['', Service.Outlet, Service.Switch][buttonDisplayType];
+            button.serviceType = ['', Service.Outlet, Service.Switch][displayType];
             button.state = false;
             this.buttonsConfigured.push(button);
         }
@@ -577,7 +575,7 @@ class LgWebOsDevice extends EventEmitter {
 
             const accessoryName = this.name;
             const accessoryUUID = AccessoryUUID.generate(this.mac);
-            const accessoryCategory = Categories.TELEVISION;
+            const accessoryCategory = [Categories.OTHER, Categories.TELEVISION, Categories.TV_SET_TOP_BOX, Categories.TV_STREAMING_STICK, Categories.AUDIO_RECEIVER][this.displayType];
             const accessory = new Accessory(accessoryName, accessoryUUID, accessoryCategory);
             this.accessory = accessory;
 
@@ -1704,9 +1702,10 @@ class LgWebOsDevice extends EventEmitter {
                     if (this.buttonsConfiguredCount > 0) {
                         for (let i = 0; i < this.buttonsConfiguredCount; i++) {
                             const button = this.buttonsConfigured[i];
-                            const state = button.mode === 2 && button.command === 'POWER' ? power : button.state;
-                            button.state = state;
-                            this.buttonsServices?.[i]?.updateCharacteristic(Characteristic.On, state);
+                            if (button.mode === 2 && button.command === 'POWER') {
+                                button.state = power
+                                this.buttonsServices?.[i]?.updateCharacteristic(Characteristic.On, power);
+                            }
                         }
                     }
 
@@ -1741,9 +1740,11 @@ class LgWebOsDevice extends EventEmitter {
                     if (this.buttonsConfiguredCount > 0) {
                         for (let i = 0; i < this.buttonsConfiguredCount; i++) {
                             const button = this.buttonsConfigured[i];
-                            const state = power ? (button.mode === 0 ? button.reference === appId : button.state) : false;
-                            button.state = state;
-                            this.buttonsServices?.[i]?.updateCharacteristic(Characteristic.On, state);
+                            if (button.mode === 0) {
+                                const state = power ? button.reference === appId : false;
+                                button.state = state;
+                                this.buttonsServices?.[i]?.updateCharacteristic(Characteristic.On, state);
+                            }
                         }
                     }
 
@@ -1786,9 +1787,10 @@ class LgWebOsDevice extends EventEmitter {
                     if (this.buttonsConfiguredCount > 0) {
                         for (let i = 0; i < this.buttonsConfiguredCount; i++) {
                             const button = this.buttonsConfigured[i];
-                            const state = power ? (button.mode === 2 && button.command === 'MUTE' ? muteV : button.state) : false;
-                            button.state = state
-                            this.buttonsServices?.[i]?.updateCharacteristic(Characteristic.On, state);
+                            if (button.mode === 2 && button.command === 'MUTE') {
+                                button.state = muteV
+                                this.buttonsServices?.[i]?.updateCharacteristic(Characteristic.On, muteV);
+                            }
                         }
                     }
 
@@ -1818,9 +1820,11 @@ class LgWebOsDevice extends EventEmitter {
                     if (this.buttonsConfiguredCount > 0) {
                         for (let i = 0; i < this.buttonsConfiguredCount; i++) {
                             const button = this.buttonsConfigured[i];
-                            const state = power ? (button.mode === 1 ? button.reference === channelId : button.state) : false;
-                            button.state = state;
-                            this.buttonsServices?.[i]?.updateCharacteristic(Characteristic.On, state);
+                            if (button.mode === 1) {
+                                const state = power ? button.reference === channelId : false;
+                                button.state = state;
+                                this.buttonsServices?.[i]?.updateCharacteristic(Characteristic.On, state);
+                            }
                         }
                     }
 

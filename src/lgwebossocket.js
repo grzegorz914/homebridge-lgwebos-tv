@@ -714,19 +714,12 @@ class LgWebOsSocket extends EventEmitter {
                             switch (messageType) {
                                 case 'response':
                                     if (this.logDebug) this.emit('debug', `Audio: ${stringifyMessage}`);
-                                    const messageDataKeys = Object.keys(messageData);
-                                    const scenarioExist = messageDataKeys.includes('scenario');
-                                    const volumeStatusExist = messageDataKeys.includes('volumeStatus');
-                                    const volumeStatusKeys = volumeStatusExist ? Object.keys(messageData.volumeStatus) : false;
-                                    if (volumeStatusKeys) volumeStatusKeys.includes('soundOutput');
-
-                                    //data
                                     const volume = messageData.volume ?? this.volume;
                                     const mute = !!messageData.mute;
-
-                                    this.emit('audioState', volume, mute, this.power);
                                     this.volume = volume;
                                     this.mute = mute
+
+                                    this.emit('audioState', volume, mute, this.power);
 
                                     //restFul
                                     this.emit('restFul', 'audio', messageData);
@@ -771,6 +764,9 @@ class LgWebOsSocket extends EventEmitter {
                             switch (messageType) {
                                 case 'response':
                                     if (this.logDebug) this.emit('debug', `Picture settings: ${stringifyMessage}`);
+                                    const settings = messageData.settings;
+                                    if (!settings) return;
+                                    
                                     const brightness = messageData.settings.brightness ?? this.brightness;
                                     const backlight = messageData.settings.backlight ?? this.backlight;
                                     const contrast = messageData.settings.contrast ?? this.contrast;
@@ -782,7 +778,6 @@ class LgWebOsSocket extends EventEmitter {
                                     this.color = color;
 
                                     this.emit('pictureSettings', brightness, backlight, contrast, color, this.power);
-                                    this.emit('pictureMode', 'Unknown', this.power);
 
                                     //restFul
                                     this.emit('restFul', 'picturesettings', messageData);
@@ -804,9 +799,9 @@ class LgWebOsSocket extends EventEmitter {
                                     if (this.logDebug) this.emit('debug', `Picture mode: ${stringifyMessage}`);
                                     const pictureMode = stringifyMessage.pictureMode;
                                     if (!pictureMode) return;
+                                    this.pictureMode = pictureMode;
 
                                     this.emit('pictureMode', pictureMode, this.power);
-                                    this.pictureMode = pictureMode;
 
                                     //restFul
                                     this.emit('restFul', 'picturemode', messageData);
@@ -828,9 +823,9 @@ class LgWebOsSocket extends EventEmitter {
                                     if (this.logDebug) this.emit('debug', `Sound mode: ${stringifyMessage}`);
                                     const soundMode = messageData.settings?.soundMode;
                                     if (!soundMode) return;
+                                    this.soundMode = soundMode;
 
                                     this.emit('soundMode', soundMode, this.power);
-                                    this.soundMode = soundMode;
 
                                     //restFul
                                     this.emit('restFul', 'soundmode', messageData);
@@ -852,9 +847,9 @@ class LgWebOsSocket extends EventEmitter {
                                     if (this.logDebug) this.emit('debug', `Sound output: ${stringifyMessage}`);
                                     const soundOutput = messageData.soundOutput;
                                     if (!soundOutput) return;
+                                    this.soundOutput = soundOutput;
 
                                     this.emit('soundOutput', soundOutput, this.power);
-                                    this.soundOutput = soundOutput;
 
                                     //restFul
                                     this.emit('restFul', 'soundoutput', messageData);

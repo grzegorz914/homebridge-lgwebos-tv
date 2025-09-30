@@ -6,13 +6,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ### NOTE
 
 - After update to v3.0.0 RESTFull and MQTT config settings need to be updated
-- After update to v3.10.x plugin need to be reconfigured first, in other case will crash!!!
+- After update to v3.10.x and above from previous versions the plugin need to be reconfigured first, in other case will crash!!!
+
+## [3.11.0] - (30.09.2025)
+
+## Changes
+
+- added possibility to change accessory display type in Home app
+- fix report mute state in buttons
+- config schema updated
+- redme updated
+- cleanup
 
 ## [3.10.1] - (28.09.2025)
 
 ## Changes
 
-- after update to v3.10.x plugin need to be reconfigured first, in other case will crash!!!
+- update to v3.10.x and above from previous versions the plugin need to be reconfigured first, in other case will crash!!!
 - fix report mute state in buttons
 - fix report app/input state in buttons
 - fix report channel state in buttons
@@ -26,7 +36,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ## Changes
 
 - config schema and json refactor
-  - plugin need to be reconfigured
+  - after update to v3.10.x and above from previous versions the plugin need to be reconfigured first, in other case will crash!!!
   
 - added [#265](https://github.com/grzegorz914/homebridge-lgwebos-tv/issues/265)
 - fix [#269](https://github.com/grzegorz914/homebridge-lgwebos-tv/issues/269)
