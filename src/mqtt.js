@@ -16,36 +16,36 @@ class Mqtt extends EventEmitter {
         this.on('connect', async () => {
             try {
                 //connect
-                this.mqttClient = await connectAsync(url, options);
+                this.client = await connectAsync(url, options);
                 this.emit('connected', 'MQTT Connected');
 
                 //subscribe
-                await this.mqttClient.subscribe(subscribeTopic);
+                await this.client.subscribe(subscribeTopic);
                 this.emit('subscribed', `MQTT Subscribe topic: ${subscribeTopic}`);
 
                 //subscribed message
-                this.mqttClient.on('message', (topic, message) => {
+                this.client.on('message', (topic, message) => {
                     try {
                         const subscribedMessage = JSON.parse(message.toString());
-                        if (config.debug) this.emit('debug', `MQTT Received topic: ${topic}, message: ${JSON.stringify(subscribedMessage, null, 2)}`);
+                        if (config.logDebug) this.emit('debug', `MQTT Received topic: ${topic}, message: ${JSON.stringify(subscribedMessage, null, 2)}`);
                         const key = Object.keys(subscribedMessage)[0];
                         const value = Object.values(subscribedMessage)[0];
                         this.emit('set', key, value);
                     } catch (error) {
-                        this.emit('warn', `MQTT Parse object error: ${error}`);
+                        if (config.logWarn) this.emit('warn', `MQTT Parse object error: ${error}`);
                     }
                 });
             } catch (error) {
-                this.emit('warn', `MQTT Connect error: ${error}`);
+                if (config.logWarn) this.emit('warn', `MQTT Connect error: ${error}`);
             }
         }).on('publish', async (topic, message) => {
             try {
                 const fullTopic = `${config.prefix}/${topic}`;
                 const publishMessage = JSON.stringify(message, null, 2);
-                await this.mqttClient.publish(fullTopic, publishMessage);
-                if (config.debug) this.emit('debug', `MQTT Publish topic: ${fullTopic}, message: ${publishMessage}`);
+                await this.client.publish(fullTopic, publishMessage);
+                if (config.logDebug) this.emit('debug', `MQTT Publish topic: ${fullTopic}, message: ${publishMessage}`);
             } catch (error) {
-                this.emit('warn', `MQTT Publish error: ${error}`);
+                if (config.logWarn) this.emit('warn', `MQTT Publish error: ${error}`);
             }
         });
 

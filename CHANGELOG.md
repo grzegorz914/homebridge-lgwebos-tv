@@ -8,6 +8,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - After update to v3.0.0 RESTFull and MQTT config settings need to be updated
 - After update to v3.10.x and above from previous versions the plugin need to be reconfigured first, in other case will crash!!!
 
+## [3.11.1] - (04.10.2025)
+
+## Changes
+
+- prevent plugin crasch if user not reconfigured plugin after update to 3.10.x and above
+- fix duplicate volume characteristics and picture params update [#277](https://github.com/grzegorz914/homebridge-lgwebos-tv/issues/277)
+- RESTFul and MQTT cleanup
+- config schema updated
+- redme updated
+- cleanup
+
 ## [3.11.0] - (30.09.2025)
 
 ## Changes

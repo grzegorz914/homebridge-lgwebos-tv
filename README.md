@@ -14,7 +14,7 @@
 [![GitHub issues](https://img.shields.io/github/issues/grzegorz914/homebridge-lgwebos-tv.svg)](https://github.com/grzegorz914/homebridge-lgwebos-tv/issues)
 
 Homebridge plugin for LG webOS.
-Tested with OLED65G6V, 32LM6300PLA, 49SK8500, OLED65C7T, 55SK800PLB, OLED48CX.
+Tested with OLED65G6V, 32LM6300PLA, 49SK8500, OLED65C7T, 55SK800PLB, OLED48CX, OLED48C2, OLED48C3.
 
 </span>
 
@@ -23,7 +23,7 @@ Tested with OLED65G6V, 32LM6300PLA, 49SK8500, OLED65C7T, 55SK800PLB, OLED48CX.
 | Package | Installation | Role | Required |
 | --- | --- | --- | --- |
 | [Homebridge](https://github.com/homebridge/homebridge) | [Homebridge Wiki](https://github.com/homebridge/homebridge/wiki) | HomeKit Bridge | Required |
-| [Config UI X](https://github.com/homebridge/homebridge-config-ui-x) | [Config UI X Wiki](https://github.com/homebridge/homebridge-config-ui-x/wiki) | Homebridge Web User Interface | Recommended |
+| [Homebridge UI](https://github.com/homebridge/homebridge-config-ui-x) | [Homebridge UI Wiki](https://github.com/homebridge/homebridge-config-ui-x/wiki) | Homebridge User Interface | Recommended |
 | [LG webOS TV](https://www.npmjs.com/package/homebridge-lgwebos-tv) | [Plug-In Wiki](https://github.com/grzegorz914/homebridge-lgwebos-tv/wiki) | Homebridge Plug-In | Required |
 
 ## Abut The Plugin
@@ -50,7 +50,7 @@ Tested with OLED65G6V, 32LM6300PLA, 49SK8500, OLED65C7T, 55SK800PLB, OLED48CX.
 
 * Please configure [LG Connect Apps](https://www.lg.com/au/support/product-help/CT20088015-1437132986635)
 * Run this plugin as a [Child Bridge](https://github.com/homebridge/homebridge/wiki/Child-Bridges) (Highly Recommended), this prevent crash Homebridge if plugin crashes.
-* Install and use [Homebridge Config UI X](https://github.com/homebridge/homebridge-config-ui-x/wiki) to configure this plugin.
+* Install and use [Homebridge UI](https://github.com/homebridge/homebridge-config-ui-x/wiki) to configure this plugin.
 * The `sample-config.json` can be edited and used as an alternative.
 * Be sure to always make a backup copy of your config.json file before making any changes to it.
 
@@ -127,7 +127,7 @@ Tested with OLED65G6V, 32LM6300PLA, 49SK8500, OLED65C7T, 55SK800PLB, OLED48CX.
 | `power.startInput` | This enable possibilty to set default Input/App after Power ON TV. |
 | `power.startInputReference` | Here set the default Input/App reference. |
 | `volume{}` | Volume object. |
-| `volume.displayType` | Here choice what a additional volume control mode You want to use `0 - None/Disabled`, `1 - Lightbulb`, `2 - Fan`, `3 - Speaker`. |
+| `volume.displayType` | Here choice what a additional volume control mode You want to use `0 - None/Disabled`, `1 - Lightbulb`, `2 - Fan`, `3 - TV Speaker`, `4 - TV Speaker / Lightbulb`, `5 - TV Speaker / Fan`. |
 | `volume.name` | Here set Your own volume control name or leave empty. |
 | `volume.namePrefix` | Here enable/disable the accessory name as a prefix for volume control name. |
 | `sslWebSocket` | If enabled, SSL WebSocket will support TV with new firmware. |
@@ -143,14 +143,12 @@ Tested with OLED65G6V, 32LM6300PLA, 49SK8500, OLED65C7T, 55SK800PLB, OLED48CX.
 | `restFul{}` | RESTFul object. |
 | `restFul.enable` | If enabled, RESTful server will start automatically and respond to any path request. |
 | `restFul.port` | Here set the listening `Port` for RESTful server. |
-| `restFul.debug` | If enabled, deep log will be present in homebridge console for RESTFul server. |
 | `mqtt{}` | MQTT object. |
 | `mqtt.enable` | If enabled, MQTT Broker will start automatically and publish all awailable PV data. |
 | `mqtt.host` | Here set the `IP Address` or `Hostname` for MQTT Broker. |
 | `mqtt.port` | Here set the `Port` for MQTT Broker, default 1883. |
 | `mqtt.clientId` | Here optional set the `Client Id` of MQTT Broker. |
 | `mqtt.prefix` | Here set the `Prefix` for `Topic` or leave empty. |
-| `mqtt.debug` | If enabled, deep log will be present in homebridge console for MQTT. |
 | `mqtt.auth{}` | MQTT authorization object. |
 | `mqtt.auth.enable` | Here enable authorization for MQTT Broker. |
 | `mqtt.auth.user` | Here set the MQTT Broker user. |

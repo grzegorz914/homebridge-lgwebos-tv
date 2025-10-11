@@ -6,10 +6,11 @@ const DEFAULT_MESSAGE = 'This data is not available at this time.';
 class RestFul extends EventEmitter {
     constructor(config) {
         super();
-        this.restFulPort = config.port;
-        this.restFulDebug = config.debug;
+        this.port = config.port;
+        this.logWarn = config.logWarn;
+        this.logDebug = config.logDebug;
 
-        this.restFulData = {
+        this.data = {
             systeminfo: DEFAULT_MESSAGE,
             softwareinfo: DEFAULT_MESSAGE,
             channels: DEFAULT_MESSAGE,
@@ -34,9 +35,9 @@ class RestFul extends EventEmitter {
             app.use(json());
 
             // Register GET routes for all keys
-            for (const key of Object.keys(this.restFulData)) {
+            for (const key of Object.keys(this.data)) {
                 app.get(`/${key}`, (req, res) => {
-                    res.json(this.restFulData[key]);
+                    res.json(this.data[key]);
                 });
             }
 
@@ -45,7 +46,7 @@ class RestFul extends EventEmitter {
                 res.json({
                     status: 'online',
                     uptime: process.uptime(),
-                    available_paths: Object.keys(this.restFulData).map(k => `/${k}`)
+                    available_paths: Object.keys(this.data).map(k => `/${k}`)
                 });
             });
 
@@ -54,7 +55,7 @@ class RestFul extends EventEmitter {
                 try {
                     const obj = req.body;
                     if (!obj || typeof obj !== 'object' || Object.keys(obj).length === 0) {
-                        this.emit('warn', 'RESTFul Invalid JSON payload');
+                        if (this.logWarn) this.emit('warn', 'RESTFul Invalid JSON payload');
                         return res.status(400).json({ error: 'RESTFul Invalid JSON payload' });
                     }
 
@@ -63,33 +64,33 @@ class RestFul extends EventEmitter {
                     this.emit('set', key, value);
                     this.update(key, value);
 
-                    if (this.restFulDebug) this.emit('debug', `RESTFul post data: ${JSON.stringify(obj, null, 2)}`);
+                    if (this.logdebug) this.emit('debug', `RESTFul post data: ${JSON.stringify(obj, null, 2)}`);
 
                     res.json({ success: true, received: obj });
                 } catch (error) {
-                    this.emit('warn', `RESTFul Parse error: ${error}`);
+                    if (this.logWarn) this.emit('warn', `RESTFul Parse error: ${error}`);
                     res.status(500).json({ error: 'RESTFul Internal Server Error' });
                 }
             });
 
             // Start the server
-            app.listen(this.restFulPort, () => {
-                this.emit('connected', `RESTful started on port: ${this.restFulPort}`);
+            app.listen(this.port, () => {
+                this.emit('connected', `RESTful started on port: ${this.port}`);
             });
         } catch (error) {
-            this.emit('warn', `RESTful Connect error: ${error}`);
+            if (this.logWarn) this.emit('warn', `RESTful Connect error: ${error}`);
         }
     }
 
     update(path, data) {
-        if (this.restFulData.hasOwnProperty(path)) {
-            this.restFulData[path] = data;
+        if (this.data.hasOwnProperty(path)) {
+            this.data[path] = data;
         } else {
-            this.emit('warn', `Unknown RESTFul update path: ${path}, data: ${JSON.stringify(data)}`);
+            if (this.logWarn) this.emit('warn', `Unknown RESTFul update path: ${path}, data: ${JSON.stringify(data)}`);
             return;
         }
 
-        if (this.restFulDebug) this.emit('debug', `RESTFul update path: ${path}, data: ${JSON.stringify(data)}`);
+        if (this.logdebug) this.emit('debug', `RESTFul update path: ${path}, data: ${JSON.stringify(data)}`);
     }
 }
 export default RestFul;

@@ -24,45 +24,46 @@ class LgWebOsDevice extends EventEmitter {
         this.host = device.host;
         this.mac = device.mac;
         this.displayType = device.displayType;
-        this.getInputsFromDevice = device.inputs.getFromDevice || false;
-        this.filterSystemApps = device.inputs.filterSystemApps || false;
-        this.inputsDisplayOrder = device.inputs.displayOrder || 0;
-        this.inputs = device.inputs.data || [];
+        this.getInputsFromDevice = device.inputs?.getFromDevice || false;
+        this.filterSystemApps = device.inputs?.filterSystemApps || false;
+        this.inputsDisplayOrder = device.inputs?.displayOrder || 0;
+        this.inputs = device.inputs?.data || [];
         this.buttons = device.buttons || [];
-        this.sensorPower = device.sensors.power || false;
-        this.sensorPixelRefresh = device.sensors.pixelRefresh || false;
-        this.sensorVolume = device.sensors.volume || false;
-        this.sensorMute = device.sensors.mute || false;
-        this.sensorSoundMode = device.sensors.soundMode || false;
-        this.sensorSoundOutput = device.sensors.soundOutput || false;
-        this.sensorPictureMode = device.sensors.pictureMode || false;
-        this.sensorScreenOnOff = device.sensors.screenOnOff || false;
-        this.sensorScreenSaver = device.sensors.screenSaver || false;
-        this.sensorPlayState = device.sensors.playState || false;
-        this.sensorChannel = device.sensors.channel || false;
-        this.sensorInput = device.sensors.input || false;
-        this.sensorInputs = device.sensors.inputs || [];
-        this.broadcastAddress = device.power.broadcastAddress;
-        this.startInput = device.power.startInput || false;
-        this.startInputReference = device.power.startInputReference;
-        this.volumeControl = device.volume.displayType || 0;
-        this.volumeControlName = device.volume.name || 'Volume';
-        this.volumeControlNamePrefix = device.volume.namePrefix || false;
-        this.soundModes = device.sound.modes || [];
-        this.soundOutputs = device.sound.outputs || [];
-        this.brightnessControl = device.picture.brightnessControl || false;
-        this.backlightControl = device.picture.backlightControl || false;
-        this.contrastControl = device.picture.contrastControl || false;
-        this.colorControl = device.picture.colorControl || false;
-        this.pictureModes = device.picture.modes || [];
-        this.turnScreenOnOff = device.screen.turnOnOff || false;
-        this.turnScreenSaverOnOff = device.screen.saverOnOff || false;
+        this.sensorPower = device.sensors?.power || false;
+        this.sensorPixelRefresh = device.sensors?.pixelRefresh || false;
+        this.sensorVolume = device.sensors?.volume || false;
+        this.sensorMute = device.sensors?.mute || false;
+        this.sensorSoundMode = device.sensors?.soundMode || false;
+        this.sensorSoundOutput = device.sensors?.soundOutput || false;
+        this.sensorPictureMode = device.sensors?.pictureMode || false;
+        this.sensorScreenOnOff = device.sensors?.screenOnOff || false;
+        this.sensorScreenSaver = device.sensors?.screenSaver || false;
+        this.sensorPlayState = device.sensors?.playState || false;
+        this.sensorChannel = device.sensors?.channel || false;
+        this.sensorInput = device.sensors?.input || false;
+        this.sensorInputs = device.sensors?.inputs || [];
+        this.broadcastAddress = device.power?.broadcastAddress;
+        this.startInput = device.power?.startInput || false;
+        this.startInputReference = device.power?.startInputReference || 'com.webos.app.home';
+        this.volumeControl = device.volume?.displayType || 0;
+        this.volumeControlName = device.volume?.name || 'Volume';
+        this.volumeControlNamePrefix = device.volume?.namePrefix || false;
+        this.soundModes = device.sound?.modes || [];
+        this.soundOutputs = device.sound?.outputs || [];
+        this.brightnessControl = device.picture?.brightnessControl || false;
+        this.backlightControl = device.picture?.backlightControl || false;
+        this.contrastControl = device.picture?.contrastControl || false;
+        this.colorControl = device.picture?.colorControl || false;
+        this.pictureModes = device.picture?.modes || [];
+        this.turnScreenOnOff = device.screen?.turnOnOff || false;
+        this.turnScreenSaverOnOff = device.screen?.saverOnOff || false;
         this.disableTvService = device.disableTvService || false;
         this.sslWebSocket = device.sslWebSocket || false;
         this.infoButtonCommand = device.infoButtonCommand || 'INFO';
-        this.logInfo = device.log.info || false;
-        this.logWarn = device.log.warn || true;
-        this.logDebug = device.log.debug || false;
+        this.logInfo = device.log?.info || false;
+        this.logWarn = device.log?.warn || true;
+        this.logError = device.log?.debug || true;
+        this.logDebug = device.log?.debug || false;
         this.keyFile = keyFile;
         this.devInfoFile = devInfoFile;
         this.inputsFile = inputsFile;
@@ -339,7 +340,8 @@ class LgWebOsDevice extends EventEmitter {
             if (restFulEnabled) {
                 this.restFul1 = new RestFul({
                     port: this.restFul.port || 3000,
-                    debug: this.restFul.debug || false
+                    logWarn: this.logWarn,
+                    logDebug: this.logDebug
                 })
                     .on('connected', (message) => {
                         this.emit('success', message);
@@ -365,9 +367,10 @@ class LgWebOsDevice extends EventEmitter {
                     port: this.mqtt.port || 1883,
                     clientId: this.mqtt.clientId ? `lg_${this.mqtt.clientId}_${Math.random().toString(16).slice(3)}` : `lg_${Math.random().toString(16).slice(3)}`,
                     prefix: this.mqtt.prefix ? `lg/${this.mqtt.prefix}/${this.name}` : `lg/${this.name}`,
-                    user: this.mqtt.auth.user,
-                    passwd: this.mqtt.auth.passwd,
-                    debug: this.mqtt.debug || false
+                    user: this.mqtt.auth?.user,
+                    passwd: this.mqtt.auth?.passwd,
+                    logWarn: this.logWarn,
+                    logDebug: this.logDebug
                 })
                     .on('connected', (message) => {
                         this.emit('success', message);
@@ -610,10 +613,12 @@ class LgWebOsDevice extends EventEmitter {
                                     await this.wol.wakeOnLan();
 
                                     if (this.startInput) {
-                                        await new Promise(resolve => setTimeout(resolve, 2500));
-                                        const cid = await this.lgWebOsSocket.getCid('App');
-                                        const payload = { id: this.startInputReference };
-                                        await this.lgWebOsSocket.send('request', ApiUrls.LaunchApp, payload, cid);
+                                        await new Promise(resolve => setTimeout(resolve, 3000));
+                                        if (this.power) {
+                                            const cid = await this.lgWebOsSocket.getCid('App');
+                                            const payload = { id: this.startInputReference };
+                                            await this.lgWebOsSocket.send('request', ApiUrls.LaunchApp, payload, cid);
+                                        }
                                     }
                                     break;
                                 case 0:
@@ -707,7 +712,6 @@ class LgWebOsDevice extends EventEmitter {
                             if (this.logWarn) this.emit('warn', `set Input or Channel error: ${error}`);
                         }
                     });
-
 
                 this.televisionService.getCharacteristic(Characteristic.RemoteKey)
                     .onSet(async (command) => {
@@ -899,88 +903,214 @@ class LgWebOsDevice extends EventEmitter {
 
                 //Prepare volume service
                 if (this.volumeControl > 0) {
-                    if (this.logDebug) this.emit('debug', `Prepare television speaker service`);
                     const volumeServiceName = this.volumeControlNamePrefix ? `${accessoryName} ${this.volumeControlName}` : this.volumeControlName;
-                    this.volumeServiceTvSpeaker = accessory.addService(Service.TelevisionSpeaker, volumeServiceName, 'TV Speaker');
-                    this.volumeServiceTvSpeaker.addOptionalCharacteristic(Characteristic.ConfiguredName);
-                    this.volumeServiceTvSpeaker.setCharacteristic(Characteristic.ConfiguredName, volumeServiceName);
-                    this.volumeServiceTvSpeaker.getCharacteristic(Characteristic.Active)
-                        .onGet(async () => {
-                            const state = this.power;
-                            return state;
-                        })
-                        .onSet(async (state) => {
-                        });
+                    const volumeServiceNameTv = this.volumeControlNamePrefix ? `${accessoryName} ${this.volumeControlName}` : this.volumeControlName;
 
-                    this.volumeServiceTvSpeaker.getCharacteristic(Characteristic.VolumeControlType)
-                        .onGet(async () => {
-                            const state = 3; //none, relative, relative with current, absolute
-                            return state;
-                        });
-
-                    this.volumeServiceTvSpeaker.getCharacteristic(Characteristic.VolumeSelector)
-                        .onSet(async (command) => {
-                            try {
-                                switch (command) {
-                                    case Characteristic.VolumeSelector.INCREMENT:
-                                        command = 'VOLUMEUP';
-                                        break;
-                                    case Characteristic.VolumeSelector.DECREMENT:
-                                        command = 'VOLUMEDOWN';
-                                        break;
-                                };
-
-                                const payload = {
-                                    name: command
-                                };
-                                await this.lgWebOsSocket.send('button', undefined, payload);
-                                if (this.logInfo) this.emit('info', `set Volume Selector: ${command}`);
-                            } catch (error) {
-                                if (this.logWarn) this.emit('warn', `set Volume Selector error: ${error}`);
-                            }
-                        });
-
-                    this.volumeServiceTvSpeaker.getCharacteristic(Characteristic.Volume)
-                        .onGet(async () => {
-                            const volume = this.volume;
-                            return volume;
-                        })
-                        .onSet(async (volume) => {
-                            try {
-                                const payload = {
-                                    volume: volume
-                                };
-
-                                const cid = await this.lgWebOsSocket.getCid('Audio');
-                                await this.lgWebOsSocket.send('request', ApiUrls.SetVolume, payload, cid);
-                                if (this.logInfo) this.emit('info', `set Volume: ${volume}`);
-                            } catch (error) {
-                                if (this.logWarn) this.emit('warn', `set Volume error: ${error}`);
-                            }
-                        });
-
-                    this.volumeServiceTvSpeaker.getCharacteristic(Characteristic.Mute)
-                        .onGet(async () => {
-                            const state = this.mute;
-                            return state;
-                        })
-                        .onSet(async (state) => {
-                            try {
-                                const payload = {
-                                    mute: state
-                                };
-
-                                const cid = await this.lgWebOsSocket.getCid('Audio');
-                                await this.lgWebOsSocket.send('request', ApiUrls.SetMute, payload, cid);
-                                if (this.logInfo) this.emit('info', `set Mute: ${state ? 'ON' : 'OFF'}`);
-                            } catch (error) {
-                                if (this.logWarn) this.emit('warn', `set Mute error: ${error}`);
-                            }
-                        });
-
-                    //legacy control
                     switch (this.volumeControl) {
                         case 1: //lightbulb
+                            if (this.logDebug) this.emit('debug', `Prepare volume service lightbulb`);
+                            this.volumeServiceLightbulb = accessory.addService(Service.Lightbulb, volumeServiceName, 'Lightbulb Speaker');
+                            this.volumeServiceLightbulb.addOptionalCharacteristic(Characteristic.ConfiguredName);
+                            this.volumeServiceLightbulb.setCharacteristic(Characteristic.ConfiguredName, volumeServiceName);
+                            this.volumeServiceLightbulb.getCharacteristic(Characteristic.Brightness)
+                                .onGet(async () => {
+                                    const volume = this.volume;
+                                    return volume;
+                                })
+                                .onSet(async (value) => {
+                                    try {
+                                        const payload = { volume: value };
+                                        const cid = await this.lgWebOsSocket.getCid('Audio');
+                                        await this.lgWebOsSocket.send('request', ApiUrls.SetVolume, payload, cid);
+                                        if (this.logInfo) this.emit('info', `set Volume: ${volume}`);
+                                    } catch (error) {
+                                        if (this.logWarn) this.emit('warn', `set Volume error: ${error}`);
+                                    }
+                                });
+                            this.volumeServiceLightbulb.getCharacteristic(Characteristic.On)
+                                .onGet(async () => {
+                                    const state = this.power ? !this.mute : false;
+                                    return state;
+                                })
+                                .onSet(async (state) => {
+                                    try {
+                                        const payload = { mute: !state };
+                                        const cid = await this.lgWebOsSocket.getCid('Audio');
+                                        await this.lgWebOsSocket.send('request', ApiUrls.SetMute, payload, cid);
+                                        if (this.logInfo) this.emit('info', `set Mute: ${!state ? 'ON' : 'OFF'}`);
+                                    } catch (error) {
+                                        if (this.logWarn) this.emit('warn', `set Mute error: ${error}`);
+                                    }
+                                });
+                            break;
+                        case 2: //fan
+                            if (this.logDebug) this.emit('debug', `Prepare volume service fan`);
+                            this.volumeServiceFan = accessory.addService(Service.Fan, volumeServiceName, 'Fan Speaker');
+                            this.volumeServiceFan.addOptionalCharacteristic(Characteristic.ConfiguredName);
+                            this.volumeServiceFan.setCharacteristic(Characteristic.ConfiguredName, volumeServiceName);
+                            this.volumeServiceFan.getCharacteristic(Characteristic.RotationSpeed)
+                                .onGet(async () => {
+                                    const volume = this.volume;
+                                    return volume;
+                                })
+                                .onSet(async (value) => {
+                                    try {
+                                        const payload = { volume: value };
+                                        const cid = await this.lgWebOsSocket.getCid('Audio');
+                                        await this.lgWebOsSocket.send('request', ApiUrls.SetVolume, payload, cid);
+                                        if (this.logInfo) this.emit('info', `set Volume: ${volume}`);
+                                    } catch (error) {
+                                        if (this.logWarn) this.emit('warn', `set Volume error: ${error}`);
+                                    }
+                                });
+                            this.volumeServiceFan.getCharacteristic(Characteristic.On)
+                                .onGet(async () => {
+                                    const state = this.power ? !this.mute : false;
+                                    return state;
+                                })
+                                .onSet(async (state) => {
+                                    try {
+                                        const payload = { mute: !state };
+                                        const cid = await this.lgWebOsSocket.getCid('Audio');
+                                        await this.lgWebOsSocket.send('request', ApiUrls.SetMute, payload, cid);
+                                        if (this.logInfo) this.emit('info', `set Mute: ${!state ? 'ON' : 'OFF'}`);
+                                    } catch (error) {
+                                        if (this.logWarn) this.emit('warn', `set Mute error: ${error}`);
+                                    }
+                                });
+                            break;
+                        case 3: // tv speaker
+                            if (this.logDebug) this.emit('debug', `Prepare television speaker service`);
+                            const volumeServiceName3 = this.volumeControlNamePrefix ? `${accessoryName} ${this.volumeControlName}` : this.volumeControlName;
+                            this.volumeServiceTvSpeaker = accessory.addService(Service.TelevisionSpeaker, volumeServiceName3, 'TV Speaker');
+                            this.volumeServiceTvSpeaker.addOptionalCharacteristic(Characteristic.ConfiguredName);
+                            this.volumeServiceTvSpeaker.setCharacteristic(Characteristic.ConfiguredName, volumeServiceName3);
+                            this.volumeServiceTvSpeaker.getCharacteristic(Characteristic.Active)
+                                .onGet(async () => {
+                                    const state = this.power;
+                                    return state;
+                                })
+                                .onSet(async (state) => { });
+                            this.volumeServiceTvSpeaker.getCharacteristic(Characteristic.VolumeControlType)
+                                .onGet(async () => {
+                                    const state = 3;
+                                    return state;
+                                });
+                            this.volumeServiceTvSpeaker.getCharacteristic(Characteristic.VolumeSelector)
+                                .onSet(async (command) => {
+                                    try {
+                                        switch (command) {
+                                            case Characteristic.VolumeSelector.INCREMENT:
+                                                command = 'VOLUMEUP';
+                                                break;
+                                            case Characteristic.VolumeSelector.DECREMENT:
+                                                command = 'VOLUMEDOWN';
+                                                break;
+                                        }
+                                        const payload = { name: command };
+                                        await this.lgWebOsSocket.send('button', undefined, payload);
+                                        if (this.logInfo) this.emit('info', `set Volume Selector: ${command}`);
+                                    } catch (error) {
+                                        if (this.logWarn) this.emit('warn', `set Volume Selector error: ${error}`);
+                                    }
+                                });
+                            this.volumeServiceTvSpeaker.getCharacteristic(Characteristic.Volume)
+                                .onGet(async () => {
+                                    const volume = this.volume;
+                                    return volume;
+                                })
+                                .onSet(async (value) => {
+                                    try {
+                                        const payload = { volume: value };
+                                        const cid = await this.lgWebOsSocket.getCid('Audio');
+                                        await this.lgWebOsSocket.send('request', ApiUrls.SetVolume, payload, cid);
+                                        if (this.logInfo) this.emit('info', `set Volume: ${value}`);
+                                    } catch (error) {
+                                        if (this.logWarn) this.emit('warn', `set Volume error: ${error}`);
+                                    }
+                                });
+                            this.volumeServiceTvSpeaker.getCharacteristic(Characteristic.Mute)
+                                .onGet(async () => {
+                                    const state = this.mute;
+                                    return state;
+                                })
+                                .onSet(async (state) => {
+                                    try {
+                                        const payload = { mute: state };
+                                        const cid = await this.lgWebOsSocket.getCid('Audio');
+                                        await this.lgWebOsSocket.send('request', ApiUrls.SetMute, payload, cid);
+                                        if (this.logInfo) this.emit('info', `set Mute: ${state ? 'ON' : 'OFF'}`);
+                                    } catch (error) {
+                                        if (this.logWarn) this.emit('warn', `set Mute error: ${error}`);
+                                    }
+                                });
+                            break;
+                        case 4: // tv speaker + lightbulb
+                            if (this.logDebug) this.emit('debug', `Prepare television speaker service`);
+                            this.volumeServiceTvSpeaker = accessory.addService(Service.TelevisionSpeaker, volumeServiceNameTv, 'TV Speaker');
+                            this.volumeServiceTvSpeaker.addOptionalCharacteristic(Characteristic.ConfiguredName);
+                            this.volumeServiceTvSpeaker.setCharacteristic(Characteristic.ConfiguredName, volumeServiceNameTv);
+                            this.volumeServiceTvSpeaker.getCharacteristic(Characteristic.Active)
+                                .onGet(async () => {
+                                    const state = this.power;
+                                    return state;
+                                })
+                                .onSet(async (state) => { });
+                            this.volumeServiceTvSpeaker.getCharacteristic(Characteristic.VolumeControlType)
+                                .onGet(async () => {
+                                    const state = 3;
+                                    return state;
+                                });
+                            this.volumeServiceTvSpeaker.getCharacteristic(Characteristic.VolumeSelector)
+                                .onSet(async (command) => {
+                                    try {
+                                        switch (command) {
+                                            case Characteristic.VolumeSelector.INCREMENT:
+                                                command = 'VOLUMEUP';
+                                                break;
+                                            case Characteristic.VolumeSelector.DECREMENT:
+                                                command = 'VOLUMEDOWN';
+                                                break;
+                                        }
+                                        const payload = { name: command };
+                                        await this.lgWebOsSocket.send('button', undefined, payload);
+                                        if (this.logInfo) this.emit('info', `set Volume Selector: ${command}`);
+                                    } catch (error) {
+                                        if (this.logWarn) this.emit('warn', `set Volume Selector error: ${error}`);
+                                    }
+                                });
+                            this.volumeServiceTvSpeaker.getCharacteristic(Characteristic.Volume)
+                                .onGet(async () => {
+                                    const volume = this.volume;
+                                    return volume;
+                                })
+                                .onSet(async (value) => {
+                                    try {
+                                        const payload = { volume: value };
+                                        const cid = await this.lgWebOsSocket.getCid('Audio');
+                                        await this.lgWebOsSocket.send('request', ApiUrls.SetVolume, payload, cid);
+                                        if (this.logInfo) this.emit('info', `set Volume: ${value}`);
+                                    } catch (error) {
+                                        if (this.logWarn) this.emit('warn', `set Volume error: ${error}`);
+                                    }
+                                });
+                            this.volumeServiceTvSpeaker.getCharacteristic(Characteristic.Mute)
+                                .onGet(async () => {
+                                    const state = this.mute;
+                                    return state;
+                                })
+                                .onSet(async (state) => {
+                                    try {
+                                        const payload = { mute: state };
+                                        const cid = await this.lgWebOsSocket.getCid('Audio');
+                                        await this.lgWebOsSocket.send('request', ApiUrls.SetMute, payload, cid);
+                                        if (this.logInfo) this.emit('info', `set Mute: ${state ? 'ON' : 'OFF'}`);
+                                    } catch (error) {
+                                        if (this.logWarn) this.emit('warn', `set Mute error: ${error}`);
+                                    }
+                                });
+
+                            // lightbulb
                             if (this.logDebug) this.emit('debug', `Prepare volume service lightbulb`);
                             this.volumeServiceLightbulb = accessory.addService(Service.Lightbulb, volumeServiceName, 'Lightbulb Speaker');
                             this.volumeServiceLightbulb.addOptionalCharacteristic(Characteristic.ConfiguredName);
@@ -1002,7 +1132,72 @@ class LgWebOsDevice extends EventEmitter {
                                     this.volumeServiceTvSpeaker.setCharacteristic(Characteristic.Mute, !state);
                                 });
                             break;
-                        case 2: //fan
+                        case 5: // tv speaker + fan
+                            if (this.logDebug) this.emit('debug', `Prepare television speaker service`);
+                            this.volumeServiceTvSpeaker = accessory.addService(Service.TelevisionSpeaker, volumeServiceNameTv, 'TV Speaker');
+                            this.volumeServiceTvSpeaker.addOptionalCharacteristic(Characteristic.ConfiguredName);
+                            this.volumeServiceTvSpeaker.setCharacteristic(Characteristic.ConfiguredName, volumeServiceNameTv);
+                            this.volumeServiceTvSpeaker.getCharacteristic(Characteristic.Active)
+                                .onGet(async () => {
+                                    const state = this.power;
+                                    return state;
+                                })
+                                .onSet(async (state) => { });
+                            this.volumeServiceTvSpeaker.getCharacteristic(Characteristic.VolumeControlType)
+                                .onGet(async () => {
+                                    const state = 3;
+                                    return state;
+                                });
+                            this.volumeServiceTvSpeaker.getCharacteristic(Characteristic.VolumeSelector)
+                                .onSet(async (command) => {
+                                    try {
+                                        switch (command) {
+                                            case Characteristic.VolumeSelector.INCREMENT:
+                                                command = 'VOLUMEUP';
+                                                break;
+                                            case Characteristic.VolumeSelector.DECREMENT:
+                                                command = 'VOLUMEDOWN';
+                                                break;
+                                        }
+                                        const payload = { name: command };
+                                        await this.lgWebOsSocket.send('button', undefined, payload);
+                                        if (this.logInfo) this.emit('info', `set Volume Selector: ${command}`);
+                                    } catch (error) {
+                                        if (this.logWarn) this.emit('warn', `set Volume Selector error: ${error}`);
+                                    }
+                                });
+                            this.volumeServiceTvSpeaker.getCharacteristic(Characteristic.Volume)
+                                .onGet(async () => {
+                                    const volume = this.volume;
+                                    return volume;
+                                })
+                                .onSet(async (value) => {
+                                    try {
+                                        const payload = { volume: value };
+                                        const cid = await this.lgWebOsSocket.getCid('Audio');
+                                        await this.lgWebOsSocket.send('request', ApiUrls.SetVolume, payload, cid);
+                                        if (this.logInfo) this.emit('info', `set Volume: ${value}`);
+                                    } catch (error) {
+                                        if (this.logWarn) this.emit('warn', `set Volume error: ${error}`);
+                                    }
+                                });
+                            this.volumeServiceTvSpeaker.getCharacteristic(Characteristic.Mute)
+                                .onGet(async () => {
+                                    const state = this.mute;
+                                    return state;
+                                })
+                                .onSet(async (state) => {
+                                    try {
+                                        const payload = { mute: state };
+                                        const cid = await this.lgWebOsSocket.getCid('Audio');
+                                        await this.lgWebOsSocket.send('request', ApiUrls.SetMute, payload, cid);
+                                        if (this.logInfo) this.emit('info', `set Mute: ${!state ? 'ON' : 'OFF'}`);
+                                    } catch (error) {
+                                        if (this.logWarn) this.emit('warn', `set Mute error: ${error}`);
+                                    }
+                                });
+
+                            // fan
                             if (this.logDebug) this.emit('debug', `Prepare volume service fan`);
                             this.volumeServiceFan = accessory.addService(Service.Fan, volumeServiceName, 'Fan Speaker');
                             this.volumeServiceFan.addOptionalCharacteristic(Characteristic.ConfiguredName);
@@ -1022,35 +1217,6 @@ class LgWebOsDevice extends EventEmitter {
                                 })
                                 .onSet(async (state) => {
                                     this.volumeServiceTvSpeaker.setCharacteristic(Characteristic.Mute, !state);
-                                });
-                            break;
-                        case 3: // speaker
-                            if (this.logDebug) this.emit('debug', `Prepare volume service speaker`);
-                            this.volumeServiceSpeaker = accessory.addService(Service.Speaker, volumeServiceName, 'Speaker');
-                            this.volumeServiceSpeaker.addOptionalCharacteristic(Characteristic.ConfiguredName);
-                            this.volumeServiceSpeaker.setCharacteristic(Characteristic.ConfiguredName, volumeServiceName);
-                            this.volumeServiceSpeaker.getCharacteristic(Characteristic.Mute)
-                                .onGet(async () => {
-                                    const state = this.mute;
-                                    return state;
-                                })
-                                .onSet(async (state) => {
-                                    this.volumeServiceTvSpeaker.setCharacteristic(Characteristic.Mute, state);
-                                });
-                            this.volumeServiceSpeaker.getCharacteristic(Characteristic.Active)
-                                .onGet(async () => {
-                                    const state = this.power;
-                                    return state;
-                                })
-                                .onSet(async (state) => {
-                                });
-                            this.volumeServiceSpeaker.getCharacteristic(Characteristic.Volume)
-                                .onGet(async () => {
-                                    const volume = this.volume;
-                                    return volume;
-                                })
-                                .onSet(async (value) => {
-                                    this.volumeServiceTvSpeaker.setCharacteristic(Characteristic.Volume, value);
                                 });
                             break;
                     }
@@ -1643,6 +1809,7 @@ class LgWebOsDevice extends EventEmitter {
                 mac: this.mac,
                 host: this.host,
                 broadcastAddress: this.broadcastAddress,
+                logError: this.logError,
                 logDebug: this.logDebug
             })
                 .on('debug', (debug) => this.emit('debug', debug))
@@ -1662,6 +1829,7 @@ class LgWebOsDevice extends EventEmitter {
                 inputsFile: this.inputsFile,
                 channelsFile: this.channelsFile,
                 logWarn: this.logWarn,
+                logError: this.logError,
                 logDebug: this.logDebug,
                 sslWebSocket: this.sslWebSocket
             })
@@ -1702,10 +1870,9 @@ class LgWebOsDevice extends EventEmitter {
                     if (this.buttonsConfiguredCount > 0) {
                         for (let i = 0; i < this.buttonsConfiguredCount; i++) {
                             const button = this.buttonsConfigured[i];
-                            if (button.mode === 2 && button.command === 'POWER') {
-                                button.state = power
-                                this.buttonsServices?.[i]?.updateCharacteristic(Characteristic.On, power);
-                            }
+                            const state = button.mode === 2 && button.command === 'POWER' ? power : button.state;
+                            button.state = state
+                            this.buttonsServices?.[i]?.updateCharacteristic(Characteristic.On, state);
                         }
                     }
 
@@ -1740,11 +1907,9 @@ class LgWebOsDevice extends EventEmitter {
                     if (this.buttonsConfiguredCount > 0) {
                         for (let i = 0; i < this.buttonsConfiguredCount; i++) {
                             const button = this.buttonsConfigured[i];
-                            if (button.mode === 0) {
-                                const state = power ? button.reference === appId : false;
-                                button.state = state;
-                                this.buttonsServices?.[i]?.updateCharacteristic(Characteristic.On, state);
-                            }
+                            const state = power ? (button.mode === 0 ? button.reference === appId : button.state) : false;
+                            button.state = state;
+                            this.buttonsServices?.[i]?.updateCharacteristic(Characteristic.On, state);
                         }
                     }
 
@@ -1768,11 +1933,6 @@ class LgWebOsDevice extends EventEmitter {
                         ?.updateCharacteristic(Characteristic.RotationSpeed, volume)
                         .updateCharacteristic(Characteristic.On, muteV);
 
-                    this.volumeServiceSpeaker
-                        ?.updateCharacteristic(Characteristic.Active, power)
-                        .updateCharacteristic(Characteristic.Volume, volume)
-                        .updateCharacteristic(Characteristic.Mute, mute);
-
                     if (volume !== this.volume) {
                         for (let i = 0; i < 2; i++) {
                             const state = power ? [true, false][i] : false;
@@ -1787,10 +1947,9 @@ class LgWebOsDevice extends EventEmitter {
                     if (this.buttonsConfiguredCount > 0) {
                         for (let i = 0; i < this.buttonsConfiguredCount; i++) {
                             const button = this.buttonsConfigured[i];
-                            if (button.mode === 2 && button.command === 'MUTE') {
-                                button.state = muteV
-                                this.buttonsServices?.[i]?.updateCharacteristic(Characteristic.On, muteV);
-                            }
+                            const state = power ? (button.mode === 2 && button.command === 'MUTE' ? muteV : button.state) : false;
+                            button.state = state
+                            this.buttonsServices?.[i]?.updateCharacteristic(Characteristic.On, state);
                         }
                     }
 
@@ -1820,11 +1979,9 @@ class LgWebOsDevice extends EventEmitter {
                     if (this.buttonsConfiguredCount > 0) {
                         for (let i = 0; i < this.buttonsConfiguredCount; i++) {
                             const button = this.buttonsConfigured[i];
-                            if (button.mode === 1) {
-                                const state = power ? button.reference === channelId : false;
-                                button.state = state;
-                                this.buttonsServices?.[i]?.updateCharacteristic(Characteristic.On, state);
-                            }
+                            const state = power ? (button.mode === 1 ? button.reference === channelId : button.state) : false;
+                            button.state = state;
+                            this.buttonsServices?.[i]?.updateCharacteristic(Characteristic.On, state);
                         }
                     }
 

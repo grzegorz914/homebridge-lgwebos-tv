@@ -36,6 +36,7 @@
               "title": "Accessory type",
               "type": "integer",
               "default": 1,
+              "description": "Accessory type for Home app",
               "oneOf": [
                 {
                   "title": "None/Disabled",
@@ -67,8 +68,7 @@
                     4
                   ]
                 }
-              ],
-              "description": "Accessory type for Home app"
+              ]
             },
             "inputs": {
               "title": "Inputs",
@@ -184,6 +184,7 @@
                     "title": "Display Type",
                     "type": "integer",
                     "default": 0,
+                    "description": "Here select display type in HomeKit app.",
                     "oneOf": [
                       {
                         "title": "None/Disabled",
@@ -203,19 +204,20 @@
                           2
                         ]
                       }
-                    ],
-                    "description": "Here select display type in HomeKit app."
+                    ]
                   },
                   "name": {
                     "title": "Name",
                     "type": "string",
                     "placeholder": "Name",
-                    "description": "Here set Your own name."
+                    "description": "Here set Your own name.",
+                    "condition": {
+                      "functionBody": "return model.devices[arrayIndices[0]].buttons[arrayIndices[1]].displayType > 0;"
+                    }
                   },
                   "mode": {
                     "title": "Mode",
                     "type": "integer",
-                    "default": 0,
                     "description": "Here select the function mode.",
                     "oneOf": [
                       {
@@ -236,13 +238,19 @@
                           2
                         ]
                       }
-                    ]
+                    ],
+                    "condition": {
+                      "functionBody": "return model.devices[arrayIndices[0]].buttons[arrayIndices[1]].displayType > 0;"
+                    }
                   },
                   "reference": {
                     "title": "Reference",
                     "type": "string",
                     "placeholder": "com.webos.app.sheduler",
-                    "description": "Here set the Input/App/Channel reference."
+                    "description": "Here set the Input/App/Channel reference.",
+                    "condition": {
+                      "functionBody": "return model.devices[arrayIndices[0]].buttons[arrayIndices[1]].displayType > 0 && model.devices[arrayIndices[0]].buttons[arrayIndices[1]].mode < 2;"
+                    }
                   },
                   "command": {
                     "title": "RC Command",
@@ -585,18 +593,23 @@
                           "3DIGIT_INPUT"
                         ]
                       }
-                    ]
+                    ],
+                    "condition": {
+                      "functionBody": "return model.devices[arrayIndices[0]].buttons[arrayIndices[1]].displayType > 0 && model.devices[arrayIndices[0]].buttons[arrayIndices[1]].mode === 2;"
+                    }
                   },
                   "namePrefix": {
                     "title": "Prefix",
                     "type": "boolean",
                     "default": false,
-                    "description": "Here enable/disable the accessory name as a prefix for button name."
+                    "description": "Here enable/disable the accessory name as a prefix for button name.",
+                    "condition": {
+                      "functionBody": "return model.devices[arrayIndices[0]].buttons[arrayIndices[1]].displayType > 0;"
+                    }
                   }
                 },
                 "required": [
-                  "displayType",
-                  "mode"
+                  "displayType"
                 ]
               }
             },
@@ -719,19 +732,28 @@
                         "title": "Name",
                         "type": "string",
                         "placeholder": "Name",
-                        "description": "Here set Your own name."
+                        "description": "Here set Your own name.",
+                        "condition": {
+                          "functionBody": "return model.devices[arrayIndices[0]].sensors.inputs[arrayIndices[1]].displayType > 0;"
+                        }
                       },
                       "reference": {
                         "title": "Reference",
                         "type": "string",
                         "placeholder": "Input/App reference",
-                        "description": "Here set the Input/App reference."
+                        "description": "Here set the Input/App reference.",
+                        "condition": {
+                          "functionBody": "return model.devices[arrayIndices[0]].sensors.inputs[arrayIndices[1]].displayType > 0;"
+                        }
                       },
                       "namePrefix": {
                         "title": "Prefix",
                         "type": "boolean",
                         "default": false,
-                        "description": "Here enable/disable the accessory name as a prefix for sensor name."
+                        "description": "Here enable/disable the accessory name as a prefix for sensor name.",
+                        "condition": {
+                          "functionBody": "return model.devices[arrayIndices[0]].sensors.inputs[arrayIndices[1]].displayType > 0;"
+                        }
                       }
                     },
                     "required": [
@@ -798,9 +820,21 @@
                       ]
                     },
                     {
-                      "title": "Speaker",
+                      "title": "TV Speaker",
                       "enum": [
                         3
+                      ]
+                    },
+                    {
+                      "title": "TV Speaker / Lightbulb",
+                      "enum": [
+                        4
+                      ]
+                    },
+                    {
+                      "title": "TV Speaker / Fan",
+                      "enum": [
+                        5
                       ]
                     }
                   ]
@@ -809,13 +843,19 @@
                   "title": "Name",
                   "type": "string",
                   "placeholder": "Volume Control Name",
-                  "description": "Here set Your own volume control name or leave empty."
+                  "description": "Here set Your own volume control name or leave empty.",
+                  "condition": {
+                    "functionBody": "return model.devices[arrayIndices[0]].volume.displayType > 0;"
+                  }
                 },
                 "namePrefix": {
                   "title": "Prefix",
                   "type": "boolean",
                   "default": false,
-                  "description": "Here enable/disable the accessory name as a prefix for volume control name."
+                  "description": "Here enable/disable the accessory name as a prefix for volume control name.",
+                  "condition": {
+                    "functionBody": "return model.devices[arrayIndices[0]].volume.displayType > 0;"
+                  }
                 }
               },
               "required": [
@@ -862,7 +902,10 @@
                         "title": "Name",
                         "type": "string",
                         "placeholder": "Sound Mode Name",
-                        "description": "Here set Your own Sound Mode name."
+                        "description": "Here set Your own Sound Mode name.",
+                        "condition": {
+                          "functionBody": "return model.devices[arrayIndices[0]].sound.modes[arrayIndices[1]].displayType > 0;"
+                        }
                       },
                       "reference": {
                         "title": "Mode",
@@ -917,13 +960,19 @@
                               "game"
                             ]
                           }
-                        ]
+                        ],
+                        "condition": {
+                          "functionBody": "return model.devices[arrayIndices[0]].sound.modes[arrayIndices[1]].displayType > 0;"
+                        }
                       },
                       "namePrefix": {
                         "title": "Prefix",
                         "type": "boolean",
                         "default": false,
-                        "description": "Here enable/disable the accessory name as a prefix for sound mode."
+                        "description": "Here enable/disable the accessory name as a prefix for sound mode.",
+                        "condition": {
+                          "functionBody": "return model.devices[arrayIndices[0]].sound.modes[arrayIndices[1]].displayType > 0;"
+                        }
                       }
                     },
                     "required": [
@@ -967,7 +1016,10 @@
                         "title": "Name",
                         "type": "string",
                         "placeholder": "Sound Output Name",
-                        "description": "Here set Your own Sound Output name."
+                        "description": "Here set Your own Sound Output name.",
+                        "condition": {
+                          "functionBody": "return model.devices[arrayIndices[0]].sound.outputs[arrayIndices[1]].displayType > 0;"
+                        }
                       },
                       "reference": {
                         "title": "Output",
@@ -1034,13 +1086,19 @@
                               "soundbar"
                             ]
                           }
-                        ]
+                        ],
+                        "condition": {
+                          "functionBody": "return model.devices[arrayIndices[0]].sound.outputs[arrayIndices[1]].displayType > 0;"
+                        }
                       },
                       "namePrefix": {
                         "title": "Prefix",
                         "type": "boolean",
                         "default": false,
-                        "description": "Here enable/disable the accessory name as a prefix for sound output."
+                        "description": "Here enable/disable the accessory name as a prefix for sound output.",
+                        "condition": {
+                          "functionBody": "return model.devices[arrayIndices[0]].sound.outputs[arrayIndices[1]].displayType > 0;"
+                        }
                       }
                     },
                     "required": [
@@ -1114,7 +1172,10 @@
                         "title": "Name",
                         "type": "string",
                         "placeholder": "Picture Mode Name",
-                        "description": "Here set Your own Picture Mode name."
+                        "description": "Here set Your own Picture Mode name.",
+                        "condition": {
+                          "functionBody": "return model.devices[arrayIndices[0]].picture.modes[arrayIndices[1]].displayType > 0;"
+                        }
                       },
                       "reference": {
                         "title": "Mode",
@@ -1277,13 +1338,19 @@
                               "expert2"
                             ]
                           }
-                        ]
+                        ],
+                        "condition": {
+                          "functionBody": "return model.devices[arrayIndices[0]].picture.modes[arrayIndices[1]].displayType > 0;"
+                        }
                       },
                       "namePrefix": {
                         "title": "Prefix",
                         "type": "boolean",
                         "default": false,
-                        "description": "Here enable/disable the accessory name as a prefix for picture mode."
+                        "description": "Here enable/disable the accessory name as a prefix for picture mode.",
+                        "condition": {
+                          "functionBody": "return model.devices[arrayIndices[0]].picture.modes[arrayIndices[1]].displayType > 0;"
+                        }
                       }
                     },
                     "required": [
@@ -1434,15 +1501,6 @@
                   "condition": {
                     "functionBody": "return model.devices[arrayIndices].restFul.enable === true;"
                   }
-                },
-                "debug": {
-                  "title": "Debug",
-                  "type": "boolean",
-                  "default": false,
-                  "description": "This enable debug mode for RESTFul.",
-                  "condition": {
-                    "functionBody": "return model.devices[arrayIndices].restFul.enable === true;"
-                  }
                 }
               }
             },
@@ -1489,15 +1547,6 @@
                   "type": "string",
                   "placeholder": "home",
                   "description": "Here set the prefix.",
-                  "condition": {
-                    "functionBody": "return model.devices[arrayIndices].mqtt.enable === true;"
-                  }
-                },
-                "debug": {
-                  "title": "Debug",
-                  "type": "boolean",
-                  "default": false,
-                  "description": "This enable debug mode for MQTT.",
                   "condition": {
                     "functionBody": "return model.devices[arrayIndices].mqtt.enable === true;"
                   }
@@ -1579,7 +1628,10 @@
                 "devices[].inputs.data[].mode"
               ]
             }
-          ]
+          ],
+          "condition": {
+            "functionBody": "return model.devices[arrayIndices[0]].displayType > 0;"
+          }
         },
         {
           "key": "devices[]",
@@ -1601,7 +1653,10 @@
                 "devices[].buttons[].namePrefix"
               ]
             }
-          ]
+          ],
+          "condition": {
+            "functionBody": "return model.devices[arrayIndices[0]].displayType > 0;"
+          }
         },
         {
           "key": "devices[]",
@@ -1786,8 +1841,7 @@
                           "title": "RESTFul",
                           "items": [
                             "devices[].restFul.enable",
-                            "devices[].restFul.port",
-                            "devices[].restFul.debug"
+                            "devices[].restFul.port"
                           ]
                         },
                         {
@@ -1799,7 +1853,6 @@
                             "devices[].mqtt.port",
                             "devices[].mqtt.clientId",
                             "devices[].mqtt.prefix",
-                            "devices[].mqtt.debug",
                             {
                               "key": "devices[].mqtt.auth",
                               "title": "Authorization",
@@ -1820,7 +1873,10 @@
                 }
               ]
             }
-          ]
+          ],
+          "condition": {
+            "functionBody": "return model.devices[arrayIndices[0]].displayType > 0;"
+          }
         }
       ]
     }
