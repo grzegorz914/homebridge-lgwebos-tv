@@ -157,16 +157,19 @@ class LgWebOsSocket extends EventEmitter {
         if (this.logDebug) this.emit('debug', `Subscirbe tv status`);
 
         try {
-            await new Promise(resolve => setTimeout(resolve, 4000));
-
+            await new Promise(resolve => setTimeout(resolve, 2000));
             this.channelsId = await this.getCid();
             await this.send('subscribe', ApiUrls.GetChannelList, undefined, this.channelsId);
             this.externalInputListId = await this.getCid();
             await this.send('subscribe', ApiUrls.GetExternalInputList, undefined, this.externalInputListId);
             this.appsId = await this.getCid();
             await this.send('subscribe', ApiUrls.GetInstalledApps, undefined, this.appsId);
+
+            await new Promise(resolve => setTimeout(resolve, 1000));
             this.powerStateId = await this.getCid();
             await this.send('subscribe', ApiUrls.GetPowerState, undefined, this.powerStateId);
+
+            await new Promise(resolve => setTimeout(resolve, 2000));
             this.currentAppId = await this.getCid();
             await this.send('subscribe', ApiUrls.GetForegroundAppInfo, undefined, this.currentAppId);
             this.currentChannelId = await this.getCid();
@@ -286,7 +289,7 @@ class LgWebOsSocket extends EventEmitter {
 
     async connect() {
         try {
-            if (this.logDebug) this.emit('debug', `Plugin send heartbeat to TV`);
+            if (this.logDebug) this.emit('debug', `Connect to TV`);
 
             //Read pairing key from file
             const pairingKey = await this.functions.readData(this.keyFile);
@@ -310,9 +313,9 @@ class LgWebOsSocket extends EventEmitter {
                     if (this.logDebug) this.emit('debug', `Plugin received heartbeat from TV`);
 
                     // connect to device success
-                    if (!this.socketConnected) this.emit('success', `Socket Connect Success`);
                     this.socket = socket;
                     this.socketConnected = true;
+                    this.emit('success', `Socket Connect Success`);
 
                     // start heartbeat
                     this.heartbeat = setInterval(() => {
@@ -705,12 +708,13 @@ class LgWebOsSocket extends EventEmitter {
                                 case 'response':
                                     if (this.logDebug) this.emit('debug', `Audio: ${stringifyMessage}`);
                                     const volume = messageData.volume ?? this.volume;
-                                    const mute = !!(messageData.mute || messageData.muteStatus);
-                                    const soundOutput = messageData.soundOutput;
+                                    const mute = (messageData.mute ?? messageData.muteStatus) !== undefined ? !!(messageData.mute ?? messageData.muteStatus) : this.mute;
                                     this.volume = volume;
                                     this.mute = mute
 
                                     this.emit('audioState', volume, mute, this.power);
+
+                                    const soundOutput = messageData.soundOutput ?? this.soundOutput;
                                     if (soundOutput) {
                                         this.emit('soundOutput', soundOutput, this.power);
                                         this.soundOutput = soundOutput;
@@ -816,8 +820,10 @@ class LgWebOsSocket extends EventEmitter {
                             switch (messageType) {
                                 case 'response':
                                     if (this.logDebug) this.emit('debug', `Sound mode: ${stringifyMessage}`);
-                                    const soundMode = messageData.settings?.soundMode;
-                                    if (!soundMode) return;
+                                    const settings = messageData.settings;
+                                    if (!settings) return;
+
+                                    const soundMode = settings.soundMode ?? this.soundMode;
                                     this.soundMode = soundMode;
 
                                     this.emit('soundMode', soundMode, this.power);
@@ -840,7 +846,7 @@ class LgWebOsSocket extends EventEmitter {
                             switch (messageType) {
                                 case 'response':
                                     if (this.logDebug) this.emit('debug', `Sound output: ${stringifyMessage}`);
-                                    const soundOutput = messageData.soundOutput;
+                                    const soundOutput = messageData.soundOutput ?? this.soundOutput;
                                     if (!soundOutput) return;
                                     this.soundOutput = soundOutput;
 
