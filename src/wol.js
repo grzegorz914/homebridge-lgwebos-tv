@@ -6,9 +6,9 @@ class WakeOnLan extends EventEmitter {
     constructor(config) {
         super();
         this.mac = config.mac;
-        this.broadcastAddress = config.broadcastAddress || config.host || (Net.isIPv6(config.host) ? 'ff02::1' : '255.255.255.255');
-        this.logError = config.logError;
-        this.logDebug = config.logDebug;
+        this.broadcastAddress = config.power?.broadcastAddress || config.host || (Net.isIPv6(config.host) ? 'ff02::1' : '255.255.255.255');
+        this.logError = config.log?.error;
+        this.logDebug = config.log?.debug;
         this.udpType = Net.isIPv6(this.broadcastAddress) ? 'udp6' : 'udp4';
     }
 

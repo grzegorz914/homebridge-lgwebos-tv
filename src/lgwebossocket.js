@@ -6,19 +6,19 @@ import Functions from './functions.js';
 import { ApiUrls, Pairing } from './constants.js';
 
 class LgWebOsSocket extends EventEmitter {
-    constructor(config) {
+    constructor(config, keyFile, devInfoFile, inputsFile, channelsFile) {
         super();
         this.host = config.host;
-        this.inputs = config.inputs;
-        this.getInputsFromDevice = config.getInputsFromDevice;
-        this.keyFile = config.keyFile;
-        this.devInfoFile = config.devInfoFile;
-        this.inputsFile = config.inputsFile;
-        this.channelsFile = config.channelsFile;
-        this.logWarn = config.logWarn;
-        this.logError = config.logError;
-        this.logDebug = config.logDebug;
-        this.sslWebSocket = config.sslWebSocket;
+        this.getInputsFromDevice = config.inputs?.getFromDevice || false;
+        this.inputs = config.inputs?.data || [];
+        this.logWarn = config.log?.warn || true;
+        this.logError = config.log?.error || true;
+        this.logDebug = config.log?.debug || false;
+        this.sslWebSocket = config.sslWebSocket || false;
+        this.keyFile = keyFile;
+        this.devInfoFile = devInfoFile;
+        this.inputsFile = inputsFile;
+        this.channelsFile = channelsFile;
         this.webSocketPort = this.sslWebSocket ? 3001 : 3000;
 
         this.functions = new Functions();
@@ -380,7 +380,7 @@ class LgWebOsSocket extends EventEmitter {
                                     if (this.logError) this.emit('error', `Register to TV error: ${stringifyMessage}`);
                                     break;
                                 default:
-                                    if (this.logDebug) this.emit('debug', this.emit('debug', `Register to TV unknown message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`));
+                                    if (this.logDebug) this.emit('debug', `Register to TV unknown message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`);
                                     break;
                             };
                             break;
@@ -445,7 +445,7 @@ class LgWebOsSocket extends EventEmitter {
                                     if (this.logDebug) this.emit('debug', `System info error: ${stringifyMessage}`);
                                     break;
                                 default:
-                                    if (this.logDebug) this.emit('debug', this.emit('debug', `System info received message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`));
+                                    if (this.logDebug) this.emit('debug', `System info received message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`);
                                     break;
                             };
                             break;
@@ -474,7 +474,7 @@ class LgWebOsSocket extends EventEmitter {
                                     if (this.logDebug) this.emit('debug', `Software info error: ${stringifyMessage}`);
                                     break;
                                 default:
-                                    if (this.logDebug) this.emit('debug', this.emit('debug', `Software info received message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`));
+                                    if (this.logDebug) this.emit('debug', `Software info received message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`);
                                     break;
                             };
                             break;
@@ -513,7 +513,7 @@ class LgWebOsSocket extends EventEmitter {
                                     if (this.logDebug) this.emit('debug', `Channels error: ${stringifyMessage}`);
                                     break;
                                 default:
-                                    if (this.logDebug) this.emit('debug', this.emit('debug', `Channels list received message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`));
+                                    if (this.logDebug) this.emit('debug', `Channels list received message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`);
                                     break;
                             };
                             break;
@@ -548,7 +548,7 @@ class LgWebOsSocket extends EventEmitter {
                                     if (this.logDebug) this.emit('debug', `External input list error: ${stringifyMessage}`);
                                     break;
                                 default:
-                                    if (this.logDebug) this.emit('debug', this.emit('debug', `External input list received message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`));
+                                    if (this.logDebug) this.emit('debug', `External input list received message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`);
                                     break;
                             };
                             break;
@@ -557,54 +557,54 @@ class LgWebOsSocket extends EventEmitter {
                                 case 'response':
                                     if (this.logDebug) this.emit('debug', `Apps list: ${stringifyMessage}`);
 
-                                    // Handle app change reason
-                                    const appInstalled = messageData.changeReason === 'appInstalled';
-                                    const appUninstalled = messageData.changeReason === 'appUninstalled';
-                                    const appUpdated = !appInstalled && !appUninstalled;
+                                    if (this.getInputsFromDevice) {
+                                        // Handle app change reason
+                                        const appInstalled = messageData.changeReason === 'appInstalled';
+                                        const appUninstalled = messageData.changeReason === 'appUninstalled';
+                                        const appUpdated = !appInstalled && !appUninstalled;
 
-                                    // --- Handle uninstall ---
-                                    if (this.getInputsFromDevice && appUninstalled && messageData.app) {
-                                        this.inputsArr = this.inputsArr.filter(inp => inp.reference !== messageData.app.id);
-                                        const inputs = {
-                                            name: messageData.app.title,
-                                            reference: messageData.app.id
-                                        };
+                                        // --- Handle uninstall ---
+                                        if (appUninstalled && messageData.app) {
+                                            this.inputs = this.inputs.filter(inp => inp.reference !== messageData.app.id);
+                                            const inputs = [{
+                                                name: messageData.app.title,
+                                                reference: messageData.app.id
+                                            }];
 
-                                        await this.functions.saveData(this.inputsFile, this.inputsArr);
-                                        this.emit('addRemoveOrUpdateInput', inputs, true);
-                                        return;
-                                    }
-
-                                    // Build apps list
-                                    const appsList = appInstalled ? [messageData.app] : messageData.apps;
-                                    if (!Array.isArray(appsList) || appsList.length === 0) return;
-
-                                    // Reset apps array to avoid duplicates
-                                    const appsArr = [];
-
-                                    // Parse apps into appsArr
-                                    for (const app of appsList) {
-                                        if (app?.id && app?.title) {
-                                            const input = {
-                                                name: app.title,
-                                                reference: app.id,
-                                                mode: 0
-                                            };
-                                            appsArr.push(input);
+                                            await this.functions.saveData(this.inputsFile, this.inputs);
+                                            this.emit('addRemoveOrUpdateInput', inputs, true);
+                                            return;
                                         }
+
+                                        // Build apps list
+                                        const appsList = appInstalled ? [messageData.app] : messageData.apps;
+                                        if (!Array.isArray(appsList) || appsList.length === 0) return;
+
+                                        // Reset apps array to avoid duplicates
+                                        const appsArr = [];
+
+                                        // Parse apps into appsArr
+                                        for (const app of appsList) {
+                                            if (app?.id && app?.title) {
+                                                const input = {
+                                                    name: app.title,
+                                                    reference: app.id,
+                                                    mode: 0
+                                                };
+                                                appsArr.push(input);
+                                            }
+                                        }
+
+                                        // Add special menus on app updated
+                                        if (appUpdated && this.tvInfo.webOS >= 4.0) appsArr.push({ name: 'Screen Off', reference: 'com.webos.app.screenoff', mode: 0 });
+                                        this.inputs = [...this.externalInputsArr, ...appsArr];
                                     }
-
-                                    // Add special menus on app updated
-                                    if (appUpdated) if (this.tvInfo.webOS >= 4.0) appsArr.push({ name: 'Screen Off', reference: 'com.webos.app.screenoff', mode: 0 });
-
-                                    // Merge external inputs + apps
-                                    this.inputsArr = this.getInputsFromDevice ? [...this.externalInputsArr, ...appsArr] : this.inputs;
 
                                     // Save result
-                                    await this.functions.saveData(this.inputsFile, this.inputsArr);
+                                    await this.functions.saveData(this.inputsFile, this.inputs);
 
                                     // Emit the inputs
-                                    this.emit('installedApps', this.inputsArr, false);
+                                    this.emit('installedApps', this.inputs, false);
 
                                     //restFul
                                     this.emit('restFul', 'apps', messageData);
@@ -616,7 +616,7 @@ class LgWebOsSocket extends EventEmitter {
                                     if (this.logDebug) this.emit('debug', `Apps list error: ${stringifyMessage}`);
                                     break;
                                 default:
-                                    if (this.logDebug) this.emit('debug', this.emit('debug', `Apps list received message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`));
+                                    if (this.logDebug) this.emit('debug', `Apps list received message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`);
                                     break;
                             };
                             break;
@@ -650,8 +650,8 @@ class LgWebOsSocket extends EventEmitter {
                                             this.screenState = 'Suspend';
                                             break;
                                         default:
-                                            if (this.logWarn) this.emit('warn', `Unknown power state: ${stringifyMessage}`);
-                                            break;
+                                            if (this.logDebug) this.emit('debug', `Unknown power state: ${stringifyMessage}`);
+                                            return;
                                     }
 
                                     this.emit('powerState', this.power, this.screenState);
@@ -675,7 +675,7 @@ class LgWebOsSocket extends EventEmitter {
                                     }
                                     break;
                                 default:
-                                    if (this.logDebug) this.emit('debug', this.emit('debug', `Power received message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`));
+                                    if (this.logDebug) this.emit('debug', `Power received message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`);
                                     break;
                             };
                             break;
@@ -699,7 +699,7 @@ class LgWebOsSocket extends EventEmitter {
                                     if (this.logDebug) this.emit('debug', `App error: ${stringifyMessage}`);
                                     break;
                                 default:
-                                    if (this.logDebug) this.emit('debug', this.emit('debug', `App received message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`));
+                                    if (this.logDebug) this.emit('debug', `App received message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`);
                                     break;
                             };
                             break;
@@ -730,7 +730,7 @@ class LgWebOsSocket extends EventEmitter {
                                     if (this.logDebug) this.emit('debug', `Audio error: ${stringifyMessage}`);
                                     break;
                                 default:
-                                    if (this.logDebug) this.emit('debug', this.emit('debug', `Audio received message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`));
+                                    if (this.logDebug) this.emit('debug', `Audio received message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`);
                                     break;
                             };
                             break;
@@ -755,7 +755,7 @@ class LgWebOsSocket extends EventEmitter {
                                     if (this.logDebug) this.emit('debug', `Channel error: ${stringifyMessage}`);
                                     break;
                                 default:
-                                    if (this.logDebug) this.emit('debug', this.emit('debug', `Channel received message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`));
+                                    if (this.logDebug) his.emit('debug', `Channel received message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`);
                                     break;
                             };
                             break;
@@ -788,7 +788,7 @@ class LgWebOsSocket extends EventEmitter {
                                     if (this.logDebug) this.emit('debug', `Picture settings error: ${stringifyMessage}`);
                                     break;
                                 default:
-                                    if (this.logDebug) this.emit('debug', this.emit('debug', `Picture settings received message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`));
+                                    if (this.logDebug) this.emit('debug', `Picture settings received message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`);
                                     break;
                             };
                             break;
@@ -812,7 +812,7 @@ class LgWebOsSocket extends EventEmitter {
                                     if (this.logDebug) this.emit('debug', `Picture mode error: ${stringifyMessage}`);
                                     break;
                                 default:
-                                    if (this.logDebug) this.emit('debug', this.emit('debug', `Picture mode received message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`));
+                                    if (this.logDebug) this.emit('debug', `Picture mode received message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`);
                                     break;
                             };
                             break;
@@ -838,7 +838,7 @@ class LgWebOsSocket extends EventEmitter {
                                     if (this.logDebug) this.emit('debug', `Sound mode error: ${stringifyMessage}`);
                                     break;
                                 default:
-                                    if (this.logDebug) this.emit('debug', this.emit('debug', `Sound mode received message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`));
+                                    if (this.logDebug) this.emit('debug', `Sound mode received message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`);
                                     break;
                             };
                             break;
@@ -862,7 +862,7 @@ class LgWebOsSocket extends EventEmitter {
                                     if (this.logDebug) this.emit('debug', `Sound output error: ${stringifyMessage}`);
                                     break;
                                 default:
-                                    if (this.logDebug) this.emit('debug', this.emit('debug', `Sound output received message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`));
+                                    if (this.logDebug) this.emit('debug', `Sound output received message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`);
                                     break;
                             };
                             break;
@@ -894,7 +894,7 @@ class LgWebOsSocket extends EventEmitter {
                                     if (this.logDebug) this.emit('debug', `Media info error: ${stringifyMessage}`);
                                     break;
                                 default:
-                                    if (this.logDebug) this.emit('debug', this.emit('debug', `Medias info received message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`));
+                                    if (this.logDebug) this.emit('debug', `Medias info received message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`);
                                     break;
                             };
                             break;

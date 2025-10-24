@@ -147,7 +147,6 @@
                         "title": "Mode",
                         "type": "integer",
                         "description": "Here select the function mode.",
-                        "default": 0,
                         "oneOf": [
                           {
                             "title": "Input/App",

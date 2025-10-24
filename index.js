@@ -97,8 +97,8 @@ class LgWebOsPlatform {
 									api.publishExternalAccessories(PluginName, [accessory]);
 									if (logLevel.success) log.success(`Device: ${host} ${name}, Published as external accessory.`);
 
-									await impulseGenerator.stop();
-									await lgDevice.startImpulseGenerator();
+									await impulseGenerator.state(false);
+									await lgDevice.startStopImpulseGenerator(true, [{ name: 'heartBeat', sampling: 10000 }]);
 								}
 							} catch (error) {
 								if (logLevel.error) log.error(`Device: ${host} ${name}, Start impulse generator error: ${error.message ?? error}, trying again.`);
@@ -109,7 +109,7 @@ class LgWebOsPlatform {
 						});
 
 					// start impulse generator
-					await impulseGenerator.start([{ name: 'start', sampling: 60000 }]);
+					await impulseGenerator.state(true, [{ name: 'start', sampling: 60000 }]);
 				} catch (error) {
 					if (logLevel.error) log.error(`Device: ${host} ${name}, Did finish launching error: ${error.message ?? error}`);
 				}

@@ -20,14 +20,12 @@ class LgWebOsDevice extends EventEmitter {
         AccessoryUUID = api.hap.uuid;
 
         //device configuration
+        this.device = device;
         this.name = device.name;
-        this.host = device.host;
         this.mac = device.mac;
         this.displayType = device.displayType;
-        this.getInputsFromDevice = device.inputs?.getFromDevice || false;
         this.filterSystemApps = device.inputs?.filterSystemApps || false;
         this.inputsDisplayOrder = device.inputs?.displayOrder || 0;
-        this.inputs = device.inputs?.data || [];
         this.buttons = (device.buttons || []).filter(button => (button.displayType ?? 0) > 0);
         this.sensorPower = device.sensors?.power || false;
         this.sensorPixelRefresh = device.sensors?.pixelRefresh || false;
@@ -42,7 +40,6 @@ class LgWebOsDevice extends EventEmitter {
         this.sensorChannel = device.sensors?.channel || false;
         this.sensorInput = device.sensors?.input || false;
         this.sensorInputs = (device.sensors?.inputs || []).filter(sensor => (sensor.displayType ?? 0) > 0);
-        this.broadcastAddress = device.power?.broadcastAddress;
         this.startInput = device.power?.startInput || false;
         this.startInputReference = device.power?.startInputReference || 'com.webos.app.home';
         this.volumeControl = device.volume?.displayType || 0;
@@ -58,7 +55,6 @@ class LgWebOsDevice extends EventEmitter {
         this.turnScreenOnOff = device.screen?.turnOnOff || false;
         this.turnScreenSaverOnOff = device.screen?.saverOnOff || false;
         this.disableTvService = device.disableTvService || false;
-        this.sslWebSocket = device.sslWebSocket || false;
         this.infoButtonCommand = device.infoButtonCommand || 'INFO';
         this.logInfo = device.log?.info || false;
         this.logWarn = device.log?.warn || true;
@@ -77,12 +73,9 @@ class LgWebOsDevice extends EventEmitter {
         this.mqtt = device.mqtt ?? {};
         this.mqttConnected = false;
 
-        //add configured inputs to the default inputs
-        this.inputs = [...DefaultInputs, ...this.inputs];
-        this.inputIdentifier = 1;
-
         //state variable
         this.functions = new Functions();
+        this.inputIdentifier = 1;
         this.power = false;
         this.pixelRefreshState = false;
         this.screenStateOff = false;
@@ -108,29 +101,29 @@ class LgWebOsDevice extends EventEmitter {
         //picture mode variable
         for (const mode of this.pictureModes) {
             mode.name = mode.name || 'Picture Mode';
-            mode.serviceType = ['', Service.Outlet, Service.Switch][mode.displayType];
+            mode.serviceType = [null, Service.Outlet, Service.Switch][mode.displayType];
             mode.state = false;
         }
 
         //sound mode variable
         for (const mode of this.soundModes) {
             mode.name = mode.name || 'Sound Mode';
-            mode.serviceType = ['', Service.Outlet, Service.Switch][mode.displayType];
+            mode.serviceType = [null, Service.Outlet, Service.Switch][mode.displayType];
             mode.state = false;
         }
 
         //sound output variable
         for (const output of this.soundOutputs) {
             output.name = output.name || 'Sound Output'
-            output.serviceType = ['', Service.Outlet, Service.Switch][output.isplayType];
+            output.serviceType = [null, Service.Outlet, Service.Switch][output.isplayType];
             output.state = false;
         }
 
         //sensors variable
         for (const sensor of this.sensorInputs) {
             sensor.name = sensor.name || 'Sensor Input';
-            sensor.serviceType = ['', Service.MotionSensor, Service.OccupancySensor, Service.ContactSensor][sensor.displayType];
-            sensor.characteristicType = ['', Characteristic.MotionDetected, Characteristic.OccupancyDetected, Characteristic.ContactSensorState][sensor.displayType];
+            sensor.serviceType = [null, Service.MotionSensor, Service.OccupancySensor, Service.ContactSensor][sensor.displayType];
+            sensor.characteristicType = [null, Characteristic.MotionDetected, Characteristic.OccupancyDetected, Characteristic.ContactSensorState][sensor.displayType];
             sensor.state = false;
         }
         this.sensorVolumeState = false;
@@ -380,11 +373,11 @@ class LgWebOsDevice extends EventEmitter {
         }
     }
 
-    async startImpulseGenerator() {
+    async startStopImpulseGenerator(state, timers = []) {
         try {
-            //start impulse generator
+            //start impulse generator 
             await new Promise(resolve => setTimeout(resolve, 3000));
-            await this.lgWebOsSocket.impulseGenerator.start([{ name: 'heartBeat', sampling: 10000 }]);
+            await this.lgWebOsSocket.impulseGenerator.state(state, timers)
             return true;
         } catch (error) {
             throw new Error(`Impulse generator start error: ${error}`);
@@ -552,9 +545,7 @@ class LgWebOsDevice extends EventEmitter {
                         return state;
                     })
                     .onSet(async (state) => {
-                        if (state === this.power) {
-                            return;
-                        }
+                        if (!!state === this.power) return;
 
                         try {
                             switch (state) {
@@ -646,18 +637,13 @@ class LgWebOsDevice extends EventEmitter {
                                     break;
                                 case 1: // Channel
                                     const liveTv = 'com.webos.app.livetv';
-                                    if (this.appId !== liveTv) {
-                                        await this.lgWebOsSocket.send('request', ApiUrls.LaunchApp, { id: liveTv }, cid);
-                                    }
-
+                                    if (this.appId !== liveTv) await this.lgWebOsSocket.send('request', ApiUrls.LaunchApp, { id: liveTv }, cid);
                                     cid = await this.lgWebOsSocket.getCid('Channel');
                                     await this.lgWebOsSocket.send('request', ApiUrls.OpenChannel, { channelId: inputReference }, cid);
                                     break;
                             }
 
-                            if (this.logInfo) {
-                                this.emit('info', `set ${inputMode === 0 ? 'Input' : 'Channel'}, Name: ${inputName}, Reference: ${inputReference}`);
-                            }
+                            if (this.logInfo) this.emit('info', `set ${inputMode === 0 ? 'Input' : 'Channel'}, Name: ${inputName}, Reference: ${inputReference}`);
                         } catch (error) {
                             if (this.logWarn) this.emit('warn', `set Input or Channel error: ${error}`);
                         }
@@ -1755,13 +1741,7 @@ class LgWebOsDevice extends EventEmitter {
     async start() {
         //Wake On Lan
         try {
-            this.wol = new WakeOnLan({
-                mac: this.mac,
-                host: this.host,
-                broadcastAddress: this.broadcastAddress,
-                logError: this.logError,
-                logDebug: this.logDebug
-            })
+            this.wol = new WakeOnLan(this.device)
                 .on('debug', (debug) => this.emit('debug', debug))
                 .on('error', (error) => this.emit('error', error));
         } catch (error) {
@@ -1770,19 +1750,7 @@ class LgWebOsDevice extends EventEmitter {
 
         try {
             //lg tv client
-            this.lgWebOsSocket = new LgWebOsSocket({
-                host: this.host,
-                inputs: this.inputs,
-                getInputsFromDevice: this.getInputsFromDevice,
-                keyFile: this.keyFile,
-                devInfoFile: this.devInfoFile,
-                inputsFile: this.inputsFile,
-                channelsFile: this.channelsFile,
-                logWarn: this.logWarn,
-                logError: this.logError,
-                logDebug: this.logDebug,
-                sslWebSocket: this.sslWebSocket
-            })
+            this.lgWebOsSocket = new LgWebOsSocket(this.device, this.keyFile, this.devInfoFile, this.inputsFile, this.channelsFile)
                 .on('deviceInfo', (info) => {
                     this.emit('devInfo', `-------- ${this.name} --------`);
                     this.emit('devInfo', `Manufacturer: LG Electronics`);
