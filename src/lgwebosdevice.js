@@ -342,24 +342,24 @@ class LgWebOsDevice extends EventEmitter {
     async prepareDataForAccessory() {
         try {
             //read dev info from file
-            const savedInfo = await this.functions.readData(this.devInfoFile, true) ?? {};
+            this.savedInfo = await this.functions.readData(this.devInfoFile, true) ?? {};
             if (this.logDebug) this.emit('debug', `Read saved Info: ${JSON.stringify(this.savedInfo, null, 2)}`);
             this.webOS = this.savedInfo.webOS ?? 2.0;
 
             //read inputs file
-            const savedInputs = await this.functions.readData(this.inputsFile, true) ?? [];
+            this.savedInputs = await this.functions.readData(this.inputsFile, true) ?? [];
             if (this.logDebug) this.emit('debug', `Read saved Inputs: ${JSON.stringify(this.savedInputs, null, 2)}`);
 
             //read channels from file
-            const savedChannels = await this.functions.readData(this.channelsFile, true) ?? [];
+            this.savedChannels = await this.functions.readData(this.channelsFile, true) ?? [];
             if (this.logDebug) this.emit('debug', `Read saved Channels: ${JSON.stringify(this.savedChannels, null, 2)}`);
 
             //read inputs names from file
-            const savedInputsNames = await this.functions.readData(this.inputsNamesFile, true) ?? {};
+            this.savedInputsNames = await this.functions.readData(this.inputsNamesFile, true) ?? {};
             if (this.logDebug) this.emit('debug', `Read saved Inputs/Channels Names: ${JSON.stringify(this.savedInputsNames, null, 2)}`);
 
             //read inputs visibility from file
-            const savedInputsTargetVisibility = await this.functions.readData(this.inputsTargetVisibilityFile, true) ?? {};
+            this.savedInputsTargetVisibility = await this.functions.readData(this.inputsTargetVisibilityFile, true) ?? {};
             if (this.logDebug) this.emit('debug', `Read saved Inputs/Channels Target Visibility: ${JSON.stringify(this.savedInputsTargetVisibility, null, 2)}`);
 
             return true;
