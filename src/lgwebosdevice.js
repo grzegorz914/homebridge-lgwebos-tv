@@ -342,29 +342,24 @@ class LgWebOsDevice extends EventEmitter {
     async prepareDataForAccessory() {
         try {
             //read dev info from file
-            const savedInfo = await this.functions.readData(this.devInfoFile);
-            this.savedInfo = savedInfo.toString().trim() !== '' ? JSON.parse(savedInfo) : {};
+            const savedInfo = await this.functions.readData(this.devInfoFile) ?? {};
             if (this.logDebug) this.emit('debug', `Read saved Info: ${JSON.stringify(this.savedInfo, null, 2)}`);
             this.webOS = this.savedInfo.webOS ?? 2.0;
 
             //read inputs file
-            const savedInputs = await this.functions.readData(this.inputsFile);
-            this.savedInputs = savedInputs.toString().trim() !== '' ? JSON.parse(savedInputs) : [];
+            const savedInputs = await this.functions.readData(this.inputsFile) ?? [];
             if (this.logDebug) this.emit('debug', `Read saved Inputs: ${JSON.stringify(this.savedInputs, null, 2)}`);
 
             //read channels from file
-            const savedChannels = await this.functions.readData(this.channelsFile);
-            this.savedChannels = savedChannels.toString().trim() !== '' ? JSON.parse(savedChannels) : [];
+            const savedChannels = await this.functions.readData(this.channelsFile) ?? [];
             if (this.logDebug) this.emit('debug', `Read saved Channels: ${JSON.stringify(this.savedChannels, null, 2)}`);
 
             //read inputs names from file
-            const savedInputsNames = await this.functions.readData(this.inputsNamesFile);
-            this.savedInputsNames = savedInputsNames.toString().trim() !== '' ? JSON.parse(savedInputsNames) : {};
+            const savedInputsNames = await this.functions.readData(this.inputsNamesFile) ?? {};
             if (this.logDebug) this.emit('debug', `Read saved Inputs/Channels Names: ${JSON.stringify(this.savedInputsNames, null, 2)}`);
 
             //read inputs visibility from file
-            const savedInputsTargetVisibility = await this.functions.readData(this.inputsTargetVisibilityFile);
-            this.savedInputsTargetVisibility = savedInputsTargetVisibility.toString().trim() !== '' ? JSON.parse(savedInputsTargetVisibility) : {};
+            const savedInputsTargetVisibility = await this.functions.readData(this.inputsTargetVisibilityFile) ?? {};
             if (this.logDebug) this.emit('debug', `Read saved Inputs/Channels Target Visibility: ${JSON.stringify(this.savedInputsTargetVisibility, null, 2)}`);
 
             return true;
