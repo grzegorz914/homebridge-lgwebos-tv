@@ -37,7 +37,7 @@
               "type": "integer",
               "default": 1,
               "description": "Accessory type for Home app",
-              "oneOf": [
+              "anyOf": [
                 {
                   "title": "None/Disabled",
                   "enum": [
@@ -91,7 +91,7 @@
                   "type": "integer",
                   "default": 0,
                   "description": "Here select display order of the inputs list.",
-                  "oneOf": [
+                  "anyOf": [
                     {
                       "title": "None",
                       "enum": [
@@ -147,7 +147,7 @@
                         "title": "Mode",
                         "type": "integer",
                         "description": "Here select the function mode.",
-                        "oneOf": [
+                        "anyOf": [
                           {
                             "title": "Input/App",
                             "enum": [
@@ -184,7 +184,7 @@
                     "type": "integer",
                     "default": 0,
                     "description": "Here select display type in HomeKit app.",
-                    "oneOf": [
+                    "anyOf": [
                       {
                         "title": "None/Disabled",
                         "enum": [
@@ -218,7 +218,7 @@
                     "title": "Mode",
                     "type": "integer",
                     "description": "Here select the function mode.",
-                    "oneOf": [
+                    "anyOf": [
                       {
                         "title": "Input/App",
                         "enum": [
@@ -255,7 +255,7 @@
                     "title": "RC Command",
                     "type": "string",
                     "description": "Here select the remote control command.",
-                    "oneOf": [
+                    "anyOf": [
                       {
                         "title": "0",
                         "enum": [
@@ -700,7 +700,7 @@
                         "type": "integer",
                         "default": 0,
                         "description": "Here select sensor type to be exposed in HomeKit app.",
-                        "oneOf": [
+                        "anyOf": [
                           {
                             "title": "None/Disabled",
                             "enum": [
@@ -799,7 +799,7 @@
                   "type": "integer",
                   "default": 0,
                   "description": "Here select what a extra volume/mute control type You want to use.",
-                  "oneOf": [
+                  "anyOf": [
                     {
                       "title": "None/Disabled",
                       "enum": [
@@ -876,7 +876,7 @@
                         "type": "integer",
                         "default": 0,
                         "description": "Here select display type in HomeKit app.",
-                        "oneOf": [
+                        "anyOf": [
                           {
                             "title": "None/Disabled",
                             "enum": [
@@ -910,7 +910,7 @@
                         "title": "Mode",
                         "type": "string",
                         "description": "Here choice the Sound Mode.",
-                        "oneOf": [
+                        "anyOf": [
                           {
                             "title": "Ai Sound Plus",
                             "enum": [
@@ -990,7 +990,7 @@
                         "type": "integer",
                         "default": 0,
                         "description": "Here select display type in HomeKit app.",
-                        "oneOf": [
+                        "anyOf": [
                           {
                             "title": "None/Disabled",
                             "enum": [
@@ -1024,7 +1024,7 @@
                         "title": "Output",
                         "type": "string",
                         "description": "Here choice the Sound Output.",
-                        "oneOf": [
+                        "anyOf": [
                           {
                             "title": "TV Speaker",
                             "enum": [
@@ -1146,7 +1146,7 @@
                         "type": "integer",
                         "default": 0,
                         "description": "Here select display type in HomeKit app.",
-                        "oneOf": [
+                        "anyOf": [
                           {
                             "title": "None/Disabled",
                             "enum": [
@@ -1180,7 +1180,7 @@
                         "title": "Mode",
                         "type": "string",
                         "description": "Here choice the Picture Mode.",
-                        "oneOf": [
+                        "anyOf": [
                           {
                             "title": "Normal",
                             "enum": [
@@ -1394,7 +1394,7 @@
               "type": "string",
               "default": "MENU",
               "description": "Here select the function of info button in RC.",
-              "oneOf": [
+              "anyOf": [
                 {
                   "title": "Home",
                   "enum": [

@@ -8,6 +8,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - After update to v3.0.0 RESTFull and MQTT config settings need to be updated
 - After update to v3.10.x and above from previous versions the plugin need to be reconfigured first, in other case will crash!!!
 
+## [3.11.8] - (31.10.2025)
+
+## Changes
+
+- fix [#273](https://github.com/grzegorz914/homebridge-lgwebos-tv/issues/273)
+- Fix [#267](https://github.com/grzegorz914/homebridge-lgwebos-tv/issues/267)
+- Fix [#279](https://github.com/grzegorz914/homebridge-lgwebos-tv/issues/279)
+- fix update app listif removed from TV
+- fix config not saved in specific situations
+- config schema updated
+- redme updated
+- cleanup
+
 ## [3.11.1] - (04.10.2025)
 
 ## Changes

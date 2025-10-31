@@ -572,7 +572,7 @@ class LgWebOsSocket extends EventEmitter {
                                             }];
 
                                             await this.functions.saveData(this.inputsFile, this.inputs);
-                                            this.emit('addRemoveOrUpdateInput', inputs, true);
+                                            this.emit('installedApps', inputs, true);
                                             return;
                                         }
 

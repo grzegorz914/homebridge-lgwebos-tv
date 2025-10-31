@@ -76,6 +76,7 @@ class LgWebOsDevice extends EventEmitter {
         //state variable
         this.functions = new Functions();
         this.inputIdentifier = 1;
+        this.reference = null;
         this.power = false;
         this.pixelRefreshState = false;
         this.screenStateOff = false;
@@ -136,6 +137,7 @@ class LgWebOsDevice extends EventEmitter {
         //buttons variable
         for (const button of this.buttons) {
             button.name = button.name || 'Button';
+            button.reference = [button.reference, button.reference, button.command][button.mode];
             button.serviceType = ['', Service.Outlet, Service.Switch][button.displayType];
             button.state = false;
         }
@@ -548,14 +550,19 @@ class LgWebOsDevice extends EventEmitter {
                                     await this.wol.wakeOnLan();
 
                                     if (this.startInput) {
-                                        await new Promise(resolve => setTimeout(resolve, 3000));
-                                        if (this.power) {
-                                            const cid = await this.lgWebOsSocket.getCid('App');
-                                            const payload = { id: this.startInputReference };
-                                            await this.lgWebOsSocket.send('request', ApiUrls.LaunchApp, payload, cid);
-                                        }
+                                        (async () => {
+                                            for (let attempt = 0; attempt < 10; attempt++) {
+                                                await new Promise(resolve => setTimeout(resolve, 1000));
+                                                if (this.power && this.inputIdentifier !== this.startInputReference) {
+                                                    const cid = await this.lgWebOsSocket.getCid('App');
+                                                    const payload = { id: this.startInputReference };
+                                                    await this.lgWebOsSocket.send('request', ApiUrls.LaunchApp, payload, cid);
+                                                    break;
+                                                }
+                                            }
+                                        })();
+                                        return;
                                     }
-                                    break;
                                 case 0:
                                     const cid1 = await this.lgWebOsSocket.getCid('Power');
                                     await this.lgWebOsSocket.send('request', ApiUrls.TurnOff, undefined, cid1);
@@ -583,15 +590,12 @@ class LgWebOsDevice extends EventEmitter {
 
                             const { mode: inputMode, name: inputName, reference: inputReference } = input;
 
-                            if (!this.power) {
-                                // Schedule retry attempts without blocking Homebridge
-                                this.emit('debug', `TV is off, deferring input switch to '${activeIdentifier}'`);
-
+                            if (!this.power && !this.startInput) {
                                 (async () => {
                                     for (let attempt = 0; attempt < 20; attempt++) {
                                         await new Promise(resolve => setTimeout(resolve, 1500));
                                         if (this.power && this.inputIdentifier !== activeIdentifier) {
-                                            this.emit('debug', `TV powered on, retrying input switch`);
+                                            if (this.logDebug) this.emit('debug', `TV powered on, retrying input switch`);
                                             this.televisionService.setCharacteristic(Characteristic.ActiveIdentifier, activeIdentifier);
                                             break;
                                         }
@@ -1674,6 +1678,9 @@ class LgWebOsDevice extends EventEmitter {
                     //get button mode
                     const buttonMode = button.mode;
 
+                    //get button reference
+                    const buttonReference = button.reference;
+
                     //get button name prefix
                     const namePrefix = button.namePrefix || false;
 
@@ -1690,27 +1697,27 @@ class LgWebOsDevice extends EventEmitter {
                             return state;
                         })
                         .onSet(async (state) => {
-                            if (!this.power && button.command !== 'POWER') return;
+                            if (!this.power && buttonReference !== 'POWER') return;
 
                             try {
                                 let cid;
                                 switch (buttonMode) {
                                     case 0: //App Control
                                         cid = state ? await this.lgWebOsSocket.getCid('App') : false;
-                                        if (state) await this.lgWebOsSocket.send('request', ApiUrls.LaunchApp, { id: button.reference }, cid);
-                                        if (state && this.logDebug) this.emit('debug', `Set Input, Name: ${buttonName}, Reference: ${button.reference}`);
+                                        if (state) await this.lgWebOsSocket.send('request', ApiUrls.LaunchApp, { id: buttonReference }, cid);
+                                        if (state && this.logDebug) this.emit('debug', `Set Input, Name: ${buttonName}, Reference: ${buttonReference}`);
                                         break;
                                     case 1: //Channel Control
                                         const liveTv = 'com.webos.app.livetv';
                                         cid = state && this.appId !== liveTv ? await this.lgWebOsSocket.getCid('App') : false;
                                         if (this.appId !== liveTv) await this.lgWebOsSocket.send('request', ApiUrls.LaunchApp, { id: liveTv }, cid);
                                         cid = state ? await this.lgWebOsSocket.getCid('Channel') : false;
-                                        if (state) await this.lgWebOsSocket.send('request', ApiUrls.OpenChannel, { channelId: button.reference }, cid);
-                                        if (state && this.logDebug) this.emit('debug', `Set Channel, Name: ${buttonName}, Reference: ${button.reference}`);
+                                        if (state) await this.lgWebOsSocket.send('request', ApiUrls.OpenChannel, { channelId: buttonReference }, cid);
+                                        if (state && this.logDebug) this.emit('debug', `Set Channel, Name: ${buttonName}, Reference: ${buttonReference}`);
                                         break;
                                     case 2: //RC Control
-                                        await this.lgWebOsSocket.send('button', undefined, { name: button.command });
-                                        if (state && this.logDebug) this.emit('debug', `Set Command, Name: ${buttonName}, Reference: ${button.command}`);
+                                        await this.lgWebOsSocket.send('button', undefined, { name: buttonReference });
+                                        if (state && this.logDebug) this.emit('debug', `Set Command, Name: ${buttonName}, Reference: ${buttonReference}`);
                                         break;
                                     default:
                                         if (this.logDebug) this.emit('debug', `Set Unknown Button Mode: ${buttonMode}`);
@@ -1782,7 +1789,7 @@ class LgWebOsDevice extends EventEmitter {
 
                     for (let i = 0; i < this.buttons.length; i++) {
                         const button = this.buttons[i];
-                        const state = power ? (button.mode === 2 && button.command === 'POWER' ? power : button.state) : false;
+                        const state = power ? (button.reference === 'POWER' ? power : button.state) : false;
                         button.state = state
                         this.buttonsServices?.[i]?.updateCharacteristic(Characteristic.On, state);
                     }
@@ -1795,6 +1802,7 @@ class LgWebOsDevice extends EventEmitter {
                     const inputName = input ? input.name : appId;
                     this.inputIdentifier = inputIdentifier;
                     this.appId = appId;
+                    this.reference = appId;
 
                     this.televisionService?.updateCharacteristic(Characteristic.ActiveIdentifier, inputIdentifier);
 
@@ -1815,7 +1823,7 @@ class LgWebOsDevice extends EventEmitter {
 
                     for (let i = 0; i < this.buttons.length; i++) {
                         const button = this.buttons[i];
-                        const state = power ? (button.mode === 0 ? button.reference === appId : button.state) : false;
+                        const state = power ? (button.reference === appId ? true : button.state) : false;
                         button.state = state;
                         this.buttonsServices?.[i]?.updateCharacteristic(Characteristic.On, state);
                     }
@@ -1853,7 +1861,7 @@ class LgWebOsDevice extends EventEmitter {
 
                     for (let i = 0; i < this.buttons.length; i++) {
                         const button = this.buttons[i];
-                        const state = power ? (button.mode === 2 && button.command === 'MUTE' ? muteV : button.state) : false;
+                        const state = power ? (button.command === 'MUTE' ? muteV : button.state) : false;
                         button.state = state
                         this.buttonsServices?.[i]?.updateCharacteristic(Characteristic.On, state);
                     }
@@ -1883,7 +1891,7 @@ class LgWebOsDevice extends EventEmitter {
 
                     for (let i = 0; i < this.buttons.length; i++) {
                         const button = this.buttons[i];
-                        const state = power ? (button.mode === 1 ? button.reference === channelId : button.state) : false;
+                        const state = power ? (button.reference === channelId ? true : button.state) : false;
                         button.state = state;
                         this.buttonsServices?.[i]?.updateCharacteristic(Characteristic.On, state);
                     }

@@ -1,15 +1,14 @@
 import Dgram from 'dgram';
-import Net from 'net';
 import EventEmitter from 'events';
 
 class WakeOnLan extends EventEmitter {
     constructor(config) {
         super();
         this.mac = config.mac;
-        this.broadcastAddress = config.power?.broadcastAddress || config.host || (Net.isIPv6(config.host) ? 'ff02::1' : '255.255.255.255');
+        this.broadcastAddress = config.power?.broadcastAddress || '255.255.255.255';
         this.logError = config.log?.error;
         this.logDebug = config.log?.debug;
-        this.udpType = Net.isIPv6(this.broadcastAddress) ? 'udp6' : 'udp4';
+        this.udpType = 'udp4';
     }
 
     async wakeOnLan() {
@@ -27,8 +26,9 @@ class WakeOnLan extends EventEmitter {
                     .on('error', (error) => {
                         reject(error);
                     })
-                    .on('close', () => {
+                    .on('close', async () => {
                         if (this.logDebug) this.emit('debug', `WoL socket closed`);
+                        await new Promise(r => setTimeout(r, 2500));
                         resolve(true);
                     })
                     .on('listening', () => {
