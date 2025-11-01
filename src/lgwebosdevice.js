@@ -116,7 +116,7 @@ class LgWebOsDevice extends EventEmitter {
         //sound output variable
         for (const output of this.soundOutputs) {
             output.name = output.name || 'Sound Output'
-            output.serviceType = [null, Service.Outlet, Service.Switch][output.isplayType];
+            output.serviceType = [null, Service.Outlet, Service.Switch][output.displayType];
             output.state = false;
         }
 
@@ -138,7 +138,7 @@ class LgWebOsDevice extends EventEmitter {
         for (const button of this.buttons) {
             button.name = button.name || 'Button';
             button.reference = [button.reference, button.reference, button.command][button.mode];
-            button.serviceType = ['', Service.Outlet, Service.Switch][button.displayType];
+            button.serviceType = [null, Service.Outlet, Service.Switch][button.displayType];
             button.state = false;
         }
     }

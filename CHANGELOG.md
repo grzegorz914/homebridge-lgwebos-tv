@@ -8,6 +8,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - After update to v3.0.0 RESTFull and MQTT config settings need to be updated
 - After update to v3.10.x and above from previous versions the plugin need to be reconfigured first, in other case will crash!!!
 
+## Warning
+
+- Do not use Homebridge UI > v5.5.0 because of break config.json
+
+## [3.11.9] - (01.11.2025)
+
+## Changes
+
+- fix [#284](https://github.com/grzegorz914/homebridge-lgwebos-tv/issues/284)
+- added support for node v25.x.x
+
 ## [3.11.8] - (31.10.2025)
 
 ## Changes
