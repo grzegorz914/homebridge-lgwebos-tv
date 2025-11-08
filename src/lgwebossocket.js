@@ -527,13 +527,11 @@ class LgWebOsSocket extends EventEmitter {
 
                                     //parse inputs
                                     for (const input of externalInputList) {
-                                        const name = input.label;
-                                        const reference = input.appId;
-                                        const mode = 0;
                                         const obj = {
-                                            'name': name,
-                                            'reference': reference,
-                                            'mode': mode
+                                            name: input.label,
+                                            reference: input.appId,
+                                            mode: 0,
+                                            visible: input.visible ?? true
                                         }
                                         this.externalInputsArr.push(obj);
                                     }
@@ -589,7 +587,8 @@ class LgWebOsSocket extends EventEmitter {
                                                 const input = {
                                                     name: app.title,
                                                     reference: app.id,
-                                                    mode: 0
+                                                    mode: 0,
+                                                    visible: app.visible
                                                 };
                                                 appsArr.push(input);
                                             }

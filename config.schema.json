@@ -35,6 +35,8 @@
             "displayType": {
               "title": "Accessory type",
               "type": "integer",
+              "minimum": 0,
+              "maximum": 4,
               "default": 1,
               "description": "Accessory type for Home app",
               "anyOf": [
@@ -182,6 +184,8 @@
                   "displayType": {
                     "title": "Display Type",
                     "type": "integer",
+                    "minimum": 0,
+                    "maximum": 2,
                     "default": 0,
                     "description": "Here select display type in HomeKit app.",
                     "anyOf": [
@@ -698,6 +702,8 @@
                       "displayType": {
                         "title": "Type",
                         "type": "integer",
+                        "minimum": 0,
+                        "maximum": 3,
                         "default": 0,
                         "description": "Here select sensor type to be exposed in HomeKit app.",
                         "anyOf": [
@@ -797,6 +803,8 @@
                 "displayType": {
                   "title": "Display Type",
                   "type": "integer",
+                  "minimum": 0,
+                  "maximum": 5,
                   "default": 0,
                   "description": "Here select what a extra volume/mute control type You want to use.",
                   "anyOf": [
@@ -874,6 +882,8 @@
                       "displayType": {
                         "title": "Display Type",
                         "type": "integer",
+                        "minimum": 0,
+                        "maximum": 2,
                         "default": 0,
                         "description": "Here select display type in HomeKit app.",
                         "anyOf": [
@@ -988,6 +998,8 @@
                       "displayType": {
                         "title": "Display Type",
                         "type": "integer",
+                        "minimum": 0,
+                        "maximum": 2,
                         "default": 0,
                         "description": "Here select display type in HomeKit app.",
                         "anyOf": [
@@ -1144,6 +1156,8 @@
                       "displayType": {
                         "title": "Display Type",
                         "type": "integer",
+                        "minimum": 0,
+                        "maximum": 2,
                         "default": 0,
                         "description": "Here select display type in HomeKit app.",
                         "anyOf": [

@@ -384,28 +384,35 @@ class LgWebOsDevice extends EventEmitter {
     async displayOrder() {
         try {
             const sortStrategies = {
-                1: (a, b) => a.name.localeCompare(b.name),      // A → Z
-                2: (a, b) => b.name.localeCompare(a.name),      // Z → A
+                1: (a, b) => a.name.localeCompare(b.name),
+                2: (a, b) => b.name.localeCompare(a.name),
                 3: (a, b) => a.reference.localeCompare(b.reference),
                 4: (a, b) => b.reference.localeCompare(a.reference),
             };
 
             const sortFn = sortStrategies[this.inputsDisplayOrder];
-            if (!sortFn) return;
 
-            // Sort inputs in memory
-            this.inputsServices.sort(sortFn);
+            // Sort only if a valid function exists
+            if (sortFn) {
+                this.inputsServices.sort(sortFn);
+            }
 
-            // Debug dump
+            // Debug
             if (this.logDebug) {
-                const orderDump = this.inputsServices.map(svc => ({ name: svc.name, reference: svc.reference, identifier: svc.identifier, }));
+                const orderDump = this.inputsServices.map(svc => ({
+                    name: svc.name,
+                    reference: svc.reference,
+                    identifier: svc.identifier,
+                }));
                 this.emit('debug', `Inputs display order:\n${JSON.stringify(orderDump, null, 2)}`);
             }
 
-            // Update DisplayOrder characteristic (base64 encoded)
+            // Always update DisplayOrder characteristic, even for "none"
             const displayOrder = this.inputsServices.map(svc => svc.identifier);
             const encodedOrder = Encode(1, displayOrder).toString('base64');
             this.televisionService.updateCharacteristic(Characteristic.DisplayOrder, encodedOrder);
+
+            return;
         } catch (error) {
             throw new Error(`Display order error: ${error}`);
         }
@@ -415,12 +422,15 @@ class LgWebOsDevice extends EventEmitter {
         try {
             if (!this.inputsServices) return;
 
+            let updated = false;
+
             for (const input of inputs) {
                 if (this.inputsServices.length >= 85 && !remove) continue;
 
                 // Filter
-                const systemApp = this.filterSystemApps && SystemApps.includes(input.reference);
-                if (systemApp) continue;
+                const visible = input.visible ?? true;
+                const systemApp = this.filterSystemApps && (SystemApps.includes(input.reference) || !visible);
+                if (systemApp && input.reference !== 'com.webos.app.factorywin') continue;
 
                 const inputReference = input.reference;
                 const savedName = this.savedInputsNames[inputReference] ?? input.name;
@@ -434,7 +444,7 @@ class LgWebOsDevice extends EventEmitter {
                         if (this.logDebug) this.emit('debug', `Removing input: ${input.name}, reference: ${inputReference}`);
                         this.accessory.removeService(svc);
                         this.inputsServices = this.inputsServices.filter(s => s.reference !== inputReference);
-                        await this.displayOrder();
+                        updated = true;
                     }
                     continue;
                 }
@@ -448,6 +458,7 @@ class LgWebOsDevice extends EventEmitter {
                             .updateCharacteristic(Characteristic.Name, sanitizedName)
                             .updateCharacteristic(Characteristic.ConfiguredName, sanitizedName);
                         if (this.logDebug) this.emit('debug', `Updated Input: ${input.name}, reference: ${inputReference}`);
+                        updated = true;
                     }
                 } else {
                     const identifier = this.inputsServices.length + 1;
@@ -499,10 +510,13 @@ class LgWebOsDevice extends EventEmitter {
                     this.televisionService.addLinkedService(inputService);
 
                     if (this.logDebug) this.emit('debug', `Added Input: ${input.name}, reference: ${inputReference}`);
+                    updated = true;
                 }
             }
 
-            await this.displayOrder();
+            // Only one time run
+            if (updated) await this.displayOrder();
+
             return true;
         } catch (error) {
             throw new Error(`Add/Remove/Update input error: ${error}`);
@@ -588,8 +602,6 @@ class LgWebOsDevice extends EventEmitter {
                                 return;
                             }
 
-                            const { mode: inputMode, name: inputName, reference: inputReference } = input;
-
                             if (!this.power && !this.startInput) {
                                 (async () => {
                                     for (let attempt = 0; attempt < 20; attempt++) {
@@ -605,6 +617,7 @@ class LgWebOsDevice extends EventEmitter {
                                 return;
                             }
 
+                            const { mode: inputMode, name: inputName, reference: inputReference } = input;
                             let cid = await this.lgWebOsSocket.getCid('App');
                             let payload = {};
                             switch (inputMode) {

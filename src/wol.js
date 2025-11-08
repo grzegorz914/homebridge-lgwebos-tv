@@ -8,7 +8,6 @@ class WakeOnLan extends EventEmitter {
         this.broadcastAddress = config.power?.broadcastAddress || '255.255.255.255';
         this.logError = config.log?.error;
         this.logDebug = config.log?.debug;
-        this.udpType = 'udp4';
     }
 
     async wakeOnLan() {
@@ -22,7 +21,7 @@ class WakeOnLan extends EventEmitter {
                     macBytes.forEach((byte, j) => magicPacket.writeUInt8(byte, i + j));
                 }
 
-                const socket = Dgram.createSocket(this.udpType)
+                const socket = Dgram.createSocket('udp4')
                     .on('error', (error) => {
                         reject(error);
                     })
@@ -32,8 +31,7 @@ class WakeOnLan extends EventEmitter {
                         resolve(true);
                     })
                     .on('listening', () => {
-                        if (this.udpType === 'udp4') socket.setBroadcast(true);
-
+                        socket.setBroadcast(true);
                         const address = socket.address();
                         if (this.logDebug) this.emit('debug', `WoL listening: ${address.address}:${address.port}`);
 

@@ -12,6 +12,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 - Do not use Homebridge UI > v5.5.0 because of break config.json
 
+## [3.11.10] - (08.11.2025)
+
+## Changes
+
+- stability and performance improvements
+- bump dependencies
+- config schema updated
+- cleanup
+
 ## [3.11.9] - (01.11.2025)
 
 ## Changes

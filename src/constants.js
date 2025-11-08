@@ -345,7 +345,19 @@ export const SystemApps = [
     "com.webos.app.adoverlayex",
     "com.webos.app.overlaymembership",
     "com.webos.chromecast",
-    //"com.webos.chromecast-settings"
+    //"com.webos.chromecast-settings",
+    "com.webos.app.fooddelivery",
+    "com.webos.app.fooddeliveryex",
+    "com.webos.app.fooddeliveryhdmi1",
+    "com.webos.app.fooddeliveryhdmi2",
+    "com.webos.app.fooddeliveryhdmi3",
+    "com.webos.app.fooddeliveryhdmi4",
+    "com.webos.app.overlaycontainer",
+    "com.webos.app.overlaycontainerex",
+    "com.webos.app.overlaycontainerhdmi1",
+    "com.webos.app.overlaycontainerhdmi2",
+    "com.webos.app.overlaycontainerhdmi3",
+    "com.webos.app.overlaycontainerhdmi4",
 ];
 
 export const PictureModes = {
