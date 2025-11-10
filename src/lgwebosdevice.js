@@ -81,7 +81,6 @@ class LgWebOsDevice extends EventEmitter {
         this.pixelRefreshState = false;
         this.screenStateOff = false;
         this.screenSaverState = false;
-        this.appId = '';
         this.volume = 0;
         this.mute = false;
         this.playState = false;
@@ -373,7 +372,6 @@ class LgWebOsDevice extends EventEmitter {
     async startStopImpulseGenerator(state, timers = []) {
         try {
             //start impulse generator 
-            await new Promise(resolve => setTimeout(resolve, 3000));
             await this.lgWebOsSocket.impulseGenerator.state(state, timers)
             return true;
         } catch (error) {
@@ -429,8 +427,8 @@ class LgWebOsDevice extends EventEmitter {
 
                 // Filter
                 const visible = input.visible ?? true;
-                const systemApp = this.filterSystemApps && (SystemApps.includes(input.reference) || !visible);
-                if (systemApp && input.reference !== 'com.webos.app.factorywin') continue;
+                const systemApp = this.filterSystemApps && SystemApps.includes(input.reference);
+                if (systemApp) continue;
 
                 const inputReference = input.reference;
                 const savedName = this.savedInputsNames[inputReference] ?? input.name;
@@ -649,7 +647,7 @@ class LgWebOsDevice extends EventEmitter {
                                     break;
                                 case 1: // Channel
                                     const liveTv = 'com.webos.app.livetv';
-                                    if (this.appId !== liveTv) await this.lgWebOsSocket.send('request', ApiUrls.LaunchApp, { id: liveTv }, cid);
+                                    if (this.reference !== liveTv) await this.lgWebOsSocket.send('request', ApiUrls.LaunchApp, { id: liveTv }, cid);
                                     cid = await this.lgWebOsSocket.getCid('Channel');
                                     await this.lgWebOsSocket.send('request', ApiUrls.OpenChannel, { channelId: inputReference }, cid);
                                     break;
@@ -1722,8 +1720,8 @@ class LgWebOsDevice extends EventEmitter {
                                         break;
                                     case 1: //Channel Control
                                         const liveTv = 'com.webos.app.livetv';
-                                        cid = state && this.appId !== liveTv ? await this.lgWebOsSocket.getCid('App') : false;
-                                        if (this.appId !== liveTv) await this.lgWebOsSocket.send('request', ApiUrls.LaunchApp, { id: liveTv }, cid);
+                                        cid = state && this.reference !== liveTv ? await this.lgWebOsSocket.getCid('App') : false;
+                                        if (this.reference !== liveTv) await this.lgWebOsSocket.send('request', ApiUrls.LaunchApp, { id: liveTv }, cid);
                                         cid = state ? await this.lgWebOsSocket.getCid('Channel') : false;
                                         if (state) await this.lgWebOsSocket.send('request', ApiUrls.OpenChannel, { channelId: buttonReference }, cid);
                                         if (state && this.logDebug) this.emit('debug', `Set Channel, Name: ${buttonName}, Reference: ${buttonReference}`);
@@ -1814,12 +1812,11 @@ class LgWebOsDevice extends EventEmitter {
                     const inputIdentifier = input ? input.identifier : this.inputIdentifier;
                     const inputName = input ? input.name : appId;
                     this.inputIdentifier = inputIdentifier;
-                    this.appId = appId;
                     this.reference = appId;
 
                     this.televisionService?.updateCharacteristic(Characteristic.ActiveIdentifier, inputIdentifier);
 
-                    if (appId !== this.appId) {
+                    if (appId !== this.reference) {
                         for (let i = 0; i < 2; i++) {
                             const state = power ? [true, false][i] : false;
                             this.sensorInputState = state;
@@ -2008,13 +2005,33 @@ class LgWebOsDevice extends EventEmitter {
 
                     if (this.logInfo) this.emit('info', `Sound Output: ${SoundOutputs[soundOutput] ?? 'Unknown'}`);
                 })
-                .on('mediaInfo', (playState, appType, power) => {
-                    this.playState = power ? playState : false;
-                    this.appType = appType;
+                .on('mediaInfo', (appId, playState, appType, power) => {
+                    const input = this.inputsServices?.find(input => input.reference === appId) ?? false;
+                    const inputIdentifier = input ? input.identifier : this.inputIdentifier;
+                    const inputName = input ? input.name : appId;
+                    this.inputIdentifier = inputIdentifier;
+                    this.reference = appId;
+
+                    this.televisionService?.updateCharacteristic(Characteristic.ActiveIdentifier, inputIdentifier);
+
+                    if (appId !== this.reference) {
+                        for (let i = 0; i < 2; i++) {
+                            const state = power ? [true, false][i] : false;
+                            this.sensorInputState = state;
+                            this.sensorInputService?.updateCharacteristic(Characteristic.ContactSensorState, state);
+                        }
+                    }
+
+                    for (let i = 0; i < this.buttons.length; i++) {
+                        const button = this.buttons[i];
+                        const state = power ? (button.reference === appId ? true : button.state) : false;
+                        button.state = state;
+                        this.buttonsServices?.[i]?.updateCharacteristic(Characteristic.On, state);
+                    }
 
                     this.sensorPlayStateService?.updateCharacteristic(Characteristic.ContactSensorState, playState);
 
-                    if (this.logInfo) this.emit('info', `Play state: ${this.playState ? 'Playing' : 'Paused'}`);
+                    if (this.logInfo) this.emit('info', `Input Name: ${inputName}, state: ${this.playState ? 'Playing' : 'Paused'}`);
                 })
                 .on('success', (success) => this.emit('success', success))
                 .on('info', (info) => this.emit('info', info))

@@ -1,4 +1,3 @@
-import tcpp from 'tcp-ping';
 import WebSocket from 'ws';
 import EventEmitter from 'events';
 import ImpulseGenerator from './impulsegenerator.js';
@@ -10,7 +9,7 @@ class LgWebOsSocket extends EventEmitter {
         super();
         this.host = config.host;
         this.getInputsFromDevice = config.inputs?.getFromDevice || false;
-        this.inputs = config.inputs?.data || [];
+        this.inputs = (config.inputs?.data || []).filter(input => input.name && input.reference);
         this.logWarn = config.log?.warn || true;
         this.logError = config.log?.error || true;
         this.logDebug = config.log?.debug || false;
@@ -63,31 +62,27 @@ class LgWebOsSocket extends EventEmitter {
                     if (this.socketConnected || this.connecting) return;
                     if (this.logDebug) this.emit('debug', `Plugin send heartbeat to TV`);
 
-                    tcpp.probe(this.host, this.webSocketPort, async (error, online) => {
-                        if (error) {
-                            if (this.logError) this.emit('error', `TCP probe error: ${error.message}`);
-                            return;
-                        }
+                    const state = await this.functions.ping(this.host);
+                    if (!state.online) {
+                        return;
+                    }
 
-                        if (online) {
-                            if (this.logDebug) this.emit('debug', `Plugin received heartbeat from TV`);
+                    if (this.logDebug) this.emit('debug', `Plugin received heartbeat from TV`);
 
-                            this.connecting = true;
-                            try {
-                                await this.connect();
-                            } catch (error) {
-                                if (this.logError) this.emit('error', `Connection error: ${error}`);
-                            } finally {
-                                this.connecting = false;
-                            }
-                        }
-                    });
+                    this.connecting = true;
+                    try {
+                        await this.connect();
+                    } catch (error) {
+                        if (this.logError) this.emit('error', `Connection error: ${error}`);
+                    } finally {
+                        this.connecting = false;
+                    }
                 } catch (error) {
                     if (this.logError) this.emit('error', `Impulse generator error: ${error}, trying again`);
                 }
             })
             .on('state', (state) => {
-                this.emit('success', `Heartbeat ${state ? 'started' : 'stopped'}`);
+                this.emit(state ? 'success' : 'warn', `Heartbeat ${state ? 'started' : 'stopped'}`);
             });
     };
 
@@ -104,18 +99,14 @@ class LgWebOsSocket extends EventEmitter {
     };
 
     updateTvState() {
-        try {
-            this.emit('powerState', false, this.screenState);
-            this.emit('mediaInfo', false, this.appType), false;
-            this.emit('audioState', this.volume, this.mute, false);
-            this.emit('pictureSettings', this.brightness, this.backlight, this.contrast, this.color, false);
-            this.emit('pictureMode', this.pictureMode, false);
-            this.emit('soundMode', this.soundMode, false);
-            this.emit('soundOutput', this.soundOutput, false);
-            this.emit('mediainfo', this.playState, this.appType, false);
-        } catch (error) {
-            throw new Error(`Save pairing key error: ${error}`);
-        }
+        this.emit('powerState', false, this.screenState);
+        this.emit('currentApp', this.appId, false);
+        this.emit('audioState', this.volume, this.mute, false);
+        this.emit('pictureSettings', this.brightness, this.backlight, this.contrast, this.color, false);
+        this.emit('pictureMode', this.pictureMode, false);
+        this.emit('soundMode', this.soundMode, false);
+        this.emit('soundOutput', this.soundOutput, false);
+        this.emit('mediainfo', this.appId, this.playState, this.appType, false);
     }
 
     async getCid(type) {
@@ -301,8 +292,7 @@ class LgWebOsSocket extends EventEmitter {
             const socket = new WebSocket(url, options)
                 .on('error', (error) => {
                     if (this.logDebug) this.emit('debug', `Socket error: ${error}`);
-                    this.cleanupSocket();
-                    this.updateTvState();
+                    socket.close();
                 })
                 .on('close', () => {
                     if (this.logDebug) this.emit('debug', `Socket closed`);
@@ -389,23 +379,14 @@ class LgWebOsSocket extends EventEmitter {
                                 case 'response':
                                     if (this.logDebug) this.emit('debug', `Connecting to specialized socket`);
 
-                                    const socketPath = messageData.socketPath;
-                                    const specializedSocket = this.sslWebSocket ? new WebSocket(socketPath, { rejectUnauthorized: false }) : new WebSocket(socketPath);
-                                    specializedSocket.on('open', async () => {
-                                        if (this.logDebug) this.emit('debug', `Specialized socket connected, path: ${socketPath}`);
-
-                                        this.specializedSocket = specializedSocket;
-                                        this.specializedSocketConnected = true;
-                                        this.emit('success', `Specialized socket connect success`);
-                                    })
-                                        .on('close', () => {
-                                            if (this.logDebug) this.emit('debug', 'Specialized socket closed');
-
-                                            this.specializedSocketConnected = false;
-                                            this.specializedSocket = null;
-                                        })
-                                        .on('error', async (error) => {
+                                    const socketUrl = messageData.socketPath;
+                                    const specializedSocket = new WebSocket(socketUrl, options)
+                                        .on('error', (error) => {
                                             if (this.logDebug) this.emit('debug', `Specialized socket connect error: ${error}`);
+                                            specializedSocket.close();
+                                        })
+                                        .on('close', async () => {
+                                            if (this.logDebug) this.emit('debug', 'Specialized socket closed');
 
                                             this.specializedSocketConnected = false;
                                             this.specializedSocket = null;
@@ -419,6 +400,13 @@ class LgWebOsSocket extends EventEmitter {
                                             } catch (error) {
                                                 if (this.logError) this.emit('error', `Specialized socket retry connect error: ${error}`);
                                             }
+                                        })
+                                        .on('open', () => {
+                                            if (this.logDebug) this.emit('debug', `Specialized socket connected, path: ${socketUrl}`);
+
+                                            this.specializedSocket = specializedSocket;
+                                            this.specializedSocketConnected = true;
+                                            this.emit('success', `Specialized Socket Connect Success`);
                                         });
                                     break;
                                 case 'error':
@@ -522,10 +510,11 @@ class LgWebOsSocket extends EventEmitter {
                                 case 'response':
                                     if (this.logDebug) this.emit('debug', `External input list: ${stringifyMessage}`);
                                     const externalInputList = messageData.devices;
-                                    const externalInputListExist = Array.isArray(externalInputList) ? externalInputList.length > 0 : false;
+                                    const externalInputListExist = this.getInputsFromDevice && Array.isArray(externalInputList) ? externalInputList.length > 0 : false;
                                     if (!externalInputListExist) return;
 
                                     //parse inputs
+                                    const arr = [];
                                     for (const input of externalInputList) {
                                         const obj = {
                                             name: input.label,
@@ -533,8 +522,11 @@ class LgWebOsSocket extends EventEmitter {
                                             mode: 0,
                                             visible: input.visible ?? true
                                         }
-                                        this.externalInputsArr.push(obj);
+                                        arr.push(obj);
                                     }
+
+                                    //add to external inputs array
+                                    this.externalInputsArr = arr;
 
                                     //restFul
                                     this.emit('restFul', 'externalinputlist', messageData);
@@ -563,7 +555,7 @@ class LgWebOsSocket extends EventEmitter {
 
                                         // --- Handle uninstall ---
                                         if (appUninstalled && messageData.app) {
-                                            this.inputs = this.inputs.filter(inp => inp.reference !== messageData.app.id);
+                                            this.inputs = this.inputs.filter(input => input.reference !== messageData.app.id);
                                             const inputs = [{
                                                 name: messageData.app.title,
                                                 reference: messageData.app.id
@@ -578,10 +570,8 @@ class LgWebOsSocket extends EventEmitter {
                                         const appsList = appInstalled ? [messageData.app] : messageData.apps;
                                         if (!Array.isArray(appsList) || appsList.length === 0) return;
 
-                                        // Reset apps array to avoid duplicates
-                                        const appsArr = [];
-
-                                        // Parse apps into appsArr
+                                        // Parse apps
+                                        const arr = [];
                                         for (const app of appsList) {
                                             if (app?.id && app?.title) {
                                                 const input = {
@@ -590,13 +580,13 @@ class LgWebOsSocket extends EventEmitter {
                                                     mode: 0,
                                                     visible: app.visible
                                                 };
-                                                appsArr.push(input);
+                                                arr.push(input);
                                             }
                                         }
 
                                         // Add special menus on app updated
-                                        if (appUpdated && this.tvInfo.webOS >= 4.0) appsArr.push({ name: 'Screen Off', reference: 'com.webos.app.screenoff', mode: 0 });
-                                        this.inputs = [...this.externalInputsArr, ...appsArr];
+                                        if (appUpdated && this.tvInfo.webOS >= 4.0) arr.push({ name: 'Screen Off', reference: 'com.webos.app.screenoff', mode: 0 });
+                                        this.inputs = [...this.externalInputsArr, ...arr];
                                     }
 
                                     // Save result
@@ -875,13 +865,15 @@ class LgWebOsSocket extends EventEmitter {
                                     const mediaAppOpen = foregroundAppInfo.length > 0;
                                     if (!mediaAppOpen) return;
 
-                                    const playState = foregroundAppInfo[0].playState === 'playing';
-                                    const appType = foregroundAppInfo[0].type ?? '';
+                                    const appId = foregroundAppInfo[0].appId;
+                                    const playState = foregroundAppInfo[0].playState === 'playing'; //starting, loaded, unloaded, playing, paused
+                                    const appType = foregroundAppInfo[0].type;
+                                    this.appId = appId;
                                     this.playState = playState;
                                     this.appType = appType;
 
                                     //emit
-                                    this.emit('mediaInfo', playState, appType, this.power);
+                                    this.emit('mediaInfo', appId, playState, appType, this.power);
 
                                     //restFul
                                     this.emit('restFul', 'mediainfo', messageData);
