@@ -277,10 +277,10 @@ class LgWebOsDevice extends EventEmitter {
     }
 
     async externalIntegrations() {
-        try {
-            //RESTFul server
-            const restFulEnabled = this.restFul.enable || false;
-            if (restFulEnabled) {
+        //RESTFul server
+        const restFulEnabled = this.restFul.enable || false;
+        if (restFulEnabled) {
+            try {
                 this.restFul1 = new RestFul({
                     port: this.restFul.port || 3000,
                     logWarn: this.logWarn,
@@ -300,11 +300,15 @@ class LgWebOsDevice extends EventEmitter {
                     .on('debug', (debug) => this.emit('debug', debug))
                     .on('warn', (warn) => this.emit('warn', warn))
                     .on('error', (error) => this.emit('error', error));
-            }
+            } catch (error) {
+                this.emit('warn', `RESTFul integration start error: ${error}`);
+            };
+        }
 
-            //mqtt client
-            const mqttEnabled = this.mqtt.enable || false;
-            if (mqttEnabled) {
+        //mqtt client
+        const mqttEnabled = this.mqtt.enable || false;
+        if (mqttEnabled) {
+            try {
                 this.mqtt1 = new Mqtt({
                     host: this.mqtt.host,
                     port: this.mqtt.port || 1883,
@@ -332,12 +336,13 @@ class LgWebOsDevice extends EventEmitter {
                     .on('debug', (debug) => this.emit('debug', debug))
                     .on('warn', (warn) => this.emit('warn', warn))
                     .on('error', (error) => this.emit('error', error));
-            }
 
-            return true;
-        } catch (error) {
-            if (this.logWarn) this.emit('warn', `External integration start error: ${error}`);
+            } catch (error) {
+                this.emit('warn', `MQTT integration start error: ${error}`);
+            };
         }
+
+        return true;
     }
 
     async prepareDataForAccessory() {
