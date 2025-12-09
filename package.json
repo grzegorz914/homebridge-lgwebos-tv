@@ -1,7 +1,7 @@
 {
   "displayName": "LG webOS TV",
   "name": "homebridge-lgwebos-tv",
-  "version": "3.11.13",
+  "version": "3.11.14",
   "description": "Homebridge plugin to control LG webOS TV.",
   "license": "MIT",
   "author": "grzegorz914",
@@ -34,7 +34,7 @@
     "node": "^20 || ^22 ||  ^24 || ^25"
   },
   "dependencies": {
-    "async-mqtt": "^2.6.3",
+    "mqtt": "^5.14.1",
     "ws": "^8.18.3",
     "express": "^5.2.1"
   },
