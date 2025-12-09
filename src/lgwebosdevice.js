@@ -2013,31 +2013,10 @@ class LgWebOsDevice extends EventEmitter {
                 })
                 .on('mediaInfo', async (appId, playState, appType, power) => {
                     const input = this.inputsServices?.find(input => input.reference === appId) ?? false;
-                    const inputIdentifier = input ? input.identifier : this.inputIdentifier;
                     const inputName = input ? input.name : appId;
-
-                    this.televisionService?.updateCharacteristic(Characteristic.ActiveIdentifier, inputIdentifier);
-
-                    if (appId !== this.reference) {
-                        for (let i = 0; i < 2; i++) {
-                            const state = power ? (i === 0 ? true : false) : false;
-                            this.sensorInputState = state;
-                            this.sensorInputService?.updateCharacteristic(Characteristic.ContactSensorState, state);
-                            await new Promise(resolve => setTimeout(resolve, 500));
-                        }
-                    }
-
-                    for (let i = 0; i < this.buttons.length; i++) {
-                        const button = this.buttons[i];
-                        const state = power ? (button.reference === appId ? true : button.state) : false;
-                        button.state = state;
-                        this.buttonsServices?.[i]?.updateCharacteristic(Characteristic.On, state);
-                    }
 
                     this.sensorPlayStateService?.updateCharacteristic(Characteristic.ContactSensorState, playState);
 
-                    this.inputIdentifier = inputIdentifier;
-                    this.reference = appId;
                     if (this.logInfo) this.emit('info', `Input Name: ${inputName}, state: ${this.playState ? 'Playing' : 'Paused'}`);
                 })
                 .on('success', (success) => this.emit('success', success))

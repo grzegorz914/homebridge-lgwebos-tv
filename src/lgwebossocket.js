@@ -865,9 +865,9 @@ class LgWebOsSocket extends EventEmitter {
                                     const mediaAppOpen = foregroundAppInfo.length > 0;
                                     if (!mediaAppOpen) return;
 
-                                    const appId = foregroundAppInfo[0].appId;
+                                    const appId = foregroundAppInfo[0].appId ?? this.appId;
                                     const playState = foregroundAppInfo[0].playState === 'playing'; //starting, loaded, unloaded, playing, paused
-                                    const appType = foregroundAppInfo[0].type;
+                                    const appType = foregroundAppInfo[0].type ?? this.appType;
                                     this.appId = appId;
                                     this.playState = playState;
                                     this.appType = appType;
