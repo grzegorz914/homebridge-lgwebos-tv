@@ -13,6 +13,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 - Do not use Homebridge UI > v5.5.0 because of break config.json
 
+## [4.0.1] - (12.12.2025)
+
+## Changes
+
+- after update to v4.x.x sensors need to be reconfigured!!!
+- fix start error after update to 6.x.x on specific situation
+
 ## [4.0.0] - (12.12.2025)
 
 ## Changes
