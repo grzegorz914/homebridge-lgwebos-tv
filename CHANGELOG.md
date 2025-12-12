@@ -18,7 +18,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ## Changes
 
 - after update to v4.x.x sensors need to be reconfigured!!!
-- fix start error after update to 6.x.x on specific situation
+- fix start error after update to 4.x.x on specific situation
 
 ## [4.0.0] - (12.12.2025)
 
