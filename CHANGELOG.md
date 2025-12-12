@@ -5,12 +5,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ### NOTE
 
+- After update to v4.0.0 sensors need to be reconfigured!!!
 - After update to v3.0.0 RESTFull and MQTT config settings need to be updated
 - After update to v3.10.x and above from previous versions the plugin need to be reconfigured first, in other case will crash!!!
 
 ## Warning
 
 - Do not use Homebridge UI > v5.5.0 because of break config.json
+
+## [4.0.0] - (12.12.2025)
+
+## Changes
+
+- after update to v4.0.0 sensors need to be reconfigured!!!
+- full refactor the sensor section code, now is possible to create multiple sensors of differrent types
+- config schema updated
+- redme updated
+- cleanup
 
 ## [3.11.15] - (09.12.2025)
 

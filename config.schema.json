@@ -41,7 +41,7 @@
               "description": "Accessory type for Home app",
               "anyOf": [
                 {
-                  "title": "None/Disabled",
+                  "title": "None / Disabled",
                   "enum": [
                     0
                   ]
@@ -190,7 +190,7 @@
                     "description": "Here select display type in HomeKit app.",
                     "anyOf": [
                       {
-                        "title": "None/Disabled",
+                        "title": "None / Disabled",
                         "enum": [
                           0
                         ]
@@ -605,7 +605,7 @@
                     "title": "Prefix",
                     "type": "boolean",
                     "default": false,
-                    "description": "Here enable/disable the accessory name as a prefix for button name.",
+                    "description": "Here enable the accessory name as a prefix for button name.",
                     "condition": {
                       "functionBody": "return model.devices[arrayIndices[0]].buttons[arrayIndices[1]].displayType > 0;"
                     }
@@ -617,155 +617,183 @@
               }
             },
             "sensors": {
-              "title": "Sensors",
-              "type": "object",
-              "properties": {
-                "power": {
-                  "title": "Power",
-                  "type": "boolean",
-                  "default": false,
-                  "description": "This expose Power as a Motion Sensor to use with automations, fired if Power ON."
-                },
-                "pixelRefresh": {
-                  "title": "Pixel Refresh",
-                  "type": "boolean",
-                  "default": false,
-                  "description": "This expose Pixel Refresh as a Motion Sensor to use with automations, fired if PixelRefresh ON."
-                },
-                "volume": {
-                  "title": "Volume",
-                  "type": "boolean",
-                  "default": false,
-                  "description": "This expose Volume as a Motion Sensor to use with automations, fired on every Volume change."
-                },
-                "mute": {
-                  "title": "Mute",
-                  "type": "boolean",
-                  "default": false,
-                  "description": "This expose Mute as a Motion Sensor to use with automations, fired if Mute ON."
-                },
-                "soundMode": {
-                  "title": "Sound Mode",
-                  "type": "boolean",
-                  "default": false,
-                  "description": "This expose Sound Mode as a Motion Sensor to use with automations, fired on every Sound Mode change, webOS >= 6.0."
-                },
-                "soundOutput": {
-                  "title": "Sound Output",
-                  "type": "boolean",
-                  "default": false,
-                  "description": "This expose Sound Output as a Motion Sensor to use with automations, fired on every Sound Output change."
-                },
-                "pictureMode": {
-                  "title": "Picture Mode",
-                  "type": "boolean",
-                  "default": false,
-                  "description": "This expose Picture Mode as a Motion Sensor to use with automations, fired on every Picture Mode change, webOS >= 4.0."
-                },
-                "screenOnOff": {
-                  "title": "Screen Off",
-                  "type": "boolean",
-                  "default": false,
-                  "description": "This expose Screen ON/OFF as a Motion Sensor to use with automations, fired if Screen Off, webOS >= 4.0."
-                },
-                "screenSaver": {
-                  "title": "Screen Saver",
-                  "type": "boolean",
-                  "default": false,
-                  "description": "This expose Screen Saver as a Motion Sensor to use with automations, fired if Screen Saver ON, webOS >= 4.0."
-                },
-                "playState": {
-                  "title": "Play State",
-                  "type": "boolean",
-                  "default": false,
-                  "description": "This expose Play State as a Motion Sensor to use with automations, fired if Playing, webOS >= 7.0."
-                },
-                "channel": {
-                  "title": "Channel",
-                  "type": "boolean",
-                  "default": false,
-                  "description": "This expose Channel as a Motion Sensor to use with automations, fired on every Input change."
-                },
-                "input": {
-                  "title": "Input",
-                  "type": "boolean",
-                  "default": false,
-                  "description": "This expose Input as a Motion Sensor to use with automations, fired on every Input change."
-                },
-                "inputs": {
-                  "type": "array",
-                  "items": {
-                    "title": "Inputs",
-                    "type": "object",
-                    "description": "Here create Input/App Sensors based on reference, sensor will active if switch to it.",
-                    "properties": {
-                      "displayType": {
-                        "title": "Type",
-                        "type": "integer",
-                        "minimum": 0,
-                        "maximum": 3,
-                        "default": 0,
-                        "description": "Here select sensor type to be exposed in HomeKit app.",
-                        "anyOf": [
-                          {
-                            "title": "None/Disabled",
-                            "enum": [
-                              0
-                            ]
-                          },
-                          {
-                            "title": "Motion Sensor",
-                            "enum": [
-                              1
-                            ]
-                          },
-                          {
-                            "title": "Occupancy Sensor",
-                            "enum": [
-                              2
-                            ]
-                          },
-                          {
-                            "title": "Contact Sensor",
-                            "enum": [
-                              3
-                            ]
-                          }
+              "type": "array",
+              "items": {
+                "title": "Sensors",
+                "type": "object",
+                "properties": {
+                  "displayType": {
+                    "title": "Display Type",
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 3,
+                    "default": 0,
+                    "anyOf": [
+                      {
+                        "title": "None / Disabled",
+                        "enum": [
+                          0
                         ]
                       },
-                      "name": {
-                        "title": "Name",
-                        "type": "string",
-                        "placeholder": "Name",
-                        "description": "Here set Your own name.",
-                        "condition": {
-                          "functionBody": "return model.devices[arrayIndices[0]].sensors.inputs[arrayIndices[1]].displayType > 0;"
-                        }
+                      {
+                        "title": "Motion Sensor",
+                        "enum": [
+                          1
+                        ]
                       },
-                      "reference": {
-                        "title": "Reference",
-                        "type": "string",
-                        "placeholder": "Input/App reference",
-                        "description": "Here set the Input/App reference.",
-                        "condition": {
-                          "functionBody": "return model.devices[arrayIndices[0]].sensors.inputs[arrayIndices[1]].displayType > 0;"
-                        }
+                      {
+                        "title": "Occupancy Sensor",
+                        "enum": [
+                          2
+                        ]
                       },
-                      "namePrefix": {
-                        "title": "Prefix",
-                        "type": "boolean",
-                        "default": false,
-                        "description": "Here enable/disable the accessory name as a prefix for sensor name.",
-                        "condition": {
-                          "functionBody": "return model.devices[arrayIndices[0]].sensors.inputs[arrayIndices[1]].displayType > 0;"
-                        }
+                      {
+                        "title": "Contact Sensor",
+                        "enum": [
+                          3
+                        ]
                       }
-                    },
-                    "required": [
-                      "displayType"
-                    ]
+                    ],
+                    "description": "Here select sensor type to be exposed in HomeKit app."
+                  },
+                  "mode": {
+                    "title": "Mode",
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 11,
+                    "default": 0,
+                    "anyOf": [
+                      {
+                        "title": "Input",
+                        "enum": [
+                          0
+                        ]
+                      },
+                      {
+                        "title": "Power",
+                        "enum": [
+                          1
+                        ]
+                      },
+                      {
+                        "title": "Volume",
+                        "enum": [
+                          2
+                        ]
+                      },
+                      {
+                        "title": "Mute",
+                        "enum": [
+                          3
+                        ]
+                      },
+                      {
+                        "title": "Sound Mode",
+                        "enum": [
+                          4
+                        ]
+                      },
+                      {
+                        "title": "Sound Output",
+                        "enum": [
+                          5
+                        ]
+                      },
+                      {
+                        "title": "Picture Mode",
+                        "enum": [
+                          6
+                        ]
+                      },
+                      {
+                        "title": "Screen Off",
+                        "enum": [
+                          7
+                        ]
+                      },
+                      {
+                        "title": "Screen Saver",
+                        "enum": [
+                          8
+                        ]
+                      },
+                      {
+                        "title": "Play State",
+                        "enum": [
+                          9
+                        ]
+                      },
+                      {
+                        "title": "Pixel Refresh",
+                        "enum": [
+                          10
+                        ]
+                      },
+                      {
+                        "title": "Channel",
+                        "enum": [
+                          11
+                        ]
+                      }
+                    ],
+                    "description": "Here select the sensor mode.",
+                    "condition": {
+                      "functionBody": "return model.devices[arrayIndices[0]].sensors[arrayIndices[1]].displayType > 0;"
+                    }
+                  },
+                  "name": {
+                    "title": "Name",
+                    "type": "string",
+                    "placeholder": "Name",
+                    "description": "Here set Your own name.",
+                    "condition": {
+                      "functionBody": "return model.devices[arrayIndices[0]].sensors[arrayIndices[1]].displayType > 0;"
+                    }
+                  },
+                  "namePrefix": {
+                    "title": "Prefix",
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Here enable the accessory name as a prefix for sensor name.",
+                    "condition": {
+                      "functionBody": "return model.devices[arrayIndices[0]].sensors[arrayIndices[1]].displayType > 0;"
+                    }
+                  },
+                  "pulse": {
+                    "title": "Pulse",
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Here enable sensor pulse, sensor send pulse and fired on every value change of selected mode.",
+                    "condition": {
+                      "functionBody": "return model.devices[arrayIndices[0]].sensors[arrayIndices[1]].displayType > 0;"
+                    }
+                  },
+                  "reference": {
+                    "title": "Reference",
+                    "type": "string",
+                    "placeholder": "Reference",
+                    "description": "Here set the reference, sensor fired if switch to this referece.",
+                    "condition": {
+                      "functionBody": "return model.devices[arrayIndices[0]].sensors[arrayIndices[1]].displayType > 0 && model.devices[arrayIndices[0]].sensors[arrayIndices[1]].pulse === false && (model.devices[arrayIndices[0]].sensors[arrayIndices[1]].mode === 0 || model.devices[arrayIndices[0]].sensors[arrayIndices[1]].mode === 4 || model.devices[arrayIndices[0]].sensors[arrayIndices[1]].mode === 5 || model.devices[arrayIndices[0]].sensors[arrayIndices[1]].mode === 6 || model.devices[arrayIndices[0]].sensors[arrayIndices[1]].mode === 11);"
+                    }
+                  },
+                  "level": {
+                    "title": "Level",
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 100,
+                    "multipleOf": 1,
+                    "default": 100,
+                    "description": "Here set the level between 0-100% at which the sensor fired.",
+                    "condition": {
+                      "functionBody": "return model.devices[arrayIndices[0]].sensors[arrayIndices[1]].displayType > 0 && model.devices[arrayIndices[0]].sensors[arrayIndices[1]].pulse === false && model.devices[arrayIndices[0]].sensors[arrayIndices[1]].mode === 2;"
+                    }
                   }
-                }
+                },
+                "required": [
+                  "displayType",
+                  "mode"
+                ]
               }
             },
             "power": {
@@ -809,7 +837,7 @@
                   "description": "Here select what a extra volume/mute control type You want to use.",
                   "anyOf": [
                     {
-                      "title": "None/Disabled",
+                      "title": "None / Disabled",
                       "enum": [
                         0
                       ]
@@ -827,7 +855,7 @@
                       ]
                     },
                     {
-                      "title": "TV Speaker",
+                      "title": "TV Speaker (HW buttons)",
                       "enum": [
                         3
                       ]
@@ -859,7 +887,7 @@
                   "title": "Prefix",
                   "type": "boolean",
                   "default": false,
-                  "description": "Here enable/disable the accessory name as a prefix for volume control name.",
+                  "description": "Here enable the accessory name as a prefix for volume control name.",
                   "condition": {
                     "functionBody": "return model.devices[arrayIndices[0]].volume.displayType > 0;"
                   }
@@ -888,7 +916,7 @@
                         "description": "Here select display type in HomeKit app.",
                         "anyOf": [
                           {
-                            "title": "None/Disabled",
+                            "title": "None / Disabled",
                             "enum": [
                               0
                             ]
@@ -978,7 +1006,7 @@
                         "title": "Prefix",
                         "type": "boolean",
                         "default": false,
-                        "description": "Here enable/disable the accessory name as a prefix for sound mode.",
+                        "description": "Here enable the accessory name as a prefix for sound mode.",
                         "condition": {
                           "functionBody": "return model.devices[arrayIndices[0]].sound.modes[arrayIndices[1]].displayType > 0;"
                         }
@@ -1004,7 +1032,7 @@
                         "description": "Here select display type in HomeKit app.",
                         "anyOf": [
                           {
-                            "title": "None/Disabled",
+                            "title": "None / Disabled",
                             "enum": [
                               0
                             ]
@@ -1106,7 +1134,7 @@
                         "title": "Prefix",
                         "type": "boolean",
                         "default": false,
-                        "description": "Here enable/disable the accessory name as a prefix for sound output.",
+                        "description": "Here enable the accessory name as a prefix for sound output.",
                         "condition": {
                           "functionBody": "return model.devices[arrayIndices[0]].sound.outputs[arrayIndices[1]].displayType > 0;"
                         }
@@ -1162,7 +1190,7 @@
                         "description": "Here select display type in HomeKit app.",
                         "anyOf": [
                           {
-                            "title": "None/Disabled",
+                            "title": "None / Disabled",
                             "enum": [
                               0
                             ]
@@ -1360,7 +1388,7 @@
                         "title": "Prefix",
                         "type": "boolean",
                         "default": false,
-                        "description": "Here enable/disable the accessory name as a prefix for picture mode.",
+                        "description": "Here enable the accessory name as a prefix for picture mode.",
                         "condition": {
                           "functionBody": "return model.devices[arrayIndices[0]].picture.modes[arrayIndices[1]].displayType > 0;"
                         }
@@ -1470,27 +1498,27 @@
                   "description": "This enable logging device info by every connections device to the network."
                 },
                 "success": {
-                  "title": "Log Success",
+                  "title": "Success",
                   "type": "boolean",
                   "default": true
                 },
                 "info": {
-                  "title": "Log Info",
+                  "title": "Info",
                   "type": "boolean",
                   "default": false
                 },
                 "warn": {
-                  "title": "Log Warn",
+                  "title": "Warn",
                   "type": "boolean",
                   "default": true
                 },
                 "error": {
-                  "title": "Log Error",
+                  "title": "Error",
                   "type": "boolean",
                   "default": true
                 },
                 "debug": {
-                  "title": "Log Debug",
+                  "title": "Debug",
                   "type": "boolean",
                   "default": false
                 }
@@ -1684,38 +1712,21 @@
               "title": "{{ value.title }}",
               "items": [
                 {
-                  "key": "devices[].sensors",
+                  "key": "devices[]",
                   "title": "Sensors",
                   "items": [
-                    "devices[].sensors.power",
-                    "devices[].sensors.volume",
-                    "devices[].sensors.mute",
-                    "devices[].sensors.soundMode",
-                    "devices[].sensors.soundOutput",
-                    "devices[].sensors.pictureMode",
-                    "devices[].sensors.screenOnOff",
-                    "devices[].sensors.screenSaver",
-                    "devices[].sensors.pixelRefresh",
-                    "devices[].sensors.playState",
-                    "devices[].sensors.channel",
-                    "devices[].sensors.input",
                     {
-                      "type": "section",
-                      "title": "Inputs",
-                      "expandable": true,
-                      "expanded": false,
+                      "key": "devices[].sensors",
+                      "type": "tabarray",
+                      "title": "{{ value.name || 'sensor' }}",
                       "items": [
-                        {
-                          "key": "devices[].sensors.inputs",
-                          "type": "tabarray",
-                          "title": "{{ value.name || 'sensor' }}",
-                          "items": [
-                            "devices[].sensors.inputs[].displayType",
-                            "devices[].sensors.inputs[].name",
-                            "devices[].sensors.inputs[].reference",
-                            "devices[].sensors.inputs[].namePrefix"
-                          ]
-                        }
+                        "devices[].sensors[].displayType",
+                        "devices[].sensors[].mode",
+                        "devices[].sensors[].name",
+                        "devices[].sensors[].namePrefix",
+                        "devices[].sensors[].pulse",
+                        "devices[].sensors[].reference",
+                        "devices[].sensors[].level"
                       ]
                     }
                   ]

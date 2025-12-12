@@ -5,7 +5,7 @@ import Functions from './functions.js';
 import { ApiUrls, Pairing } from './constants.js';
 
 class LgWebOsSocket extends EventEmitter {
-    constructor(config, keyFile, devInfoFile, inputsFile, channelsFile) {
+    constructor(config, keyFile, devInfoFile, inputsFile, channelsFile, restFulEnabled, mqttEnabled) {
         super();
         this.host = config.host;
         this.getInputsFromDevice = config.inputs?.getFromDevice || false;
@@ -20,6 +20,9 @@ class LgWebOsSocket extends EventEmitter {
         this.channelsFile = channelsFile;
         this.webSocketPort = this.sslWebSocket ? 3001 : 3000;
 
+        this.restFulEnabled = restFulEnabled;
+        this.mqttEnabled = mqttEnabled;
+
         this.functions = new Functions();
         this.socket = null;
         this.specializedSocket = null;
@@ -33,6 +36,7 @@ class LgWebOsSocket extends EventEmitter {
         this.power = false;
         this.screenState = 'Suspend';
         this.appId = '';
+        this.channelId = '';
         this.appType = '';
         this.volume = 0;
         this.mute = false;
@@ -278,6 +282,11 @@ class LgWebOsSocket extends EventEmitter {
         }
     }
 
+    async updateSensors() {
+        this.emit('updateSensors', this.power, this.screenState, this.appId, this.volume, this.mute, this.soundMode, this.soundOutput, this.pictureMode, this.playState, this.channelId);
+        return;
+    }
+
     async connect() {
         try {
             if (this.logDebug) this.emit('debug', `Connect to TV`);
@@ -334,6 +343,7 @@ class LgWebOsSocket extends EventEmitter {
                     const messageData = parsedMessage.payload;
                     const stringifyMessage = JSON.stringify(messageData, null, 2);
 
+                    let updateSensors = false;
                     switch (messageId) {
                         case this.registerId:
                             switch (messageType) {
@@ -424,10 +434,10 @@ class LgWebOsSocket extends EventEmitter {
                                     this.tvInfo.modelName = messageData.modelName ?? 'LG TV';
 
                                     //restFul
-                                    this.emit('restFul', 'systeminfo', messageData);
+                                    if (this.restFulEnabled) this.emit('restFul', 'systeminfo', messageData);
 
                                     //mqtt
-                                    this.emit('mqtt', 'System info', messageData);
+                                    if (this.mqttEnabled) this.emit('mqtt', 'System info', messageData);
                                     break;
                                 case 'error':
                                     if (this.logDebug) this.emit('debug', `System info error: ${stringifyMessage}`);
@@ -453,10 +463,10 @@ class LgWebOsSocket extends EventEmitter {
                                     this.emit('deviceInfo', this.tvInfo);
 
                                     //restFul
-                                    this.emit('restFul', 'softwareinfo', messageData);
+                                    if (this.restFulEnabled) this.emit('restFul', 'softwareinfo', messageData);
 
                                     //mqtt
-                                    this.emit('mqtt', 'Software info', messageData);
+                                    if (this.mqttEnabled) this.emit('mqtt', 'Software info', messageData);
                                     break;
                                 case 'error':
                                     if (this.logDebug) this.emit('debug', `Software info error: ${stringifyMessage}`);
@@ -492,10 +502,10 @@ class LgWebOsSocket extends EventEmitter {
                                     await this.functions.saveData(this.channelsFile, channelsArr);
 
                                     //restFul
-                                    this.emit('restFul', 'channels', messageData);
+                                    if (this.restFulEnabled) this.emit('restFul', 'channels', messageData);
 
                                     //mqtt
-                                    this.emit('mqtt', 'Channels', messageData);
+                                    if (this.mqttEnabled) this.emit('mqtt', 'Channels', messageData);
                                     break;
                                 case 'error':
                                     if (this.logDebug) this.emit('debug', `Channels error: ${stringifyMessage}`);
@@ -529,10 +539,10 @@ class LgWebOsSocket extends EventEmitter {
                                     this.externalInputsArr = arr;
 
                                     //restFul
-                                    this.emit('restFul', 'externalinputlist', messageData);
+                                    if (this.restFulEnabled) this.emit('restFul', 'externalinputlist', messageData);
 
                                     //mqtt
-                                    this.emit('mqtt', 'External Input List', messageData);
+                                    if (this.mqttEnabled) this.emit('mqtt', 'External Input List', messageData);
                                     break;
                                 case 'error':
                                     if (this.logDebug) this.emit('debug', `External input list error: ${stringifyMessage}`);
@@ -596,10 +606,10 @@ class LgWebOsSocket extends EventEmitter {
                                     this.emit('installedApps', this.inputs, false);
 
                                     //restFul
-                                    this.emit('restFul', 'apps', messageData);
+                                    if (this.restFulEnabled) this.emit('restFul', 'apps', messageData);
 
                                     //mqtt
-                                    this.emit('mqtt', 'Apps', messageData);
+                                    if (this.mqttEnabled) this.emit('mqtt', 'Apps', messageData);
                                     break;
                                 case 'error':
                                     if (this.logDebug) this.emit('debug', `Apps list error: ${stringifyMessage}`);
@@ -643,14 +653,15 @@ class LgWebOsSocket extends EventEmitter {
                                             return;
                                     }
 
+                                    await this.updateSensors();
                                     this.emit('powerState', this.power, this.screenState);
                                     if (!this.power) this.updateTvState();
 
                                     //restFul
-                                    this.emit('restFul', 'power', messageData);
+                                    if (this.restFulEnabled) this.emit('restFul', 'power', messageData);
 
                                     //mqtt
-                                    this.emit('mqtt', 'Power', messageData);
+                                    if (this.mqttEnabled) this.emit('mqtt', 'Power', messageData);
                                     break;
                                 case 'error':
                                     if (this.tvInfo.webOS < 3.0) {
@@ -676,13 +687,14 @@ class LgWebOsSocket extends EventEmitter {
                                     if (!appId) return;
                                     this.appId = appId;
 
+                                    await this.updateSensors();
                                     this.emit('currentApp', appId, this.power);
 
                                     //restFul
-                                    this.emit('restFul', 'currentapp', messageData);
+                                    if (this.restFulEnabled) this.emit('restFul', 'currentapp', messageData);
 
                                     //mqtt
-                                    this.emit('mqtt', 'Current App', messageData);
+                                    if (this.mqttEnabled) this.emit('mqtt', 'Current App', messageData);
                                     break;
                                 case 'error':
                                     if (this.logDebug) this.emit('debug', `App error: ${stringifyMessage}`);
@@ -701,6 +713,7 @@ class LgWebOsSocket extends EventEmitter {
                                     this.volume = volume;
                                     this.mute = mute
 
+                                    await this.updateSensors();
                                     this.emit('audioState', volume, mute, this.power);
 
                                     const soundOutput = messageData.soundOutput ?? this.soundOutput;
@@ -710,10 +723,10 @@ class LgWebOsSocket extends EventEmitter {
                                     }
 
                                     //restFul
-                                    this.emit('restFul', 'audio', messageData);
+                                    if (this.restFulEnabled) this.emit('restFul', 'audio', messageData);
 
                                     //mqtt
-                                    this.emit('mqtt', 'Audio', messageData);
+                                    if (this.mqttEnabled) this.emit('mqtt', 'Audio', messageData);
                                     break;
                                 case 'error':
                                     if (this.logDebug) this.emit('debug', `Audio error: ${stringifyMessage}`);
@@ -731,14 +744,16 @@ class LgWebOsSocket extends EventEmitter {
                                     const channelName = messageData.channelName;
                                     const channelNumber = messageData.channelNumber;
                                     if (!channelId) return;
+                                    this.channelId = channelId;
 
+                                    await this.updateSensors();
                                     this.emit('currentChannel', channelId, channelName, channelNumber, this.power);
 
                                     //restFul
-                                    this.emit('restFul', 'currentchannel', messageData);
+                                    if (this.restFulEnabled) this.emit('restFul', 'currentchannel', messageData);
 
                                     //mqtt
-                                    this.emit('mqtt', 'Current Channel', messageData);
+                                    if (this.mqttEnabled) this.emit('mqtt', 'Current Channel', messageData);
                                     break;
                                 case 'error':
                                     if (this.logDebug) this.emit('debug', `Channel error: ${stringifyMessage}`);
@@ -768,10 +783,10 @@ class LgWebOsSocket extends EventEmitter {
                                     this.emit('pictureSettings', brightness, backlight, contrast, color, this.power);
 
                                     //restFul
-                                    this.emit('restFul', 'picturesettings', messageData);
+                                    if (this.restFulEnabled) this.emit('restFul', 'picturesettings', messageData);
 
                                     //mqtt
-                                    this.emit('mqtt', 'Picture Settings', messageData);
+                                    if (this.mqttEnabled) this.emit('mqtt', 'Picture Settings', messageData);
                                     break;
                                 case 'error':
                                     if (this.logDebug) this.emit('debug', `Picture settings error: ${stringifyMessage}`);
@@ -789,13 +804,14 @@ class LgWebOsSocket extends EventEmitter {
                                     if (!pictureMode) return;
                                     this.pictureMode = pictureMode;
 
+                                    await this.updateSensors();
                                     this.emit('pictureMode', pictureMode, this.power);
 
                                     //restFul
-                                    this.emit('restFul', 'picturemode', messageData);
+                                    if (this.restFulEnabled) this.emit('restFul', 'picturemode', messageData);
 
                                     //mqtt
-                                    this.emit('mqtt', 'Picture Mode', messageData);
+                                    if (this.mqttEnabled) this.emit('mqtt', 'Picture Mode', messageData);
                                     break;
                                 case 'error':
                                     if (this.logDebug) this.emit('debug', `Picture mode error: ${stringifyMessage}`);
@@ -815,13 +831,14 @@ class LgWebOsSocket extends EventEmitter {
                                     const soundMode = settings.soundMode ?? this.soundMode;
                                     this.soundMode = soundMode;
 
+                                    await this.updateSensors();
                                     this.emit('soundMode', soundMode, this.power);
 
                                     //restFul
-                                    this.emit('restFul', 'soundmode', messageData);
+                                    if (this.restFulEnabled) this.emit('restFul', 'soundmode', messageData);
 
                                     //mqtt
-                                    this.emit('mqtt', 'Sound Mode', messageData);
+                                    if (this.mqttEnabled) this.emit('mqtt', 'Sound Mode', messageData);
                                     break;
                                 case 'error':
                                     if (this.logDebug) this.emit('debug', `Sound mode error: ${stringifyMessage}`);
@@ -839,13 +856,14 @@ class LgWebOsSocket extends EventEmitter {
                                     if (!soundOutput) return;
                                     this.soundOutput = soundOutput;
 
+                                    await this.updateSensors();
                                     this.emit('soundOutput', soundOutput, this.power);
 
                                     //restFul
-                                    this.emit('restFul', 'soundoutput', messageData);
+                                    if (this.restFulEnabled) this.emit('restFul', 'soundoutput', messageData);
 
                                     //mqtt
-                                    this.emit('mqtt', 'Sound Output', messageData);
+                                    if (this.mqttEnabled) this.emit('mqtt', 'Sound Output', messageData);
                                     break;
                                 case 'error':
                                     if (this.logDebug) this.emit('debug', `Sound output error: ${stringifyMessage}`);
@@ -872,14 +890,14 @@ class LgWebOsSocket extends EventEmitter {
                                     this.playState = playState;
                                     this.appType = appType;
 
-                                    //emit
+                                    await this.updateSensors();
                                     this.emit('mediaInfo', appId, playState, appType, this.power);
 
                                     //restFul
-                                    this.emit('restFul', 'mediainfo', messageData);
+                                    if (this.restFulEnabled) this.emit('restFul', 'mediainfo', messageData);
 
                                     //mqtt
-                                    this.emit('mqtt', 'Media Info', messageData);
+                                    if (this.mqttEnabled) this.emit('mqtt', 'Media Info', messageData);
                                     break;
                                 case 'error':
                                     if (this.logDebug) this.emit('debug', `Media info error: ${stringifyMessage}`);

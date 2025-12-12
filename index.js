@@ -23,14 +23,10 @@ class LgWebOsPlatform {
 
 		api.on('didFinishLaunching', async () => {
 			for (const device of config.devices) {
-				const displayType = device.displayType ?? 1;
-				if (displayType === 0) continue;
-
-				const { name, host, mac } = device;
+				const { name, host, mac, displayType } = device;
 				const macValid = /^([A-Fa-f0-9]{2}:){5}[A-Fa-f0-9]{2}$/.test(mac);
-
-				if (!name || !host || !macValid) {
-					log.warn(`Invalid config: Name: ${name || 'missing'}, Host: ${host || 'missing'}, MAC: ${mac || 'missing'}`);
+				if (!name || !host || !macValid || !displayType) {
+					log.warn(`Device: ${host || 'host missing'},  ${name || 'name missing'}, ${mac || 'mac missing'}${!displayType ? ', disply type disabled' : ''} in config, will not be published in the Home app`);
 					continue;
 				}
 
@@ -85,12 +81,12 @@ class LgWebOsPlatform {
 						.on('start', async () => {
 							try {
 								const lgDevice = new LgWebOsDevice(api, device, files.key, files.devInfo, files.inputs, files.channels, files.inputsNames, files.inputsVisibility)
-									.on('devInfo', (info) => logLevel.devInfo && log.info(info))
-									.on('success', (msg) => logLevel.success && log.success(`Device: ${host} ${name}, ${msg}`))
-									.on('info', (msg) => logLevel.info && log.info(`Device: ${host} ${name}, ${msg}`))
-									.on('debug', (msg) => logLevel.debug && log.info(`Device: ${host} ${name}, debug: ${msg}`))
-									.on('warn', (msg) => logLevel.warn && log.warn(`Device: ${host} ${name}, ${msg}`))
-									.on('error', (msg) => logLevel.error && log.error(`Device: ${host} ${name}, ${msg}`));
+									.on('devInfo', (info) => log.info(info))
+									.on('success', (msg) => log.success(`Device: ${host} ${name}, ${msg}`))
+									.on('info', (msg) => og.info(`Device: ${host} ${name}, ${msg}`))
+									.on('debug', (msg) => log.info(`Device: ${host} ${name}, debug: ${msg}`))
+									.on('warn', (msg) => log.warn(`Device: ${host} ${name}, ${msg}`))
+									.on('error', (msg) => log.error(`Device: ${host} ${name}, ${msg}`));
 
 								const accessory = await lgDevice.start();
 								if (accessory) {

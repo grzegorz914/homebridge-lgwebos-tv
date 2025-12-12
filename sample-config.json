@@ -49,27 +49,17 @@
                             "namePrefix": false
                         }
                     ],
-                    "sensors": {
-                        "power": false,
-                        "pixelRefresh": false,
-                        "volume": false,
-                        "mute": false,
-                        "soundMode": false,
-                        "pictureMode": false,
-                        "screenOnOff": false,
-                        "screenSaver": false,
-                        "playState": false,
-                        "channel": false,
-                        "input": false,
-                        "inputs": [
-                            {
-                                "displayType": 0,
-                                "name": "HDMI 1",
-                                "reference": "com.webos.app.hdmi1",
-                                "namePrefix": false
-                            }
-                        ]
-                    },
+                    "sensors": [
+                        {
+                            "displayType": 0,
+                            "mode": 0,
+                            "name": "",
+                            "reference": "",
+                            "pulse": false,
+                            "namePrefix": false,
+                            "level": 0
+                        }
+                    ],
                     "power": {
                         "broadcastAddress": "255.255.255.255",
                         "startInput": false,
