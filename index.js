@@ -83,7 +83,7 @@ class LgWebOsPlatform {
 								const lgDevice = new LgWebOsDevice(api, device, files.key, files.devInfo, files.inputs, files.channels, files.inputsNames, files.inputsVisibility)
 									.on('devInfo', (info) => log.info(info))
 									.on('success', (msg) => log.success(`Device: ${host} ${name}, ${msg}`))
-									.on('info', (msg) => og.info(`Device: ${host} ${name}, ${msg}`))
+									.on('info', (msg) => log.info(`Device: ${host} ${name}, ${msg}`))
 									.on('debug', (msg) => log.info(`Device: ${host} ${name}, debug: ${msg}`))
 									.on('warn', (msg) => log.warn(`Device: ${host} ${name}, ${msg}`))
 									.on('error', (msg) => log.error(`Device: ${host} ${name}, ${msg}`));
