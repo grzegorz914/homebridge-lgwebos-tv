@@ -13,6 +13,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 - Do not use Homebridge UI > v5.5.0 because of break config.json
 
+## [4.0.3] - (16.12.2025)
+
+## Changes
+
+- fix [#290](https://github.com/grzegorz914/homebridge-lgwebos-tv/issues/290)
+
 ## [4.0.1] - (12.12.2025)
 
 ## Changes
