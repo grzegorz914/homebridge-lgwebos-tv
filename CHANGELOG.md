@@ -5,13 +5,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ### NOTE
 
+- v4.1.0 Added support for Homebridge UI >= v5.13.0
 - After update to v4.0.0 sensors need to be reconfigured!!!
 - After update to v3.0.0 RESTFull and MQTT config settings need to be updated
 - After update to v3.10.x and above from previous versions the plugin need to be reconfigured first, in other case will crash!!!
 
 ## Warning
 
-- Do not use Homebridge UI > v5.5.0 because of break config.json
+- For plugin < v4.1.0 use Homebridge UI <= v5.5.0
+- For plugin >= v4.1.0 use Homebridge UI >= v5.13.0
+
+## [4.1.0] - (31.12.2025)
+
+## Changes
+
+- added support for Homebridgr UI >+ v5.13.0
+- added retry register to tv if register fail
+- config schema updated
+- readme updated
 
 ## [4.0.3] - (16.12.2025)
 

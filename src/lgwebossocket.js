@@ -287,6 +287,18 @@ class LgWebOsSocket extends EventEmitter {
         return;
     }
 
+    async registerToTv() {
+        try {
+            Pairing['client-key'] = this.pairingKey;
+            this.registerId = await this.getCid();
+            await this.send('register', undefined, Pairing, this.registerId);
+
+            return;
+        } catch (err) {
+            if (this.logError) this.emit('error', `Socket register error: ${err}`);
+        }
+    }
+
     async connect() {
         try {
             if (this.logDebug) this.emit('debug', `Connect to TV`);
@@ -316,6 +328,9 @@ class LgWebOsSocket extends EventEmitter {
                     this.socketConnected = true;
                     this.emit('success', `Socket Connect Success`);
 
+                    // Register to TV
+                    await this.registerToTv();
+
                     // start heartbeat
                     this.heartbeat = setInterval(() => {
                         if (socket.readyState === socket.OPEN) {
@@ -323,15 +338,6 @@ class LgWebOsSocket extends EventEmitter {
                             socket.ping();
                         }
                     }, 5000);
-
-                    // Register to TV
-                    try {
-                        Pairing['client-key'] = this.pairingKey;
-                        this.registerId = await this.getCid();
-                        await this.send('register', undefined, Pairing, this.registerId);
-                    } catch (err) {
-                        if (this.logError) this.emit('error', `Socket register error: ${err}`);
-                    }
                 })
                 .on('pong', () => {
                     if (this.logDebug) this.emit('debug', `Socket received heartbeat`);
@@ -377,7 +383,11 @@ class LgWebOsSocket extends EventEmitter {
                                     await this.subscribeTvStatus();
                                     break;
                                 case 'error':
-                                    if (this.logError) this.emit('error', `Register to TV error: ${stringifyMessage}`);
+                                    if (this.logError) this.emit('error', `Register to TV error: ${stringifyMessage}, trying again`);
+
+                                    // Register to TV
+                                    await new Promise(resolve => setTimeout(resolve, 5000));
+                                    await this.registerToTv();
                                     break;
                                 default:
                                     if (this.logDebug) this.emit('debug', `Register to TV unknown message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`);
