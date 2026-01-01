@@ -96,6 +96,12 @@
                   "description": "Here select display order of the inputs list.",
                   "anyOf": [
                     {
+                      "title": "Disabled",
+                      "enum": [
+                        0
+                      ]
+                    },
+                    {
                       "title": "Ascending by Name",
                       "enum": [
                         1
@@ -180,6 +186,12 @@
                     "maximum": 2,
                     "description": "Here select display type in HomeKit app.",
                     "anyOf": [
+                      {
+                        "title": "Disabled",
+                        "enum": [
+                          0
+                        ]
+                      },
                       {
                         "title": "Outlet",
                         "enum": [
@@ -685,6 +697,12 @@
                     "maximum": 3,
                     "anyOf": [
                       {
+                        "title": "Disabled",
+                        "enum": [
+                          0
+                        ]
+                      },
+                      {
                         "title": "Motion Sensor",
                         "enum": [
                           1
@@ -965,6 +983,12 @@
                   "description": "Here select what a extra volume/mute control type You want to use.",
                   "anyOf": [
                     {
+                      "title": "Disabled",
+                      "enum": [
+                        0
+                      ]
+                    },
+                    {
                       "title": "Lightbulb",
                       "enum": [
                         1
@@ -1032,6 +1056,12 @@
                         "maximum": 2,
                         "description": "Here select display type in HomeKit app.",
                         "anyOf": [
+                          {
+                            "title": "Disabled",
+                            "enum": [
+                              0
+                            ]
+                          },
                           {
                             "title": "Outlet",
                             "enum": [
@@ -1156,6 +1186,12 @@
                         "maximum": 2,
                         "description": "Here select display type in HomeKit app.",
                         "anyOf": [
+                          {
+                            "title": "Disabled",
+                            "enum": [
+                              0
+                            ]
+                          },
                           {
                             "title": "Outlet",
                             "enum": [
@@ -1319,6 +1355,12 @@
                         "maximum": 2,
                         "description": "Here select display type in HomeKit app.",
                         "anyOf": [
+                          {
+                            "title": "Disabled",
+                            "enum": [
+                              0
+                            ]
+                          },
                           {
                             "title": "Outlet",
                             "enum": [
