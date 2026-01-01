@@ -91,6 +91,8 @@
                 "displayOrder": {
                   "title": "Display Order",
                   "type": "integer",
+                  "minimum": 0,
+                  "maximum": 4,
                   "description": "Here select display order of the inputs list.",
                   "anyOf": [
                     {

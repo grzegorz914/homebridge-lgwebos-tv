@@ -26,6 +26,11 @@ Tested with OLED65G6V, 32LM6300PLA, 49SK8500, OLED65C7T, 55SK800PLB, OLED48CX, O
 | [Homebridge UI](https://github.com/homebridge/homebridge-config-ui-x) | [Homebridge UI Wiki](https://github.com/homebridge/homebridge-config-ui-x/wiki) | Homebridge User Interface | Recommended |
 | [LG webOS TV](https://www.npmjs.com/package/homebridge-lgwebos-tv) | [Plug-In Wiki](https://github.com/grzegorz914/homebridge-lgwebos-tv/wiki) | Homebridge Plug-In | Required |
 
+## Warning
+
+* For plugin < v4.1.0 use Homebridge UI <= v5.5.0.
+* For plugin >= v4.1.0 use Homebridge UI >= v5.13.0.
+
 ## Abut The Plugin
 
 * Support SSL Web Socket for newer TV, plugin config `Advanced Settings >> Device >> SSL WebSocket`
