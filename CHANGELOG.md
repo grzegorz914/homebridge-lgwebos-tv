@@ -15,11 +15,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - For plugin < v4.1.0 use Homebridge UI <= v5.5.0
 - For plugin >= v4.1.0 use Homebridge UI >= v5.13.0
 
+## [4.1.1] - (01.01.2026)
+
+## Changes
+
+- improvement support of Homebridge UI >= v5.13.0
+- config schema updated
+
 ## [4.1.0] - (31.12.2025)
 
 ## Changes
 
-- added support for Homebridgr UI >+ v5.13.0
+- added support for Homebridge UI >= v5.13.0
 - added retry register to tv if register fail
 - config schema updated
 - readme updated

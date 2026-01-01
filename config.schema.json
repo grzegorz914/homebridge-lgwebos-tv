@@ -94,12 +94,6 @@
                   "description": "Here select display order of the inputs list.",
                   "anyOf": [
                     {
-                      "title": "Disabled",
-                      "enum": [
-                        0
-                      ]
-                    },
-                    {
                       "title": "Ascending by Name",
                       "enum": [
                         1
@@ -185,12 +179,6 @@
                     "description": "Here select display type in HomeKit app.",
                     "anyOf": [
                       {
-                        "title": "Disabled",
-                        "enum": [
-                          0
-                        ]
-                      },
-                      {
                         "title": "Outlet",
                         "enum": [
                           1
@@ -208,7 +196,10 @@
                     "title": "Name",
                     "type": "string",
                     "placeholder": "Name",
-                    "description": "Here set Your own name."
+                    "description": "Here set Your own name.",
+                    "condition": {
+                      "functionBody": "return model.devices[arrayIndices[0]].buttons[arrayIndices[1]].displayType > 0;"
+                    }
                   },
                   "mode": {
                     "title": "Mode",
@@ -692,12 +683,6 @@
                     "maximum": 3,
                     "anyOf": [
                       {
-                        "title": "Disabled",
-                        "enum": [
-                          0
-                        ]
-                      },
-                      {
                         "title": "Motion Sensor",
                         "enum": [
                           1
@@ -722,7 +707,10 @@
                     "title": "Name",
                     "type": "string",
                     "placeholder": "Name",
-                    "description": "Here set Your own name."
+                    "description": "Here set Your own name.",
+                    "condition": {
+                      "functionBody": "return model.devices[arrayIndices[0]].sensors[arrayIndices[1]].displayType > 0;"
+                    }
                   },
                   "mode": {
                     "title": "Mode",
@@ -839,7 +827,6 @@
                     "minimum": 0,
                     "maximum": 100,
                     "multipleOf": 1,
-                    "default": 100,
                     "description": "Here set the level between 0-100% at which the sensor fired.",
                     "condition": {
                       "functionBody": "return model.devices[arrayIndices[0]].sensors[arrayIndices[1]].displayType > 0 && model.devices[arrayIndices[0]].sensors[arrayIndices[1]].pulse === false && model.devices[arrayIndices[0]].sensors[arrayIndices[1]].mode === 2;"
@@ -976,12 +963,6 @@
                   "description": "Here select what a extra volume/mute control type You want to use.",
                   "anyOf": [
                     {
-                      "title": "Disabled",
-                      "enum": [
-                        0
-                      ]
-                    },
-                    {
                       "title": "Lightbulb",
                       "enum": [
                         1
@@ -1017,7 +998,10 @@
                   "title": "Name",
                   "type": "string",
                   "placeholder": "Volume Control Name",
-                  "description": "Here set Your own volume control name or leave empty."
+                  "description": "Here set Your own volume control name or leave empty.",
+                  "condition": {
+                    "functionBody": "return model.devices[arrayIndices[0]].volume[arrayIndices[1]].displayType > 0;"
+                  }
                 },
                 "namePrefix": {
                   "title": "Prefix",
@@ -1047,12 +1031,6 @@
                         "description": "Here select display type in HomeKit app.",
                         "anyOf": [
                           {
-                            "title": "Disabled",
-                            "enum": [
-                              0
-                            ]
-                          },
-                          {
                             "title": "Outlet",
                             "enum": [
                               1
@@ -1070,7 +1048,10 @@
                         "title": "Name",
                         "type": "string",
                         "placeholder": "Sound Mode Name",
-                        "description": "Here set Your own Sound Mode name."
+                        "description": "Here set Your own Sound Mode name.",
+                        "condition": {
+                          "functionBody": "return model.devices[arrayIndices[0]].modes[arrayIndices[1]].displayType > 0;"
+                        }
                       },
                       "reference": {
                         "title": "Mode",
@@ -1173,12 +1154,6 @@
                         "maximum": 2,
                         "description": "Here select display type in HomeKit app.",
                         "anyOf": [
-                          {
-                            "title": "Disabled",
-                            "enum": [
-                              0
-                            ]
-                          },
                           {
                             "title": "Outlet",
                             "enum": [
@@ -1343,12 +1318,6 @@
                         "description": "Here select display type in HomeKit app.",
                         "anyOf": [
                           {
-                            "title": "None / Disabled",
-                            "enum": [
-                              0
-                            ]
-                          },
-                          {
                             "title": "Outlet",
                             "enum": [
                               1
@@ -1366,7 +1335,10 @@
                         "title": "Name",
                         "type": "string",
                         "placeholder": "Picture Mode Name",
-                        "description": "Here set Your own Picture Mode name."
+                        "description": "Here set Your own Picture Mode name.",
+                        "condition": {
+                          "functionBody": "return model.devices[arrayIndices[0]].modes[arrayIndices[1]].displayType > 0;"
+                        }
                       },
                       "reference": {
                         "title": "Mode",
@@ -1764,7 +1736,6 @@
                     "enable": {
                       "title": "Enable",
                       "type": "boolean",
-                      "default": false,
                       "description": "This enable authorization for MQTT Broker."
                     },
                     "user": {
