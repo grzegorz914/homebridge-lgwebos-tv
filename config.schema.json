@@ -210,10 +210,7 @@
                     "title": "Name",
                     "type": "string",
                     "placeholder": "Name",
-                    "description": "Here set Your own name.",
-                    "condition": {
-                      "functionBody": "return model.devices[arrayIndices[0]].buttons[arrayIndices[1]].displayType > 0;"
-                    }
+                    "description": "Here set Your own name."
                   },
                   "mode": {
                     "title": "Mode",
@@ -727,10 +724,7 @@
                     "title": "Name",
                     "type": "string",
                     "placeholder": "Name",
-                    "description": "Here set Your own name.",
-                    "condition": {
-                      "functionBody": "return model.devices[arrayIndices[0]].sensors[arrayIndices[1]].displayType > 0;"
-                    }
+                    "description": "Here set Your own name."
                   },
                   "mode": {
                     "title": "Mode",
@@ -1080,10 +1074,7 @@
                         "title": "Name",
                         "type": "string",
                         "placeholder": "Sound Mode Name",
-                        "description": "Here set Your own Sound Mode name.",
-                        "condition": {
-                          "functionBody": "return model.devices[arrayIndices[0]].modes[arrayIndices[1]].displayType > 0;"
-                        }
+                        "description": "Here set Your own Sound Mode name."
                       },
                       "reference": {
                         "title": "Mode",
@@ -1379,10 +1370,7 @@
                         "title": "Name",
                         "type": "string",
                         "placeholder": "Picture Mode Name",
-                        "description": "Here set Your own Picture Mode name.",
-                        "condition": {
-                          "functionBody": "return model.devices[arrayIndices[0]].modes[arrayIndices[1]].displayType > 0;"
-                        }
+                        "description": "Here set Your own Picture Mode name."
                       },
                       "reference": {
                         "title": "Mode",
