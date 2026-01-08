@@ -15,6 +15,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - For plugin < v4.1.0 use Homebridge UI <= v5.5.0
 - For plugin >= v4.1.0 use Homebridge UI >= v5.13.0
 
+## [4.1.4] - (08.01.2026)
+
+## Changes
+
+- bump dependencies
+- fix disable log device info and success
+
 ## [4.1.1] - (01.01.2026)
 
 ## Changes
