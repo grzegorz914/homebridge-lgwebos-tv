@@ -325,8 +325,8 @@ class LgWebOsSocket extends EventEmitter {
 
                     // connect to device success
                     this.socket = socket;
+                    if (!this.socketConnected) this.emit('success', `Socket Connect Success`);
                     this.socketConnected = true;
-                    this.emit('success', `Socket Connect Success`);
 
                     // Register to TV
                     await this.registerToTv();
