@@ -1792,7 +1792,27 @@
                   },
                   "condition": {
                     "functionBody": "return model.devices[arrayIndices].mqtt.enable === true;"
-                  }
+                  },
+                  "allOf": [
+                    {
+                      "if": {
+                        "required": [
+                          "enable"
+                        ],
+                        "properties": {
+                          "enable": {
+                            "const": true
+                          }
+                        }
+                      },
+                      "then": {
+                        "required": [
+                          "user",
+                          "passwd"
+                        ]
+                      }
+                    }
+                  ]
                 }
               }
             }
