@@ -94,7 +94,7 @@ class LgWebOsPlatform {
 									if (logLevel.success) log.success(`Device: ${host} ${name}, Published as external accessory.`);
 
 									await new Promise(resolve => setTimeout(resolve, 3000));
-									await lgDevice.startStopImpulseGenerator(true, [{ name: 'heartBeat', sampling: 10000 }]);
+									await lgDevice.startStopImpulseGenerator(true, [{ name: 'heartBeat', sampling: device.heartbeat }]);
 									await impulseGenerator.state(false);
 								}
 							} catch (error) {
