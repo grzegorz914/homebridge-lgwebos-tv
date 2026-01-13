@@ -66,7 +66,7 @@ class LgWebOsSocket extends EventEmitter {
                     if (this.socketConnected || this.connecting) return;
                     if (this.logDebug) this.emit('debug', `Plugin send heartbeat to TV`);
 
-                    const state = await this.functions.ping(this.host);
+                    const state = await this.functions.ping(this.host, this.webSocketPort);
                     if (!state.online) {
                         return;
                     }
