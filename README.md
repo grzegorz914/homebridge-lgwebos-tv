@@ -127,6 +127,7 @@ Tested with OLED65G6V, 32LM6300PLA, 49SK8500, OLED65C7T, 55SK800PLB, OLED48CX, O
 | `sslWebSocket` | If enabled, SSL WebSocket will support TV with new firmware. |
 | `disableTvService` | This disable TV service and prevent display double services if TV already support HomeKit native. |
 | `infoButtonCommand` | Here select the function of `I` button in RC app. |
+| `heartBeatInterval` | Heart beat check when TV is off, default is 5 sec. |
 | `log{}` | Log object. |
 | `log.deviceInfo` | If enabled, log device info will be displayed by every connections device to the network. |
 | `log.success` | If enabled, success log will be displayed in console. |

@@ -121,6 +121,7 @@
                     "sslWebSocket": false,
                     "disableTvService": false,
                     "infoButtonCommand": "MENU",
+                    "heartBeatInterval": 5,
                     "restFul": {
                         "enable": false,
                         "port": 3000

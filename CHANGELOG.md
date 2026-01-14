@@ -15,6 +15,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - For plugin < v4.1.0 use Homebridge UI <= v5.5.0
 - For plugin >= v4.1.0 use Homebridge UI >= v5.13.0
 
+## [4.2.0] - (14.01.2026)
+
+## Changes
+
+- use TCP port check instead of ICMP ping, thanks @kyle-seongwoo-jun, closes [#297](https://github.com/grzegorz914/homebridge-lgwebos-tv/pull/297)
+- added Configurable heartbeat, thanks @drewcovi, closes [#296](https://github.com/grzegorz914/homebridge-lgwebos-tv/pull/296)
+- cleanup
+- redme updated
+
 ## [4.1.5] - (08.01.2026)
 
 ## Changes

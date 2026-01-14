@@ -1,8 +1,6 @@
 import { promises as fsPromises } from 'fs';
-import { exec } from 'node:child_process';
-import { promisify } from 'node:util';
+import { createConnection } from "net";
 import { DiacriticsMap } from './constants.js';
-const execAsync = promisify(exec);
 
 class Functions {
     constructor() {
@@ -75,20 +73,44 @@ class Functions {
         return scaledValue;
     }
 
-    async ping(ipOrHost) {
-        const isWindows = process.platform === 'win32';
-        const cmd = isWindows ? `ping -n 1 ${ipOrHost}` : `ping -c 1 ${ipOrHost}`;
+    async ping(host, port, timeout = 3000) {
+        return new Promise((resolve) => {
+            const startTime = Date.now();
+            const socket = createConnection({ host, port });
 
-        try {
-            const { stdout } = await execAsync(cmd);
-            const alive = /ttl=/i.test(stdout);
-            const timeMatch = stdout.match(/time[=<]([\d.]+)\s*ms/i);
-            const time = timeMatch ? parseFloat(timeMatch[1]) : null;
+            let finished = false;
 
-            return { online: alive, time };
-        } catch {
-            return { online: false };
-        }
+            const finish = (result) => {
+                if (finished) return;
+                finished = true;
+                socket.destroy();
+                resolve(result);
+            };
+
+            socket.setTimeout(timeout);
+
+            socket.once("connect", () => {
+                finish({
+                    online: true,
+                    time: Date.now() - startTime
+                });
+            });
+
+            socket.once("timeout", () => {
+                finish({
+                    online: false,
+                    reason: "timeout"
+                });
+            });
+
+            socket.once("error", (error) => {
+                finish({
+                    online: false,
+                    reason: error.code || "error"
+                });
+            });
+        });
     }
+
 }
 export default Functions
