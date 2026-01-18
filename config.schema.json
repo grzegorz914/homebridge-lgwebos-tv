@@ -9,6 +9,11 @@
   "schema": {
     "type": "object",
     "properties": {
+      "name": {
+        "title": "Platform",
+        "type": "string",
+        "default": "LG WebOS TV"
+      },
       "devices": {
         "type": "array",
         "items": {
