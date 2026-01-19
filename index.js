@@ -77,7 +77,7 @@ class LgWebOsPlatform {
 
 				try {
 					// create impulse generator
-					const heartBeatIterval = (device.heartbeatInterval ?? 5) * 1000;
+					const heartBeatInterval = (device.heartBeatInterval ?? 5) * 1000;
 					const impulseGenerator = new ImpulseGenerator()
 						.on('start', async () => {
 							try {
@@ -95,7 +95,7 @@ class LgWebOsPlatform {
 									if (logLevel.success) log.success(`Device: ${host} ${name}, Published as external accessory.`);
 
 									await new Promise(resolve => setTimeout(resolve, 3000));
-									await lgDevice.startStopImpulseGenerator(true, [{ name: 'heartBeat', sampling: heartBeatIterval }]);
+									await lgDevice.startStopImpulseGenerator(true, [{ name: 'heartBeat', sampling: heartBeatInterval }]);
 									await impulseGenerator.state(false);
 								}
 							} catch (error) {

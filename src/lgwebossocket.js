@@ -152,7 +152,7 @@ class LgWebOsSocket extends EventEmitter {
         if (this.logDebug) this.emit('debug', `Subscirbe tv status`);
 
         try {
-            await new Promise(resolve => setTimeout(resolve, 2000));
+            await new Promise(resolve => setTimeout(resolve, 1500));
             this.channelsId = await this.getCid();
             await this.send('subscribe', ApiUrls.GetChannelList, undefined, this.channelsId);
             this.externalInputListId = await this.getCid();
@@ -160,11 +160,11 @@ class LgWebOsSocket extends EventEmitter {
             this.appsId = await this.getCid();
             await this.send('subscribe', ApiUrls.GetInstalledApps, undefined, this.appsId);
 
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            await new Promise(resolve => setTimeout(resolve, 500));
             this.powerStateId = await this.getCid();
             await this.send('subscribe', ApiUrls.GetPowerState, undefined, this.powerStateId);
 
-            await new Promise(resolve => setTimeout(resolve, 2000));
+            await new Promise(resolve => setTimeout(resolve, 1500));
             this.currentAppId = await this.getCid();
             await this.send('subscribe', ApiUrls.GetForegroundAppInfo, undefined, this.currentAppId);
             this.currentChannelId = await this.getCid();

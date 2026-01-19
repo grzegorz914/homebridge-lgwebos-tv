@@ -12,7 +12,7 @@
       "name": {
         "title": "Platform",
         "type": "string",
-        "default": "LG WebOS TV"
+        "default": "LG webOS TV"
       },
       "devices": {
         "type": "array",
@@ -1854,6 +1854,29 @@
             "host",
             "mac",
             "displayType"
+          ],
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "displayType": {
+                    "enum": [
+                      1,
+                      2,
+                      3,
+                      4
+                    ]
+                  }
+                }
+              },
+              "then": {
+                "required": [
+                  "name",
+                  "host",
+                  "mac"
+                ]
+              }
+            }
           ]
         }
       }
