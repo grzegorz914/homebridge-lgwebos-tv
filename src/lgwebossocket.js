@@ -67,10 +67,7 @@ class LgWebOsSocket extends EventEmitter {
                     if (this.logDebug) this.emit('debug', `Plugin send heartbeat to TV`);
 
                     const state = await this.functions.ping(this.host, this.webSocketPort);
-                    if (!state.online) {
-                        return;
-                    }
-
+                    if (!state.online || this.socketConnected || this.connecting) return;
                     if (this.logDebug) this.emit('debug', `Plugin received heartbeat from TV`);
 
                     this.connecting = true;
@@ -208,6 +205,10 @@ class LgWebOsSocket extends EventEmitter {
                 this.mediaInfoId = await this.getCid();
                 await this.send('subscribe', ApiUrls.GetForegroundAppMediaInfo, undefined, this.mediaInfoId);
             }
+
+            //Request specjalized socket
+            this.specializedSocketId = await this.getCid();
+            await this.send('request', ApiUrls.SocketUrl, undefined, this.specializedSocketId);
 
             if (this.logDebug) this.emit('debug', `Subscribe tv status successful`);
 
@@ -349,7 +350,6 @@ class LgWebOsSocket extends EventEmitter {
                     const messageData = parsedMessage.payload;
                     const stringifyMessage = JSON.stringify(messageData, null, 2);
 
-                    let updateSensors = false;
                     switch (messageId) {
                         case this.registerId:
                             switch (messageType) {
@@ -367,20 +367,15 @@ class LgWebOsSocket extends EventEmitter {
                                         this.emit('success', 'Pairing key saved');
                                     }
 
-                                    //Request specjalized socket
-                                    this.specializedSocketId = await this.getCid();
-                                    await this.send('request', ApiUrls.SocketUrl, undefined, this.specializedSocketId);
+                                    //Send initial power state
+                                    if (!this.power) {
+                                        this.emit('powerState', true, 'Active');
 
-                                    //Request system info data
-                                    this.systemInfoId = await this.getCid();
-                                    await this.send('request', ApiUrls.GetSystemInfo, undefined, this.systemInfoId);
-
-                                    //Request software info data
-                                    this.softwareInfoId = await this.getCid();
-                                    await this.send('request', ApiUrls.GetSoftwareInfo, undefined, this.softwareInfoId);
-
-                                    //Subscribe tv status
-                                    await this.subscribeTvStatus();
+                                        //Request system info data
+                                        this.systemInfoId = await this.getCid();
+                                        await this.send('request', ApiUrls.GetSystemInfo, undefined, this.systemInfoId);
+                                        this.power = true;
+                                    }
                                     break;
                                 case 'error':
                                     if (this.logError) this.emit('error', `Register to TV error: ${stringifyMessage}, trying again`);
@@ -443,6 +438,10 @@ class LgWebOsSocket extends EventEmitter {
                                     if (this.logDebug) this.emit('debug', `System info: ${stringifyMessage}`);
                                     this.tvInfo.modelName = messageData.modelName ?? 'LG TV';
 
+                                    //Request software info data
+                                    this.softwareInfoId = await this.getCid();
+                                    await this.send('request', ApiUrls.GetSoftwareInfo, undefined, this.softwareInfoId);
+
                                     //restFul
                                     if (this.restFulEnabled) this.emit('restFul', 'systeminfo', messageData);
 
@@ -471,6 +470,9 @@ class LgWebOsSocket extends EventEmitter {
 
                                     //emit device info
                                     this.emit('deviceInfo', this.tvInfo);
+
+                                    //Subscribe tv status
+                                    await this.subscribeTvStatus();
 
                                     //restFul
                                     if (this.restFulEnabled) this.emit('restFul', 'softwareinfo', messageData);
