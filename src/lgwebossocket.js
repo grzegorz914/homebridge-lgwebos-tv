@@ -316,9 +316,12 @@ class LgWebOsSocket extends EventEmitter {
                     if (this.logDebug) this.emit('debug', `Socket error: ${error}`);
                     socket.close();
                 })
-                .on('close', () => {
+                .on('close', async () => {
                     if (this.logDebug) this.emit('debug', `Socket closed`);
                     this.cleanupSocket();
+                    this.power = false;
+                    this.screenState = 'Off';
+                    await this.updateSensors();
                     this.updateTvState();
                 })
                 .on('open', async () => {
@@ -369,12 +372,14 @@ class LgWebOsSocket extends EventEmitter {
 
                                     //Send initial power state
                                     if (!this.power) {
+                                        this.power = true;
+                                        this.screenState = 'Active';
+                                        await this.updateSensors();
                                         this.emit('powerState', true, 'Active');
 
                                         //Request system info data
                                         this.systemInfoId = await this.getCid();
                                         await this.send('request', ApiUrls.GetSystemInfo, undefined, this.systemInfoId);
-                                        this.power = true;
                                     }
                                     break;
                                 case 'error':
