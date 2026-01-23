@@ -97,17 +97,24 @@ class LgWebOsSocket extends EventEmitter {
         this.cidCount = 0;
         this.power = false;
         this.screenState = 'Suspend';
+        this.updateTvState();
     };
 
     updateTvState() {
-        this.emit('powerState', false, this.screenState);
-        this.emit('currentApp', this.appId, false);
-        this.emit('audioState', this.volume, this.mute, false);
-        this.emit('pictureSettings', this.brightness, this.backlight, this.contrast, this.color, false);
-        this.emit('pictureMode', this.pictureMode, false);
-        this.emit('soundMode', this.soundMode, false);
-        this.emit('soundOutput', this.soundOutput, false);
-        this.emit('mediainfo', this.appId, this.playState, this.appType, false);
+        this.power = false;
+        this.updateSensors();
+        this.emit('powerState', this.power, this.screenState);
+        this.emit('currentApp', this.appId, this.power);
+        this.emit('audioState', this.volume, this.mute, this.power);
+        this.emit('pictureSettings', this.brightness, this.backlight, this.contrast, this.color, this.power);
+        this.emit('pictureMode', this.pictureMode, this.power);
+        this.emit('soundMode', this.soundMode, this.power);
+        this.emit('soundOutput', this.soundOutput, this.power);
+        this.emit('mediainfo', this.appId, this.playState, this.appType, this.power);
+    }
+
+    updateSensors() {
+        this.emit('updateSensors', this.power, this.screenState, this.appId, this.volume, this.mute, this.soundMode, this.soundOutput, this.pictureMode, this.playState, this.channelId);
     }
 
     async getCid(type) {
@@ -206,10 +213,6 @@ class LgWebOsSocket extends EventEmitter {
                 await this.send('subscribe', ApiUrls.GetForegroundAppMediaInfo, undefined, this.mediaInfoId);
             }
 
-            //Request specjalized socket
-            this.specializedSocketId = await this.getCid();
-            await this.send('request', ApiUrls.SocketUrl, undefined, this.specializedSocketId);
-
             if (this.logDebug) this.emit('debug', `Subscribe tv status successful`);
 
             return true;
@@ -283,11 +286,6 @@ class LgWebOsSocket extends EventEmitter {
         }
     }
 
-    async updateSensors() {
-        this.emit('updateSensors', this.power, this.screenState, this.appId, this.volume, this.mute, this.soundMode, this.soundOutput, this.pictureMode, this.playState, this.channelId);
-        return;
-    }
-
     async registerToTv() {
         try {
             Pairing['client-key'] = this.pairingKey;
@@ -319,7 +317,6 @@ class LgWebOsSocket extends EventEmitter {
                 .on('close', () => {
                     if (this.logDebug) this.emit('debug', `Socket closed`);
                     this.cleanupSocket();
-                    this.updateTvState();
                 })
                 .on('open', async () => {
                     if (this.logDebug) this.emit('debug', `Plugin received heartbeat from TV`);
@@ -367,14 +364,21 @@ class LgWebOsSocket extends EventEmitter {
                                         this.emit('success', 'Pairing key saved');
                                     }
 
+                                    //Request specjalized socket
+                                    this.specializedSocketId = await this.getCid();
+                                    await this.send('request', ApiUrls.SocketUrl, undefined, this.specializedSocketId);
+
                                     //Send initial power state
                                     if (!this.power) {
-                                        this.emit('powerState', true, 'Active');
+                                        this.power = true;
+                                        this.screenState = 'Active';
+
+                                        this.updateSensors();
+                                        this.emit('powerState', this.power, 'Active');
 
                                         //Request system info data
                                         this.systemInfoId = await this.getCid();
                                         await this.send('request', ApiUrls.GetSystemInfo, undefined, this.systemInfoId);
-                                        this.power = true;
                                     }
                                     break;
                                 case 'error':
@@ -665,7 +669,7 @@ class LgWebOsSocket extends EventEmitter {
                                             return;
                                     }
 
-                                    await this.updateSensors();
+                                    this.updateSensors();
                                     this.emit('powerState', this.power, this.screenState);
                                     if (!this.power) this.updateTvState();
 
@@ -699,7 +703,7 @@ class LgWebOsSocket extends EventEmitter {
                                     if (!appId) return;
                                     this.appId = appId;
 
-                                    await this.updateSensors();
+                                    this.updateSensors();
                                     this.emit('currentApp', appId, this.power);
 
                                     //restFul
@@ -725,7 +729,7 @@ class LgWebOsSocket extends EventEmitter {
                                     this.volume = volume;
                                     this.mute = mute
 
-                                    await this.updateSensors();
+                                    this.updateSensors();
                                     this.emit('audioState', volume, mute, this.power);
 
                                     const soundOutput = messageData.soundOutput ?? this.soundOutput;
@@ -758,7 +762,7 @@ class LgWebOsSocket extends EventEmitter {
                                     if (!channelId) return;
                                     this.channelId = channelId;
 
-                                    await this.updateSensors();
+                                    this.updateSensors();
                                     this.emit('currentChannel', channelId, channelName, channelNumber, this.power);
 
                                     //restFul
@@ -816,7 +820,7 @@ class LgWebOsSocket extends EventEmitter {
                                     if (!pictureMode) return;
                                     this.pictureMode = pictureMode;
 
-                                    await this.updateSensors();
+                                    this.updateSensors();
                                     this.emit('pictureMode', pictureMode, this.power);
 
                                     //restFul
@@ -843,7 +847,7 @@ class LgWebOsSocket extends EventEmitter {
                                     const soundMode = settings.soundMode ?? this.soundMode;
                                     this.soundMode = soundMode;
 
-                                    await this.updateSensors();
+                                    this.updateSensors();
                                     this.emit('soundMode', soundMode, this.power);
 
                                     //restFul
@@ -868,7 +872,7 @@ class LgWebOsSocket extends EventEmitter {
                                     if (!soundOutput) return;
                                     this.soundOutput = soundOutput;
 
-                                    await this.updateSensors();
+                                    this.updateSensors();
                                     this.emit('soundOutput', soundOutput, this.power);
 
                                     //restFul
@@ -902,7 +906,7 @@ class LgWebOsSocket extends EventEmitter {
                                     this.playState = playState;
                                     this.appType = appType;
 
-                                    await this.updateSensors();
+                                    this.updateSensors();
                                     this.emit('mediaInfo', appId, playState, appType, this.power);
 
                                     //restFul

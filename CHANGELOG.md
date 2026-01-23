@@ -15,6 +15,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - For plugin < v4.1.0 use Homebridge UI <= v5.5.0
 - For plugin >= v4.1.0 use Homebridge UI >= v5.13.0
 
+## [4.2.3] - (23.01.2026)
+
+## Changes
+
+- fix sensor state update on initial power on, thanks @stanislc, closes [#300](https://github.com/grzegorz914/homebridge-lgwebos-tv/pull/300)
+- config schema update
+- cleanup
+
 ## [4.2.2] - (20.01.2026)
 
 ## Changes

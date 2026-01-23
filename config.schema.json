@@ -29,7 +29,7 @@
               "title": "IP/Hostname",
               "type": "string",
               "placeholder": "192.168.1.8 or tv.local",
-              "pattern": "^(?:(?:[0-9]{1,3}\\.){3}[0-9]{1,3}|[a-zA-Z0-9.-]+)$"
+              "pattern": "^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}|([a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)(\\.([a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?))*)$"
             },
             "mac": {
               "title": "Address Mac",
@@ -43,7 +43,6 @@
               "minimum": 0,
               "maximum": 4,
               "default": 1,
-              "description": "Accessory type for Home app",
               "anyOf": [
                 {
                   "title": "Disabled",
@@ -1583,13 +1582,13 @@
                   "title": "Turn Screen ON/OFF",
                   "type": "boolean",
                   "default": false,
-                  "description": "This enable possibility turn screen ON/OFF, webOS >= 4.0."
+                  "description": "This enable possibility turn screen ON/OFF, webOS >= 4.0.0"
                 },
                 "saverOnOff": {
                   "title": "Turn Screen Saver ON/OFF",
                   "type": "boolean",
                   "default": false,
-                  "description": "This enable possibility turn screen saver ON/OFF, webOS >= 4.0."
+                  "description": "This enable possibility turn screen saver ON/OFF, webOS >= 4.0.0"
                 }
               }
             },
@@ -1741,7 +1740,7 @@
                   "title": "IP/Hostname",
                   "type": "string",
                   "placeholder": "192.168.1.20 or mqtt.local",
-                  "pattern": "^(?:(?:[0-9]{1,3}\\.){3}[0-9]{1,3}|[a-zA-Z0-9.-]+)$",
+                  "pattern": "^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}|([a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)(\\.([a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?))*)$",
                   "description": "Here set the IP/Hostname of MQTT Broker.",
                   "condition": {
                     "functionBody": "return model.devices[arrayIndices].mqtt.enable === true;"
