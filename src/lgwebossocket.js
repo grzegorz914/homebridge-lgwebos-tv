@@ -468,7 +468,7 @@ class LgWebOsSocket extends EventEmitter {
                                     this.tvInfo.productName = messageData.product_name;
                                     this.tvInfo.deviceId = messageData.device_id;
                                     this.tvInfo.firmwareRevision = `${messageData.major_ver}.${messageData.minor_ver}`;
-                                    this.tvInfo.webOS = Number(messageData.product_name.match(/\d+(\.\d+)?/)[0]) ?? this.tvInfo.webOS;
+                                    this.tvInfo.webOS = Number.isFinite(Number(messageData.product_name?.match(/\d+(\.\d+)?/)?.[0])) ? Number(messageData.product_name.match(/\d+(\.\d+)?/)[0]) : this.tvInfo.webOS;
 
                                     await this.functions.saveData(this.devInfoFile, this.tvInfo);
 
