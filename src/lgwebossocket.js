@@ -94,6 +94,7 @@ class LgWebOsSocket extends EventEmitter {
         }
         this.socket = null;
         this.socketConnected = false;
+        this.specializedSocketConnected = false;
         this.cidCount = 0;
         this.power = false;
         this.screenState = 'Suspend';
@@ -365,8 +366,10 @@ class LgWebOsSocket extends EventEmitter {
                                     }
 
                                     //Request specjalized socket
-                                    this.specializedSocketId = await this.getCid();
-                                    await this.send('request', ApiUrls.SocketUrl, undefined, this.specializedSocketId);
+                                    if (!this.specializedSocketConnected) {
+                                        this.specializedSocketId = await this.getCid();
+                                        await this.send('request', ApiUrls.SocketUrl, undefined, this.specializedSocketId);
+                                    }
 
                                     //Send initial power state
                                     if (!this.power) {
