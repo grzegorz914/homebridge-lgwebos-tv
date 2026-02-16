@@ -157,6 +157,37 @@ class LgWebOsSocket extends EventEmitter {
         }
     }
 
+    async getSystemInfo() {
+        try {
+            this.systemInfoId = await this.getCid();
+            await this.send('request', ApiUrls.GetSystemInfo, undefined, this.systemInfoId);
+            this.systemInfoReceived = true;
+        } catch (err) {
+            if (this.logError) this.emit('error', `Get system info error: ${err}`);
+        }
+    }
+
+    async registerToTv() {
+        try {
+            Pairing['client-key'] = this.pairingKey;
+            this.registerId = await this.getCid();
+            await this.send('register', undefined, Pairing, this.registerId);
+
+            return;
+        } catch (err) {
+            if (this.logError) this.emit('error', `Socket register error: ${err}`);
+        }
+    }
+
+    async getSoftwareInfo() {
+        try {
+            this.softwareInfoId = await this.getCid();
+            await this.send('request', ApiUrls.GetSoftwareInfo, undefined, this.softwareInfoId);
+        } catch (err) {
+            if (this.logError) this.emit('error', `Get software info error: ${err}`);
+        }
+    }
+
     async subscribeTvStatus() {
         if (this.logDebug) this.emit('debug', `Subscirbe tv status`);
 
@@ -291,18 +322,6 @@ class LgWebOsSocket extends EventEmitter {
         }
     }
 
-    async registerToTv() {
-        try {
-            Pairing['client-key'] = this.pairingKey;
-            this.registerId = await this.getCid();
-            await this.send('register', undefined, Pairing, this.registerId);
-
-            return;
-        } catch (err) {
-            if (this.logError) this.emit('error', `Socket register error: ${err}`);
-        }
-    }
-
     async connect() {
         try {
             if (this.logDebug) this.emit('debug', `Connect to TV`);
@@ -325,11 +344,15 @@ class LgWebOsSocket extends EventEmitter {
                 })
                 .on('open', async () => {
                     if (this.logDebug) this.emit('debug', `Plugin received heartbeat from TV`);
+                    if (this.socketConnected) return;
 
                     // connect to device success
                     this.socket = socket;
-                    if (!this.socketConnected) this.emit('success', `Socket Connect Success`);
+                    this.emit('success', `Socket Connect Success`);
                     this.socketConnected = true;
+
+                    //Request system info
+                    await this.getSystemInfo();
 
                     // Register to TV
                     await this.registerToTv();
@@ -382,10 +405,6 @@ class LgWebOsSocket extends EventEmitter {
 
                                         this.updateSensors();
                                         this.emit('powerState', this.power, 'Active');
-
-                                        //Request system info data
-                                        this.systemInfoId = await this.getCid();
-                                        await this.send('request', ApiUrls.GetSystemInfo, undefined, this.systemInfoId);
                                     }
                                     break;
                                 case 'error':
@@ -397,7 +416,7 @@ class LgWebOsSocket extends EventEmitter {
                                     break;
                                 default:
                                     if (this.logDebug) this.emit('debug', `Register to TV unknown message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`);
-                                    break;
+                                    return;
                             };
                             break;
                         case this.specializedSocketId:
@@ -450,8 +469,7 @@ class LgWebOsSocket extends EventEmitter {
                                     this.tvInfo.modelName = messageData.modelName ?? 'LG TV';
 
                                     //Request software info data
-                                    this.softwareInfoId = await this.getCid();
-                                    await this.send('request', ApiUrls.GetSoftwareInfo, undefined, this.softwareInfoId);
+                                    await this.getSoftwareInfo();
 
                                     //restFul
                                     if (this.restFulEnabled) this.emit('restFul', 'systeminfo', messageData);
