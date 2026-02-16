@@ -46,7 +46,7 @@ class LgWebOsDevice extends EventEmitter {
         this.infoButtonCommand = device.infoButtonCommand || 'INFO';
         this.logInfo = device.log?.info || false;
         this.logWarn = device.log?.warn || true;
-        this.logError = device.log?.debug || true;
+        this.logError = device.log?.error || true;
         this.logDebug = device.log?.debug || false;
 
         //files
@@ -1864,8 +1864,8 @@ class LgWebOsDevice extends EventEmitter {
                 .on('restFul', (path, data) => {
                     if (this.restFulConnected) this.restFul1.update(path, data);
                 })
-                .on('mqtt', (topic, message) => {
-                    if (this.mqttConnected) this.mqtt1.emit('publish', topic, message);
+                .on('mqtt', async (topic, message) => {
+                    if (this.mqttConnected) await this.mqtt1.publish(topic, message);
                 });
 
             //connect
