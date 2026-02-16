@@ -161,7 +161,7 @@ Tested with OLED65G6V, 32LM6300PLA, 49SK8500, OLED65C7T, 55SK800PLB, OLED48CX, O
 
 | Method | URL | Path | Response | Type |
 | --- | --- | --- | --- | --- |
-| GET | `http//ip:port` | `systeminfo`, `softwareinfo`, `channels`, `apps`, `power`, `audio`, `currentapp`, `currentchannel`, `picturesettings`, `soundmode`, `soundoutput`, `externalinputlist`, `mediainfo`. | `{"state": Active}` | JSON object. |
+| GET | `http//ip:port` | `powerstaste`, `systeminfo`, `softwareinfo`, `channels`, `apps`, `power`, `audio`, `currentapp`, `currentchannel`, `picturesettings`, `soundmode`, `soundoutput`, `externalinputlist`, `mediainfo`. | `{"state": Active}` | JSON object. |
 
 | Method | URL | Key | Value | Type | Description |
 | --- | --- | --- | --- | --- | --- |
@@ -190,7 +190,7 @@ Tested with OLED65G6V, 32LM6300PLA, 49SK8500, OLED65C7T, 55SK800PLB, OLED48CX, O
 
 | Method | Topic | Message | Type |
 | --- | --- | --- | --- |
-| Publish | `System Info`, `Software Info`, `Channels`, `Apps`, `Power`, `Audio`, `Current App`, `Current Channel`, `Picture Settings`, `Sound Mode`, `Sound Output`, `External Input List`, `Media Info` | `{"state": Active}` | JSON object. |
+| Publish | `Power State`, `System Info`, `Software Info`, `Channels`, `Apps`, `Power`, `Audio`, `Current App`, `Current Channel`, `Picture Settings`, `Sound Mode`, `Sound Output`, `External Input List`, `Media Info` | `{"state": Active}` | JSON object. |
 
 | Method | Topic | Key | Value | Type | Description |
 | --- | --- | --- | --- | --- | --- |

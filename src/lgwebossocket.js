@@ -63,6 +63,10 @@ class LgWebOsSocket extends EventEmitter {
         this.impulseGenerator = new ImpulseGenerator()
             .on('heartBeat', async () => {
                 try {
+                    //restFul and mqtt power state
+                    if (this.restFulEnabled) this.emit('restFul', 'powerstate', this.power);
+                    if (this.mqttEnabled) this.emit('mqtt', 'Power State', this.power);
+
                     if (this.socketConnected || this.connecting) return;
                     if (this.logDebug) this.emit('debug', `Plugin send heartbeat to TV`);
 
@@ -436,7 +440,7 @@ class LgWebOsSocket extends EventEmitter {
                                     break;
                                 default:
                                     if (this.logDebug) this.emit('debug', `Specialized socket unknown message: type=${messageType}, id=${messageId}, data=${stringifyMessage}`);
-                                    break;
+                                    return;
                             }
                             break;
                         case this.systemInfoId:
@@ -460,7 +464,7 @@ class LgWebOsSocket extends EventEmitter {
                                     break;
                                 default:
                                     if (this.logDebug) this.emit('debug', `System info received message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`);
-                                    break;
+                                    return;
                             };
                             break;
                         case this.softwareInfoId:
@@ -492,7 +496,7 @@ class LgWebOsSocket extends EventEmitter {
                                     break;
                                 default:
                                     if (this.logDebug) this.emit('debug', `Software info received message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`);
-                                    break;
+                                    return;
                             };
                             break;
                         case this.channelsId:
@@ -531,7 +535,7 @@ class LgWebOsSocket extends EventEmitter {
                                     break;
                                 default:
                                     if (this.logDebug) this.emit('debug', `Channels list received message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`);
-                                    break;
+                                    return;
                             };
                             break;
                         case this.externalInputListId:
@@ -568,7 +572,7 @@ class LgWebOsSocket extends EventEmitter {
                                     break;
                                 default:
                                     if (this.logDebug) this.emit('debug', `External input list received message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`);
-                                    break;
+                                    return;
                             };
                             break;
                         case this.appsId:
@@ -635,7 +639,7 @@ class LgWebOsSocket extends EventEmitter {
                                     break;
                                 default:
                                     if (this.logDebug) this.emit('debug', `Apps list received message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`);
-                                    break;
+                                    return;
                             };
                             break;
                         case this.powerStateId:
@@ -668,7 +672,7 @@ class LgWebOsSocket extends EventEmitter {
                                             this.screenState = 'Suspend';
                                             break;
                                         default:
-                                            if (this.logDebug) this.emit('debug', `Unknown power state: ${stringifyMessage}`);
+                                            if (this.logWarn) this.emit('warn', `Unknown power state: ${stringifyMessage}`);
                                             return;
                                     }
 
@@ -695,7 +699,7 @@ class LgWebOsSocket extends EventEmitter {
                                     break;
                                 default:
                                     if (this.logDebug) this.emit('debug', `Power received message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`);
-                                    break;
+                                    return;
                             };
                             break;
                         case this.currentAppId:
@@ -720,7 +724,7 @@ class LgWebOsSocket extends EventEmitter {
                                     break;
                                 default:
                                     if (this.logDebug) this.emit('debug', `App received message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`);
-                                    break;
+                                    return;
                             };
                             break;
                         case this.audioStateId:
@@ -752,7 +756,7 @@ class LgWebOsSocket extends EventEmitter {
                                     break;
                                 default:
                                     if (this.logDebug) this.emit('debug', `Audio received message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`);
-                                    break;
+                                    return;
                             };
                             break;
                         case this.currentChannelId:
@@ -779,7 +783,7 @@ class LgWebOsSocket extends EventEmitter {
                                     break;
                                 default:
                                     if (this.logDebug) his.emit('debug', `Channel received message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`);
-                                    break;
+                                    return;
                             };
                             break;
                         case this.pictureSettingsId:
@@ -812,7 +816,7 @@ class LgWebOsSocket extends EventEmitter {
                                     break;
                                 default:
                                     if (this.logDebug) this.emit('debug', `Picture settings received message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`);
-                                    break;
+                                    return;
                             };
                             break;
                         case this.pictureModeId:
@@ -837,7 +841,7 @@ class LgWebOsSocket extends EventEmitter {
                                     break;
                                 default:
                                     if (this.logDebug) this.emit('debug', `Picture mode received message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`);
-                                    break;
+                                    return;
                             };
                             break;
                         case this.soundModeId:
@@ -864,7 +868,7 @@ class LgWebOsSocket extends EventEmitter {
                                     break;
                                 default:
                                     if (this.logDebug) this.emit('debug', `Sound mode received message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`);
-                                    break;
+                                    return;
                             };
                             break;
                         case this.soundOutputId:
@@ -889,7 +893,7 @@ class LgWebOsSocket extends EventEmitter {
                                     break;
                                 default:
                                     if (this.logDebug) this.emit('debug', `Sound output received message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`);
-                                    break;
+                                    return;
                             };
                             break;
                         case this.mediaInfoId:
@@ -923,7 +927,7 @@ class LgWebOsSocket extends EventEmitter {
                                     break;
                                 default:
                                     if (this.logDebug) this.emit('debug', `Medias info received message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`);
-                                    break;
+                                    return;
                             };
                             break;
                         case this.alertCid:
@@ -942,7 +946,7 @@ class LgWebOsSocket extends EventEmitter {
                             break;
                         default:
                             if (this.logDebug) this.emit('debug', `Received message type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`);
-                            break;
+                            return;
                     }
                 });
 
