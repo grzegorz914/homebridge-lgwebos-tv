@@ -1,7 +1,7 @@
 {
   "displayName": "LG webOS TV",
   "name": "homebridge-lgwebos-tv",
-  "version": "4.2.9",
+  "version": "4.2.10",
   "description": "Homebridge plugin to control LG webOS TV.",
   "license": "MIT",
   "author": "grzegorz914",
@@ -47,6 +47,10 @@
     "mqtt",
     "restful"
   ],
+  "funding": {
+    "type": "Buy Coffee To",
+    "url": "https://buycoffee.to/grzegorz914"
+  },
   "contributors": [],
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
