@@ -1,5 +1,6 @@
 <p align="center">
   <a href="https://github.com/grzegorz914/homebridge-lgwebos-tv"><img src="https://raw.githubusercontent.com/grzegorz914/homebridge-lgwebos-tv/main/graphics/lgwebos.png" width="540"></a>
+  <a href="https://buycoffee.to/grzegorz914" target="_blank"><img src="https://buycoffee.to/static/img/share/share-button-primary.png" style="width: 351px; height: 92px" alt="Postaw mi kawę na buycoffee.to"></a>
 </p>
 
 <span align="center">
