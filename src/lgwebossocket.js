@@ -749,7 +749,7 @@ class LgWebOsSocket extends EventEmitter {
                             switch (messageType) {
                                 case 'response':
                                     if (this.logDebug) this.emit('debug', `Audio: ${stringifyMessage}`);
-                                    const volume = messageData.volume ?? this.volume;
+                                    const volume = messageData.volume >= 0 ? messageData.volume : this.volume;
                                     const mute = (messageData.mute ?? messageData.muteStatus) !== undefined ? !!(messageData.mute ?? messageData.muteStatus) : this.mute;
                                     this.volume = volume;
                                     this.mute = mute

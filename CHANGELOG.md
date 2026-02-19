@@ -15,6 +15,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - For plugin < v4.1.0 use Homebridge UI <= v5.5.0
 - For plugin >= v4.1.0 use Homebridge UI >= v5.13.0
 
+## [4.2.11] - (19.02.2026)
+
+## Changes
+
+- fix [#305](https://github.com/grzegorz914/homebridge-lgwebos-tv/issues/305)
+
 ## [4.2.9] - (16.02.2026)
 
 ## Changes
