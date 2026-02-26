@@ -26,6 +26,7 @@ class LgWebOsSocket extends EventEmitter {
         this.functions = new Functions();
         this.socket = null;
         this.specializedSocket = null;
+        this.socketOpen = false;
         this.heartbeat = null;
         this.externalInputsArr = [];
         this.inputsArr = [];
@@ -63,25 +64,7 @@ class LgWebOsSocket extends EventEmitter {
         this.impulseGenerator = new ImpulseGenerator()
             .on('heartBeat', async () => {
                 try {
-                    //restFul and mqtt power state
-                    if (this.restFulEnabled) this.emit('restFul', 'powerstate', this.power);
-                    if (this.mqttEnabled) this.emit('mqtt', 'Power State', this.power);
-
-                    if (this.socketConnected || this.connecting) return;
-                    if (this.logDebug) this.emit('debug', `Plugin send heartbeat to TV`);
-
-                    const state = await this.functions.ping(this.host, this.webSocketPort);
-                    if (!state.online || this.socketConnected || this.connecting) return;
-                    if (this.logDebug) this.emit('debug', `Plugin received heartbeat from TV`);
-
-                    this.connecting = true;
-                    try {
-                        await this.connect();
-                    } catch (error) {
-                        if (this.logError) this.emit('error', `Connection error: ${error}`);
-                    } finally {
-                        this.connecting = false;
-                    }
+                    await this.connect();
                 } catch (error) {
                     if (this.logError) this.emit('error', `Impulse generator error: ${error}, trying again`);
                 }
@@ -96,7 +79,9 @@ class LgWebOsSocket extends EventEmitter {
             clearInterval(this.heartbeat);
             this.heartbeat = null;
         }
+
         this.socket = null;
+        this.socketOpen = false;
         this.socketConnected = false;
         this.specializedSocketConnected = false;
         this.cidCount = 0;
@@ -106,8 +91,6 @@ class LgWebOsSocket extends EventEmitter {
     };
 
     updateTvState() {
-        this.power = false;
-        this.updateSensors();
         this.emit('powerState', this.power, this.screenState);
         this.emit('currentApp', this.appId, this.power);
         this.emit('audioState', this.volume, this.mute, this.power);
@@ -183,8 +166,21 @@ class LgWebOsSocket extends EventEmitter {
         try {
             this.softwareInfoId = await this.getCid();
             await this.send('request', ApiUrls.GetSoftwareInfo, undefined, this.softwareInfoId);
+
+            return;
         } catch (err) {
             if (this.logError) this.emit('error', `Get software info error: ${err}`);
+        }
+    }
+
+    async getSpecjalizedSocket() {
+        try {
+            this.specializedSocketId = await this.getCid();
+            await this.send('request', ApiUrls.SocketUrl, undefined, this.specializedSocketId);
+
+            return;
+        } catch (err) {
+            if (this.logError) this.emit('error', `Get specjalized socket error: ${err}`);
         }
     }
 
@@ -192,7 +188,6 @@ class LgWebOsSocket extends EventEmitter {
         if (this.logDebug) this.emit('debug', `Subscirbe tv status`);
 
         try {
-            await new Promise(resolve => setTimeout(resolve, 1500));
             this.channelsId = await this.getCid();
             await this.send('subscribe', ApiUrls.GetChannelList, undefined, this.channelsId);
             this.externalInputListId = await this.getCid();
@@ -258,7 +253,7 @@ class LgWebOsSocket extends EventEmitter {
     }
 
     async send(type, uri, payload, cid, title, message) {
-        if (!this.socketConnected) {
+        if (!this.socketOpen) {
             if (this.logDebug) this.emit('debug', 'Socket not connected');
             return;
         }
@@ -322,7 +317,7 @@ class LgWebOsSocket extends EventEmitter {
         }
     }
 
-    async connect() {
+    async connectSocket() {
         try {
             if (this.logDebug) this.emit('debug', `Connect to TV`);
 
@@ -351,12 +346,6 @@ class LgWebOsSocket extends EventEmitter {
                     this.emit('success', `Socket Connect Success`);
                     this.socketConnected = true;
 
-                    //Request system info
-                    await this.getSystemInfo();
-
-                    // Register to TV
-                    await this.registerToTv();
-
                     // start heartbeat
                     this.heartbeat = setInterval(() => {
                         if (socket.readyState === socket.OPEN) {
@@ -365,8 +354,17 @@ class LgWebOsSocket extends EventEmitter {
                         }
                     }, 5000);
                 })
-                .on('pong', () => {
+                .on('pong', async () => {
                     if (this.logDebug) this.emit('debug', `Socket received heartbeat`);
+                    if (!this.socketOpen) {
+                        this.socketOpen = true;
+
+                        // Request system info
+                        await this.getSystemInfo();
+
+                        // Register to TV
+                        await this.registerToTv();
+                    }
                 })
                 .on('message', async (message) => {
                     const parsedMessage = JSON.parse(message);
@@ -393,19 +391,7 @@ class LgWebOsSocket extends EventEmitter {
                                     }
 
                                     //Request specjalized socket
-                                    if (!this.specializedSocketConnected) {
-                                        this.specializedSocketId = await this.getCid();
-                                        await this.send('request', ApiUrls.SocketUrl, undefined, this.specializedSocketId);
-                                    }
-
-                                    //Send initial power state
-                                    if (!this.power) {
-                                        this.power = true;
-                                        this.screenState = 'Active';
-
-                                        this.updateSensors();
-                                        this.emit('powerState', this.power, 'Active');
-                                    }
+                                    await this.getSpecjalizedSocket();
                                     break;
                                 case 'error':
                                     if (this.logError) this.emit('error', `Register to TV error: ${stringifyMessage}, trying again`);
@@ -441,7 +427,7 @@ class LgWebOsSocket extends EventEmitter {
                                             if (this.logDebug) this.emit('debug', 'Retrying connect to specialized socket...');
 
                                             try {
-                                                await this.send('request', ApiUrls.SocketUrl, undefined, this.specializedSocketId);
+                                                await this.getSpecjalizedSocket();
                                             } catch (error) {
                                                 if (this.logError) this.emit('error', `Specialized socket retry connect error: ${error}`);
                                             }
@@ -471,10 +457,8 @@ class LgWebOsSocket extends EventEmitter {
                                     //Request software info data
                                     await this.getSoftwareInfo();
 
-                                    //restFul
+                                    //restFul and mqtt and mqtt
                                     if (this.restFulEnabled) this.emit('restFul', 'systeminfo', messageData);
-
-                                    //mqtt
                                     if (this.mqttEnabled) this.emit('mqtt', 'System info', messageData);
                                     break;
                                 case 'error':
@@ -503,10 +487,8 @@ class LgWebOsSocket extends EventEmitter {
                                     //Subscribe tv status
                                     await this.subscribeTvStatus();
 
-                                    //restFul
+                                    //restFul and mqtt and mqtt
                                     if (this.restFulEnabled) this.emit('restFul', 'softwareinfo', messageData);
-
-                                    //mqtt
                                     if (this.mqttEnabled) this.emit('mqtt', 'Software info', messageData);
                                     break;
                                 case 'error':
@@ -542,10 +524,8 @@ class LgWebOsSocket extends EventEmitter {
                                     //save channels to the file
                                     await this.functions.saveData(this.channelsFile, channelsArr);
 
-                                    //restFul
+                                    //restFul and mqtt and mqtt
                                     if (this.restFulEnabled) this.emit('restFul', 'channels', messageData);
-
-                                    //mqtt
                                     if (this.mqttEnabled) this.emit('mqtt', 'Channels', messageData);
                                     break;
                                 case 'error':
@@ -579,10 +559,8 @@ class LgWebOsSocket extends EventEmitter {
                                     //add to external inputs array
                                     this.externalInputsArr = arr;
 
-                                    //restFul
+                                    //restFul and mqtt
                                     if (this.restFulEnabled) this.emit('restFul', 'externalinputlist', messageData);
-
-                                    //mqtt
                                     if (this.mqttEnabled) this.emit('mqtt', 'External Input List', messageData);
                                     break;
                                 case 'error':
@@ -646,10 +624,8 @@ class LgWebOsSocket extends EventEmitter {
                                     // Emit the inputs
                                     this.emit('installedApps', this.inputs, false);
 
-                                    //restFul
+                                    //restFul and mqtt
                                     if (this.restFulEnabled) this.emit('restFul', 'apps', messageData);
-
-                                    //mqtt
                                     if (this.mqttEnabled) this.emit('mqtt', 'Apps', messageData);
                                     break;
                                 case 'error':
@@ -690,18 +666,18 @@ class LgWebOsSocket extends EventEmitter {
                                             this.screenState = 'Suspend';
                                             break;
                                         default:
-                                            if (this.logWarn) this.emit('warn', `Unknown power state: ${stringifyMessage}`);
+                                            if (this.logDebug) this.emit('debug', `Unknown power state: ${stringifyMessage}`);
                                             return;
                                     }
 
-                                    this.updateSensors();
                                     this.emit('powerState', this.power, this.screenState);
+                                    this.updateSensors();
                                     if (!this.power) this.updateTvState();
 
-                                    //restFul
+                                    //restFul and mqtt
+                                    if (this.restFulEnabled) this.emit('restFul', 'powerstate', this.power);
                                     if (this.restFulEnabled) this.emit('restFul', 'power', messageData);
-
-                                    //mqtt
+                                    if (this.mqttEnabled) this.emit('mqtt', 'Power State', this.power);
                                     if (this.mqttEnabled) this.emit('mqtt', 'Power', messageData);
                                     break;
                                 case 'error':
@@ -728,13 +704,11 @@ class LgWebOsSocket extends EventEmitter {
                                     if (!appId) return;
                                     this.appId = appId;
 
-                                    this.updateSensors();
                                     this.emit('currentApp', appId, this.power);
+                                    this.updateSensors();
 
-                                    //restFul
+                                    //restFul and mqtt
                                     if (this.restFulEnabled) this.emit('restFul', 'currentapp', messageData);
-
-                                    //mqtt
                                     if (this.mqttEnabled) this.emit('mqtt', 'Current App', messageData);
                                     break;
                                 case 'error':
@@ -754,8 +728,8 @@ class LgWebOsSocket extends EventEmitter {
                                     this.volume = volume;
                                     this.mute = mute
 
-                                    this.updateSensors();
                                     this.emit('audioState', volume, mute, this.power);
+                                    this.updateSensors();
 
                                     const soundOutput = messageData.soundOutput ?? this.soundOutput;
                                     if (soundOutput) {
@@ -763,10 +737,8 @@ class LgWebOsSocket extends EventEmitter {
                                         this.soundOutput = soundOutput;
                                     }
 
-                                    //restFul
+                                    //restFul and mqtt
                                     if (this.restFulEnabled) this.emit('restFul', 'audio', messageData);
-
-                                    //mqtt
                                     if (this.mqttEnabled) this.emit('mqtt', 'Audio', messageData);
                                     break;
                                 case 'error':
@@ -787,13 +759,11 @@ class LgWebOsSocket extends EventEmitter {
                                     if (!channelId) return;
                                     this.channelId = channelId;
 
-                                    this.updateSensors();
                                     this.emit('currentChannel', channelId, channelName, channelNumber, this.power);
+                                    this.updateSensors();
 
-                                    //restFul
+                                    //restFul and mqtt
                                     if (this.restFulEnabled) this.emit('restFul', 'currentchannel', messageData);
-
-                                    //mqtt
                                     if (this.mqttEnabled) this.emit('mqtt', 'Current Channel', messageData);
                                     break;
                                 case 'error':
@@ -822,11 +792,10 @@ class LgWebOsSocket extends EventEmitter {
                                     this.color = color;
 
                                     this.emit('pictureSettings', brightness, backlight, contrast, color, this.power);
+                                    this.updateSensors();
 
-                                    //restFul
+                                    //restFul and mqtt
                                     if (this.restFulEnabled) this.emit('restFul', 'picturesettings', messageData);
-
-                                    //mqtt
                                     if (this.mqttEnabled) this.emit('mqtt', 'Picture Settings', messageData);
                                     break;
                                 case 'error':
@@ -845,13 +814,11 @@ class LgWebOsSocket extends EventEmitter {
                                     if (!pictureMode) return;
                                     this.pictureMode = pictureMode;
 
-                                    this.updateSensors();
                                     this.emit('pictureMode', pictureMode, this.power);
+                                    this.updateSensors();
 
-                                    //restFul
+                                    //restFul and mqtt
                                     if (this.restFulEnabled) this.emit('restFul', 'picturemode', messageData);
-
-                                    //mqtt
                                     if (this.mqttEnabled) this.emit('mqtt', 'Picture Mode', messageData);
                                     break;
                                 case 'error':
@@ -872,13 +839,11 @@ class LgWebOsSocket extends EventEmitter {
                                     const soundMode = settings.soundMode ?? this.soundMode;
                                     this.soundMode = soundMode;
 
-                                    this.updateSensors();
                                     this.emit('soundMode', soundMode, this.power);
+                                    this.updateSensors();
 
-                                    //restFul
+                                    //restFul and mqtt
                                     if (this.restFulEnabled) this.emit('restFul', 'soundmode', messageData);
-
-                                    //mqtt
                                     if (this.mqttEnabled) this.emit('mqtt', 'Sound Mode', messageData);
                                     break;
                                 case 'error':
@@ -897,13 +862,11 @@ class LgWebOsSocket extends EventEmitter {
                                     if (!soundOutput) return;
                                     this.soundOutput = soundOutput;
 
-                                    this.updateSensors();
                                     this.emit('soundOutput', soundOutput, this.power);
+                                    this.updateSensors();
 
-                                    //restFul
+                                    //restFul and mqtt
                                     if (this.restFulEnabled) this.emit('restFul', 'soundoutput', messageData);
-
-                                    //mqtt
                                     if (this.mqttEnabled) this.emit('mqtt', 'Sound Output', messageData);
                                     break;
                                 case 'error':
@@ -931,13 +894,11 @@ class LgWebOsSocket extends EventEmitter {
                                     this.playState = playState;
                                     this.appType = appType;
 
-                                    this.updateSensors();
                                     this.emit('mediaInfo', appId, playState, appType, this.power);
+                                    this.updateSensors();
 
-                                    //restFul
+                                    //restFul and mqtt
                                     if (this.restFulEnabled) this.emit('restFul', 'mediainfo', messageData);
-
-                                    //mqtt
                                     if (this.mqttEnabled) this.emit('mqtt', 'Media Info', messageData);
                                     break;
                                 case 'error':
@@ -973,5 +934,33 @@ class LgWebOsSocket extends EventEmitter {
             throw new Error(`Connect error: ${error}`);
         }
     }
+
+    async connect() {
+        try {
+            //restFul and mqtt power state
+            if (this.restFulEnabled) this.emit('restFul', 'powerstate', this.power);
+            if (this.mqttEnabled) this.emit('mqtt', 'Power State', this.power);
+
+            if (this.socketConnected || this.connecting) return true;
+            if (this.logDebug) this.emit('debug', `Plugin send heartbeat to TV`);
+
+            const state = await this.functions.ping(this.host, this.webSocketPort);
+            if (!state.online || this.socketConnected || this.connecting) return true;
+            if (this.logDebug) this.emit('debug', `Plugin received heartbeat from TV`);
+
+            this.connecting = true;
+            try {
+                await this.connectSocket();
+            } catch (error) {
+                if (this.logError) this.emit('error', `Connection error: ${error}`);
+            } finally {
+                this.connecting = false;
+            }
+
+            return true;
+        } catch (error) {
+            if (this.logError) this.emit('error', `Impulse generator error: ${error}, trying again`);
+        }
+    };
 }
 export default LgWebOsSocket;

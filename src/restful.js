@@ -11,6 +11,7 @@ class RestFul extends EventEmitter {
         this.logDebug = config.logDebug;
 
         this.data = {
+            powerstate: DEFAULT_MESSAGE,
             systeminfo: DEFAULT_MESSAGE,
             softwareinfo: DEFAULT_MESSAGE,
             channels: DEFAULT_MESSAGE,

@@ -86,6 +86,7 @@ class LgWebOsDevice extends EventEmitter {
         this.pictureMode = '';
         this.soundMode = '';
         this.soundOutput = '';
+        this.isBooting = false;
 
         //picture mode variable
         for (const mode of this.pictureModes) {
@@ -504,6 +505,60 @@ class LgWebOsDevice extends EventEmitter {
         }
     }
 
+    async setInput(activeIdentifier) {
+        try {
+            const input = this.inputsServices.find(input => input.identifier === activeIdentifier);
+            if (!input) {
+                if (this.logWarn) this.emit('warn', `Input with identifier ${activeIdentifier} not found`);
+                return;
+            }
+
+            const { mode: inputMode, name: inputName, reference: inputReference } = input;
+            let cid = await this.lgWebOsSocket.getCid('App');
+            let payload = {};
+            switch (inputMode) {
+                case 0: // App/Input Source
+                    switch (inputReference) {
+                        case 'com.webos.app.screensaver':
+                            cid = await this.lgWebOsSocket.getCid();
+                            await this.lgWebOsSocket.send('alert', ApiUrls.TurnOnScreenSaver, undefined, cid, 'Screen Saver', 'ON');
+                            break;
+                        case 'com.webos.app.screenoff':
+                            let url;
+                            url = this.webOS >= 4.0 ? this.webOS >= 4.5 ? ApiUrls.TurnOffScreen45 : ApiUrls.TurnOffScreen : false;
+                            cid = await this.lgWebOsSocket.getCid('Power');
+                            await this.lgWebOsSocket.send('request', url, undefined, cid);
+                            break;
+                        case 'com.webos.app.factorywin':
+                            payload = {
+                                id: ApiUrls.ServiceMenu,
+                                params: { id: 'executeFactory', irKey: 'inStart' }
+                            };
+                            await this.lgWebOsSocket.send('request', ApiUrls.LaunchApp, payload, cid);
+                            break;
+                        default: {
+                            payload = { id: inputReference };
+                            await this.lgWebOsSocket.send('request', ApiUrls.LaunchApp, payload, cid);
+                            break;
+                        }
+                    }
+                    break;
+                case 1: // Channel
+                    const liveTv = 'com.webos.app.livetv';
+                    if (this.reference !== liveTv) await this.lgWebOsSocket.send('request', ApiUrls.LaunchApp, { id: liveTv }, cid);
+                    cid = await this.lgWebOsSocket.getCid('Channel');
+                    await this.lgWebOsSocket.send('request', ApiUrls.OpenChannel, { channelId: inputReference }, cid);
+                    break;
+            }
+
+            if (this.logInfo) this.emit('info', `set ${inputMode === 0 ? 'Input' : 'Channel'}, Name: ${inputName}, Reference: ${inputReference}`);
+
+            return;
+        } catch (error) {
+            if (this.logWarn) this.emit('warn', `set Input or Channel error: ${error}`);
+        }
+    }
+
     //prepare accessory
     async prepareAccessory() {
         try {
@@ -537,27 +592,40 @@ class LgWebOsDevice extends EventEmitter {
                         return state;
                     })
                     .onSet(async (state) => {
-                        if (!!state === this.power) return;
+                        const requestedPower = state === 1;
+                        if (requestedPower === this.power && !this.isBooting) return;
 
                         try {
                             switch (state) {
                                 case 1:
+                                    this.isBooting = true;
+
                                     await this.wol.wakeOnLan();
 
                                     if (this.startInput) {
                                         (async () => {
-                                            for (let attempt = 0; attempt < 10; attempt++) {
-                                                await new Promise(resolve => setTimeout(resolve, 1000));
-                                                if (this.power && this.inputIdentifier !== this.startInputReference) {
-                                                    const cid = await this.lgWebOsSocket.getCid('App');
-                                                    const payload = { id: this.startInputReference };
-                                                    await this.lgWebOsSocket.send('request', ApiUrls.LaunchApp, payload, cid);
-                                                    break;
+                                            try {
+                                                for (let attempt = 0; attempt < 15; attempt++) {
+                                                    await new Promise(resolve => setTimeout(resolve, 1000));
+
+                                                    if (this.power) {
+                                                        if (this.inputIdentifier !== this.startInputReference) {
+                                                            const cid = await this.lgWebOsSocket.getCid('App');
+                                                            const payload = { id: this.startInputReference };
+                                                            await this.lgWebOsSocket.send('request', ApiUrls.LaunchApp, payload, cid);
+                                                        }
+                                                        return;
+                                                    }
                                                 }
+                                            } finally {
+                                                this.isBooting = false;
                                             }
                                         })();
-                                        return;
+                                    } else {
+                                        this.isBooting = false;
                                     }
+
+                                    break;
                                 case 0:
                                     const cid1 = await this.lgWebOsSocket.getCid('Power');
                                     await this.lgWebOsSocket.send('request', ApiUrls.TurnOff, undefined, cid1);
@@ -577,66 +645,22 @@ class LgWebOsDevice extends EventEmitter {
                     })
                     .onSet(async (activeIdentifier) => {
                         try {
-                            const input = this.inputsServices.find(input => input.identifier === activeIdentifier);
-                            if (!input) {
-                                if (this.logWarn) this.emit('warn', `Input with identifier ${activeIdentifier} not found`);
-                                return;
-                            }
-
                             if (!this.power && !this.startInput) {
                                 (async () => {
                                     for (let attempt = 0; attempt < 20; attempt++) {
-                                        await new Promise(resolve => setTimeout(resolve, 1500));
-                                        if (this.power && this.inputIdentifier !== activeIdentifier) {
+                                        await new Promise(resolve => setTimeout(resolve, 1000));
+
+                                        if (this.power && !this.isBooting) {
                                             if (this.logDebug) this.emit('debug', `TV powered on, retrying input switch`);
-                                            this.televisionService.setCharacteristic(Characteristic.ActiveIdentifier, activeIdentifier);
+                                            await this.setInput(activeIdentifier);
                                             break;
                                         }
                                     }
                                 })();
-
                                 return;
                             }
 
-                            const { mode: inputMode, name: inputName, reference: inputReference } = input;
-                            let cid = await this.lgWebOsSocket.getCid('App');
-                            let payload = {};
-                            switch (inputMode) {
-                                case 0: // App/Input Source
-                                    switch (inputReference) {
-                                        case 'com.webos.app.screensaver':
-                                            cid = await this.lgWebOsSocket.getCid();
-                                            await this.lgWebOsSocket.send('alert', ApiUrls.TurnOnScreenSaver, undefined, cid, 'Screen Saver', 'ON');
-                                            break;
-                                        case 'com.webos.app.screenoff':
-                                            let url;
-                                            url = this.webOS >= 4.0 ? this.webOS >= 4.5 ? ApiUrls.TurnOffScreen45 : ApiUrls.TurnOffScreen : false;
-                                            cid = await this.lgWebOsSocket.getCid('Power');
-                                            await this.lgWebOsSocket.send('request', url, undefined, cid);
-                                            break;
-                                        case 'com.webos.app.factorywin':
-                                            payload = {
-                                                id: ApiUrls.ServiceMenu,
-                                                params: { id: 'executeFactory', irKey: 'inStart' }
-                                            };
-                                            await this.lgWebOsSocket.send('request', ApiUrls.LaunchApp, payload, cid);
-                                            break;
-                                        default: {
-                                            payload = { id: inputReference };
-                                            await this.lgWebOsSocket.send('request', ApiUrls.LaunchApp, payload, cid);
-                                            break;
-                                        }
-                                    }
-                                    break;
-                                case 1: // Channel
-                                    const liveTv = 'com.webos.app.livetv';
-                                    if (this.reference !== liveTv) await this.lgWebOsSocket.send('request', ApiUrls.LaunchApp, { id: liveTv }, cid);
-                                    cid = await this.lgWebOsSocket.getCid('Channel');
-                                    await this.lgWebOsSocket.send('request', ApiUrls.OpenChannel, { channelId: inputReference }, cid);
-                                    break;
-                            }
-
-                            if (this.logInfo) this.emit('info', `set ${inputMode === 0 ? 'Input' : 'Channel'}, Name: ${inputName}, Reference: ${inputReference}`);
+                            await this.setInput(activeIdentifier);
                         } catch (error) {
                             if (this.logWarn) this.emit('warn', `set Input or Channel error: ${error}`);
                         }

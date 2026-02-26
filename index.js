@@ -94,9 +94,12 @@ class LgWebOsPlatform {
 									api.publishExternalAccessories(PluginName, [accessory]);
 									if (logLevel.success) log.success(`Device: ${host} ${name}, Published as external accessory.`);
 
+									//stop main impulse generator
+									await impulseGenerator.state(false);
+
+									//start tv heartbeat
 									await new Promise(resolve => setTimeout(resolve, 3000));
 									await lgDevice.startStopImpulseGenerator(true, [{ name: 'heartBeat', sampling: heartBeatInterval }]);
-									await impulseGenerator.state(false);
 								}
 							} catch (error) {
 								if (logLevel.error) log.error(`Device: ${host} ${name}, Start impulse generator error: ${error.message ?? error}, trying again.`);
