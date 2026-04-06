@@ -15,6 +15,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - For plugin < v4.1.0 use Homebridge UI <= v5.5.0
 - For plugin >= v4.1.0 use Homebridge UI >= v5.13.0
 
+## [4.2.15] - (06.04.2026)
+
+## Changes
+
+- refactor input set
+- bump deependencies
+- cleanup
+
 ## [4.2.12] - (23.02.2026)
 
 ## Changes
