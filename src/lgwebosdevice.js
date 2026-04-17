@@ -1,4 +1,3 @@
-
 import EventEmitter from 'events';
 import RestFul from './restful.js';
 import Mqtt from './mqtt.js';
@@ -63,7 +62,7 @@ class LgWebOsDevice extends EventEmitter {
         this.mqtt = device.mqtt ?? {};
         this.mqttConnected = false;
 
-        //state variable
+        //state variables
         this.functions = new Functions();
         this.inputIdentifier = 1;
         this.reference = null;
@@ -74,7 +73,7 @@ class LgWebOsDevice extends EventEmitter {
         this.volume = 0;
         this.mute = false;
         this.appType = '';
-        this.plyState = false;
+        this.playState = false;     // fix #10: was 'plyState'
         this.channelId = 0;
         this.channelName = '';
         this.channelNumber = 0;
@@ -123,7 +122,7 @@ class LgWebOsDevice extends EventEmitter {
 
     async setOverExternalIntegration(integration, key, value) {
         try {
-            let set = false
+            let set = false;
             let payload = {};
             let cid;
             switch (key) {
@@ -144,7 +143,7 @@ class LgWebOsDevice extends EventEmitter {
                     break;
                 case 'Channel':
                     cid = await this.lgWebOsSocket.getCid('Channel');
-                    set = await this.lgWebOsSocket.send('request', ApiUrls.OpenChannel, { channelId: value }, cid)
+                    set = await this.lgWebOsSocket.send('request', ApiUrls.OpenChannel, { channelId: value }, cid);
                     break;
                 case 'Input':
                     cid = await this.lgWebOsSocket.getCid('App');
@@ -152,103 +151,62 @@ class LgWebOsDevice extends EventEmitter {
                     break;
                 case 'Volume':
                     const volume = (value < 0 || value > 100) ? this.volume : value;
-                    payload = {
-                        volume: volume
-                    };
+                    payload = { volume };
                     cid = await this.lgWebOsSocket.getCid('Audio');
                     set = await this.lgWebOsSocket.send('request', ApiUrls.SetVolume, payload, cid);
                     break;
                 case 'Mute':
-                    payload = {
-                        mute: value
-                    };
+                    payload = { mute: value };
                     cid = await this.lgWebOsSocket.getCid('Audio');
                     set = await this.lgWebOsSocket.send('request', ApiUrls.SetMute, payload, cid);
                     break;
                 case 'Brightness':
-                    payload = {
-                        category: 'picture',
-                        settings: {
-                            brightness: value
-                        }
-                    };
+                    payload = { category: 'picture', settings: { brightness: value } };
                     cid = await this.lgWebOsSocket.getCid();
                     set = await this.lgWebOsSocket.send('alert', ApiUrls.SetSystemSettings, payload, cid);
                     break;
                 case 'Backlight':
-                    payload = {
-                        category: 'picture',
-                        settings: {
-                            backlight: value
-                        }
-                    };
+                    payload = { category: 'picture', settings: { backlight: value } };
                     cid = await this.lgWebOsSocket.getCid();
                     set = await this.lgWebOsSocket.send('alert', ApiUrls.SetSystemSettings, payload, cid);
                     break;
                 case 'Contrast':
-                    payload = {
-                        category: 'picture',
-                        settings: {
-                            contrast: value
-                        }
-                    };
+                    payload = { category: 'picture', settings: { contrast: value } };
                     cid = await this.lgWebOsSocket.getCid();
                     set = await this.lgWebOsSocket.send('alert', ApiUrls.SetSystemSettings, payload, cid);
                     break;
                 case 'Color':
-                    payload = {
-                        category: 'picture',
-                        settings: {
-                            color: value
-                        }
-                    };
+                    payload = { category: 'picture', settings: { color: value } };
                     cid = await this.lgWebOsSocket.getCid();
                     set = await this.lgWebOsSocket.send('alert', ApiUrls.SetSystemSettings, payload, cid);
                     break;
                 case 'PictureMode':
-                    payload = {
-                        category: 'picture',
-                        settings: {
-                            pictureMode: value
-                        }
-                    };
+                    payload = { category: 'picture', settings: { pictureMode: value } };
                     cid = await this.lgWebOsSocket.getCid();
                     set = await this.lgWebOsSocket.send('alert', ApiUrls.SetSystemSettings, payload, cid);
                     break;
                 case 'SoundMode':
-                    payload = {
-                        category: 'sound',
-                        settings: {
-                            soundMode: value
-                        }
-                    };
+                    payload = { category: 'sound', settings: { soundMode: value } };
                     cid = await this.lgWebOsSocket.getCid();
                     set = await this.lgWebOsSocket.send('alert', ApiUrls.SetSystemSettings, payload, cid);
                     break;
                 case 'SoundOutput':
-                    payload = {
-                        output: value
-                    };
+                    payload = { output: value };
                     cid = await this.lgWebOsSocket.getCid('SoundOutput');
                     set = await this.lgWebOsSocket.send('request', ApiUrls.SetSoundOutput, payload, cid);
                     break;
                 case 'PlayState':
-                    payload = {
-                        playState: value
-                    };
-                    cid = await this.lgWebOsSocket.getCid('MediaInfo');
-                    set = await this.lgWebOsSocket.send('request', ApiUrls.GetForegroundAppMediaInfo, payload, cid);
+                    payload = { name: value ? 'PLAY' : 'PAUSE' };
+                    set = await this.lgWebOsSocket.send('button', undefined, payload);
                     break;
                 case 'RcControl':
-                    payload = {
-                        name: value
-                    };
+                    payload = { name: value };
                     set = await this.lgWebOsSocket.send('button', undefined, payload);
                     break;
                 default:
                     this.emit('warn', `${integration}, received key: ${key}, value: ${value}`);
                     break;
-            };
+            }
             return set;
         } catch (error) {
             throw new Error(`${integration} set key: ${key}, value: ${value}, error: ${error}`);
@@ -281,7 +239,7 @@ class LgWebOsDevice extends EventEmitter {
                     .on('error', (error) => this.emit('error', error));
             } catch (error) {
                 this.emit('warn', `RESTFul integration start error: ${error}`);
-            };
+            }
         }
 
         //mqtt client
@@ -315,10 +273,9 @@ class LgWebOsDevice extends EventEmitter {
                     .on('debug', (debug) => this.emit('debug', debug))
                     .on('warn', (warn) => this.emit('warn', warn))
                     .on('error', (error) => this.emit('error', error));
-
             } catch (error) {
                 this.emit('warn', `MQTT integration start error: ${error}`);
-            };
+            }
         }
 
         return true;
@@ -355,8 +312,7 @@ class LgWebOsDevice extends EventEmitter {
 
     async startStopImpulseGenerator(state, timers = []) {
         try {
-            //start impulse generator 
-            await this.lgWebOsSocket.impulseGenerator.state(state, timers)
+            await this.lgWebOsSocket.impulseGenerator.state(state, timers);
             return true;
         } catch (error) {
             throw new Error(`Impulse generator start error: ${error}`);
@@ -373,13 +329,10 @@ class LgWebOsDevice extends EventEmitter {
             };
 
             const sortFn = sortStrategies[this.inputsDisplayOrder];
-
-            // Sort only if a valid function exists
             if (sortFn) {
                 this.inputsServices.sort(sortFn);
             }
 
-            // Debug
             if (this.logDebug) {
                 const orderDump = this.inputsServices.map(svc => ({
                     name: svc.name,
@@ -389,7 +342,6 @@ class LgWebOsDevice extends EventEmitter {
                 this.emit('debug', `Inputs display order:\n${JSON.stringify(orderDump, null, 2)}`);
             }
 
-            // Always update DisplayOrder characteristic, even for "none"
             const displayOrder = this.inputsServices.map(svc => svc.identifier);
             const encodedOrder = Encode(1, displayOrder).toString('base64');
             this.televisionService.updateCharacteristic(Characteristic.DisplayOrder, encodedOrder);
@@ -409,7 +361,6 @@ class LgWebOsDevice extends EventEmitter {
             for (const input of inputs) {
                 if (this.inputsServices.length >= 85 && !remove) continue;
 
-                // Filter
                 const visible = input.visible ?? true;
                 const systemApp = this.filterSystemApps && SystemApps.includes(input.reference);
                 if (systemApp) continue;
@@ -460,7 +411,6 @@ class LgWebOsDevice extends EventEmitter {
                         .setCharacteristic(Characteristic.CurrentVisibilityState, inputVisibility)
                         .setCharacteristic(Characteristic.TargetVisibilityState, inputVisibility);
 
-                    // ConfiguredName persistence
                     inputService.getCharacteristic(Characteristic.ConfiguredName)
                         .onSet(async (value) => {
                             try {
@@ -475,7 +425,6 @@ class LgWebOsDevice extends EventEmitter {
                             }
                         });
 
-                    // TargetVisibility persistence
                     inputService.getCharacteristic(Characteristic.TargetVisibilityState)
                         .onSet(async (state) => {
                             try {
@@ -496,7 +445,6 @@ class LgWebOsDevice extends EventEmitter {
                 }
             }
 
-            // Only one time run
             if (updated) await this.displayOrder();
 
             return true;
@@ -517,12 +465,12 @@ class LgWebOsDevice extends EventEmitter {
                             cid = await this.lgWebOsSocket.getCid();
                             await this.lgWebOsSocket.send('alert', ApiUrls.TurnOnScreenSaver, undefined, cid, 'Screen Saver', 'ON');
                             break;
-                        case 'com.webos.app.screenoff':
-                            let url;
-                            url = this.webOS >= 4.0 ? this.webOS >= 4.5 ? ApiUrls.TurnOffScreen45 : ApiUrls.TurnOffScreen : false;
+                        case 'com.webos.app.screenoff': {
+                            const url = this.webOS >= 4.0 ? this.webOS >= 4.5 ? ApiUrls.TurnOffScreen45 : ApiUrls.TurnOffScreen : false;
                             cid = await this.lgWebOsSocket.getCid('Power');
                             await this.lgWebOsSocket.send('request', url, undefined, cid);
                             break;
+                        }
                         case 'com.webos.app.factorywin':
                             payload = {
                                 id: ApiUrls.ServiceMenu,
@@ -537,12 +485,13 @@ class LgWebOsDevice extends EventEmitter {
                         }
                     }
                     break;
-                case 1: // Channel
+                case 1: { // Channel
                     const liveTv = 'com.webos.app.livetv';
                     if (this.reference !== liveTv) await this.lgWebOsSocket.send('request', ApiUrls.LaunchApp, { id: liveTv }, cid);
                     cid = await this.lgWebOsSocket.getCid('Channel');
                     await this.lgWebOsSocket.send('request', ApiUrls.OpenChannel, { channelId: reference }, cid);
                     break;
+                }
                 default:
                     if (this.logWarn) this.emit('warn', `Set Input not possible, unknown mode: ${mode}`);
                     return;
@@ -559,7 +508,6 @@ class LgWebOsDevice extends EventEmitter {
     //prepare accessory
     async prepareAccessory() {
         try {
-            //accessory
             if (this.logDebug) this.emit('debug', `Prepare accessory`);
 
             const accessoryName = this.name;
@@ -577,7 +525,7 @@ class LgWebOsDevice extends EventEmitter {
                 .setCharacteristic(Characteristic.FirmwareRevision, this.savedInfo.firmwareRevision ?? 'Firmware Revision')
                 .setCharacteristic(Characteristic.ConfiguredName, accessoryName);
 
-            //prepare television service 
+            //prepare television service
             if (!this.disableTvService) {
                 if (this.logDebug) this.emit('debug', `Prepare television service`);
                 this.televisionService = accessory.addService(Service.Television, `${accessoryName} Television`, 'Television');
@@ -621,12 +569,12 @@ class LgWebOsDevice extends EventEmitter {
                                     } else {
                                         this.isBooting = false;
                                     }
-
                                     break;
-                                case 0:
-                                    const cid1 = await this.lgWebOsSocket.getCid('Power');
-                                    await this.lgWebOsSocket.send('request', ApiUrls.TurnOff, undefined, cid1);
+                                case 0: {
+                                    const cid = await this.lgWebOsSocket.getCid('Power');
+                                    await this.lgWebOsSocket.send('request', ApiUrls.TurnOff, undefined, cid);
                                     break;
+                                }
                             }
                             if (this.logInfo) this.emit('info', `Set Power: ${state ? 'ON' : 'OFF'}`);
                             await new Promise(resolve => setTimeout(resolve, 1000));
@@ -637,7 +585,7 @@ class LgWebOsDevice extends EventEmitter {
 
                 this.televisionService.getCharacteristic(Characteristic.ActiveIdentifier)
                     .onGet(async () => {
-                        const inputIdentifier = this.inputIdentifier;;
+                        const inputIdentifier = this.inputIdentifier; // fix #1: removed duplicate semicolon
                         return inputIdentifier;
                     })
                     .onSet(async (activeIdentifier) => {
@@ -655,15 +603,11 @@ class LgWebOsDevice extends EventEmitter {
                                     for (let attempt = 0; attempt < 20; attempt++) {
                                         await new Promise(resolve => setTimeout(resolve, 1000));
 
-                                        // if device is on 
                                         if (this.power && !this.isBooting) {
-
-                                            // if input didn't switch → retry
                                             if (this.inputIdentifier !== activeIdentifier) {
                                                 if (this.logDebug) this.emit('debug', `Retrying channel switch (${attempt + 1}/20)`);
                                                 await this.setInput(input);
                                             } else {
-                                                // sukces
                                                 this.televisionService.updateCharacteristic(Characteristic.ActiveIdentifier, activeIdentifier);
                                                 if (this.logInfo) this.emit('info', `Channel set successfully: ${input.name}`);
                                                 return;
@@ -679,7 +623,6 @@ class LgWebOsDevice extends EventEmitter {
                                 return;
                             }
 
-                            // device is on
                             await this.setInput(input);
                             if (this.logInfo) this.emit('info', `Set Channel Name: ${input.name}, Reference: ${input.reference}`);
                         } catch (error) {
@@ -691,50 +634,24 @@ class LgWebOsDevice extends EventEmitter {
                     .onSet(async (command) => {
                         try {
                             switch (command) {
-                                case Characteristic.RemoteKey.REWIND:
-                                    command = 'REWIND';
-                                    break;
-                                case Characteristic.RemoteKey.FAST_FORWARD:
-                                    command = 'FASTFORWARD';
-                                    break;
-                                case Characteristic.RemoteKey.NEXT_TRACK:
-                                    command = 'GOTONEXT';
-                                    break;
-                                case Characteristic.RemoteKey.PREVIOUS_TRACK:
-                                    command = 'GOTOPREV';
-                                    break;
-                                case Characteristic.RemoteKey.ARROW_UP:
-                                    command = 'UP';
-                                    break;
-                                case Characteristic.RemoteKey.ARROW_DOWN:
-                                    command = 'DOWN';
-                                    break;
-                                case Characteristic.RemoteKey.ARROW_LEFT:
-                                    command = 'LEFT';
-                                    break;
-                                case Characteristic.RemoteKey.ARROW_RIGHT:
-                                    command = 'RIGHT';
-                                    break;
-                                case Characteristic.RemoteKey.SELECT:
-                                    command = 'ENTER';
-                                    break;
-                                case Characteristic.RemoteKey.BACK:
-                                    command = 'BACK';
-                                    break;
-                                case Characteristic.RemoteKey.EXIT:
-                                    command = 'EXIT';
-                                    break;
+                                case Characteristic.RemoteKey.REWIND: command = 'REWIND'; break;
+                                case Characteristic.RemoteKey.FAST_FORWARD: command = 'FASTFORWARD'; break;
+                                case Characteristic.RemoteKey.NEXT_TRACK: command = 'GOTONEXT'; break;
+                                case Characteristic.RemoteKey.PREVIOUS_TRACK: command = 'GOTOPREV'; break;
+                                case Characteristic.RemoteKey.ARROW_UP: command = 'UP'; break;
+                                case Characteristic.RemoteKey.ARROW_DOWN: command = 'DOWN'; break;
+                                case Characteristic.RemoteKey.ARROW_LEFT: command = 'LEFT'; break;
+                                case Characteristic.RemoteKey.ARROW_RIGHT: command = 'RIGHT'; break;
+                                case Characteristic.RemoteKey.SELECT: command = 'ENTER'; break;
+                                case Characteristic.RemoteKey.BACK: command = 'BACK'; break;
+                                case Characteristic.RemoteKey.EXIT: command = 'EXIT'; break;
                                 case Characteristic.RemoteKey.PLAY_PAUSE:
-                                    command = this.playState ? 'PAUSE' : 'PLAY';
+                                    command = this.playState ? 'PAUSE' : 'PLAY'; // fix #10: was this.plyState
                                     break;
-                                case Characteristic.RemoteKey.INFORMATION:
-                                    command = this.infoButtonCommand;
-                                    break;
+                                case Characteristic.RemoteKey.INFORMATION: command = this.infoButtonCommand; break;
                             }
 
-                            const payload = {
-                                name: command
-                            };
+                            const payload = { name: command };
                             await this.lgWebOsSocket.send('button', undefined, payload);
                             if (this.logInfo) this.emit('info', `Set Remote Key: ${command}`);
                         } catch (error) {
@@ -771,7 +688,7 @@ class LgWebOsDevice extends EventEmitter {
                     })
                     .onSet(async (value) => {
                         try {
-                            const newMediaState = [ApiUrls.SetMediaPlay, ApiUrls.SetMediaPause, ApiUrls.SetMediaStop][value]
+                            const newMediaState = [ApiUrls.SetMediaPlay, ApiUrls.SetMediaPause, ApiUrls.SetMediaStop][value];
                             await this.lgWebOsSocket.send('request', newMediaState);
                             if (this.logInfo) this.emit('info', `Set Media: ${['PLAY', 'PAUSE', 'STOP', 'LOADING', 'INTERRUPTED'][value]}`);
                         } catch (error) {
@@ -783,17 +700,11 @@ class LgWebOsDevice extends EventEmitter {
                     .onSet(async (command) => {
                         try {
                             switch (command) {
-                                case Characteristic.PowerModeSelection.SHOW:
-                                    command = 'MENU';
-                                    break;
-                                case Characteristic.PowerModeSelection.HIDE:
-                                    command = 'BACK';
-                                    break;
-                            };
+                                case Characteristic.PowerModeSelection.SHOW: command = 'MENU'; break;
+                                case Characteristic.PowerModeSelection.HIDE: command = 'BACK'; break;
+                            }
 
-                            const payload = {
-                                name: command
-                            };
+                            const payload = { name: command };
                             await this.lgWebOsSocket.send('button', undefined, payload);
                             if (this.logInfo) this.emit('info', `Set Power Mode Selection: ${command === 'MENU' ? 'SHOW' : 'HIDE'}`);
                         } catch (error) {
@@ -811,11 +722,8 @@ class LgWebOsDevice extends EventEmitter {
                             try {
                                 const payload = {
                                     category: 'picture',
-                                    settings: {
-                                        brightness: value
-                                    }
+                                    settings: { brightness: value }
                                 };
-
                                 const cid = await this.lgWebOsSocket.getCid();
                                 await this.lgWebOsSocket.send('alert', ApiUrls.SetSystemSettings, payload, cid, 'Set Brightness', `Value: ${value}`);
                                 if (this.logInfo) this.emit('info', `Set Brightness: ${value}`);
@@ -832,41 +740,22 @@ class LgWebOsDevice extends EventEmitter {
                         .onSet(async (command) => {
                             try {
                                 switch (command) {
-                                    case Characteristic.PictureMode.OTHER:
-                                        command = 'cinema';
-                                        break;
-                                    case Characteristic.PictureMode.STANDARD:
-                                        command = 'normal';
-                                        break;
-                                    case Characteristic.PictureMode.CALIBRATED:
-                                        command = 'expert1';
-                                        break;
-                                    case Characteristic.PictureMode.CALIBRATED_DARK:
-                                        command = 'expert2';
-                                        break;
-                                    case Characteristic.PictureMode.VIVID:
-                                        command = 'vivid';
-                                        break;
-                                    case Characteristic.PictureMode.GAME:
-                                        command = 'game';
-                                        break;
-                                    case Characteristic.PictureMode.COMPUTER:
-                                        command = 'photo';
-                                        break;
-                                    case Characteristic.PictureMode.CUSTOM:
-                                        command = 'sport';
-                                        break;
-                                };
+                                    case Characteristic.PictureMode.OTHER: command = 'cinema'; break;
+                                    case Characteristic.PictureMode.STANDARD: command = 'normal'; break;
+                                    case Characteristic.PictureMode.CALIBRATED: command = 'expert1'; break;
+                                    case Characteristic.PictureMode.CALIBRATED_DARK: command = 'expert2'; break;
+                                    case Characteristic.PictureMode.VIVID: command = 'vivid'; break;
+                                    case Characteristic.PictureMode.GAME: command = 'game'; break;
+                                    case Characteristic.PictureMode.COMPUTER: command = 'photo'; break;
+                                    case Characteristic.PictureMode.CUSTOM: command = 'sport'; break;
+                                }
 
                                 const payload = {
                                     category: 'picture',
-                                    settings: {
-                                        pictureMode: command
-                                    }
+                                    settings: { pictureMode: command }
                                 };
-
                                 const cid = await this.lgWebOsSocket.getCid();
-                                await this.lgWebOsSocket.send('alert', ApiUrls.SetSystemSettings, payload, cid), 'Set Picture Mode', `Value: ${PictureModes[command] ?? 'Unknown'}`;
+                                await this.lgWebOsSocket.send('alert', ApiUrls.SetSystemSettings, payload, cid, 'Set Picture Mode', `Value: ${PictureModes[command] ?? 'Unknown'}`);
                                 if (this.logInfo) this.emit('info', `Set Picture Mode: ${PictureModes[command] ?? 'Unknown'}`);
                             } catch (error) {
                                 if (this.logWarn) this.emit('warn', `Set Picture Mode error: ${error}`);
@@ -877,7 +766,6 @@ class LgWebOsDevice extends EventEmitter {
                 //prepare volume service
                 if (this.volumeControl > 0) {
                     const volumeServiceName = this.volumeControlNamePrefix ? `${accessoryName} ${this.volumeControlName}` : this.volumeControlName;
-                    const volumeServiceNameTv = this.volumeControlNamePrefix ? `${accessoryName} ${this.volumeControlName}` : this.volumeControlName;
 
                     switch (this.volumeControl) {
                         case 1: //lightbulb
@@ -954,10 +842,9 @@ class LgWebOsDevice extends EventEmitter {
                             break;
                         case 3: // tv speaker
                             if (this.logDebug) this.emit('debug', `Prepare television speaker service`);
-                            const volumeServiceName3 = this.volumeControlNamePrefix ? `${accessoryName} ${this.volumeControlName}` : this.volumeControlName;
-                            this.volumeServiceTvSpeaker = accessory.addService(Service.TelevisionSpeaker, volumeServiceName3, 'TV Speaker');
+                            this.volumeServiceTvSpeaker = accessory.addService(Service.TelevisionSpeaker, volumeServiceName, 'TV Speaker');
                             this.volumeServiceTvSpeaker.addOptionalCharacteristic(Characteristic.ConfiguredName);
-                            this.volumeServiceTvSpeaker.setCharacteristic(Characteristic.ConfiguredName, volumeServiceName3);
+                            this.volumeServiceTvSpeaker.setCharacteristic(Characteristic.ConfiguredName, volumeServiceName);
                             this.volumeServiceTvSpeaker.getCharacteristic(Characteristic.Active)
                                 .onGet(async () => {
                                     const state = this.power;
@@ -973,12 +860,8 @@ class LgWebOsDevice extends EventEmitter {
                                 .onSet(async (command) => {
                                     try {
                                         switch (command) {
-                                            case Characteristic.VolumeSelector.INCREMENT:
-                                                command = 'VOLUMEUP';
-                                                break;
-                                            case Characteristic.VolumeSelector.DECREMENT:
-                                                command = 'VOLUMEDOWN';
-                                                break;
+                                            case Characteristic.VolumeSelector.INCREMENT: command = 'VOLUMEUP'; break;
+                                            case Characteristic.VolumeSelector.DECREMENT: command = 'VOLUMEDOWN'; break;
                                         }
                                         const payload = { name: command };
                                         await this.lgWebOsSocket.send('button', undefined, payload);
@@ -1020,9 +903,9 @@ class LgWebOsDevice extends EventEmitter {
                             break;
                         case 4: // tv speaker + lightbulb
                             if (this.logDebug) this.emit('debug', `Prepare television speaker service`);
-                            this.volumeServiceTvSpeaker = accessory.addService(Service.TelevisionSpeaker, volumeServiceNameTv, 'TV Speaker');
+                            this.volumeServiceTvSpeaker = accessory.addService(Service.TelevisionSpeaker, volumeServiceName, 'TV Speaker');
                             this.volumeServiceTvSpeaker.addOptionalCharacteristic(Characteristic.ConfiguredName);
-                            this.volumeServiceTvSpeaker.setCharacteristic(Characteristic.ConfiguredName, volumeServiceNameTv);
+                            this.volumeServiceTvSpeaker.setCharacteristic(Characteristic.ConfiguredName, volumeServiceName);
                             this.volumeServiceTvSpeaker.getCharacteristic(Characteristic.Active)
                                 .onGet(async () => {
                                     const state = this.power;
@@ -1038,12 +921,8 @@ class LgWebOsDevice extends EventEmitter {
                                 .onSet(async (command) => {
                                     try {
                                         switch (command) {
-                                            case Characteristic.VolumeSelector.INCREMENT:
-                                                command = 'VOLUMEUP';
-                                                break;
-                                            case Characteristic.VolumeSelector.DECREMENT:
-                                                command = 'VOLUMEDOWN';
-                                                break;
+                                            case Characteristic.VolumeSelector.INCREMENT: command = 'VOLUMEUP'; break;
+                                            case Characteristic.VolumeSelector.DECREMENT: command = 'VOLUMEDOWN'; break;
                                         }
                                         const payload = { name: command };
                                         await this.lgWebOsSocket.send('button', undefined, payload);
@@ -1107,9 +986,9 @@ class LgWebOsDevice extends EventEmitter {
                             break;
                         case 5: // tv speaker + fan
                             if (this.logDebug) this.emit('debug', `Prepare television speaker service`);
-                            this.volumeServiceTvSpeaker = accessory.addService(Service.TelevisionSpeaker, volumeServiceNameTv, 'TV Speaker');
+                            this.volumeServiceTvSpeaker = accessory.addService(Service.TelevisionSpeaker, volumeServiceName, 'TV Speaker');
                             this.volumeServiceTvSpeaker.addOptionalCharacteristic(Characteristic.ConfiguredName);
-                            this.volumeServiceTvSpeaker.setCharacteristic(Characteristic.ConfiguredName, volumeServiceNameTv);
+                            this.volumeServiceTvSpeaker.setCharacteristic(Characteristic.ConfiguredName, volumeServiceName);
                             this.volumeServiceTvSpeaker.getCharacteristic(Characteristic.Active)
                                 .onGet(async () => {
                                     const state = this.power;
@@ -1125,12 +1004,8 @@ class LgWebOsDevice extends EventEmitter {
                                 .onSet(async (command) => {
                                     try {
                                         switch (command) {
-                                            case Characteristic.VolumeSelector.INCREMENT:
-                                                command = 'VOLUMEUP';
-                                                break;
-                                            case Characteristic.VolumeSelector.DECREMENT:
-                                                command = 'VOLUMEDOWN';
-                                                break;
+                                            case Characteristic.VolumeSelector.INCREMENT: command = 'VOLUMEUP'; break;
+                                            case Characteristic.VolumeSelector.DECREMENT: command = 'VOLUMEDOWN'; break;
                                         }
                                         const payload = { name: command };
                                         await this.lgWebOsSocket.send('button', undefined, payload);
@@ -1164,7 +1039,8 @@ class LgWebOsDevice extends EventEmitter {
                                         const payload = { mute: state };
                                         const cid = await this.lgWebOsSocket.getCid('Audio');
                                         await this.lgWebOsSocket.send('request', ApiUrls.SetMute, payload, cid);
-                                        if (this.logInfo) this.emit('info', `Set Mute: ${!state ? 'ON' : 'OFF'}`);
+                                        // fix #8: log was inverted in case 5 (was !state ? 'ON' : 'OFF')
+                                        if (this.logInfo) this.emit('info', `Set Mute: ${state ? 'ON' : 'OFF'}`);
                                     } catch (error) {
                                         if (this.logWarn) this.emit('warn', `Set Mute error: ${error}`);
                                     }
@@ -1199,9 +1075,9 @@ class LgWebOsDevice extends EventEmitter {
                 if (this.logDebug) this.emit('debug', `Prepare inputs service`);
                 this.inputsServices = [];
                 await this.addRemoveOrUpdateInput(this.savedInputs, false);
-            }
+            } // end if (!this.disableTvService)
 
-            //picture Control
+            //picture control
             if (this.webOS >= 4.0) {
                 //Backlight
                 if (this.backlightControl) {
@@ -1224,11 +1100,8 @@ class LgWebOsDevice extends EventEmitter {
                             try {
                                 const payload = {
                                     category: 'picture',
-                                    settings: {
-                                        backlight: value
-                                    }
+                                    settings: { backlight: value }
                                 };
-
                                 const cid = await this.lgWebOsSocket.getCid();
                                 await this.lgWebOsSocket.send('alert', ApiUrls.SetSystemSettings, payload, cid, 'Backlight', `Value: ${value}`);
                                 if (this.logInfo) this.emit('info', `Set Backlight: ${value}`);
@@ -1249,7 +1122,7 @@ class LgWebOsDevice extends EventEmitter {
                             const state = this.power;
                             return state;
                         })
-                        .onSet(async (state) => { })
+                        .onSet(async (state) => { });
                     this.brightnessService.getCharacteristic(Characteristic.Brightness)
                         .onGet(async () => {
                             const value = this.brightness;
@@ -1259,11 +1132,8 @@ class LgWebOsDevice extends EventEmitter {
                             try {
                                 const payload = {
                                     category: 'picture',
-                                    settings: {
-                                        brightness: value
-                                    }
+                                    settings: { brightness: value }
                                 };
-
                                 const cid = await this.lgWebOsSocket.getCid();
                                 await this.lgWebOsSocket.send('alert', ApiUrls.SetSystemSettings, payload, cid, 'Brightness', `Value: ${value}`);
                                 if (this.logInfo) this.emit('info', `Set Brightness: ${value}`);
@@ -1294,11 +1164,8 @@ class LgWebOsDevice extends EventEmitter {
                             try {
                                 const payload = {
                                     category: 'picture',
-                                    settings: {
-                                        contrast: value
-                                    }
+                                    settings: { contrast: value }
                                 };
-
                                 const cid = await this.lgWebOsSocket.getCid();
                                 await this.lgWebOsSocket.send('alert', ApiUrls.SetSystemSettings, payload, cid, 'Contrast', `Value: ${value}`);
                                 if (this.logInfo) this.emit('info', `Set Contrast: ${value}`);
@@ -1329,11 +1196,8 @@ class LgWebOsDevice extends EventEmitter {
                             try {
                                 const payload = {
                                     category: 'picture',
-                                    settings: {
-                                        color: value
-                                    }
+                                    settings: { color: value }
                                 };
-
                                 const cid = await this.lgWebOsSocket.getCid();
                                 await this.lgWebOsSocket.send('alert', ApiUrls.SetSystemSettings, payload, cid, 'Color', `Value: ${value}`);
                                 if (this.logInfo) this.emit('info', `Set Color: ${value}`);
@@ -1366,13 +1230,10 @@ class LgWebOsDevice extends EventEmitter {
                                 try {
                                     const payload = {
                                         category: 'picture',
-                                        settings: {
-                                            pictureMode: modeReference
-                                        }
-                                    }
-
+                                        settings: { pictureMode: modeReference }
+                                    };
                                     const cid = state ? await this.lgWebOsSocket.getCid() : false;
-                                    const set = state ? await this.lgWebOsSocket.send('alert', ApiUrls.SetSystemSettings, payload, cid, 'Picture Mode', `Value: ${modeName}`) : false;
+                                    if (state) await this.lgWebOsSocket.send('alert', ApiUrls.SetSystemSettings, payload, cid, 'Picture Mode', `Value: ${modeName}`);
                                     if (this.logInfo) this.emit('info', `Set Picture Mode: ${modeName}`);
                                 } catch (error) {
                                     if (this.logWarn) this.emit('warn', `Set Picture Mode error: ${error}`);
@@ -1405,15 +1266,14 @@ class LgWebOsDevice extends EventEmitter {
                                         url = this.webOS >= 4.5 ? ApiUrls.TurnOnScreen45 : ApiUrls.TurnOnScreen;
                                         break;
                                 }
-
                                 const cid = await this.lgWebOsSocket.getCid('Power');
                                 await this.lgWebOsSocket.send('request', url, undefined, cid);
-                                if (this.logInfo) this.emit('info', `Turn Screen ${state ? 'ON' : 'OFF'}`);
+                                if (this.logInfo) this.emit('info', `Turn Screen ${state ? 'OFF' : 'ON'}`);
                             } catch (error) {
-                                if (this.logWarn) this.emit('warn', `Turn Screen ${state ? 'ON' : 'OFF'}, error: ${error}`);
+                                if (this.logWarn) this.emit('warn', `Turn Screen ${state ? 'OFF' : 'ON'}, error: ${error}`);
                             }
                         });
-                };
+                }
             }
 
             //turn screen saver ON/OFF
@@ -1430,10 +1290,14 @@ class LgWebOsDevice extends EventEmitter {
                     .onSet(async (state) => {
                         try {
                             const cid = await this.lgWebOsSocket.getCid();
-                            const set = state ? await this.lgWebOsSocket.send('alert', ApiUrls.TurnOnScreenSaver, undefined, cid, 'Screen Saver', `ON`) : await this.lgWebOsSocket.send('button', undefined, { name: 'EXIT' });
+                            if (state) {
+                                await this.lgWebOsSocket.send('alert', ApiUrls.TurnOnScreenSaver, undefined, cid, 'Screen Saver', 'ON');
+                            } else {
+                                await this.lgWebOsSocket.send('button', undefined, { name: 'EXIT' });
+                            }
                             if (this.logInfo) this.emit('info', `Set Screen Saver: ${state}`);
                         } catch (error) {
-                            if (this.logWarn) this.emit('warn', `Set Color error: ${error}`);
+                            if (this.logWarn) this.emit('warn', `Set Screen Saver error: ${error}`);
                         }
                     });
             }
@@ -1461,13 +1325,10 @@ class LgWebOsDevice extends EventEmitter {
                             try {
                                 const payload = {
                                     category: 'sound',
-                                    settings: {
-                                        soundMode: modeReference
-                                    }
-                                }
-
+                                    settings: { soundMode: modeReference }
+                                };
                                 const cid = state ? await this.lgWebOsSocket.getCid() : false;
-                                const set = state ? await this.lgWebOsSocket.send('alert', ApiUrls.SetSystemSettings, payload, cid, 'Sound Mode', `Value: ${modeName}`) : false;
+                                if (state) await this.lgWebOsSocket.send('alert', ApiUrls.SetSystemSettings, payload, cid, 'Sound Mode', `Value: ${modeName}`);
                                 if (this.logInfo) this.emit('info', `Set Sound Mode: ${modeName}`);
                             } catch (error) {
                                 if (this.logWarn) this.emit('warn', `Set Sound Mode error: ${error}`);
@@ -1499,12 +1360,9 @@ class LgWebOsDevice extends EventEmitter {
                         })
                         .onSet(async (state) => {
                             try {
-                                const payload = {
-                                    output: outputReference
-                                }
-
+                                const payload = { output: outputReference };
                                 const cid = state ? await this.lgWebOsSocket.getCid('SoundOutput') : false;
-                                const send = state ? await this.lgWebOsSocket.send('request', ApiUrls.SetSoundOutput, payload, cid) : false;
+                                if (state) await this.lgWebOsSocket.send('request', ApiUrls.SetSoundOutput, payload, cid);
                                 if (this.logInfo) this.emit('info', `Set Sound Output: ${outputName}`);
                             } catch (error) {
                                 if (this.logWarn) this.emit('warn', `Set Sound Output error: ${error}`);
@@ -1515,7 +1373,7 @@ class LgWebOsDevice extends EventEmitter {
                 }
             }
 
-            //prepare sonsor services
+            //prepare sensor services
             const possibleSensorCount = 99 - this.accessory.services.length;
             const maxSensorCount = this.sensors.length >= possibleSensorCount ? possibleSensorCount : this.sensors.length;
             if (maxSensorCount > 0) {
@@ -1523,19 +1381,10 @@ class LgWebOsDevice extends EventEmitter {
                 if (this.logDebug) this.emit('debug', `Prepare sensors services`);
                 for (let i = 0; i < maxSensorCount; i++) {
                     const sensor = this.sensors[i];
-
-                    //get sensor name		
                     const name = sensor.name || `Sensor ${i}`;
-
-                    //get sensor name prefix
                     const namePrefix = sensor.namePrefix;
-
-                    //get service type
                     const serviceType = sensor.serviceType;
-
-                    //get characteristic type
                     const characteristicType = sensor.characteristicType;
-
                     const serviceName = namePrefix ? `${accessoryName} ${name}` : name;
                     const sensorService = new serviceType(serviceName, `Sensor ${i}`);
                     sensorService.addOptionalCharacteristic(Characteristic.ConfiguredName);
@@ -1550,32 +1399,19 @@ class LgWebOsDevice extends EventEmitter {
                 }
             }
 
-            //prepare inputs buttons services
+            //prepare button services
             const possibleButtonsCount = 99 - this.accessory.services.length;
             const maxButtonsCount = this.buttons.length >= possibleButtonsCount ? possibleButtonsCount : this.buttons.length;
             if (maxButtonsCount > 0) {
                 if (this.logDebug) this.emit('debug', `Prepare button service`);
-
                 this.buttonsServices = [];
                 for (let i = 0; i < maxButtonsCount; i++) {
-                    //get button
                     const button = this.buttons[i];
-
-                    //get button name
                     const buttonName = button.name || `Button ${i}`;
-
-                    //get button mode
                     const buttonMode = button.mode;
-
-                    //get button reference
                     const buttonReference = button.reference;
-
-                    //get button name prefix
                     const namePrefix = button.namePrefix || false;
-
-                    //get service type
                     const serviceType = button.serviceType;
-
                     const serviceName = namePrefix ? `${accessoryName} ${buttonName}` : buttonName;
                     const buttonService = new serviceType(serviceName, `Button ${i}`);
                     buttonService.addOptionalCharacteristic(Characteristic.ConfiguredName);
@@ -1591,12 +1427,12 @@ class LgWebOsDevice extends EventEmitter {
                             try {
                                 let cid;
                                 switch (buttonMode) {
-                                    case 0: //App Control
+                                    case 0: // App Control
                                         cid = state ? await this.lgWebOsSocket.getCid('App') : false;
                                         if (state) await this.lgWebOsSocket.send('request', ApiUrls.LaunchApp, { id: buttonReference }, cid);
                                         if (state && this.logDebug) this.emit('debug', `Set Input, Name: ${buttonName}, Reference: ${buttonReference}`);
                                         break;
-                                    case 1: //Channel Control
+                                    case 1: { // Channel Control
                                         const liveTv = 'com.webos.app.livetv';
                                         cid = state && this.reference !== liveTv ? await this.lgWebOsSocket.getCid('App') : false;
                                         if (this.reference !== liveTv) await this.lgWebOsSocket.send('request', ApiUrls.LaunchApp, { id: liveTv }, cid);
@@ -1604,7 +1440,8 @@ class LgWebOsDevice extends EventEmitter {
                                         if (state) await this.lgWebOsSocket.send('request', ApiUrls.OpenChannel, { channelId: buttonReference }, cid);
                                         if (state && this.logDebug) this.emit('debug', `Set Channel, Name: ${buttonName}, Reference: ${buttonReference}`);
                                         break;
-                                    case 2: //RC Control
+                                    }
+                                    case 2: // RC Control
                                         await this.lgWebOsSocket.send('button', undefined, { name: buttonReference });
                                         if (state && this.logDebug) this.emit('debug', `Set Command, Name: ${buttonName}, Reference: ${buttonReference}`);
                                         break;
@@ -1619,13 +1456,13 @@ class LgWebOsDevice extends EventEmitter {
                         });
                     this.buttonsServices.push(buttonService);
                     accessory.addService(buttonService);
-                };
+                }
             }
 
             return accessory;
         } catch (error) {
-            throw new Error(error)
-        };
+            throw new Error(error);
+        }
     }
 
     //start
@@ -1640,7 +1477,6 @@ class LgWebOsDevice extends EventEmitter {
         }
 
         try {
-            //lg tv client
             this.lgWebOsSocket = new LgWebOsSocket(this.device, this.keyFile, this.devInfoFile, this.inputsFile, this.channelsFile, this.restFul.enable, this.mqtt.enable)
                 .on('deviceInfo', (info) => {
                     this.emit('devInfo', `-------- ${this.name} --------`);
@@ -1651,7 +1487,7 @@ class LgWebOsDevice extends EventEmitter {
                     this.emit('devInfo', `Firmware: ${info.firmwareRevision}`);
                     this.emit('devInfo', `----------------------------------`);
 
-                    this.informationService?.setCharacteristic(Characteristic.FirmwareRevision, info.firmwareRevision)
+                    this.informationService?.setCharacteristic(Characteristic.FirmwareRevision, info.firmwareRevision);
                 })
                 .on('installedApps', async (inputs, remove) => {
                     await this.addRemoveOrUpdateInput(inputs, remove);
@@ -1663,7 +1499,7 @@ class LgWebOsDevice extends EventEmitter {
                     for (let i = 0; i < this.buttons.length; i++) {
                         const button = this.buttons[i];
                         const state = power ? (button.reference === 'POWER' ? power : button.state) : false;
-                        button.state = state
+                        button.state = state;
                         this.buttonsServices?.[i]?.updateCharacteristic(Characteristic.On, state);
                     }
 
@@ -1706,7 +1542,7 @@ class LgWebOsDevice extends EventEmitter {
                     for (let i = 0; i < this.buttons.length; i++) {
                         const button = this.buttons[i];
                         const state = power ? (button.command === 'MUTE' ? muteV : button.state) : false;
-                        button.state = state
+                        button.state = state;
                         this.buttonsServices?.[i]?.updateCharacteristic(Characteristic.On, state);
                     }
 
@@ -1770,9 +1606,20 @@ class LgWebOsDevice extends EventEmitter {
                     }
                 })
                 .on('pictureMode', async (pictureMode, power) => {
-                    const mode = 1;
+                    // fix #3: map pictureMode string to HomeKit PictureMode value instead of hardcoding 1
+                    const pictureModeMap = {
+                        cinema: Characteristic.PictureMode.OTHER,
+                        normal: Characteristic.PictureMode.STANDARD,
+                        expert1: Characteristic.PictureMode.CALIBRATED,
+                        expert2: Characteristic.PictureMode.CALIBRATED_DARK,
+                        vivid: Characteristic.PictureMode.VIVID,
+                        game: Characteristic.PictureMode.GAME,
+                        photo: Characteristic.PictureMode.COMPUTER,
+                        sport: Characteristic.PictureMode.CUSTOM,
+                    };
+                    const homekitMode = pictureModeMap[pictureMode] ?? Characteristic.PictureMode.OTHER;
 
-                    this.televisionService?.updateCharacteristic(Characteristic.PictureMode, mode);
+                    this.televisionService?.updateCharacteristic(Characteristic.PictureMode, homekitMode);
                     for (let i = 0; i < this.pictureModes.length; i++) {
                         const mode = this.pictureModes[i];
                         const state = power ? mode.reference === pictureMode : false;
@@ -1780,7 +1627,7 @@ class LgWebOsDevice extends EventEmitter {
                         this.pictureModesServices?.[i]?.updateCharacteristic(Characteristic.On, state);
                     }
 
-                    this.pictureModeHomeKit = mode;
+                    this.pictureModeHomeKit = homekitMode;
                     this.pictureMode = pictureMode;
                     if (this.logInfo) this.emit('info', `Picture Mode: ${PictureModes[pictureMode] ?? 'Unknown'}`);
                 })
@@ -1806,13 +1653,14 @@ class LgWebOsDevice extends EventEmitter {
                     this.soundOutput = soundOutput;
                     if (this.logInfo) this.emit('info', `Sound Output: ${SoundOutputs[soundOutput] ?? 'Unknown'}`);
                 })
+                // fix #12: event name unified to 'mediaInfo' (was 'mediainfo' in socket, never matched handler)
                 .on('mediaInfo', async (appId, playState, appType, power) => {
                     const input = this.inputsServices?.find(input => input.reference === appId) ?? false;
                     const inputName = input ? input.name : appId;
 
                     this.sensorPlayStateService?.updateCharacteristic(Characteristic.ContactSensorState, playState);
 
-                    this.plyState = playState;
+                    this.playState = playState; // fix #10: was plyState
                     if (this.logInfo) this.emit('info', `Input Name: ${inputName}, state: ${this.playState ? 'Playing' : 'Paused'}`);
                 })
                 .on('updateSensors', async (power, screenState, appId, volume, mute, soundMode, soundOutput, pictureMode, playState, channelId) => {
@@ -1820,7 +1668,6 @@ class LgWebOsDevice extends EventEmitter {
                     const screenSaver = screenState === 'Screen Saver';
                     const activeStandby = screenState === 'Active Standby';
 
-                    // sensors
                     const currentStateModeMap = {
                         0: appId,
                         1: power,
@@ -1847,7 +1694,7 @@ class LgWebOsDevice extends EventEmitter {
                         7: this.screenOff,
                         8: this.screenSaver,
                         9: this.activeStandby,
-                        10: this.playState,
+                        10: this.playState, // fix #10: was plyState
                         11: this.channelId,
                     };
 
@@ -1873,21 +1720,21 @@ class LgWebOsDevice extends EventEmitter {
                         } else {
                             if (isActiveMode) {
                                 switch (sensor.mode) {
-                                    case 0: // input
-                                    case 4: // sound mode
-                                    case 5: // sound output
-                                    case 6: // picture mode
+                                    case 0:  // input
+                                    case 4:  // sound mode
+                                    case 5:  // sound output
+                                    case 6:  // picture mode
                                     case 11: // channel
                                         state = currentValue === reference;
                                         break;
-                                    case 2: // volume mode
+                                    case 2: // volume
                                         state = currentValue === level;
                                         break;
-                                    case 1: // power
-                                    case 3: // mute
-                                    case 7: // screenOff
-                                    case 8: // screenSaver
-                                    case 9: // activeStandby
+                                    case 1:  // power
+                                    case 3:  // mute
+                                    case 7:  // screenOff
+                                    case 8:  // screenSaver
+                                    case 9:  // activeStandby
                                     case 10: // playState
                                         state = currentValue === true;
                                         break;
@@ -1936,7 +1783,6 @@ class LgWebOsDevice extends EventEmitter {
 
                         if (key !== '0') {
                             clearInterval(intervalId);
-
                             await this.prepareDataForAccessory();
                             const accessory = await this.prepareAccessory();
                             resolve(accessory);
