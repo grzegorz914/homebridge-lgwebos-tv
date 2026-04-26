@@ -15,6 +15,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - For plugin < v4.1.0 use Homebridge UI <= v5.5.0
 - For plugin >= v4.1.0 use Homebridge UI >= v5.13.0
 
+## [4.3.0] - (25.04.2026)
+
+## Changes
+
+- added support for webOS 26 and firmware 40.xx.xx
+- cleanup
+
 ## [4.2.15] - (06.04.2026)
 
 ## Changes

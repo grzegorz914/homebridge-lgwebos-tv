@@ -115,7 +115,6 @@ class LgWebOsSocket extends EventEmitter {
                 case 'PictureMode': return this.pictureModeId;
                 case 'SoundMode': return this.soundModeId;
                 case 'SoundOutput': return this.soundOutputId;
-                // fix #13: was 'externalInoutListId' (typo), now matches the correctly named property
                 case 'ExternalInputList': return this.externalInputListId;
                 case 'MediaInfo': return this.mediaInfoId;
                 default: {
@@ -171,6 +170,21 @@ class LgWebOsSocket extends EventEmitter {
         }
     }
 
+    async applySoftwareInfoFallback() {
+        // Called when getCurrentSWInformation returns 401 (webOS 26+).
+        // If the endpoint is blocked, the TV is new enough to be treated as the latest webOS.
+        this.tvInfo.webOS = 26.0;
+        this.tvInfo.productName = 'webOSTV 26.0';
+        this.tvInfo.firmwareRevision = this.tvInfo.firmwareRevision || 'N/A';
+        // deviceId was already filled from serialNumber in the systemInfo handler
+
+        if (this.logDebug) this.emit('debug', `Software info fallback (webOS 26+): deviceId=${this.tvInfo.deviceId}, model=${this.tvInfo.modelName}`);
+
+        await this.functions.saveData(this.devInfoFile, this.tvInfo);
+        this.emit('deviceInfo', this.tvInfo);
+        await this.subscribeTvStatus();
+    }
+
     async subscribeTvStatus() {
         if (this.logDebug) this.emit('debug', `Subscribe tv status`);
 
@@ -210,6 +224,8 @@ class LgWebOsSocket extends EventEmitter {
                     category: 'picture',
                     keys: ['pictureMode']
                 };
+                //this.pictureModeId = await this.getCid();
+                //await this.send('alert', ApiUrls.GetSystemSettings, payload, this.pictureModeId);
             }
 
             //sound mode
@@ -419,6 +435,9 @@ class LgWebOsSocket extends EventEmitter {
                                 case 'response':
                                     if (this.logDebug) this.emit('debug', `System info: ${stringifyMessage}`);
                                     this.tvInfo.modelName = messageData.modelName ?? 'LG TV';
+                                    // webOS 26+: getSystemInfo returns serialNumber instead of deviceId;
+                                    // store it now so the softwareInfo fallback has real data
+                                    this.tvInfo.deviceId = messageData.deviceId ?? messageData.serialNumber ?? this.tvInfo.deviceId;
                                     await this.getSoftwareInfo();
                                     if (this.restFulEnabled) this.emit('restFul', 'systeminfo', messageData);
                                     if (this.mqttEnabled) this.emit('mqtt', 'System info', messageData);
@@ -446,7 +465,12 @@ class LgWebOsSocket extends EventEmitter {
                                     if (this.mqttEnabled) this.emit('mqtt', 'Software info', messageData);
                                     break;
                                 case 'error':
-                                    if (this.logDebug) this.emit('debug', `Software info error: ${stringifyMessage}`);
+                                    // webOS 26+ blocks getCurrentSWInformation with 401 insufficient permissions.
+                                    // Fall back to data already harvested from getSystemInfo and derive
+                                    // the webOS version from the model name (e.g. C31 → 2023 → webOS 23,
+                                    // but firmware 40.x is shipped with webOS 26 via the Re:New program).
+                                    if (this.logDebug) this.emit('debug', `Software info blocked (likely webOS 26+ 401), applying fallback: ${stringifyMessage}`);
+                                    await this.applySoftwareInfoFallback();
                                     break;
                                 default:
                                     if (this.logDebug) this.emit('debug', `Software info received message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`);
@@ -682,7 +706,6 @@ class LgWebOsSocket extends EventEmitter {
                                     if (this.logDebug) this.emit('debug', `Channel error: ${stringifyMessage}`);
                                     break;
                                 default:
-                                    // fix #11: was 'his.emit' (missing 't')
                                     if (this.logDebug) this.emit('debug', `Channel received message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`);
                                     return;
                             }
@@ -796,7 +819,6 @@ class LgWebOsSocket extends EventEmitter {
                                     this.playState = playState;
                                     this.appType = appType;
 
-                                    // fix #12: event name unified to 'mediaInfo'
                                     this.emit('mediaInfo', appId, playState, appType, this.power);
                                     this.updateSensors();
                                     if (this.restFulEnabled) this.emit('restFul', 'mediainfo', messageData);
@@ -815,6 +837,7 @@ class LgWebOsSocket extends EventEmitter {
                             if (this.logDebug) this.emit('debug', `Alert: ${stringifyMessage}`);
                             const alertId = messageData.alertId ?? false;
                             if (!alertId) return;
+
                             if (this.tvInfo.webOS >= 4.0) {
                                 await this.send('request', ApiUrls.CloseAlert, { alertId });
                             } else {
@@ -826,7 +849,7 @@ class LgWebOsSocket extends EventEmitter {
                             if (this.logDebug) this.emit('debug', `Toast: ${stringifyMessage}`);
                             const toastId = messageData.toastId ?? false;
                             if (!toastId) return;
-                            // fix #15: wrapped in block to avoid const-in-switch warning
+
                             if (this.tvInfo.webOS >= 4.0) {
                                 await this.send('request', ApiUrls.CloseToast, { toastId });
                             } else {
@@ -850,6 +873,7 @@ class LgWebOsSocket extends EventEmitter {
         try {
             if (this.restFulEnabled) this.emit('restFul', 'powerstate', this.power);
             if (this.mqttEnabled) this.emit('mqtt', 'Power State', this.power);
+
             if (this.socketConnected || this.connecting) return true;
             if (this.logDebug) this.emit('debug', `Plugin send heartbeat to TV`);
 

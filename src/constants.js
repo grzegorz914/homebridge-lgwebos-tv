@@ -98,7 +98,7 @@ export const ApiUrls = {
     "ServiceMenu": "com.webos.app.factorywin"
 };
 
-export const Pairing = {
+export const PairingOld = {
     "forcePairing": false,
     "pairingType": "PROMPT",
     "manifest": {
@@ -195,6 +195,62 @@ export const Pairing = {
                 "signatureVersion": 1,
                 "signature": "eyJhbGdvcml0aG0iOiJSU0EtU0hBMjU2Iiwia2V5SWQiOiJ0ZXN0LXNpZ25pbmctY2VydCIsInNpZ25hdHVyZVZlcnNpb24iOjF9.hrVRgjCwXVvE2OOSpDZ58hR+59aFNwYDyjQgKk3auukd7pcegmE2CzPCa0bJ0ZsRAcKkCTJrWo5iDzNhMBWRyaMOv5zWSrthlf7G128qvIlpMT0YNY+n/FaOHE73uLrS/g7swl3/qH/BGFG2Hu4RlL48eb3lLKqTt2xKHdCs6Cd4RMfJPYnzgvI4BNrFUKsjkcu+WD4OO2A27Pq1n50cMchmcaXadJhGrOqH5YmHdOCj5NSHzJYrsW0HPlpuAx/ECMeIZYDh6RMqaFM2DXzdKX9NmmyqzJ3o/0lkk/N97gfVRLW5hA29yeAwaCViZNCP8iC9aO0q9fQojoa7NQnAtw=="
             }
+        ]
+    }
+};
+
+export const PairingNew = {
+    "forcePairing": false,
+    "pairingType": "PROMPT",
+    "manifest": {
+        "manifestVersion": 1,
+        "appVersion": "1.1",
+        "permissions": [
+            "LAUNCH",
+            "LAUNCH_WEBAPP",
+            "APP_TO_APP",
+            "CLOSE",
+            "CONTROL_INPUT_TEXT",
+            "CONTROL_MOUSE_AND_KEYBOARD",
+            "CONTROL_AUDIO",
+            "CONTROL_DISPLAY",
+            "CONTROL_INPUT_JOYSTICK",
+            "CONTROL_INPUT_MEDIA_RECORDING",
+            "CONTROL_INPUT_MEDIA_PLAYBACK",
+            "CONTROL_INPUT_TV",
+            "CONTROL_POWER",
+            "CONTROL_TV_SCREEN",
+            "CONTROL_TV_STANBY",
+            "CONTROL_FAVORITE_GROUP",
+            "CONTROL_USER_INFO",
+            "CONTROL_BLUETOOTH",
+            "CONTROL_TIMER_INFO",
+            "CONTROL_RECORDING",
+            "CONTROL_BOX_CHANNEL",
+            "CONTROL_CHANNEL_BLOCK",
+            "CONTROL_CHANNEL_GROUP",
+            "CONTROL_TV_POWER",
+            "CONTROL_WOL",
+            "READ_APP_STATUS",
+            "READ_INSTALLED_APPS",
+            "READ_CURRENT_CHANNEL",
+            "READ_INPUT_DEVICE_LIST",
+            "READ_NETWORK_STATE",
+            "READ_RUNNING_APPS",
+            "READ_TV_CHANNEL_LIST",
+            "READ_POWER_STATE",
+            "READ_COUNTRY_INFO",
+            "READ_SETTINGS",
+            "READ_RECORDING_STATE",
+            "READ_RECORDING_LIST",
+            "READ_RECORDING_SCHEDULE",
+            "READ_STORAGE_DEVICE_LIST",
+            "READ_TV_PROGRAM_INFO",
+            "READ_TV_ACR_AUTH_TOKEN",
+            "READ_TV_CONTENT_STATE",
+            "READ_TV_CURRENT_TIME",
+            "READ_UPDATE_INFO",
+            "WRITE_NOTIFICATION_TOAST"
         ]
     }
 };
