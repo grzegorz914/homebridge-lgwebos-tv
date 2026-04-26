@@ -2,7 +2,7 @@ import WebSocket from 'ws';
 import EventEmitter from 'events';
 import ImpulseGenerator from './impulsegenerator.js';
 import Functions from './functions.js';
-import { ApiUrls, Pairing } from './constants.js';
+import { ApiUrls, PairingOld, PairingNew } from './constants.js';
 
 class LgWebOsSocket extends EventEmitter {
     constructor(config, keyFile, devInfoFile, inputsFile, channelsFile, restFulEnabled, mqttEnabled) {
@@ -139,11 +139,11 @@ class LgWebOsSocket extends EventEmitter {
         }
     }
 
-    async registerToTv() {
+    async registerToTv(PairingData) {
         try {
-            Pairing['client-key'] = this.pairingKey;
+            PairingData['client-key'] = this.pairingKey;
             this.registerId = await this.getCid();
-            await this.send('register', undefined, Pairing, this.registerId);
+            await this.send('register', undefined, PairingData, this.registerId);
             return;
         } catch (err) {
             if (this.logError) this.emit('error', `Socket register error: ${err}`);
@@ -172,10 +172,9 @@ class LgWebOsSocket extends EventEmitter {
 
     async applySoftwareInfoFallback() {
         // Called when getCurrentSWInformation returns 401 (webOS 26+).
-        // If the endpoint is blocked, the TV is new enough to be treated as the latest webOS.
         this.tvInfo.webOS = 26.0;
         this.tvInfo.productName = 'webOSTV 26.0';
-        this.tvInfo.firmwareRevision = this.tvInfo.firmwareRevision || 'N/A';
+        this.tvInfo.firmwareRevision = this.tvInfo.firmwareRevision || '40.xx.xx';
         // deviceId was already filled from serialNumber in the systemInfo handler
 
         if (this.logDebug) this.emit('debug', `Software info fallback (webOS 26+): deviceId=${this.tvInfo.deviceId}, model=${this.tvInfo.modelName}`);
@@ -355,7 +354,7 @@ class LgWebOsSocket extends EventEmitter {
                     if (!this.socketOpen) {
                         this.socketOpen = true;
                         await this.getSystemInfo();
-                        await this.registerToTv();
+                        await this.registerToTv(PairingOld);
                     }
                 })
                 .on('message', async (message) => {
@@ -364,6 +363,7 @@ class LgWebOsSocket extends EventEmitter {
                     const messageType = parsedMessage.type;
                     const messageData = parsedMessage.payload;
                     const stringifyMessage = JSON.stringify(messageData, null, 2);
+                    const stringifyData = JSON.stringify(parsedMessage, null, 2);
 
                     switch (messageId) {
                         case this.registerId:
@@ -380,15 +380,16 @@ class LgWebOsSocket extends EventEmitter {
                                         this.emit('success', 'Pairing key saved');
                                     }
                                     await this.getSpecjalizedSocket();
+                                    await this.getSoftwareInfo();
                                     break;
                                 }
                                 case 'error':
-                                    if (this.logError) this.emit('error', `Register to TV error: ${stringifyMessage}, trying again`);
+                                    if (this.logDebug) this.emit('debug', `Register to TV error: ${stringifyData}, trying new pairing method`);
                                     await new Promise(resolve => setTimeout(resolve, 5000));
-                                    await this.registerToTv();
+                                    await this.registerToTv(PairingNew);
                                     break;
                                 default:
-                                    if (this.logDebug) this.emit('debug', `Register to TV unknown message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`);
+                                    if (this.logDebug) this.emit('debug', `Register to TV unknown message, type: ${messageType}, id: ${messageId}, data: ${stringifyData}`);
                                     return;
                             }
                             break;
@@ -423,10 +424,10 @@ class LgWebOsSocket extends EventEmitter {
                                     break;
                                 }
                                 case 'error':
-                                    if (this.logDebug) this.emit('debug', `Specialized socket error: ${stringifyMessage}`);
+                                    if (this.logDebug) this.emit('debug', `Specialized socket error: ${stringifyData}`);
                                     break;
                                 default:
-                                    if (this.logDebug) this.emit('debug', `Specialized socket unknown message: type=${messageType}, id=${messageId}, data=${stringifyMessage}`);
+                                    if (this.logDebug) this.emit('debug', `Specialized socket unknown message: type=${messageType}, id=${messageId}, data=${stringifyData}`);
                                     return;
                             }
                             break;
@@ -436,17 +437,15 @@ class LgWebOsSocket extends EventEmitter {
                                     if (this.logDebug) this.emit('debug', `System info: ${stringifyMessage}`);
                                     this.tvInfo.modelName = messageData.modelName ?? 'LG TV';
                                     // webOS 26+: getSystemInfo returns serialNumber instead of deviceId;
-                                    // store it now so the softwareInfo fallback has real data
                                     this.tvInfo.deviceId = messageData.deviceId ?? messageData.serialNumber ?? this.tvInfo.deviceId;
-                                    await this.getSoftwareInfo();
                                     if (this.restFulEnabled) this.emit('restFul', 'systeminfo', messageData);
                                     if (this.mqttEnabled) this.emit('mqtt', 'System info', messageData);
                                     break;
                                 case 'error':
-                                    if (this.logDebug) this.emit('debug', `System info error: ${stringifyMessage}`);
+                                    if (this.logDebug) this.emit('debug', `System info error: ${stringifyData}`);
                                     break;
                                 default:
-                                    if (this.logDebug) this.emit('debug', `System info received message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`);
+                                    if (this.logDebug) this.emit('debug', `System info received message, type: ${messageType}, id: ${messageId}, data: ${stringifyData}`);
                                     return;
                             }
                             break;
@@ -467,13 +466,11 @@ class LgWebOsSocket extends EventEmitter {
                                 case 'error':
                                     // webOS 26+ blocks getCurrentSWInformation with 401 insufficient permissions.
                                     // Fall back to data already harvested from getSystemInfo and derive
-                                    // the webOS version from the model name (e.g. C31 → 2023 → webOS 23,
-                                    // but firmware 40.x is shipped with webOS 26 via the Re:New program).
-                                    if (this.logDebug) this.emit('debug', `Software info blocked (likely webOS 26+ 401), applying fallback: ${stringifyMessage}`);
+                                    if (this.logDebug) this.emit('debug', `Software info blocked (likely webOS 26+ 401), applying fallback: ${stringifyData}`);
                                     await this.applySoftwareInfoFallback();
                                     break;
                                 default:
-                                    if (this.logDebug) this.emit('debug', `Software info received message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`);
+                                    if (this.logDebug) this.emit('debug', `Software info received message, type: ${messageType}, id: ${messageId}, data: ${stringifyData}`);
                                     return;
                             }
                             break;
@@ -500,10 +497,10 @@ class LgWebOsSocket extends EventEmitter {
                                     break;
                                 }
                                 case 'error':
-                                    if (this.logDebug) this.emit('debug', `Channels error: ${stringifyMessage}`);
+                                    if (this.logDebug) this.emit('debug', `Channels error: ${stringifyData}`);
                                     break;
                                 default:
-                                    if (this.logDebug) this.emit('debug', `Channels list received message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`);
+                                    if (this.logDebug) this.emit('debug', `Channels list received message, type: ${messageType}, id: ${messageId}, data: ${stringifyData}`);
                                     return;
                             }
                             break;
@@ -530,10 +527,10 @@ class LgWebOsSocket extends EventEmitter {
                                     break;
                                 }
                                 case 'error':
-                                    if (this.logDebug) this.emit('debug', `External input list error: ${stringifyMessage}`);
+                                    if (this.logDebug) this.emit('debug', `External input list error: ${stringifyData}`);
                                     break;
                                 default:
-                                    if (this.logDebug) this.emit('debug', `External input list received message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`);
+                                    if (this.logDebug) this.emit('debug', `External input list received message, type: ${messageType}, id: ${messageId}, data: ${stringifyData}`);
                                     return;
                             }
                             break;
@@ -581,10 +578,10 @@ class LgWebOsSocket extends EventEmitter {
                                     break;
                                 }
                                 case 'error':
-                                    if (this.logDebug) this.emit('debug', `Apps list error: ${stringifyMessage}`);
+                                    if (this.logDebug) this.emit('debug', `Apps list error: ${stringifyData}`);
                                     break;
                                 default:
-                                    if (this.logDebug) this.emit('debug', `Apps list received message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`);
+                                    if (this.logDebug) this.emit('debug', `Apps list received message, type: ${messageType}, id: ${messageId}, data: ${stringifyData}`);
                                     return;
                             }
                             break;
@@ -636,11 +633,11 @@ class LgWebOsSocket extends EventEmitter {
                                         if (!this.power) this.updateTvState();
                                         if (this.logDebug) this.emit('debug', `Installed system webOS: ${this.tvInfo.webOS}`);
                                     } else {
-                                        if (this.logDebug) this.emit('debug', `Power error: ${stringifyMessage}`);
+                                        if (this.logDebug) this.emit('debug', `Power error: ${stringifyData}`);
                                     }
                                     break;
                                 default:
-                                    if (this.logDebug) this.emit('debug', `Power received message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`);
+                                    if (this.logDebug) this.emit('debug', `Power received message, type: ${messageType}, id: ${messageId}, data: ${stringifyData}`);
                                     return;
                             }
                             break;
@@ -658,10 +655,10 @@ class LgWebOsSocket extends EventEmitter {
                                     break;
                                 }
                                 case 'error':
-                                    if (this.logDebug) this.emit('debug', `App error: ${stringifyMessage}`);
+                                    if (this.logDebug) this.emit('debug', `App error: ${stringifyData}`);
                                     break;
                                 default:
-                                    if (this.logDebug) this.emit('debug', `App received message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`);
+                                    if (this.logDebug) this.emit('debug', `App received message, type: ${messageType}, id: ${messageId}, data: ${stringifyData}`);
                                     return;
                             }
                             break;
@@ -678,10 +675,10 @@ class LgWebOsSocket extends EventEmitter {
                                     break;
                                 }
                                 case 'error':
-                                    if (this.logDebug) this.emit('debug', `Audio error: ${stringifyMessage}`);
+                                    if (this.logDebug) this.emit('debug', `Audio error: ${stringifyData}`);
                                     break;
                                 default:
-                                    if (this.logDebug) this.emit('debug', `Audio received message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`);
+                                    if (this.logDebug) this.emit('debug', `Audio received message, type: ${messageType}, id: ${messageId}, data: ${stringifyData}`);
                                     return;
                             }
                             if (this.restFulEnabled) this.emit('restFul', 'audio', messageData);
@@ -703,10 +700,10 @@ class LgWebOsSocket extends EventEmitter {
                                     break;
                                 }
                                 case 'error':
-                                    if (this.logDebug) this.emit('debug', `Channel error: ${stringifyMessage}`);
+                                    if (this.logDebug) this.emit('debug', `Channel error: ${stringifyData}`);
                                     break;
                                 default:
-                                    if (this.logDebug) this.emit('debug', `Channel received message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`);
+                                    if (this.logDebug) this.emit('debug', `Channel received message, type: ${messageType}, id: ${messageId}, data: ${stringifyData}`);
                                     return;
                             }
                             break;
@@ -731,10 +728,10 @@ class LgWebOsSocket extends EventEmitter {
                                     break;
                                 }
                                 case 'error':
-                                    if (this.logDebug) this.emit('debug', `Picture settings error: ${stringifyMessage}`);
+                                    if (this.logDebug) this.emit('debug', `Picture settings error: ${stringifyData}`);
                                     break;
                                 default:
-                                    if (this.logDebug) this.emit('debug', `Picture settings received message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`);
+                                    if (this.logDebug) this.emit('debug', `Picture settings received message, type: ${messageType}, id: ${messageId}, data: ${stringifyData}`);
                                     return;
                             }
                             break;
@@ -752,10 +749,10 @@ class LgWebOsSocket extends EventEmitter {
                                     break;
                                 }
                                 case 'error':
-                                    if (this.logDebug) this.emit('debug', `Picture mode error: ${stringifyMessage}`);
+                                    if (this.logDebug) this.emit('debug', `Picture mode error: ${stringifyData}`);
                                     break;
                                 default:
-                                    if (this.logDebug) this.emit('debug', `Picture mode received message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`);
+                                    if (this.logDebug) this.emit('debug', `Picture mode received message, type: ${messageType}, id: ${messageId}, data: ${stringifyData}`);
                                     return;
                             }
                             break;
@@ -774,10 +771,10 @@ class LgWebOsSocket extends EventEmitter {
                                     break;
                                 }
                                 case 'error':
-                                    if (this.logDebug) this.emit('debug', `Sound mode error: ${stringifyMessage}`);
+                                    if (this.logDebug) this.emit('debug', `Sound mode error: ${stringifyData}`);
                                     break;
                                 default:
-                                    if (this.logDebug) this.emit('debug', `Sound mode received message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`);
+                                    if (this.logDebug) this.emit('debug', `Sound mode received message, type: ${messageType}, id: ${messageId}, data: ${stringifyData}`);
                                     return;
                             }
                             break;
@@ -795,10 +792,10 @@ class LgWebOsSocket extends EventEmitter {
                                     break;
                                 }
                                 case 'error':
-                                    if (this.logDebug) this.emit('debug', `Sound output error: ${stringifyMessage}`);
+                                    if (this.logDebug) this.emit('debug', `Sound output error: ${stringifyData}`);
                                     break;
                                 default:
-                                    if (this.logDebug) this.emit('debug', `Sound output received message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`);
+                                    if (this.logDebug) this.emit('debug', `Sound output received message, type: ${messageType}, id: ${messageId}, data: ${stringifyData}`);
                                     return;
                             }
                             break;
@@ -826,10 +823,10 @@ class LgWebOsSocket extends EventEmitter {
                                     break;
                                 }
                                 case 'error':
-                                    if (this.logDebug) this.emit('debug', `Media info error: ${stringifyMessage}`);
+                                    if (this.logDebug) this.emit('debug', `Media info error: ${stringifyData}`);
                                     break;
                                 default:
-                                    if (this.logDebug) this.emit('debug', `Media info received message, type: ${messageType}, id: ${messageId}, data: ${stringifyMessage}`);
+                                    if (this.logDebug) this.emit('debug', `Media info received message, type: ${messageType}, id: ${messageId}, data: ${stringifyData}`);
                                     return;
                             }
                             break;
