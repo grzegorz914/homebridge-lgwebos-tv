@@ -119,6 +119,7 @@
 | `power.broadcastAddress` | Her set network `Broadcast Address`, only if You use VLANS in Your network configuration and Your router/switch support IP Directed Broadcast, default is `255.255.255.255`. |
 | `power.startInput` | This enable possibilty to set default Input/App after Power ON TV. |
 | `power.startInputReference` | Here set the default Input/App reference. |
+| `power.powerOnInputTimeout` | Here set how many seconds to wait for the TV to report power `ON` before sending a deferred Input/App switch (used when switching input while the TV is off). Increase this on TVs that are slow to come up after Wake-on-LAN (e.g. some webOS 24 sets can take ~38s), default is `20`. |
 | `volume{}` | Volume object. |
 | `volume.displayType` | Here choice what a additional volume control mode You want to use `0 - None / Disabled`, `1 - Lightbulb`, `2 - Fan`, `3 - TV Speaker (only hardware buttons on R.C. app)`, `4 - TV Speaker / Lightbulb`, `5 - TV Speaker / Fan`. |
 | `volume.name` | Here set Your own volume control name or leave empty. |

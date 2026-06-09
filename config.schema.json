@@ -966,6 +966,14 @@
                   "condition": {
                     "functionBody": "return model.devices[arrayIndices].power.startInput === true"
                   }
+                },
+                "powerOnInputTimeout": {
+                  "title": "Power ON Input Timeout",
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 300,
+                  "placeholder": 20,
+                  "description": "Here set how many seconds to wait for the TV to report power ON before sending a deferred Input/App switch (used when switching input while the TV is off). Increase this on TVs that are slow to come up after Wake-on-LAN (e.g. some webOS 24 sets can take ~38s). Default 20."
                 }
               }
             },
@@ -1978,7 +1986,8 @@
                   "items": [
                     "devices[].power.broadcastAddress",
                     "devices[].power.startInput",
-                    "devices[].power.startInputReference"
+                    "devices[].power.startInputReference",
+                    "devices[].power.powerOnInputTimeout"
                   ]
                 },
                 {

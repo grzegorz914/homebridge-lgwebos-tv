@@ -27,6 +27,7 @@ class LgWebOsDevice extends EventEmitter {
         this.sensors = Array.isArray(device.sensors) ? (device.sensors ?? []).filter(sensor => (sensor.displayType ?? 0) > 0 && (sensor.mode ?? -1) >= 0) : [];
         this.startInput = device.power?.startInput || false;
         this.startInputReference = device.power?.startInputReference || 'com.webos.app.home';
+        this.powerOnInputTimeout = device.power?.powerOnInputTimeout ?? 20;
         this.volumeControl = device.volume?.displayType || 0;
         this.volumeControlName = device.volume?.name || 'Volume';
         this.volumeControlNamePrefix = device.volume?.namePrefix || false;
@@ -486,7 +487,7 @@ class LgWebOsDevice extends EventEmitter {
                                     if (this.startInput) {
                                         (async () => {
                                             try {
-                                                for (let attempt = 0; attempt < 15; attempt++) {
+                                                for (let attempt = 0; attempt < this.powerOnInputTimeout; attempt++) {
                                                     await new Promise(resolve => setTimeout(resolve, 1000));
 
                                                     if (this.power) {
@@ -536,12 +537,12 @@ class LgWebOsDevice extends EventEmitter {
                                 if (this.logDebug) this.emit('debug', `Device is off, deferring input switch to '${activeIdentifier}'`);
 
                                 (async () => {
-                                    for (let attempt = 0; attempt < 20; attempt++) {
+                                    for (let attempt = 0; attempt < this.powerOnInputTimeout; attempt++) {
                                         await new Promise(resolve => setTimeout(resolve, 1000));
 
                                         if (this.power && !this.isBooting) {
                                             if (this.inputIdentifier !== activeIdentifier) {
-                                                if (this.logDebug) this.emit('debug', `Retrying channel switch (${attempt + 1}/20)`);
+                                                if (this.logDebug) this.emit('debug', `Retrying channel switch (${attempt + 1}/${this.powerOnInputTimeout})`);
                                                 await this.setInput(input);
                                             } else {
                                                 this.televisionService.updateCharacteristic(Characteristic.ActiveIdentifier, activeIdentifier);
