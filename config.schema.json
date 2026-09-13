@@ -1135,7 +1135,7 @@
                           }
                         ],
                         "condition": {
-                          "functionBody": "return model.devices[arrayIndices[0]].modes[arrayIndices[1]].displayType > 0;"
+                          "functionBody": "return model.devices[arrayIndices[0]].sound.modes[arrayIndices[1]].displayType > 0;"
                         }
                       },
                       "namePrefix": {
@@ -1143,7 +1143,7 @@
                         "type": "boolean",
                         "description": "Here enable the accessory name as a prefix for sound mode.",
                         "condition": {
-                          "functionBody": "return model.devices[arrayIndices[0]].modes[arrayIndices[1]].displayType > 0;"
+                          "functionBody": "return model.devices[arrayIndices[0]].sound.modes[arrayIndices[1]].displayType > 0;"
                         }
                       }
                     },
@@ -1274,7 +1274,7 @@
                           }
                         ],
                         "condition": {
-                          "functionBody": "return model.devices[arrayIndices[0]].outputs[arrayIndices[1]].displayType > 0;"
+                          "functionBody": "return model.devices[arrayIndices[0]].sound.outputs[arrayIndices[1]].displayType > 0;"
                         }
                       },
                       "namePrefix": {
@@ -1282,7 +1282,7 @@
                         "type": "boolean",
                         "description": "Here enable the accessory name as a prefix for sound output.",
                         "condition": {
-                          "functionBody": "return model.devices[arrayIndices[0]].outputs[arrayIndices[1]].displayType > 0;"
+                          "functionBody": "return model.devices[arrayIndices[0]].sound.outputs[arrayIndices[1]].displayType > 0;"
                         }
                       }
                     },
@@ -1539,7 +1539,7 @@
                           }
                         ],
                         "condition": {
-                          "functionBody": "return model.devices[arrayIndices[0]].modes[arrayIndices[1]].displayType > 0;"
+                          "functionBody": "return model.devices[arrayIndices[0]].picture.modes[arrayIndices[1]].displayType > 0;"
                         }
                       },
                       "namePrefix": {
@@ -1547,7 +1547,7 @@
                         "type": "boolean",
                         "description": "Here enable the accessory name as a prefix for picture mode.",
                         "condition": {
-                          "functionBody": "return model.devices[arrayIndices[0]].modes[arrayIndices[1]].displayType > 0;"
+                          "functionBody": "return model.devices[arrayIndices[0]].picture.modes[arrayIndices[1]].displayType > 0;"
                         }
                       }
                     },
