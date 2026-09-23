@@ -42,7 +42,7 @@
 * Brightness, Contrast, Backlight, Color, Picture Mode, Sound Mode and Sound Output can be changed using extra buttons.
 * Siri can be used for all functions, some times need to create legacy buttons/switches/sensors.
 * Automations can be used for all functions, some times need create legacy buttons/switches/sensors.
-* Support external integrations, [RESTFul](https://github.com/grzegorz914/homebridge-lgwebos-tv?tab=readme-ov-file#restful-integration), [MQTT](https://github.com/grzegorz914/homebridge-lgwebos-tv?tab=readme-ov-file#mqtt-integration).
+* Support external integrations, [RESTFul](https://github.com/grzegorz914/homebridge-lgwebos-tv?tab=readme-ov-file#restful-integration), [MQTT](https://github.com/grzegorz914/homebridge-lgwebos-tv?tab=readme-ov-file#mqtt-integration), [HA Discovery](https://github.com/grzegorz914/homeassistant-mqtt-media-player).
 
 <p align="center">
   <a href="https://github.com/grzegorz914/homebridge-lgwebos-tv"><img src="https://raw.githubusercontent.com/grzegorz914/homebridge-lgwebos-tv/main/graphics/homekit.png" width="382"></a>
