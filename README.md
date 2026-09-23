@@ -190,6 +190,10 @@
   * Picture Mode - `cinema`, `eco`, `expert1`, `expert2`, `game`, `normal`, `photo`, `sports`, `technicolor`, `vivid`, `hdrEffect`, `hdrFilmMaker`, `hdrCinema`, `hdrCinemaBright`, `hdrStandard`, `hdrEffect`, `hdrGame`, `hdrVivid`, `hdrTechnicolor`, `hdrExternal`, `dolbyHdrCinema`, `dolbyHdrCinemaBright`, `dolbyHdrDarkAmazon`, `dolbyHdrStandard`, `dolbyHdrGame`, `dolbyHdrVivid`.
   * Sound Mode - `aiSoundPlus`, `standard`, `movie`, `clearVoice`, `news`, `sport`, `music`, `game`.
   * Sound Output - `tv_speaker`, `external_speaker`, `external_optical`, `external_arc`, `lineout`, `headphone`, `tv_external_speaker`, `tv_external_headphone`, `bt_soundbar`, `soundbar`.
+* HA Discovery - if enabled, the device is published to Home Assistant as one media player (class `tv`) with power, volume, mute, source selection and more. Apps, inputs and channels are available as sources, sound mode can be set on webOS 6.0 and newer. Requires the [MQTT Universal Media Player](https://github.com/grzegorz914/homeassistant-mqtt-media-player) integration. Additional retained topics:
+  * `homeassistant/media_player/<id>/config` - discovery message.
+  * `HA State` - `{"power": true, "volume": 12, "muted": false, "source": "com.webos.app.hdmi1", "sound_mode": "movie"}`.
+  * `Availability` - `online`, `offline` (last will).
 
 | Method | Topic | Message | Type |
 | --- | --- | --- | --- |
