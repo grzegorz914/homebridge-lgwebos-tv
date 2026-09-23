@@ -149,6 +149,7 @@ class LgWebOsPlatform {
 						port: device.mqtt.port || 1883,
 						clientId: device.mqtt.clientId ? `lg_${device.mqtt.clientId}_${Math.random().toString(16).slice(3)}` : `lg_${Math.random().toString(16).slice(3)}`,
 						prefix: device.mqtt.prefix ? `lg/${device.mqtt.prefix}/${name}` : `lg/${name}`,
+						protocolVersion: device.mqtt.protocolVersion,
 						user: device.mqtt.auth?.user,
 						passwd: device.mqtt.auth?.passwd,
 						logWarn: logLevel.warn,

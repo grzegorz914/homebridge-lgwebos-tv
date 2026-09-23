@@ -15,6 +15,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - For plugin < v4.1.0 use Homebridge UI <= v5.5.0
 - For plugin >= v4.1.0 use Homebridge UI >= v5.13.0
 
+## [4.3.15] - (23.09.2026)
+
+### Changes
+
+- fix: MQTT client had `protocolVersion: 5` hardcoded, so brokers that only support MQTT 3.1.1 (e.g. the ioBroker MQTT adapter) accepted the TCP connection, failed the handshake, and got disconnected every second forever, with nothing published and no error logged. Added a `Protocol Version` option (5.0 / 3.1.1) in the MQTT section, and a one-time warning if no successful connection is established within 30 seconds
+- readme update
+
 ## [4.3.14] - (23.09.2026)
 
 ### Added
