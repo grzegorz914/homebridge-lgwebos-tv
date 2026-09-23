@@ -2,6 +2,7 @@ import EventEmitter from 'events';
 import WakeOnLan from './wol.js';
 import LgWebOsSocket from './lgwebossocket.js';
 import Functions from './functions.js';
+import HaDiscovery from './hadiscovery.js';
 import { ApiUrls, SystemApps, PictureModes, SoundModes, SoundOutputs, PowerOnWaitAttempts } from './constants.js';
 let Accessory, Characteristic, Service, Categories, Encode, AccessoryUUID;
 
@@ -148,10 +149,18 @@ class LgWebOsDevice extends EventEmitter {
                     cid = await this.lgWebOsSocket.getCid('Channel');
                     set = await this.lgWebOsSocket.send('request', ApiUrls.OpenChannel, { channelId: value }, cid);
                     break;
-                case 'Input':
+                case 'Input': {
+                    // Known inputs (apps, channels, screen off, screen saver...) are switched the same way as from HomeKit
+                    const input = this.inputsServices?.find(i => i.reference === value);
+                    if (input) {
+                        await this.setInput(input);
+                        set = true;
+                        break;
+                    }
                     cid = await this.lgWebOsSocket.getCid('App');
                     set = await this.lgWebOsSocket.send('request', ApiUrls.LaunchApp, { id: value }, cid);
                     break;
+                }
                 case 'Volume': {
                     const volume = (value < 0 || value > 100) ? this.volume : value;
                     payload = { volume };
@@ -382,6 +391,7 @@ class LgWebOsDevice extends EventEmitter {
             }
 
             if (updated) await this.displayOrder();
+            if (updated) this.haPublishConfig();
 
             return true;
         } catch (error) {
@@ -1401,6 +1411,78 @@ class LgWebOsDevice extends EventEmitter {
         }
     }
 
+    //home assistant discovery
+    async setupHaDiscovery() {
+        if (!this.mqttConnected || !this.mqtt.haDiscovery || this.ha) return;
+
+        try {
+            // Sound mode can be set only on webOS 6.0 and newer
+            const soundMode = this.webOS >= 6.0;
+            this.ha = new HaDiscovery(this.mqtt1, {
+                objectId: `lg_${this.mac}`,
+                name: this.name,
+                deviceClass: 'tv',
+                device: {
+                    manufacturer: this.savedInfo.manufacturer ?? 'LG Electronics',
+                    model: this.savedInfo.modelName,
+                    sw_version: this.savedInfo.firmwareRevision
+                },
+                commands: {
+                    power: { key: 'Power' },
+                    volume_set: { key: 'Volume', min: 0, max: 100 },
+                    mute: { key: 'Mute' },
+                    source: { key: 'Input' },
+                    ...(soundMode ? { sound_mode: { key: 'SoundMode' } } : {}),
+                    play: { key: 'PlayState', value: true },
+                    pause: { key: 'PlayState', value: false },
+                    stop: { key: 'RcControl', value: 'STOP' },
+                    next: { key: 'RcControl', value: 'GOTONEXT' },
+                    previous: { key: 'RcControl', value: 'GOTOPREV' }
+                }
+            });
+            await this.haPublishConfig();
+        } catch (error) {
+            if (this.logWarn) this.emit('warn', `HA Discovery setup error: ${error}`);
+        }
+    }
+
+    async haPublishConfig() {
+        if (!this.ha) return;
+
+        try {
+            const sources = (this.inputsServices ?? []).map(input => ({ id: input.reference, name: input.name }));
+            const soundModes = this.ha.commands.sound_mode ? Object.entries(SoundModes).map(([id, name]) => ({ id, name })) : [];
+            await this.ha.publishConfig({ sources, soundModes });
+            await this.haUpdateState();
+        } catch (error) {
+            if (this.logWarn) this.emit('warn', `HA Discovery publish error: ${error}`);
+        }
+    }
+
+    async haUpdateState() {
+        if (!this.ha) return;
+
+        try {
+            // On live TV report the channel when it is one of the inputs, otherwise the app
+            const channel = this.inputsServices?.find(input => input.mode === 1 && input.reference === this.channelId);
+            const liveTv = this.reference === 'com.webos.app.livetv';
+            const source = liveTv && channel ? channel.reference : this.reference;
+            const app = this.inputsServices?.find(input => input.reference === this.reference);
+            await this.ha.updateState({
+                power: this.power,
+                state: this.power ? (this.playState ? 'playing' : 'on') : 'off',
+                volume: typeof this.volume === 'number' ? this.volume : undefined,
+                muted: typeof this.mute === 'boolean' ? this.mute : undefined,
+                source,
+                sound_mode: this.ha.commands.sound_mode ? this.soundMode : undefined,
+                app_name: app?.name ?? '',
+                media_channel: liveTv ? this.channelName ?? '' : ''
+            });
+        } catch (error) {
+            if (this.logWarn) this.emit('warn', `HA Discovery state error: ${error}`);
+        }
+    }
+
     //start
     async start() {
         //Wake On Lan
@@ -1439,6 +1521,7 @@ class LgWebOsDevice extends EventEmitter {
                     }
 
                     this.power = power;
+                    this.haUpdateState();
                     if (this.logInfo) this.emit('info', `Power: ${power ? 'ON' : 'OFF'}`);
                 })
                 .on('currentApp', async (appId, power) => {
@@ -1457,6 +1540,7 @@ class LgWebOsDevice extends EventEmitter {
 
                     this.inputIdentifier = inputIdentifier;
                     this.reference = appId;
+                    this.haUpdateState();
                     if (this.logInfo) this.emit('info', `Input Name: ${inputName}`);
                 })
                 .on('audioState', async (volume, mute, power) => {
@@ -1483,6 +1567,7 @@ class LgWebOsDevice extends EventEmitter {
 
                     this.volume = volume;
                     this.mute = mute;
+                    this.haUpdateState();
                     if (this.logInfo) {
                         this.emit('info', `Volume: ${volume}%`);
                         this.emit('info', `Mute: ${mute ? 'ON' : 'OFF'}`);
@@ -1505,6 +1590,7 @@ class LgWebOsDevice extends EventEmitter {
                     this.channelId = channelId;
                     this.channelName = channelName !== undefined ? channelName : this.channelName;
                     this.channelNumber = channelNumber !== undefined ? channelNumber : this.channelNumber;
+                    this.haUpdateState();
                     if (this.logInfo) {
                         this.emit('info', `Channel Number: ${channelNumber}`);
                         this.emit('info', `Channel Name: ${channelName}`);
@@ -1575,6 +1661,7 @@ class LgWebOsDevice extends EventEmitter {
                     }
 
                     this.soundMode = soundMode;
+                    this.haUpdateState();
                     if (this.logInfo) this.emit('info', `Sound Mode: ${SoundModes[soundMode] ?? 'Unknown'}`);
                 })
                 .on('soundOutput', async (soundOutput, power) => {
@@ -1593,6 +1680,7 @@ class LgWebOsDevice extends EventEmitter {
                     const inputName = input ? input.name : appId;
 
                     this.playState = playState; // fix #10: was plyState
+                    this.haUpdateState();
                     if (this.logInfo) this.emit('info', `Input Name: ${inputName}, state: ${this.playState ? 'Playing' : 'Paused'}`);
                 })
                 .on('updateSensors', async (power, screenState, appId, volume, mute, soundMode, soundOutput, pictureMode, playState, channelId) => {
@@ -1704,6 +1792,7 @@ class LgWebOsDevice extends EventEmitter {
             if (key !== '0') {
                 await this.prepareDataForAccessory();
                 const accessory = await this.prepareAccessory();
+                this.setupHaDiscovery();
                 return accessory;
             } else {
                 return new Promise((resolve) => {
@@ -1715,6 +1804,7 @@ class LgWebOsDevice extends EventEmitter {
                             clearInterval(intervalId);
                             await this.prepareDataForAccessory();
                             const accessory = await this.prepareAccessory();
+                            this.setupHaDiscovery();
                             resolve(accessory);
                         }
                     }, 5000);

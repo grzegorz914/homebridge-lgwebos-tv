@@ -15,6 +15,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - For plugin < v4.1.0 use Homebridge UI <= v5.5.0
 - For plugin >= v4.1.0 use Homebridge UI >= v5.13.0
 
+## [4.4.0] - (23.09.2026)
+
+### Changes
+
+- added: Home Assistant discovery (`HA Discovery` option in the MQTT section). The device appears in Home Assistant as one media player (class `tv`) with power, volume, mute, source selection and more. Requires the [MQTT Universal Media Player](https://github.com/grzegorz914/homeassistant-mqtt-media-player) integration
+- added: MQTT availability topic (`<prefix>/Availability`, retained `online` / `offline` last will) when HA Discovery is enabled
+- fix: MQTT/RESTFul `Input` command now switches known inputs (apps, channels, screen off, screen saver...) the same way as HomeKit
+- readme update
+- sample config update
+
 ## [4.3.15] - (23.09.2026)
 
 ### Changes
