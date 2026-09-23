@@ -1728,6 +1728,16 @@
                   "condition": {
                     "functionBody": "return model.devices[arrayIndices].restFul.enable === true;"
                   }
+                },
+                "token": {
+                  "title": "Token",
+                  "type": "string",
+                  "placeholder": "optional",
+                  "description": "Optional access token. When set, every request must send the header 'Authorization: Bearer <token>'. Leave empty to keep the server open on the local network.",
+                  "format": "password",
+                  "condition": {
+                    "functionBody": "return model.devices[arrayIndices].restFul.enable === true;"
+                  }
                 }
               }
             },
@@ -2107,7 +2117,8 @@
                           "title": "RESTFul",
                           "items": [
                             "devices[].restFul.enable",
-                            "devices[].restFul.port"
+                            "devices[].restFul.port",
+                            "devices[].restFul.token"
                           ]
                         },
                         {
