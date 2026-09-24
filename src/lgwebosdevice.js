@@ -306,8 +306,6 @@ class LgWebOsDevice extends EventEmitter {
             let updated = false;
 
             for (const input of inputs) {
-                if (this.inputsServices.length >= 85 && !remove) continue;
-
                 const visible = input.visible ?? true;
                 const systemApp = this.filterSystemApps && SystemApps.includes(input.reference);
                 if (systemApp) continue;
@@ -342,6 +340,9 @@ class LgWebOsDevice extends EventEmitter {
                         updated = true;
                     }
                 } else {
+                    // HomeKit allows at most 85 inputs, the limit applies to new inputs only, existing ones are still updated
+                    if (this.inputsServices.length >= 85) continue;
+
                     const identifier = this.inputsServices.length + 1;
                     inputService = this.accessory.addService(Service.InputSource, sanitizedName, `Input ${inputReference}`);
                     inputService.identifier = identifier;
@@ -396,6 +397,9 @@ class LgWebOsDevice extends EventEmitter {
 
             if (updated) await this.displayOrder();
             if (updated) this.haPublishConfig();
+
+            // Icons may have changed (the TV changes the resource urls on every connection)
+            this.haUpdateState();
 
             return true;
         } catch (error) {
@@ -1462,6 +1466,7 @@ class LgWebOsDevice extends EventEmitter {
             const request = client.get(target, { rejectUnauthorized: false, timeout: 5000 }, (response) => {
                 if (response.statusCode !== 200) {
                     response.resume();
+                    if (this.logDebug) this.emit('debug', `Icon not available, status: ${response.statusCode}, url: ${url}`);
                     return resolve(null);
                 }
                 const chunks = [];

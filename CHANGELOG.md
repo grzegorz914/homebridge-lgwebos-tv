@@ -15,6 +15,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - For plugin < v4.1.0 use Homebridge UI <= v5.5.0
 - For plugin >= v4.1.0 use Homebridge UI >= v5.13.0
 
+## [4.5.3] - (24.09.2026)
+
+### Changes
+
+- fix: with 85 inputs (the HomeKit limit) the input list from the TV no longer updated existing inputs, the limit skipped every input instead of only new ones. Names and icons of existing inputs were never refreshed, so Home Assistant got stale icon urls (the TV changes them on every connection) and showed no source icon
+- added: debug log when the TV does not return an icon
+
 ## [4.5.2] - (24.09.2026)
 
 ### Changes
