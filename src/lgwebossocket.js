@@ -524,7 +524,8 @@ class LgWebOsSocket extends EventEmitter {
                                             name: input.label,
                                             reference: input.appId,
                                             mode: 0,
-                                            visible: input.visible ?? true
+                                            visible: input.visible ?? true,
+                                            icon: this.iconUrl(input.icon)
                                         });
                                     }
                                     this.externalInputsArr = arr;
@@ -568,7 +569,8 @@ class LgWebOsSocket extends EventEmitter {
                                                     name: app.title,
                                                     reference: app.id,
                                                     mode: 0,
-                                                    visible: app.visible
+                                                    visible: app.visible,
+                                                    icon: this.iconUrl(app.largeIcon || app.icon)
                                                 });
                                             }
                                         }
@@ -871,6 +873,11 @@ class LgWebOsSocket extends EventEmitter {
         } catch (error) {
             throw new Error(`Connect error: ${error}`);
         }
+    }
+
+    // Absolute http(s) icon url of an app or input, used by Home Assistant
+    iconUrl(icon) {
+        return typeof icon === 'string' && /^https?:\/\//.test(icon) ? icon : undefined;
     }
 
     async connect() {

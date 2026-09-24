@@ -329,6 +329,7 @@ class LgWebOsDevice extends EventEmitter {
 
                 let inputService = this.inputsServices.find(s => s.reference === inputReference);
                 if (inputService) {
+                    if (input.icon) inputService.icon = input.icon;
                     const nameChanged = inputService.name !== sanitizedName;
                     if (nameChanged) {
                         inputService.name = sanitizedName;
@@ -345,6 +346,7 @@ class LgWebOsDevice extends EventEmitter {
                     inputService.reference = inputReference;
                     inputService.name = sanitizedName;
                     inputService.mode = inputMode;
+                    inputService.icon = input.icon;
                     inputService.visibility = inputVisibility;
 
                     inputService
@@ -1420,6 +1422,7 @@ class LgWebOsDevice extends EventEmitter {
             const soundMode = this.webOS >= 6.0;
             this.ha = new HaDiscovery(this.mqtt1, {
                 objectId: `lg_${this.mac}`,
+                image: true,
                 name: this.name,
                 deviceClass: 'tv',
                 device: {
@@ -1478,6 +1481,13 @@ class LgWebOsDevice extends EventEmitter {
                 app_name: app?.name ?? '',
                 media_channel: liveTv ? this.channelName ?? '' : ''
             });
+
+            // Icon of the current app or input, on live TV the Live TV app icon
+            const icon = app?.icon;
+            this.ha.updateImage(icon ?? null, async () => {
+                const response = await fetch(icon, { signal: AbortSignal.timeout(5000) });
+                return response.ok ? Buffer.from(await response.arrayBuffer()) : null;
+            }).catch(() => { });
         } catch (error) {
             if (this.logWarn) this.emit('warn', `HA Discovery state error: ${error}`);
         }

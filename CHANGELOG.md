@@ -15,6 +15,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - For plugin < v4.1.0 use Homebridge UI <= v5.5.0
 - For plugin >= v4.1.0 use Homebridge UI >= v5.13.0
 
+## [4.5.0] - (24.09.2026)
+
+### Changes
+
+- added: HA Discovery, the icon of the current app or input is shown in the Home Assistant media card, published once per source on the retained `HA Image` topic. On live TV the Live TV app icon is shown. Icons come from the TV app and input lists, so inputs read from the device are required. Requires MQTT Universal Media Player 0.3.0
+- readme update
+
 ## [4.4.1] - (24.09.2026)
 
 ### Changes

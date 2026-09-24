@@ -194,6 +194,7 @@
   * `homeassistant/media_player/<id>/config` - discovery message.
   * `HA State` - `{"power": true, "volume": 12, "muted": false, "source": "com.webos.app.hdmi1", "sound_mode": "movie"}`.
   * `Availability` - `online`, `offline` (last will).
+  * `HA Image` - icon of the current app or input (raw image, retained).
 
 | Method | Topic | Message | Type |
 | --- | --- | --- | --- |
