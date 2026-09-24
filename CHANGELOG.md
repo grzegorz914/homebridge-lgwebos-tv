@@ -15,6 +15,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - For plugin < v4.1.0 use Homebridge UI <= v5.5.0
 - For plugin >= v4.1.0 use Homebridge UI >= v5.13.0
 
+## [4.5.1] - (24.09.2026)
+
+### Changes
+
+- fix: HA Discovery, no source icon was shown. On newer webOS `largeIcon` is a path on the TV, not an url, and it was preferred over `icon`. Now `largeIcon` is used only when it is an url, otherwise `icon`, like the Home Assistant webOS integration
+
 ## [4.5.0] - (24.09.2026)
 
 ### Changes

@@ -570,7 +570,8 @@ class LgWebOsSocket extends EventEmitter {
                                                     reference: app.id,
                                                     mode: 0,
                                                     visible: app.visible,
-                                                    icon: this.iconUrl(app.largeIcon || app.icon)
+                                                    // like the Home Assistant webOS integration, largeIcon only when it is an url
+                                                    icon: this.iconUrl(app.largeIcon) ?? this.iconUrl(app.icon)
                                                 });
                                             }
                                         }
