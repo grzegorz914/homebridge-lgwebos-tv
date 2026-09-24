@@ -30,6 +30,7 @@ class LgWebOsSocket extends EventEmitter {
         this.heartbeat = null;
         this.externalInputsArr = [];
         this.inputsArr = [];
+        this.launchPointIcons = new Map();
         this.socketConnected = false;
         this.specializedSocketConnected = false;
         this.cidCount = 0;
@@ -192,6 +193,9 @@ class LgWebOsSocket extends EventEmitter {
             await this.send('subscribe', ApiUrls.GetChannelList, undefined, this.channelsId);
             this.externalInputListId = await this.getCid();
             await this.send('subscribe', ApiUrls.GetExternalInputList, undefined, this.externalInputListId);
+            // Launch points before apps, their icon urls are served by the TV, the ones from the apps list are not
+            this.launchPointsId = await this.getCid();
+            await this.send('subscribe', ApiUrls.GetLaunchPoints, undefined, this.launchPointsId);
             this.appsId = await this.getCid();
             await this.send('subscribe', ApiUrls.GetInstalledApps, undefined, this.appsId);
 
@@ -541,6 +545,48 @@ class LgWebOsSocket extends EventEmitter {
                                     return;
                             }
                             break;
+                        case this.launchPointsId:
+                            switch (messageType) {
+                                case 'response': {
+                                    if (this.logDebug) this.emit('debug', `Launch points: ${stringifyMessage}`);
+
+                                    // Full list on subscribe, later single changes with the launch point fields on top level
+                                    if (Array.isArray(messageData.launchPoints)) {
+                                        this.launchPointIcons.clear();
+                                        for (const launchPoint of messageData.launchPoints) {
+                                            const icon = this.iconUrl(launchPoint.largeIcon) ?? this.iconUrl(launchPoint.icon);
+                                            if (launchPoint.id && icon) this.launchPointIcons.set(launchPoint.id, icon);
+                                        }
+                                    } else if (messageData.id && messageData.change) {
+                                        const icon = this.iconUrl(messageData.largeIcon) ?? this.iconUrl(messageData.icon);
+                                        if (messageData.change === 'removed' || !icon) this.launchPointIcons.delete(messageData.id);
+                                        else this.launchPointIcons.set(messageData.id, icon);
+                                    }
+
+                                    // The apps list may have arrived first, refresh the icons of the known inputs
+                                    if (!this.getInputsFromDevice) break;
+                                    let changed = false;
+                                    for (const input of this.inputs) {
+                                        const icon = this.appIcon({ id: input.reference });
+                                        if (icon && icon !== input.icon) {
+                                            input.icon = icon;
+                                            changed = true;
+                                        }
+                                    }
+                                    if (changed) {
+                                        await this.functions.saveData(this.inputsFile, this.inputs);
+                                        this.emit('installedApps', this.inputs, false);
+                                    }
+                                    break;
+                                }
+                                case 'error':
+                                    if (this.logDebug) this.emit('debug', `Launch points error: ${stringifyData}`);
+                                    break;
+                                default:
+                                    if (this.logDebug) this.emit('debug', `Launch points received message, type: ${messageType}, id: ${messageId}, data: ${stringifyData}`);
+                                    return;
+                            }
+                            break;
                         case this.appsId:
                             switch (messageType) {
                                 case 'response': {
@@ -570,8 +616,7 @@ class LgWebOsSocket extends EventEmitter {
                                                     reference: app.id,
                                                     mode: 0,
                                                     visible: app.visible,
-                                                    // like the Home Assistant webOS integration, largeIcon only when it is an url
-                                                    icon: this.iconUrl(app.largeIcon) ?? this.iconUrl(app.icon)
+                                                    icon: this.appIcon(app)
                                                 });
                                             }
                                         }
@@ -874,6 +919,12 @@ class LgWebOsSocket extends EventEmitter {
         } catch (error) {
             throw new Error(`Connect error: ${error}`);
         }
+    }
+
+    // Icon url of an app, the external input icon first (HDMI apps duplicate the external inputs), then the launch point icon
+    appIcon(app) {
+        const externalInput = this.externalInputsArr.find(input => input.reference === app.id);
+        return externalInput?.icon ?? this.launchPointIcons.get(app.id) ?? this.iconUrl(app.largeIcon) ?? this.iconUrl(app.icon);
     }
 
     // Absolute http(s) icon url of an app or input, used by Home Assistant

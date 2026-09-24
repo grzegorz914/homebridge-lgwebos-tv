@@ -15,6 +15,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - For plugin < v4.1.0 use Homebridge UI <= v5.5.0
 - For plugin >= v4.1.0 use Homebridge UI >= v5.13.0
 
+## [4.5.4] - (24.09.2026)
+
+### Changes
+
+- fix: Home Assistant source icon. App icons are now taken from the TV launch points (like the Home Assistant webOS integration), the icon urls from the apps list are not served by the TV and returned 404
+- fix: HDMI and AV inputs keep the icon from the external input list, the duplicated HDMI app entry no longer replaces it with a generic icon
+
 ## [4.5.3] - (24.09.2026)
 
 ### Changes

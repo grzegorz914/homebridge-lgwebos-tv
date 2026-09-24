@@ -46,6 +46,7 @@ export const ApiUrls = {
     "GetSystemInfo": "ssap://system/getSystemInfo",
     "GetSoftwareInfo": "ssap://com.webos.service.update/getCurrentSWInformation",
     "GetInstalledApps": "ssap://com.webos.applicationManager/listApps",
+    "GetLaunchPoints": "ssap://com.webos.applicationManager/listLaunchPoints",
     "GetChannelList": "ssap://tv/getChannelList",
     "GetPowerState": "ssap://com.webos.service.tvpower/power/getPowerState",
     "GetForegroundAppInfo": "ssap://com.webos.applicationManager/getForegroundAppInfo",
