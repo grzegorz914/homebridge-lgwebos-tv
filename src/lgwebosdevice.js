@@ -1,4 +1,6 @@
 import EventEmitter from 'events';
+import http from 'http';
+import https from 'https';
 import WakeOnLan from './wol.js';
 import LgWebOsSocket from './lgwebossocket.js';
 import Functions from './functions.js';
@@ -1449,6 +1451,29 @@ class LgWebOsDevice extends EventEmitter {
         }
     }
 
+    // Icon of an app or input. Newer webOS serves them over https with the TV self-signed certificate,
+    // accepted the same way as the TV websocket, and only for the TV itself
+    fetchIcon(url) {
+        return new Promise((resolve, reject) => {
+            const target = new URL(url);
+            if (target.hostname !== this.lgWebOsSocket?.host) return resolve(null);
+
+            const client = target.protocol === 'https:' ? https : http;
+            const request = client.get(target, { rejectUnauthorized: false, timeout: 5000 }, (response) => {
+                if (response.statusCode !== 200) {
+                    response.resume();
+                    return resolve(null);
+                }
+                const chunks = [];
+                response.on('data', chunk => chunks.push(chunk));
+                response.on('end', () => resolve(Buffer.concat(chunks)));
+                response.on('error', reject);
+            });
+            request.on('timeout', () => request.destroy(new Error('Icon request timeout')));
+            request.on('error', reject);
+        });
+    }
+
     async haPublishConfig() {
         if (!this.ha) return;
 
@@ -1484,10 +1509,7 @@ class LgWebOsDevice extends EventEmitter {
 
             // Icon of the current app or input, on live TV the Live TV app icon
             const icon = app?.icon;
-            this.ha.updateImage(icon ?? null, async () => {
-                const response = await fetch(icon, { signal: AbortSignal.timeout(5000) });
-                return response.ok ? Buffer.from(await response.arrayBuffer()) : null;
-            }).catch(() => { });
+            this.ha.updateImage(icon ?? null, () => this.fetchIcon(icon)).catch(() => { });
         } catch (error) {
             if (this.logWarn) this.emit('warn', `HA Discovery state error: ${error}`);
         }

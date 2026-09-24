@@ -15,6 +15,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - For plugin < v4.1.0 use Homebridge UI <= v5.5.0
 - For plugin >= v4.1.0 use Homebridge UI >= v5.13.0
 
+## [4.5.2] - (24.09.2026)
+
+### Changes
+
+- fix: HA Discovery, no source icon on newer webOS. The TV serves icons over https with its self-signed certificate, which the request rejected. Icons are now fetched from the TV the same way as the TV websocket accepts that certificate
+- fix: HA Discovery, a failed icon request is retried on the next state update instead of only after a source change
+
 ## [4.5.1] - (24.09.2026)
 
 ### Changes
