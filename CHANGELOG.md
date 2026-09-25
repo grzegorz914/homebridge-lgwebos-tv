@@ -15,6 +15,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - For plugin < v4.1.0 use Homebridge UI <= v5.5.0
 - For plugin >= v4.1.0 use Homebridge UI >= v5.13.0
 
+## [4.5.5] - (25.09.2026)
+
+### Changes
+
+- fix: picture and sound settings (sound mode, picture mode, brightness, backlight, contrast, color) on webOS 24+ sometimes stayed as an open alert on the TV, the ENTER key that confirms the alert arrived before the alert was shown (20 ms), the next command then confirmed the old alert. The key is now sent after 50 ms
+- fix: settings sent from Home Assistant, MQTT or RESTful showed the alert as `Unknown Title` / `Unknown Message`, the alert now shows the setting and its value like the HomeKit commands
+
 ## [4.5.4] - (24.09.2026)
 
 ### Changes

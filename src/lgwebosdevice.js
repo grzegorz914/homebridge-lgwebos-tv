@@ -178,32 +178,32 @@ class LgWebOsDevice extends EventEmitter {
                 case 'Brightness':
                     payload = { category: 'picture', settings: { brightness: value } };
                     cid = await this.lgWebOsSocket.getCid();
-                    set = await this.lgWebOsSocket.send('alert', ApiUrls.SetSystemSettings, payload, cid);
+                    set = await this.lgWebOsSocket.send('alert', ApiUrls.SetSystemSettings, payload, cid, 'Brightness', `Value: ${value}`);
                     break;
                 case 'Backlight':
                     payload = { category: 'picture', settings: { backlight: value } };
                     cid = await this.lgWebOsSocket.getCid();
-                    set = await this.lgWebOsSocket.send('alert', ApiUrls.SetSystemSettings, payload, cid);
+                    set = await this.lgWebOsSocket.send('alert', ApiUrls.SetSystemSettings, payload, cid, 'Backlight', `Value: ${value}`);
                     break;
                 case 'Contrast':
                     payload = { category: 'picture', settings: { contrast: value } };
                     cid = await this.lgWebOsSocket.getCid();
-                    set = await this.lgWebOsSocket.send('alert', ApiUrls.SetSystemSettings, payload, cid);
+                    set = await this.lgWebOsSocket.send('alert', ApiUrls.SetSystemSettings, payload, cid, 'Contrast', `Value: ${value}`);
                     break;
                 case 'Color':
                     payload = { category: 'picture', settings: { color: value } };
                     cid = await this.lgWebOsSocket.getCid();
-                    set = await this.lgWebOsSocket.send('alert', ApiUrls.SetSystemSettings, payload, cid);
+                    set = await this.lgWebOsSocket.send('alert', ApiUrls.SetSystemSettings, payload, cid, 'Color', `Value: ${value}`);
                     break;
                 case 'PictureMode':
                     payload = { category: 'picture', settings: { pictureMode: value } };
                     cid = await this.lgWebOsSocket.getCid();
-                    set = await this.lgWebOsSocket.send('alert', ApiUrls.SetSystemSettings, payload, cid);
+                    set = await this.lgWebOsSocket.send('alert', ApiUrls.SetSystemSettings, payload, cid, 'Picture Mode', `Value: ${PictureModes[value] ?? value}`);
                     break;
                 case 'SoundMode':
                     payload = { category: 'sound', settings: { soundMode: value } };
                     cid = await this.lgWebOsSocket.getCid();
-                    set = await this.lgWebOsSocket.send('alert', ApiUrls.SetSystemSettings, payload, cid);
+                    set = await this.lgWebOsSocket.send('alert', ApiUrls.SetSystemSettings, payload, cid, 'Sound Mode', `Value: ${SoundModes[value] ?? value}`);
                     break;
                 case 'SoundOutput':
                     payload = { output: value };
