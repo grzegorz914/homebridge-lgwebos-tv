@@ -15,6 +15,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - For plugin < v4.1.0 use Homebridge UI <= v5.5.0
 - For plugin >= v4.1.0 use Homebridge UI >= v5.13.0
 
+## [4.6.0] - (26.09.2026)
+
+### Changes
+
+- added: Home Assistant discovery publishes a `Screen` switch (screen off while the sound keeps playing, webOS 4.0 and newer) and a notify entity that shows a message on the TV, like the built-in LG webOS TV integration. Requires the MQTT Universal Media Player integration 0.4.0 or newer
+- added: MQTT and RESTful keys `Screen` (`true` / `false`) and `Notify` (message text)
+- readme update
+
 ## [4.5.5] - (25.09.2026)
 
 ### Changes

@@ -205,6 +205,16 @@ class LgWebOsDevice extends EventEmitter {
                     cid = await this.lgWebOsSocket.getCid();
                     set = await this.lgWebOsSocket.send('alert', ApiUrls.SetSystemSettings, payload, cid, 'Sound Mode', `Value: ${SoundModes[value] ?? value}`);
                     break;
+                case 'Screen': {
+                    const url = value ? (this.webOS >= 4.5 ? ApiUrls.TurnOnScreen45 : ApiUrls.TurnOnScreen) : (this.webOS >= 4.5 ? ApiUrls.TurnOffScreen45 : ApiUrls.TurnOffScreen);
+                    cid = await this.lgWebOsSocket.getCid('Power');
+                    set = await this.lgWebOsSocket.send('request', url, undefined, cid);
+                    break;
+                }
+                case 'Notify':
+                    payload = { message: String(value) };
+                    set = await this.lgWebOsSocket.send('request', ApiUrls.CreateToast, payload);
+                    break;
                 case 'SoundOutput':
                     payload = { output: value };
                     cid = await this.lgWebOsSocket.getCid('SoundOutput');
@@ -1446,7 +1456,10 @@ class LgWebOsDevice extends EventEmitter {
                     pause: { key: 'PlayState', value: false },
                     stop: { key: 'RcControl', value: 'STOP' },
                     next: { key: 'RcControl', value: 'GOTONEXT' },
-                    previous: { key: 'RcControl', value: 'GOTOPREV' }
+                    previous: { key: 'RcControl', value: 'GOTOPREV' },
+                    // Screen switch and notify entity like the built-in LG integration, screen on/off needs webOS 4.0
+                    ...(this.webOS >= 4.0 ? { screen: { key: 'Screen' } } : {}),
+                    notify: { key: 'Notify' }
                 }
             });
             await this.haPublishConfig();
@@ -1509,6 +1522,7 @@ class LgWebOsDevice extends EventEmitter {
                 source,
                 sound_mode: this.ha.commands.sound_mode ? this.soundMode : undefined,
                 app_name: app?.name ?? '',
+                screen: this.power ? this.screenState !== 'Screen Off' : false,
                 media_channel: liveTv ? this.channelName ?? '' : ''
             });
 
@@ -1558,6 +1572,7 @@ class LgWebOsDevice extends EventEmitter {
                     }
 
                     this.power = power;
+                    this.screenState = screenState;
                     this.haUpdateState();
                     if (this.logInfo) this.emit('info', `Power: ${power ? 'ON' : 'OFF'}`);
                 })

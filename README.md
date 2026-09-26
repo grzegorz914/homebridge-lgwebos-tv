@@ -182,6 +182,8 @@
 |      | `http//ip:port` | `SoundOutput` | `sound output reference` | string | Set sound output. |
 |      | `http//ip:port` | `PlayState` | `play`, `pause` | string | Set media play state. |
 |      | `http//ip:port` | `RcControl` | `REWIND` | string | Send RC command. |
+|      | `http//ip:port` | `Screen` | `true`, `false` | boolean | Turn the screen on / off, webOS 4.0 and newer. |
+|      | `http//ip:port` | `Notify` | `message` | string | Show a notification (toast) on the TV. |
 
 ### MQTT Integration
 
@@ -190,9 +192,9 @@
   * Picture Mode - `cinema`, `eco`, `expert1`, `expert2`, `game`, `normal`, `photo`, `sports`, `technicolor`, `vivid`, `hdrEffect`, `hdrFilmMaker`, `hdrCinema`, `hdrCinemaBright`, `hdrStandard`, `hdrEffect`, `hdrGame`, `hdrVivid`, `hdrTechnicolor`, `hdrExternal`, `dolbyHdrCinema`, `dolbyHdrCinemaBright`, `dolbyHdrDarkAmazon`, `dolbyHdrStandard`, `dolbyHdrGame`, `dolbyHdrVivid`.
   * Sound Mode - `aiSoundPlus`, `standard`, `movie`, `clearVoice`, `news`, `sport`, `music`, `game`.
   * Sound Output - `tv_speaker`, `external_speaker`, `external_optical`, `external_arc`, `lineout`, `headphone`, `tv_external_speaker`, `tv_external_headphone`, `bt_soundbar`, `soundbar`.
-* HA Discovery - if enabled, the device is published to Home Assistant as one media player (class `tv`) with power, volume, mute, source selection and more. Apps, inputs and channels are available as sources, sound mode can be set on webOS 6.0 and newer. Requires the [MQTT Universal Media Player](https://github.com/grzegorz914/homeassistant-mqtt-media-player) integration. Additional retained topics:
+* HA Discovery - if enabled, the device is published to Home Assistant as one media player (class `tv`) with power, volume, mute, source selection and more. Apps, inputs and channels are available as sources, sound mode can be set on webOS 6.0 and newer. Like the built-in LG integration the device also gets a `Screen` switch (screen off while the sound keeps playing, webOS 4.0 and newer) and a notify entity that shows a message on the TV (`notify.send_message`), both need the integration 0.4.0 or newer. Requires the [MQTT Universal Media Player](https://github.com/grzegorz914/homeassistant-mqtt-media-player) integration. Additional retained topics:
   * `homeassistant/media_player/<id>/config` - discovery message.
-  * `HA State` - `{"power": true, "volume": 12, "muted": false, "source": "com.webos.app.hdmi1", "sound_mode": "movie"}`.
+  * `HA State` - `{"power": true, "volume": 12, "muted": false, "source": "com.webos.app.hdmi1", "sound_mode": "movie", "screen": true}`.
   * `Availability` - `online`, `offline` (last will).
   * `HA Image` - icon of the current app or input (raw image, retained).
 
@@ -216,3 +218,5 @@
 |           | `Set` | `SoundOutput` | `sound output reference` | string | Set sound output. |
 |           | `Set` | `PlayState` | `play`, `pause` | string | Set media play state. |
 |           | `Set` | `RcControl` | `REWIND` | string | Send RC command. |
+|           | `Set` | `Screen` | `true`, `false` | boolean | Turn the screen on / off, webOS 4.0 and newer. |
+|           | `Set` | `Notify` | `message` | string | Show a notification (toast) on the TV. |
