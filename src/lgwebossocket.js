@@ -502,6 +502,7 @@ class LgWebOsSocket extends EventEmitter {
                                         });
                                     }
                                     await this.functions.saveData(this.channelsFile, channelsArr);
+                                    this.emit('channels', channelsArr);
                                     if (this.restFulEnabled) this.emit('restFul', 'channels', messageData);
                                     if (this.mqttEnabled) this.emit('mqtt', 'Channels', messageData);
                                     break;

@@ -15,6 +15,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - For plugin < v4.1.0 use Homebridge UI <= v5.5.0
 - For plugin >= v4.1.0 use Homebridge UI >= v5.13.0
 
+## [4.7.0] - (26.09.2026)
+
+### Changes
+
+- added: Home Assistant media browser with the external inputs, apps and TV channels of the TV (all of them, not limited to the 85 HomeKit inputs), with the app and input icons of the TV
+- added: icon for Screen Off in the Home Assistant media browser and media card, the TV has none, the plugin bundles one from Material Design Icons (Apache 2.0)
+- added: Home Assistant play media, MQTT and RESTful key `PlayMedia`: a channel, an app or input, a YouTube link in the YouTube app, an audio or video url (e.g. Home Assistant TTS) in the TV media viewer, any other link in the web browser
+- the media browser and play media need the MQTT Universal Media Player integration 0.5.0 or newer
+- readme update
+
 ## [4.6.0] - (26.09.2026)
 
 ### Changes

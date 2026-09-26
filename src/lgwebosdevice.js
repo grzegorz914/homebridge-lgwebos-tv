@@ -6,6 +6,11 @@ import LgWebOsSocket from './lgwebossocket.js';
 import Functions from './functions.js';
 import HaDiscovery from './hadiscovery.js';
 import { ApiUrls, SystemApps, PictureModes, SoundModes, SoundOutputs, PowerOnWaitAttempts } from './constants.js';
+import { readFile } from 'fs/promises';
+
+// Screen off is added by the plugin, its icon is bundled (Material Design Icons, Apache 2.0)
+const ScreenOffReference = 'com.webos.app.screenoff';
+const ScreenOffIcon = new URL('../icons/screen-off.png', import.meta.url);
 let Accessory, Characteristic, Service, Categories, Encode, AccessoryUUID;
 
 class LgWebOsDevice extends EventEmitter {
@@ -211,6 +216,17 @@ class LgWebOsDevice extends EventEmitter {
                     set = await this.lgWebOsSocket.send('request', url, undefined, cid);
                     break;
                 }
+                case 'BrowseImage': {
+                    // Media browser icon: the icon of the app or input from the TV, channels have none
+                    const input = value?.type === 'channel' ? null : (this.allInputs ?? this.savedInputs ?? []).find(i => i.reference === value?.id && i.icon);
+                    const fetchImage = value?.id === ScreenOffReference ? () => readFile(ScreenOffIcon) : async () => input ? await this.fetchIcon(input.icon) : null;
+                    await this.ha?.answerBrowseImage(value?.key, fetchImage);
+                    set = true;
+                    break;
+                }
+                case 'PlayMedia':
+                    set = await this.playMedia(String(value?.id ?? value ?? ''), String(value?.type ?? ''));
+                    break;
                 case 'Notify':
                     payload = { message: String(value) };
                     set = await this.lgWebOsSocket.send('request', ApiUrls.CreateToast, payload);
@@ -415,6 +431,42 @@ class LgWebOsDevice extends EventEmitter {
         } catch (error) {
             throw new Error(`Add/Remove/Update input error: ${error}`);
         }
+    }
+
+    // Home Assistant play media: a channel, an app or input, a YouTube link, a media url or a web page
+    async playMedia(id, type) {
+        if (!id) return false;
+
+        if (type === 'channel') {
+            const cid = await this.lgWebOsSocket.getCid('Channel');
+            return await this.lgWebOsSocket.send('request', ApiUrls.OpenChannel, { channelId: id }, cid);
+        }
+
+        if (/^https?:\/\//i.test(id)) {
+            const cid = await this.lgWebOsSocket.getCid('App');
+            const youTube = id.match(/(?:youtube\.com\/(?:watch\?(?:.*&)?v=|shorts\/|live\/|embed\/)|youtu\.be\/)([\w-]{11})/i);
+            if (youTube) {
+                const payload = { id: 'youtube.leanback.v4', contentId: youTube[1], params: { contentTarget: `https://www.youtube.com/tv?v=${youTube[1]}` } };
+                return await this.lgWebOsSocket.send('request', ApiUrls.LaunchApp, payload, cid);
+            }
+
+            // Audio and video (e.g. Home Assistant TTS) in the TV media viewer, other links in the web browser
+            const media = /^(audio|video|image)\//.test(type) || /\.(mp3|m4a|aac|flac|wav|ogg|mp4|mkv|m3u8|mpd|ts|jpg|jpeg|png)(\?|$)/i.test(id);
+            if (media) {
+                const payload = { target: id, title: 'Home Assistant', description: '', mimeType: type.includes('/') ? type : undefined, iconSrc: '', loop: false };
+                return await this.lgWebOsSocket.send('request', ApiUrls.OpenMediaViewer, payload, cid);
+            }
+            return await this.lgWebOsSocket.send('request', ApiUrls.LaunchApp, { id: 'com.webos.app.browser', target: id }, cid);
+        }
+
+        // An app or input, known ones the same way as from HomeKit
+        const input = this.inputsServices?.find(i => i.reference === id);
+        if (input) {
+            await this.setInput(input);
+            return true;
+        }
+        const cid = await this.lgWebOsSocket.getCid('App');
+        return await this.lgWebOsSocket.send('request', ApiUrls.LaunchApp, { id }, cid);
     }
 
     async setInput(input) {
@@ -1437,6 +1489,7 @@ class LgWebOsDevice extends EventEmitter {
             // Sound mode can be set only on webOS 6.0 and newer
             const soundMode = this.webOS >= 6.0;
             this.ha = new HaDiscovery(this.mqtt1, {
+                browseImages: true,
                 objectId: `lg_${this.mac}`,
                 image: true,
                 name: this.name,
@@ -1459,7 +1512,9 @@ class LgWebOsDevice extends EventEmitter {
                     previous: { key: 'RcControl', value: 'GOTOPREV' },
                     // Screen switch and notify entity like the built-in LG integration, screen on/off needs webOS 4.0
                     ...(this.webOS >= 4.0 ? { screen: { key: 'Screen' } } : {}),
-                    notify: { key: 'Notify' }
+                    notify: { key: 'Notify' },
+                    // Media browser and play media (apps, channels, YouTube and web links, media urls), integration 0.5.0
+                    play_media: { key: 'PlayMedia' }
                 }
             });
             await this.haPublishConfig();
@@ -1498,11 +1553,34 @@ class LgWebOsDevice extends EventEmitter {
         try {
             const sources = (this.inputsServices ?? []).map(input => ({ id: input.reference, name: input.name }));
             const soundModes = this.ha.commands.sound_mode ? Object.entries(SoundModes).map(([id, name]) => ({ id, name })) : [];
-            await this.ha.publishConfig({ sources, soundModes });
+            await this.ha.publishConfig({ sources, soundModes, browse: this.haBrowse() });
             await this.haUpdateState();
         } catch (error) {
             if (this.logWarn) this.emit('warn', `HA Discovery publish error: ${error}`);
         }
+    }
+
+    // Media browser folders: external inputs, visible apps and TV channels, from the full lists of the TV
+    haBrowse() {
+        const name = (input) => this.savedInputsNames?.[input.reference] ?? input.name;
+        const byName = (a, b) => a.name.localeCompare(b.name);
+        const seen = new Set();
+        const inputs = [];
+        const apps = [];
+        for (const input of this.allInputs ?? this.savedInputs ?? []) {
+            if (!input?.reference || seen.has(input.reference)) continue;
+            seen.add(input.reference);
+            if (input.visible === false) continue;
+            if (this.filterSystemApps && SystemApps.includes(input.reference)) continue;
+            const item = { id: input.reference, name: name(input) };
+            (/^com\.webos\.app\.(hdmi|externalinput|dp|usbc)/.test(input.reference) ? inputs : apps).push(item);
+        }
+        const channels = (this.savedChannels ?? []).map(channel => ({ id: channel.reference, name: channel.number ? `${channel.number} ${channel.name}` : channel.name }));
+        return [
+            { name: 'Inputs', type: 'app', items: inputs.sort(byName) },
+            { name: 'Apps', type: 'app', items: apps.sort(byName) },
+            { name: 'Channels', type: 'channel', items: channels }
+        ];
     }
 
     async haUpdateState() {
@@ -1527,8 +1605,13 @@ class LgWebOsDevice extends EventEmitter {
             });
 
             // Icon of the current app or input, on live TV the Live TV app icon
-            const icon = app?.icon;
-            this.ha.updateImage(icon ?? null, () => this.fetchIcon(icon)).catch(() => { });
+            // Screen off is added by the plugin, the TV has no icon for it, the plugin bundles one
+            if (this.reference === ScreenOffReference) {
+                this.ha.updateImage(ScreenOffReference, () => readFile(ScreenOffIcon)).catch(() => { });
+            } else {
+                const icon = app?.icon;
+                this.ha.updateImage(icon ?? null, () => this.fetchIcon(icon)).catch(() => { });
+            }
         } catch (error) {
             if (this.logWarn) this.emit('warn', `HA Discovery state error: ${error}`);
         }
@@ -1559,7 +1642,16 @@ class LgWebOsDevice extends EventEmitter {
                     this.informationService?.setCharacteristic(Characteristic.FirmwareRevision, info.firmwareRevision);
                 })
                 .on('installedApps', async (inputs, remove) => {
+                    // Full list for the Home Assistant media browser, HomeKit has at most 85 inputs
+                    this.allInputs = remove
+                        ? (this.allInputs ?? []).filter(input => !inputs.some(removed => removed.reference === input.reference))
+                        : inputs;
                     await this.addRemoveOrUpdateInput(inputs, remove);
+                    this.haPublishConfig();
+                })
+                .on('channels', async (channels) => {
+                    this.savedChannels = channels;
+                    await this.haPublishConfig();
                 })
                 .on('powerState', (power, screenState) => {
                     this.televisionService?.updateCharacteristic(Characteristic.Active, power);
