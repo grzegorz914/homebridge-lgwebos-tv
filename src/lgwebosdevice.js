@@ -1494,8 +1494,6 @@ class LgWebOsDevice extends EventEmitter {
                 image: true,
                 name: this.name,
                 deviceClass: 'tv',
-                // Play state of apps is not always reported, stop is shown only with assumed state
-                assumedState: true,
                 device: {
                     manufacturer: this.savedInfo.manufacturer ?? 'LG Electronics',
                     model: this.savedInfo.modelName,
