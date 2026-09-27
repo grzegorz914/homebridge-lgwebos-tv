@@ -15,6 +15,21 @@ const BundledIcons = {
     [ScreenOffReference]: new URL('../icons/screen-off.png', import.meta.url),
     'com.webos.app.home': new URL('../icons/home.png', import.meta.url)
 };
+
+// Icon of an external input when the TV gives none or it cannot be loaded, by the input type
+const InputIcons = [
+    [/hdmi/, 'video-input-hdmi'],
+    [/component|composite|scart|\.av\d*$/, 'video-input-component'],
+    [/\.dp\d*$|^com\.webos\.app\.dp|displayport/, 'monitor-share'],
+    [/usbc/, 'usb-c-port'],
+    [/^com\.webos\.app\.(externalinput|dp|usbc)/, 'import']
+];
+const bundledIcon = (reference) => {
+    const ref = String(reference ?? '').toLowerCase();
+    if (BundledIcons[ref]) return BundledIcons[ref];
+    const name = InputIcons.find(([pattern]) => pattern.test(ref))?.[1];
+    return name ? new URL(`../icons/${name}.png`, import.meta.url) : null;
+};
 let Accessory, Characteristic, Service, Categories, Encode, AccessoryUUID;
 
 class LgWebOsDevice extends EventEmitter {
@@ -223,8 +238,8 @@ class LgWebOsDevice extends EventEmitter {
                 case 'BrowseImage': {
                     // Media browser icon: the icon of the app or input from the TV, channels have none
                     const input = value?.type === 'channel' ? null : (this.allInputs ?? this.savedInputs ?? []).find(i => i.reference === value?.id && i.icon);
-                    const bundled = value?.type === 'channel' ? null : BundledIcons[value?.id];
-                    const fetchImage = input ? () => this.fetchIcon(input.icon) : bundled ? () => readFile(bundled) : async () => null;
+                    const bundled = value?.type === 'channel' ? null : bundledIcon(value?.id);
+                    const fetchImage = () => this.haIcon(input?.icon, bundled);
                     await this.ha?.answerBrowseImage(value?.key, fetchImage);
                     set = true;
                     break;
@@ -1591,6 +1606,15 @@ class LgWebOsDevice extends EventEmitter {
         ];
     }
 
+    // Icon from the TV, the bundled one when the TV has none or it cannot be loaded
+    async haIcon(icon, bundled) {
+        if (icon) {
+            const image = await this.fetchIcon(icon).catch(() => null);
+            if (image) return image;
+        }
+        return bundled ? readFile(bundled).catch(() => null) : null;
+    }
+
     // Volume controls of the current sound output, the same rules as the built-in LG integration: optical and
     // HDMI ARC amplifiers only step the volume (level unknown), line out has no volume control
     haVolumeControl() {
@@ -1627,9 +1651,8 @@ class LgWebOsDevice extends EventEmitter {
             // Icon of the current app or input, on live TV the Live TV app icon
             // Screen off and Home have no icon from the TV, the plugin bundles them
             const icon = app?.icon;
-            const bundled = BundledIcons[this.reference];
-            if (icon) this.ha.updateImage(icon, () => this.fetchIcon(icon)).catch(() => { });
-            else this.ha.updateImage(bundled ? this.reference : null, () => readFile(bundled)).catch(() => { });
+            const bundled = bundledIcon(this.reference);
+            this.ha.updateImage(icon ?? (bundled ? this.reference : null), () => this.haIcon(icon, bundled)).catch(() => { });
         } catch (error) {
             if (this.logWarn) this.emit('warn', `HA Discovery state error: ${error}`);
         }
