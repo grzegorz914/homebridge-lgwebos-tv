@@ -21,6 +21,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 - added: Home Assistant icon of Home, the TV has none, the plugin bundles one like for Screen Off
 - added: Home Assistant icons of HDMI, AV, Component, DisplayPort and USB-C inputs bundled with the plugin, used when the TV gives no icon or it cannot be loaded
+- changed: the bundled icons (Screen Off, Home, inputs) are dark gray without a background, like the input icons of the TV
 - fixed: Home Assistant media browser without inputs on TVs that report the inputs only as hidden apps
 - fixed: inputs from the TV missing when the apps list arrived before the external input list
 - fixed: an app installed on the TV replaced the whole apps list until the next restart
