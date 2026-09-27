@@ -15,6 +15,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - For plugin < v4.1.0 use Homebridge UI <= v5.5.0
 - For plugin >= v4.1.0 use Homebridge UI >= v5.13.0
 
+## [4.8.0] - (27.09.2026)
+
+### Changes
+
+- added: Home Assistant media card shows play, pause and stop as separate buttons (assumed state), the play state of apps is not always reported
+- added: Home Assistant volume controls follow the sound output like the built-in LG integration, optical and HDMI ARC amplifiers show only volume up / down (remote keys) and mute without the slider, line out shows no volume controls. Requires the MQTT Universal Media Player integration 0.6.0 or newer
+- readme update
+
 ## [4.7.0] - (26.09.2026)
 
 ### Changes

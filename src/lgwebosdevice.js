@@ -1494,6 +1494,8 @@ class LgWebOsDevice extends EventEmitter {
                 image: true,
                 name: this.name,
                 deviceClass: 'tv',
+                // Play state of apps is not always reported, stop is shown only with assumed state
+                assumedState: true,
                 device: {
                     manufacturer: this.savedInfo.manufacturer ?? 'LG Electronics',
                     model: this.savedInfo.modelName,
@@ -1502,6 +1504,8 @@ class LgWebOsDevice extends EventEmitter {
                 commands: {
                     power: { key: 'Power' },
                     volume_set: { key: 'Volume', min: 0, max: 100 },
+                    // Remote volume keys, they also work with an amplifier on optical or HDMI ARC
+                    volume_step: { key: 'RcControl', up: 'VOLUMEUP', down: 'VOLUMEDOWN' },
                     mute: { key: 'Mute' },
                     source: { key: 'Input' },
                     ...(soundMode ? { sound_mode: { key: 'SoundMode' } } : {}),
@@ -1583,6 +1587,15 @@ class LgWebOsDevice extends EventEmitter {
         ];
     }
 
+    // Volume controls of the current sound output, the same rules as the built-in LG integration: optical and
+    // HDMI ARC amplifiers only step the volume (level unknown), line out has no volume control
+    haVolumeControl() {
+        const output = String(this.soundOutput ?? '');
+        if (output === 'lineout') return 'none';
+        if (['external_speaker', 'external_optical', 'external_arc'].includes(output)) return 'step';
+        return 'full';
+    }
+
     async haUpdateState() {
         if (!this.ha) return;
 
@@ -1601,6 +1614,7 @@ class LgWebOsDevice extends EventEmitter {
                 sound_mode: this.ha.commands.sound_mode ? this.soundMode : undefined,
                 app_name: app?.name ?? '',
                 screen: this.power ? this.screenState !== 'Screen Off' : false,
+                volume_control: this.haVolumeControl(),
                 media_channel: liveTv ? this.channelName ?? '' : ''
             });
 
@@ -1817,6 +1831,7 @@ class LgWebOsDevice extends EventEmitter {
                     }
 
                     this.soundOutput = soundOutput;
+                    this.haUpdateState();
                     if (this.logInfo) this.emit('info', `Sound Output: ${SoundOutputs[soundOutput] ?? 'Unknown'}`);
                 })
                 .on('mediaInfo', async (appId, playState, appType, power) => {
