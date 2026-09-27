@@ -1592,9 +1592,10 @@ class LgWebOsDevice extends EventEmitter {
         for (const input of this.allInputs ?? this.savedInputs ?? []) {
             if (!input?.reference || seen.has(input.reference)) continue;
             seen.add(input.reference);
-            // Older webOS without the external input list report the inputs only as hidden apps, inputs are always listed
+            // Older webOS without the external input list report the inputs only as hidden apps, inputs are always listed.
+            // Home and Screen Off are hidden apps too, they are listed with their bundled icons
             const isInput = /^com\.webos\.app\.(hdmi|externalinput|dp|usbc)/.test(input.reference);
-            if (input.visible === false && !isInput) continue;
+            if (input.visible === false && !isInput && !BundledIcons[input.reference]) continue;
             if (this.filterSystemApps && SystemApps.includes(input.reference)) continue;
             (isInput ? inputs : apps).push({ id: input.reference, name: name(input) });
         }

@@ -15,6 +15,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - For plugin < v4.1.0 use Homebridge UI <= v5.5.0
 - For plugin >= v4.1.0 use Homebridge UI >= v5.13.0
 
+## [4.8.2] - (27.09.2026)
+
+### Changes
+
+- fixed: Home missing in the Apps folder of the Home Assistant media browser, the TV reports it as a hidden app
+
 ## [4.8.1] - (27.09.2026)
 
 ### Changes
