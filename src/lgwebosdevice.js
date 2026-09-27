@@ -10,7 +10,11 @@ import { readFile } from 'fs/promises';
 
 // Screen off is added by the plugin, its icon is bundled (Material Design Icons, Apache 2.0)
 const ScreenOffReference = 'com.webos.app.screenoff';
-const ScreenOffIcon = new URL('../icons/screen-off.png', import.meta.url);
+// Icons bundled with the plugin, the TV has none for screen off (added by the plugin) and Home (not a launch point)
+const BundledIcons = {
+    [ScreenOffReference]: new URL('../icons/screen-off.png', import.meta.url),
+    'com.webos.app.home': new URL('../icons/home.png', import.meta.url)
+};
 let Accessory, Characteristic, Service, Categories, Encode, AccessoryUUID;
 
 class LgWebOsDevice extends EventEmitter {
@@ -219,7 +223,8 @@ class LgWebOsDevice extends EventEmitter {
                 case 'BrowseImage': {
                     // Media browser icon: the icon of the app or input from the TV, channels have none
                     const input = value?.type === 'channel' ? null : (this.allInputs ?? this.savedInputs ?? []).find(i => i.reference === value?.id && i.icon);
-                    const fetchImage = value?.id === ScreenOffReference ? () => readFile(ScreenOffIcon) : async () => input ? await this.fetchIcon(input.icon) : null;
+                    const bundled = value?.type === 'channel' ? null : BundledIcons[value?.id];
+                    const fetchImage = input ? () => this.fetchIcon(input.icon) : bundled ? () => readFile(bundled) : async () => null;
                     await this.ha?.answerBrowseImage(value?.key, fetchImage);
                     set = true;
                     break;
@@ -1572,10 +1577,11 @@ class LgWebOsDevice extends EventEmitter {
         for (const input of this.allInputs ?? this.savedInputs ?? []) {
             if (!input?.reference || seen.has(input.reference)) continue;
             seen.add(input.reference);
-            if (input.visible === false) continue;
+            // Older webOS without the external input list report the inputs only as hidden apps, inputs are always listed
+            const isInput = /^com\.webos\.app\.(hdmi|externalinput|dp|usbc)/.test(input.reference);
+            if (input.visible === false && !isInput) continue;
             if (this.filterSystemApps && SystemApps.includes(input.reference)) continue;
-            const item = { id: input.reference, name: name(input) };
-            (/^com\.webos\.app\.(hdmi|externalinput|dp|usbc)/.test(input.reference) ? inputs : apps).push(item);
+            (isInput ? inputs : apps).push({ id: input.reference, name: name(input) });
         }
         const channels = (this.savedChannels ?? []).map(channel => ({ id: channel.reference, name: channel.number ? `${channel.number} ${channel.name}` : channel.name }));
         return [
@@ -1619,13 +1625,11 @@ class LgWebOsDevice extends EventEmitter {
             });
 
             // Icon of the current app or input, on live TV the Live TV app icon
-            // Screen off is added by the plugin, the TV has no icon for it, the plugin bundles one
-            if (this.reference === ScreenOffReference) {
-                this.ha.updateImage(ScreenOffReference, () => readFile(ScreenOffIcon)).catch(() => { });
-            } else {
-                const icon = app?.icon;
-                this.ha.updateImage(icon ?? null, () => this.fetchIcon(icon)).catch(() => { });
-            }
+            // Screen off and Home have no icon from the TV, the plugin bundles them
+            const icon = app?.icon;
+            const bundled = BundledIcons[this.reference];
+            if (icon) this.ha.updateImage(icon, () => this.fetchIcon(icon)).catch(() => { });
+            else this.ha.updateImage(bundled ? this.reference : null, () => readFile(bundled)).catch(() => { });
         } catch (error) {
             if (this.logWarn) this.emit('warn', `HA Discovery state error: ${error}`);
         }

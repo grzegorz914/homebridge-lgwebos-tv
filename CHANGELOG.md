@@ -15,6 +15,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - For plugin < v4.1.0 use Homebridge UI <= v5.5.0
 - For plugin >= v4.1.0 use Homebridge UI >= v5.13.0
 
+## [4.8.1] - (27.09.2026)
+
+### Changes
+
+- added: Home Assistant icon of Home, the TV has none, the plugin bundles one like for Screen Off
+- fixed: Home Assistant media browser without inputs on TVs that report the inputs only as hidden apps
+- fixed: inputs from the TV missing when the apps list arrived before the external input list
+- fixed: an app installed on the TV replaced the whole apps list until the next restart
+
 ## [4.8.0] - (27.09.2026)
 
 ### Changes

@@ -29,6 +29,7 @@ class LgWebOsSocket extends EventEmitter {
         this.socketOpen = false;
         this.heartbeat = null;
         this.externalInputsArr = [];
+        this.appsArr = [];
         this.inputsArr = [];
         this.launchPointIcons = new Map();
         this.socketConnected = false;
@@ -533,7 +534,15 @@ class LgWebOsSocket extends EventEmitter {
                                             icon: this.iconUrl(input.icon)
                                         });
                                     }
+                                    const changed = JSON.stringify(arr) !== JSON.stringify(this.externalInputsArr);
                                     this.externalInputsArr = arr;
+
+                                    // The apps list may have arrived first, add the external inputs to it
+                                    if (changed && this.appsArr.length > 0) {
+                                        this.inputs = [...this.externalInputsArr, ...this.appsArr];
+                                        await this.functions.saveData(this.inputsFile, this.inputs);
+                                        this.emit('installedApps', this.inputs, false);
+                                    }
                                     if (this.restFulEnabled) this.emit('restFul', 'externalinputlist', messageData);
                                     if (this.mqttEnabled) this.emit('mqtt', 'External Input List', messageData);
                                     break;
@@ -600,6 +609,7 @@ class LgWebOsSocket extends EventEmitter {
 
                                         if (appUninstalled && messageData.app) {
                                             this.inputs = this.inputs.filter(input => input.reference !== messageData.app.id);
+                                            this.appsArr = this.appsArr.filter(input => input.reference !== messageData.app.id);
                                             const inputs = [{ name: messageData.app.title, reference: messageData.app.id }];
                                             await this.functions.saveData(this.inputsFile, this.inputs);
                                             this.emit('installedApps', inputs, true);
@@ -622,8 +632,10 @@ class LgWebOsSocket extends EventEmitter {
                                             }
                                         }
 
+                                        // Full list, or one installed app added to the known apps
                                         if (appUpdated && this.tvInfo.webOS >= 4.0) arr.push({ name: 'Screen Off', reference: 'com.webos.app.screenoff', mode: 0 });
-                                        this.inputs = [...this.externalInputsArr, ...arr];
+                                        this.appsArr = appInstalled ? [...this.appsArr.filter(app => !arr.some(added => added.reference === app.reference)), ...arr] : arr;
+                                        this.inputs = [...this.externalInputsArr, ...this.appsArr];
                                     }
 
                                     await this.functions.saveData(this.inputsFile, this.inputs);
