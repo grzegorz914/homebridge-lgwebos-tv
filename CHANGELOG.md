@@ -21,6 +21,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 - added: Home Assistant media card shows play, pause and stop as separate buttons (assumed state), the play state of apps is not always reported
 - added: Home Assistant volume controls follow the sound output like the built-in LG integration, optical and HDMI ARC amplifiers show only volume up / down (remote keys) and mute without the slider, line out shows no volume controls. Requires the MQTT Universal Media Player integration 0.6.0 or newer
+- added: Home Assistant app_id of the running app, like the built-in LG integration
 - readme update
 
 ## [4.7.0] - (26.09.2026)

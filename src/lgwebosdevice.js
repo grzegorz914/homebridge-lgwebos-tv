@@ -1613,6 +1613,8 @@ class LgWebOsDevice extends EventEmitter {
                 source,
                 sound_mode: this.ha.commands.sound_mode ? this.soundMode : undefined,
                 app_name: app?.name ?? '',
+                // Id of the running app, like the built-in LG integration (screen off is added by the plugin)
+                app_id: this.power && this.reference !== ScreenOffReference ? this.reference ?? '' : '',
                 screen: this.power ? this.screenState !== 'Screen Off' : false,
                 volume_control: this.haVolumeControl(),
                 media_channel: liveTv ? this.channelName ?? '' : ''
