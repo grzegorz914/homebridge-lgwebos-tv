@@ -10,10 +10,11 @@ import { readFile } from 'fs/promises';
 
 // Screen off is added by the plugin, its icon is bundled (Material Design Icons, Apache 2.0)
 const ScreenOffReference = 'com.webos.app.screenoff';
-// Icons bundled with the plugin, the TV has none for screen off (added by the plugin) and Home (not a launch point)
+// Icons bundled with the plugin, the TV has none for screen off and screen saver (added by the plugin) and Home (not a launch point)
 const BundledIcons = {
     [ScreenOffReference]: new URL('../icons/screen-off.png', import.meta.url),
-    'com.webos.app.home': new URL('../icons/home.png', import.meta.url)
+    'com.webos.app.home': new URL('../icons/home.png', import.meta.url),
+    'com.webos.app.screensaver': new URL('../icons/screen-saver.png', import.meta.url)
 };
 
 // Icon of an external input when the TV gives none or it cannot be loaded, by the input type
@@ -1593,7 +1594,7 @@ class LgWebOsDevice extends EventEmitter {
             if (!input?.reference || seen.has(input.reference)) continue;
             seen.add(input.reference);
             // Older webOS without the external input list report the inputs only as hidden apps, inputs are always listed.
-            // Home and Screen Off are hidden apps too, they are listed with their bundled icons
+            // Home, Screen Off and Screen Saver are hidden apps too, they are listed with their bundled icons
             const isInput = /^com\.webos\.app\.(hdmi|externalinput|dp|usbc)/.test(input.reference);
             if (input.visible === false && !isInput && !BundledIcons[input.reference]) continue;
             if (this.filterSystemApps && SystemApps.includes(input.reference)) continue;
