@@ -93,6 +93,7 @@ class LgWebOsDevice extends EventEmitter {
         //state variables
         this.functions = new Functions();
         this.inputIdentifier = 1;
+        this.haInputs = new Map();
         this.reference = null;
         this.power = false;
         this.pixelRefreshState = false;
@@ -178,7 +179,7 @@ class LgWebOsDevice extends EventEmitter {
                     break;
                 case 'Input': {
                     // Known inputs (apps, channels, screen off, screen saver...) are switched the same way as from HomeKit
-                    const input = this.inputsServices?.find(i => i.reference === value);
+                    const input = this.haInput(value);
                     if (input) {
                         await this.setInput(input);
                         set = true;
@@ -363,6 +364,10 @@ class LgWebOsDevice extends EventEmitter {
                 const inputMode = input.mode ?? 0;
                 const inputVisibility = this.savedInputsTargetVisibility[inputReference] ?? 0;
 
+                // Home Assistant gets all inputs, the HomeKit limit of 85 does not apply
+                if (remove) this.haInputs.delete(inputReference);
+                else this.haInputs.set(inputReference, { reference: inputReference, name: sanitizedName, mode: inputMode, icon: input.icon });
+
                 if (remove) {
                     const svc = this.inputsServices.find(s => s.reference === inputReference);
                     if (svc) {
@@ -377,6 +382,7 @@ class LgWebOsDevice extends EventEmitter {
                 let inputService = this.inputsServices.find(s => s.reference === inputReference);
                 if (inputService) {
                     if (input.icon) inputService.icon = input.icon;
+                    if (!input.icon && inputService.icon) this.haInputs.get(inputReference).icon = inputService.icon;
                     const nameChanged = inputService.name !== sanitizedName;
                     if (nameChanged) {
                         inputService.name = sanitizedName;
@@ -1570,11 +1576,17 @@ class LgWebOsDevice extends EventEmitter {
         });
     }
 
+    // Input by reference, from HomeKit or one of the inputs over the HomeKit limit
+    haInput(reference, mode) {
+        const match = (input) => input.reference === reference && (mode === undefined || input.mode === mode);
+        return this.inputsServices?.find(match) ?? [...this.haInputs.values()].find(match);
+    }
+
     async haPublishConfig() {
         if (!this.ha) return;
 
         try {
-            const sources = (this.inputsServices ?? []).map(input => ({ id: input.reference, name: input.name }));
+            const sources = [...this.haInputs.values()].map(input => ({ id: input.reference, name: input.name }));
             const soundModes = this.ha.commands.sound_mode ? Object.entries(SoundModes).map(([id, name]) => ({ id, name })) : [];
             await this.ha.publishConfig({ sources, soundModes, browse: this.haBrowse() });
             await this.haUpdateState();
@@ -1631,10 +1643,11 @@ class LgWebOsDevice extends EventEmitter {
 
         try {
             // On live TV report the channel when it is one of the inputs, otherwise the app
-            const channel = this.inputsServices?.find(input => input.mode === 1 && input.reference === this.channelId);
+            const channel = this.haInput(this.channelId, 1);
             const liveTv = this.reference === 'com.webos.app.livetv';
             const source = liveTv && channel ? channel.reference : this.reference;
-            const app = this.inputsServices?.find(input => input.reference === this.reference);
+            const app = this.haInput(this.reference);
+
             await this.ha.updateState({
                 power: this.power,
                 state: this.power ? (this.playState ? 'playing' : 'on') : 'off',

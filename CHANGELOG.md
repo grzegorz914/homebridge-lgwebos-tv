@@ -15,6 +15,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - For plugin < v4.1.0 use Homebridge UI <= v5.5.0
 - For plugin >= v4.1.0 use Homebridge UI >= v5.13.0
 
+## [4.9.0] - (28.09.2026)
+
+### Changes
+
+- fixed: Home Assistant gets all inputs, the HomeKit limit of 85 inputs no longer applies to the source list and the media browser
+
 ## [4.8.3] - (27.09.2026)
 
 ### Changes
