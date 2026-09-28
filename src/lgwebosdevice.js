@@ -5,6 +5,7 @@ import WakeOnLan from './wol.js';
 import LgWebOsSocket from './lgwebossocket.js';
 import Functions from './functions.js';
 import HaDiscovery from './hadiscovery.js';
+import CastMedia from './castmedia.js';
 import { ApiUrls, SystemApps, PictureModes, SoundModes, SoundOutputs, PowerOnWaitAttempts } from './constants.js';
 import { readFile } from 'fs/promises';
 
@@ -1547,6 +1548,7 @@ class LgWebOsDevice extends EventEmitter {
                 }
             });
             await this.haPublishConfig();
+            if (this.power) this.cast?.start();
         } catch (error) {
             if (this.logWarn) this.emit('warn', `HA Discovery setup error: ${error}`);
         }
@@ -1648,10 +1650,14 @@ class LgWebOsDevice extends EventEmitter {
             const source = liveTv && channel ? channel.reference : this.reference;
             const app = this.haInput(this.reference);
 
+            // Title, progress and cover of the app playing, from the Chromecast built into the TV
+            const media = this.power && !liveTv ? this.castMedia : null;
+            const progress = media && media.duration > 0 && media.position !== null;
+
             await this.ha.updateState({
                 power: this.power,
                 // Paused media of an app is shown as paused, other apps and inputs as on
-                state: this.power ? (this.playState ? 'playing' : this.mediaPlayState === 'paused' ? 'paused' : 'on') : 'off',
+                state: this.power ? (media?.state ?? (this.playState ? 'playing' : this.mediaPlayState === 'paused' ? 'paused' : 'on')) : 'off',
                 volume: typeof this.volume === 'number' ? this.volume : undefined,
                 muted: typeof this.mute === 'boolean' ? this.mute : undefined,
                 source,
@@ -1661,14 +1667,21 @@ class LgWebOsDevice extends EventEmitter {
                 app_id: this.power && this.reference !== ScreenOffReference ? this.reference ?? '' : '',
                 screen: this.power ? this.screenState !== 'Screen Off' : false,
                 volume_control: this.haVolumeControl(),
-                media_channel: liveTv ? this.channelName ?? '' : ''
+                media_channel: liveTv ? this.channelName ?? '' : '',
+                media_title: media?.title ?? '',
+                media_image_url: media?.cover ?? '',
+                media_duration: progress ? media.duration : null,
+                media_position: progress ? media.position : null,
+                media_position_updated_at: progress ? media.positionAt : null
             });
 
             // Icon of the current app or input, on live TV the Live TV app icon
             // Screen off and Home have no icon from the TV, the plugin bundles them
+            // The cover of the playing media replaces the icon, Home Assistant loads the cover url itself
             const icon = app?.icon;
             const bundled = bundledIcon(this.reference);
-            this.ha.updateImage(icon ?? (bundled ? this.reference : null), () => this.haIcon(icon, bundled)).catch(() => { });
+            const imageKey = media?.cover ? null : icon ?? (bundled ? this.reference : null);
+            this.ha.updateImage(imageKey, () => this.haIcon(icon, bundled)).catch(() => { });
         } catch (error) {
             if (this.logWarn) this.emit('warn', `HA Discovery state error: ${error}`);
         }
@@ -1686,6 +1699,13 @@ class LgWebOsDevice extends EventEmitter {
         }
 
         try {
+            this.cast = new CastMedia(this.device.host)
+                .on('media', async (media) => {
+                    this.castMedia = media;
+                    await this.haUpdateState();
+                })
+                .on('debug', (message) => this.logDebug && this.emit('debug', message));
+
             this.lgWebOsSocket = new LgWebOsSocket(this.device, this.keyFile, this.devInfoFile, this.inputsFile, this.channelsFile, this.restFul.enable, this.mqtt.enable)
                 .on('deviceInfo', (info) => {
                     this.emit('devInfo', `-------- ${this.name} --------`);
@@ -1722,6 +1742,9 @@ class LgWebOsDevice extends EventEmitter {
 
                     this.power = power;
                     this.screenState = screenState;
+                    // Chromecast of the TV, only while the TV is on and Home Assistant discovery is enabled
+                    if (this.ha && power) this.cast?.start();
+                    else this.cast?.stop();
                     this.haUpdateState();
                     if (this.logInfo) this.emit('info', `Power: ${power ? 'ON' : 'OFF'}`);
                 })

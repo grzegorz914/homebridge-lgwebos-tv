@@ -19,6 +19,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ### Changes
 
+- added: Home Assistant title, progress bar with time, play state and cover of the media played by apps (YouTube, HBO Max...) in the media player of the TV, read from the Chromecast built into the TV (the webOS API has no such data). TVs without a built-in Chromecast keep showing the app
 - fixed: Home Assistant shows paused media of apps as paused instead of on
 - fixed: Home Assistant gets all inputs, the HomeKit limit of 85 inputs no longer applies to the source list and the media browser
 
