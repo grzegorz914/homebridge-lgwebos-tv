@@ -1650,7 +1650,8 @@ class LgWebOsDevice extends EventEmitter {
 
             await this.ha.updateState({
                 power: this.power,
-                state: this.power ? (this.playState ? 'playing' : 'on') : 'off',
+                // Paused media of an app is shown as paused, other apps and inputs as on
+                state: this.power ? (this.playState ? 'playing' : this.mediaPlayState === 'paused' ? 'paused' : 'on') : 'off',
                 volume: typeof this.volume === 'number' ? this.volume : undefined,
                 muted: typeof this.mute === 'boolean' ? this.mute : undefined,
                 source,
@@ -1876,11 +1877,12 @@ class LgWebOsDevice extends EventEmitter {
                     this.haUpdateState();
                     if (this.logInfo) this.emit('info', `Sound Output: ${SoundOutputs[soundOutput] ?? 'Unknown'}`);
                 })
-                .on('mediaInfo', async (appId, playState, appType, power) => {
+                .on('mediaInfo', async (appId, playState, appType, power, mediaPlayState) => {
                     const input = this.inputsServices?.find(input => input.reference === appId) ?? false;
                     const inputName = input ? input.name : appId;
 
                     this.playState = playState; // fix #10: was plyState
+                    this.mediaPlayState = mediaPlayState;
                     this.haUpdateState();
                     if (this.logInfo) this.emit('info', `Input Name: ${inputName}, state: ${this.playState ? 'Playing' : 'Paused'}`);
                 })

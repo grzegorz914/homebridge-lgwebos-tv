@@ -99,7 +99,7 @@ class LgWebOsSocket extends EventEmitter {
         this.emit('pictureSettings', this.brightness, this.backlight, this.contrast, this.color, this.power);
         this.emit('pictureMode', this.pictureMode, this.power);
         this.emit('soundMode', this.soundMode, this.power);
-        this.emit('mediaInfo', this.appId, this.playState, this.appType, this.power);
+        this.emit('mediaInfo', this.appId, this.playState, this.appType, this.power, this.mediaPlayState);
     }
 
     updateSensors() {
@@ -883,7 +883,9 @@ class LgWebOsSocket extends EventEmitter {
                                     this.playState = playState;
                                     this.appType = appType;
 
-                                    this.emit('mediaInfo', appId, playState, appType, this.power);
+                                    // starting, loaded, playing, paused, unloaded
+                                    this.mediaPlayState = foregroundAppInfo[0].playState ?? '';
+                                    this.emit('mediaInfo', appId, playState, appType, this.power, this.mediaPlayState);
                                     this.updateSensors();
                                     if (this.restFulEnabled) this.emit('restFul', 'mediainfo', messageData);
                                     if (this.mqttEnabled) this.emit('mqtt', 'Media Info', messageData);

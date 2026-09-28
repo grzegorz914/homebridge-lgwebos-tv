@@ -19,6 +19,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ### Changes
 
+- fixed: Home Assistant shows paused media of apps as paused instead of on
 - fixed: Home Assistant gets all inputs, the HomeKit limit of 85 inputs no longer applies to the source list and the media browser
 
 ## [4.8.3] - (27.09.2026)
