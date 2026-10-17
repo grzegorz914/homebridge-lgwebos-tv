@@ -15,6 +15,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - For plugin < v4.1.0 use Homebridge UI <= v5.5.0
 - For plugin >= v4.1.0 use Homebridge UI >= v5.13.0
 
+## [4.9.2-beta.0] - (17.10.2026)
+
+### Changes
+
+- fixed: webOS 24+, the confirmation alert of the picture mode, sound mode and other settings stayed on the screen in about half of the cases, because the ENTER key that confirms it was sent too early and was lost. The key is now sent 300 ms after the alert, was 50 ms
+
 ## [4.9.1] - (29.09.2026)
 
 ### Changes

@@ -908,8 +908,9 @@ class LgWebOsSocket extends EventEmitter {
                                 await this.send('request', ApiUrls.CloseAlert, { alertId });
                             } else {
                                 // closeAlert is ignored on webOS 24+, ENTER confirms the alert. It must arrive after the alert
-                                // is shown, with 20 ms the key was lost on webOS 26 and the next command confirmed the old alert
-                                await new Promise(resolve => setTimeout(resolve, 50));
+                                // is shown, with 20 ms the key was lost on webOS 26 and the next command confirmed the old alert,
+                                // with 50 ms the key was still lost in about half of the cases (the alert stayed until it timed out)
+                                await new Promise(resolve => setTimeout(resolve, 300));
                                 await this.send('button', undefined, { name: 'ENTER' });
                             }
                             break;
