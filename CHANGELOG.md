@@ -15,6 +15,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - For plugin < v4.1.0 use Homebridge UI <= v5.5.0
 - For plugin >= v4.1.0 use Homebridge UI >= v5.13.0
 
+## [4.10.0-beta.2] - (19.10.2026)
+
+### Changes
+
+- reverted: the webOS number from `4.10.0-beta.1`, the TV reports in `sdpproductid` the platform of the hardware (`webOSTV 23` for a 2023 TV) and not the installed system, which can be newer because of the yearly updates. TVs where `getCurrentSWInformation` returns 401 use webOS 26.0 again, only the firmware is read from the TV
+
 ## [4.10.0-beta.1] - (18.10.2026)
 
 ### Changes
