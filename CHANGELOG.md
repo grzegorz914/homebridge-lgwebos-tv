@@ -15,19 +15,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - For plugin < v4.1.0 use Homebridge UI <= v5.5.0
 - For plugin >= v4.1.0 use Homebridge UI >= v5.13.0
 
-## [4.10.0-beta.2] - (19.10.2026)
-
-### Changes
-
-- reverted: the webOS number from `4.10.0-beta.1`, the TV reports in `sdpproductid` the platform of the hardware (`webOSTV 23` for a 2023 TV) and not the installed system, which can be newer because of the yearly updates. TVs where `getCurrentSWInformation` returns 401 use webOS 26.0 again, only the firmware is read from the TV
-
-## [4.10.0-beta.1] - (18.10.2026)
-
-### Changes
-
-- changed: TVs where `getCurrentSWInformation` returns 401, the webOS number is now the real one from the TV (for example 23 for a C3) and not fixed to 26.0, 26.0 stays only when the TV does not return it. This changes how the confirmation alert of the picture and sound settings is closed on TVs older than webOS 24 (`closeAlert` instead of the ENTER key)
-
-## [4.10.0-beta.0] - (18.10.2026)
+## [4.10.0] - (19.10.2026)
 
 ### Changes
 
@@ -35,7 +23,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - added: Sound Output, `tv_speakerbar`, `wisa_speaker`, `mobile_phone`, `builtin_soundbar`, `bt_audio`, `tv_speaker_bluetooth`, `tv_speakerbar_headphone`, `tv_speaker_external_arc`, `usb_speaker`, `tv_speaker_optical_arc`, `wow_cast`, `tv_speaker_wow_cast` and `flex_connector`
 - added: names of the new and of the missing Picture Modes and Sound Outputs in the log, `filmMaker`, `hdrFilmMaker`, `hdrCinema`, `hdrVivid` and `tv_speaker_headphone` were shown as raw values or as `Unknown`
 - fixed: Picture Mode `Technicolor` in the config, the value was misspelled as `technicoloro` and the TV rejected it
-- fixed: firmware and product name of TVs where `getCurrentSWInformation` returns 401 (webOS 24+ per the plugin), the values were fixed to `webOSTV 26.0` and `40.xx.xx`, now they are read from the TV and the fixed values stay only as a fallback
+- fixed: firmware of TVs where `getCurrentSWInformation` returns 401, the value was fixed to `40.xx.xx`, now it is read from the TV and the fixed value stays only as a fallback, the webOS number stays 26.0 for these TVs
 
 ## [4.9.2] - (17.10.2026)
 
