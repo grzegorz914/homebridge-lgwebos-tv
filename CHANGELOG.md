@@ -15,6 +15,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - For plugin < v4.1.0 use Homebridge UI <= v5.5.0
 - For plugin >= v4.1.0 use Homebridge UI >= v5.13.0
 
+## [4.10.0-beta.1] - (18.10.2026)
+
+### Changes
+
+- changed: TVs where `getCurrentSWInformation` returns 401, the webOS number is now the real one from the TV (for example 23 for a C3) and not fixed to 26.0, 26.0 stays only when the TV does not return it. This changes how the confirmation alert of the picture and sound settings is closed on TVs older than webOS 24 (`closeAlert` instead of the ENTER key)
+
 ## [4.10.0-beta.0] - (18.10.2026)
 
 ### Changes

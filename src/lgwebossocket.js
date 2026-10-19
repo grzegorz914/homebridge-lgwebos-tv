@@ -191,10 +191,11 @@ class LgWebOsSocket extends EventEmitter {
     }
 
     async applySoftwareInfoFallback() {
-        // Called when getCurrentSWInformation returns 401 (webOS 26+).
-        // The webOS number stays 26.0 because the alert handling depends on it, the product name and the firmware are the real ones when the TV returns them
+        // Called when getCurrentSWInformation returns 401, the TV needs a signed manifest for it and rejects it as a blacklisted certificate.
+        // The webOS number, the product name and the firmware are the real ones when the TV returns them, 26.0 is used when it does not
         const nyx = await this.getNyxConfigs();
-        this.tvInfo.webOS = 26.0;
+        const productWebOS = Number(nyx?.['tv.nyx.sdpproductid']?.match(/\d+(\.\d+)?/)?.[0]);
+        this.tvInfo.webOS = Number.isFinite(productWebOS) && productWebOS > 0 ? productWebOS : 26.0;
         this.tvInfo.productName = nyx?.['tv.nyx.sdpproductid'] || 'webOSTV 26.0';
         this.tvInfo.firmwareRevision = nyx?.['tv.nyx.firmwareVersion'] || this.tvInfo.firmwareRevision || '40.xx.xx';
         // deviceId was already filled from serialNumber in the systemInfo handler
