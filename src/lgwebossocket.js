@@ -27,6 +27,8 @@ class LgWebOsSocket extends EventEmitter {
         this.socket = null;
         this.specializedSocket = null;
         this.socketOpen = false;
+        this.configsId = null;
+        this.configsResolve = null;
         this.heartbeat = null;
         this.externalInputsArr = [];
         this.appsArr = [];
@@ -172,11 +174,29 @@ class LgWebOsSocket extends EventEmitter {
         }
     }
 
+    // Firmware and product of the TV from the nyx config, readable without the permission that getCurrentSWInformation needs
+    async getNyxConfigs() {
+        try {
+            this.configsId = await this.getCid();
+            const response = new Promise((resolve) => {
+                this.configsResolve = resolve;
+                setTimeout(() => resolve(null), 3000);
+            });
+            await this.send('request', ApiUrls.GetConfigs, { configNames: ['tv.nyx.*'] }, this.configsId);
+            return await response;
+        } catch (err) {
+            if (this.logDebug) this.emit('debug', `Get nyx configs error: ${err}`);
+            return null;
+        }
+    }
+
     async applySoftwareInfoFallback() {
         // Called when getCurrentSWInformation returns 401 (webOS 26+).
+        // The webOS number stays 26.0 because the alert handling depends on it, the product name and the firmware are the real ones when the TV returns them
+        const nyx = await this.getNyxConfigs();
         this.tvInfo.webOS = 26.0;
-        this.tvInfo.productName = 'webOSTV 26.0';
-        this.tvInfo.firmwareRevision = this.tvInfo.firmwareRevision || '40.xx.xx';
+        this.tvInfo.productName = nyx?.['tv.nyx.sdpproductid'] || 'webOSTV 26.0';
+        this.tvInfo.firmwareRevision = nyx?.['tv.nyx.firmwareVersion'] || this.tvInfo.firmwareRevision || '40.xx.xx';
         // deviceId was already filled from serialNumber in the systemInfo handler
 
         if (this.logDebug) this.emit('debug', `Software info fallback (webOS 26+): deviceId=${this.tvInfo.deviceId}, model=${this.tvInfo.modelName}`);
@@ -460,6 +480,13 @@ class LgWebOsSocket extends EventEmitter {
                                     return;
                             }
                             break;
+                        case this.configsId: {
+                            if (this.logDebug) this.emit('debug', `Nyx configs: ${stringifyMessage}`);
+                            const resolve = this.configsResolve;
+                            this.configsResolve = null;
+                            resolve?.(messageType === 'response' ? messageData.configs ?? null : null);
+                            break;
+                        }
                         case this.softwareInfoId:
                             switch (messageType) {
                                 case 'response':

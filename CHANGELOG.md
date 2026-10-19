@@ -15,6 +15,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - For plugin < v4.1.0 use Homebridge UI <= v5.5.0
 - For plugin >= v4.1.0 use Homebridge UI >= v5.13.0
 
+## [4.10.0-beta.0] - (18.10.2026)
+
+### Changes
+
+- added: Picture Mode, `personalized`, `hdrPersonalized`, `dolbyHdrPersonalized` and `hdrEco`
+- added: Sound Output, `tv_speakerbar`, `wisa_speaker`, `mobile_phone`, `builtin_soundbar`, `bt_audio`, `tv_speaker_bluetooth`, `tv_speakerbar_headphone`, `tv_speaker_external_arc`, `usb_speaker`, `tv_speaker_optical_arc`, `wow_cast`, `tv_speaker_wow_cast` and `flex_connector`
+- added: names of the new and of the missing Picture Modes and Sound Outputs in the log, `filmMaker`, `hdrFilmMaker`, `hdrCinema`, `hdrVivid` and `tv_speaker_headphone` were shown as raw values or as `Unknown`
+- fixed: Picture Mode `Technicolor` in the config, the value was misspelled as `technicoloro` and the TV rejected it
+- fixed: firmware and product name of TVs where `getCurrentSWInformation` returns 401 (webOS 24+ per the plugin), the values were fixed to `webOSTV 26.0` and `40.xx.xx`, now they are read from the TV and the fixed values stay only as a fallback
+
 ## [4.9.2] - (17.10.2026)
 
 ### Changes

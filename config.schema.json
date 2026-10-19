@@ -1271,6 +1271,84 @@
                             "enum": [
                               "soundbar"
                             ]
+                          },
+                          {
+                            "title": "TV Speakerbar",
+                            "enum": [
+                              "tv_speakerbar"
+                            ]
+                          },
+                          {
+                            "title": "WiSA Speaker",
+                            "enum": [
+                              "wisa_speaker"
+                            ]
+                          },
+                          {
+                            "title": "Mobile Phone",
+                            "enum": [
+                              "mobile_phone"
+                            ]
+                          },
+                          {
+                            "title": "Built-in Soundbar",
+                            "enum": [
+                              "builtin_soundbar"
+                            ]
+                          },
+                          {
+                            "title": "Bluetooth Audio",
+                            "enum": [
+                              "bt_audio"
+                            ]
+                          },
+                          {
+                            "title": "TV Speaker Bluetooth",
+                            "enum": [
+                              "tv_speaker_bluetooth"
+                            ]
+                          },
+                          {
+                            "title": "TV Speakerbar Headphone",
+                            "enum": [
+                              "tv_speakerbar_headphone"
+                            ]
+                          },
+                          {
+                            "title": "TV Speaker External ARC",
+                            "enum": [
+                              "tv_speaker_external_arc"
+                            ]
+                          },
+                          {
+                            "title": "USB Speaker",
+                            "enum": [
+                              "usb_speaker"
+                            ]
+                          },
+                          {
+                            "title": "TV Speaker Optical ARC",
+                            "enum": [
+                              "tv_speaker_optical_arc"
+                            ]
+                          },
+                          {
+                            "title": "WOW Cast",
+                            "enum": [
+                              "wow_cast"
+                            ]
+                          },
+                          {
+                            "title": "TV Speaker WOW Cast",
+                            "enum": [
+                              "tv_speaker_wow_cast"
+                            ]
+                          },
+                          {
+                            "title": "Flex Connector",
+                            "enum": [
+                              "flex_connector"
+                            ]
                           }
                         ],
                         "condition": {
@@ -1426,7 +1504,7 @@
                           {
                             "title": "Technicolor",
                             "enum": [
-                              "technicoloro"
+                              "technicolor"
                             ]
                           },
                           {
@@ -1535,6 +1613,30 @@
                             "title": "Expert 2",
                             "enum": [
                               "expert2"
+                            ]
+                          },
+                          {
+                            "title": "Personalized",
+                            "enum": [
+                              "personalized"
+                            ]
+                          },
+                          {
+                            "title": "HDR Personalized",
+                            "enum": [
+                              "hdrPersonalized"
+                            ]
+                          },
+                          {
+                            "title": "Dolby HDR Personalized",
+                            "enum": [
+                              "dolbyHdrPersonalized"
+                            ]
+                          },
+                          {
+                            "title": "HDR Eco",
+                            "enum": [
+                              "hdrEco"
                             ]
                           }
                         ],

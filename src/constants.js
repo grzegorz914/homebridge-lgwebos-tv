@@ -45,6 +45,7 @@ export const ApiUrls = {
     "ApiGetServiceList": "ssap://api/getServiceList",
     "GetSystemInfo": "ssap://system/getSystemInfo",
     "GetSoftwareInfo": "ssap://com.webos.service.update/getCurrentSWInformation",
+    "GetConfigs": "ssap://config/getConfigs",
     "GetInstalledApps": "ssap://com.webos.applicationManager/listApps",
     "GetLaunchPoints": "ssap://com.webos.applicationManager/listLaunchPoints",
     "GetChannelList": "ssap://tv/getChannelList",
@@ -433,7 +434,7 @@ export const PictureModes = {
     "sports": "Sport",
     "technicolor": "Technicolor",
     "vivid": "Vivid",
-    "hdrEffect": "HDR Efect",
+    "hdrEffect": "HDR Effect",
     "hdrCinemaBright": "HDR Cinema Bright",
     "hdrExternal": "HDR External",
     "hdrGame": "HDR Game",
@@ -445,7 +446,15 @@ export const PictureModes = {
     "dolbyHdrGame": "Dolby HDR Game",
     "dolbyHdrStandard": "Dolby HDR Standard",
     "dolbyHdrVivid": "Dolby HDR Vivid",
-    "dolbyStandard": "Dolby Standard"
+    "dolbyStandard": "Dolby Standard",
+    "personalized": "Personalized",
+    "hdrPersonalized": "HDR Personalized",
+    "dolbyHdrPersonalized": "Dolby HDR Personalized",
+    "hdrEco": "HDR Eco",
+    "filmMaker": "Filmmaker",
+    "hdrFilmMaker": "HDR Filmmaker",
+    "hdrCinema": "HDR Cinema",
+    "hdrVivid": "HDR Vivid"
 };
 
 export const SoundModes = {
@@ -470,7 +479,21 @@ export const SoundOutputs = {
     "tv_external_speaker": "TV External Speaker",
     "tv_external_headphone": "TV External Headphone",
     "bt_soundbar": "BT Soundbar",
-    "soundbar": "Soundbar"
+    "soundbar": "Soundbar",
+    "tv_speaker_headphone": "TV Speaker Headphone",
+    "tv_speakerbar": "TV Speakerbar",
+    "wisa_speaker": "WiSA Speaker",
+    "mobile_phone": "Mobile Phone",
+    "builtin_soundbar": "Built-in Soundbar",
+    "bt_audio": "Bluetooth Audio",
+    "tv_speaker_bluetooth": "TV Speaker Bluetooth",
+    "tv_speakerbar_headphone": "TV Speakerbar Headphone",
+    "tv_speaker_external_arc": "TV Speaker External ARC",
+    "usb_speaker": "USB Speaker",
+    "tv_speaker_optical_arc": "TV Speaker Optical ARC",
+    "wow_cast": "WOW Cast",
+    "tv_speaker_wow_cast": "TV Speaker WOW Cast",
+    "flex_connector": "Flex Connector"
 };
 
 export const DiacriticsMap = {
