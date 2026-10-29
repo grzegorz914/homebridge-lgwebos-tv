@@ -15,6 +15,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - For plugin < v4.1.0 use Homebridge UI <= v5.5.0
 - For plugin >= v4.1.0 use Homebridge UI >= v5.13.0
 
+## [4.10.1] - (29.10.2026)
+
+### Changes
+
+- fixed: security, updated the locked versions of proxy-addr and ip-address to fix the vulnerabilities reported by Dependabot
+
 ## [4.10.0] - (19.10.2026)
 
 ### Changes
