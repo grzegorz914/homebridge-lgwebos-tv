@@ -28,6 +28,7 @@ class LgWebOsSocket extends EventEmitter {
         this.specializedSocket = null;
         this.socketOpen = false;
         this.configsId = null;
+        this.unreachable = false;
         this.configsResolve = null;
         this.heartbeat = null;
         this.externalInputsArr = [];
@@ -375,6 +376,10 @@ class LgWebOsSocket extends EventEmitter {
                         if (socket.readyState === socket.OPEN) {
                             if (Date.now() - this.lastPong > 15000) {
                                 if (this.logDebug) this.emit('debug', `Socket heartbeat timeout, the TV does not respond`);
+                                // the connection was lost without the TV reporting that it goes off, the Home app shows the TV as not responding
+                                this.unreachable = true;
+                                this.emit('warn', `TV is not reachable`);
+                                this.emit('reachable', false);
                                 socket.terminate();
                                 return;
                             }
@@ -385,6 +390,11 @@ class LgWebOsSocket extends EventEmitter {
                 })
                 .on('pong', async () => {
                     this.lastPong = Date.now();
+                    if (this.unreachable) {
+                        this.unreachable = false;
+                        this.emit('success', `TV is reachable again`);
+                        this.emit('reachable', true);
+                    }
                     if (this.logDebug) this.emit('debug', `Socket received heartbeat`);
                     if (!this.socketOpen) {
                         this.socketOpen = true;

@@ -4,6 +4,7 @@ import https from 'https';
 import WakeOnLan from './wol.js';
 import LgWebOsSocket from './lgwebossocket.js';
 import Functions from './functions.js';
+import { applyReachability } from './reachability.js';
 import HaDiscovery from './hadiscovery.js';
 import CastMedia from './castmedia.js';
 import { ApiUrls, SystemApps, PictureModes, SoundModes, SoundOutputs, PowerOnWaitAttempts } from './constants.js';
@@ -44,6 +45,8 @@ class LgWebOsDevice extends EventEmitter {
         Categories = api.hap.Categories;
         Encode = api.hap.encode;
         AccessoryUUID = api.hap.uuid;
+        this.hap = api.hap;
+        this.reachable = true;
 
         //device configuration
         this.device = device;
@@ -1506,6 +1509,8 @@ class LgWebOsDevice extends EventEmitter {
                 }
             }
 
+            applyReachability(accessory, this.hap, () => this.reachable);
+
             return accessory;
         } catch (error) {
             throw new Error(error);
@@ -1719,6 +1724,7 @@ class LgWebOsDevice extends EventEmitter {
                 .on('debug', (message) => this.logDebug && this.emit('debug', message));
 
             this.lgWebOsSocket = new LgWebOsSocket(this.device, this.keyFile, this.devInfoFile, this.inputsFile, this.channelsFile, this.restFul.enable, this.mqtt.enable)
+                .on('reachable', (reachable) => { this.reachable = reachable; })
                 .on('deviceInfo', (info) => {
                     this.emit('devInfo', `-------- ${this.name} --------`);
                     this.emit('devInfo', `Manufacturer: LG Electronics`);
