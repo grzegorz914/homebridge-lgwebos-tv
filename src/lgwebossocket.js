@@ -368,14 +368,23 @@ class LgWebOsSocket extends EventEmitter {
                     this.emit('success', `Socket Connect Success`);
                     this.socketConnected = true;
 
+                    // A TV that loses the power does not close the socket, the answer to the ping is the only sign that it is gone,
+                    // the socket is terminated after 15 s without the answer so the close handler sets the TV to OFF
+                    this.lastPong = Date.now();
                     this.heartbeat = setInterval(() => {
                         if (socket.readyState === socket.OPEN) {
+                            if (Date.now() - this.lastPong > 15000) {
+                                if (this.logDebug) this.emit('debug', `Socket heartbeat timeout, the TV does not respond`);
+                                socket.terminate();
+                                return;
+                            }
                             if (this.logDebug) this.emit('debug', `Socket send heartbeat`);
                             socket.ping();
                         }
                     }, 5000);
                 })
                 .on('pong', async () => {
+                    this.lastPong = Date.now();
                     if (this.logDebug) this.emit('debug', `Socket received heartbeat`);
                     if (!this.socketOpen) {
                         this.socketOpen = true;
