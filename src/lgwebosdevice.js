@@ -1700,6 +1700,22 @@ class LgWebOsDevice extends EventEmitter {
     }
 
     //start
+    // MQTT, RESTFul and Home Assistant work on the TV, they do not depend on the HomeKit accessory,
+    // when the accessory cannot be created the TV is still controlled over MQTT and RESTFul
+    async finishStart() {
+        await this.prepareDataForAccessory();
+        this.haReady = true;
+        this.setupHaDiscovery();
+
+        this.accessory = null;
+        try {
+            this.accessory = await this.prepareAccessory();
+        } catch (error) {
+            this.accessory = null;
+            this.emit('error', `HomeKit accessory not created: ${error}`);
+        }
+    }
+
     async start() {
         //Wake On Lan
         try {
@@ -2028,11 +2044,8 @@ class LgWebOsDevice extends EventEmitter {
             const key = (pairingKey ?? '').length > 10 ? pairingKey.toString() : '0';
 
             if (key !== '0') {
-                await this.prepareDataForAccessory();
-                const accessory = await this.prepareAccessory();
-                this.haReady = true;
-                this.setupHaDiscovery();
-                return accessory;
+                await this.finishStart();
+                return true;
             } else {
                 return new Promise((resolve) => {
                     const intervalId = setInterval(async () => {
@@ -2041,11 +2054,8 @@ class LgWebOsDevice extends EventEmitter {
 
                         if (key !== '0') {
                             clearInterval(intervalId);
-                            await this.prepareDataForAccessory();
-                            const accessory = await this.prepareAccessory();
-                            this.haReady = true;
-                            this.setupHaDiscovery();
-                            resolve(accessory);
+                            await this.finishStart();
+                            resolve(true);
                         }
                     }, 5000);
                 });

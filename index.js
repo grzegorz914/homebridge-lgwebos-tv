@@ -220,12 +220,14 @@ class LgWebOsPlatform {
 			.on('warn', (msg) => log.warn(`Device: ${host} ${name}, ${msg}`))
 			.on('error', (msg) => log.error(`Device: ${host} ${name}, ${msg}`));
 
-		const accessory = await lgDevice.start();
-		if (!accessory) return;
+		const started = await lgDevice.start();
+		if (!started) return;
 
 		onDeviceReady(lgDevice);
-		api.publishExternalAccessories(PluginName, [accessory]);
-		if (logLevel.success) log.success(`Device: ${host} ${name}, Published as external accessory.`);
+		if (lgDevice.accessory) {
+			api.publishExternalAccessories(PluginName, [lgDevice.accessory]);
+			if (logLevel.success) log.success(`Device: ${host} ${name}, Published as external accessory.`);
+		}
 
 		// Stop startup generator and hand off to the lgDevice heartbeat generator
 		await impulseGenerator.state(false);

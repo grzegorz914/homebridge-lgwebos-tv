@@ -15,17 +15,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - For plugin < v4.1.0 use Homebridge UI <= v5.5.0
 - For plugin >= v4.1.0 use Homebridge UI >= v5.13.0
 
-## [4.11.0-beta.1] - (12.11.2026)
+## [4.10.4] - (13.11.2026)
 
 ### Changes
 
-- changed: a TV that stops answering the heartbeat is set to OFF again and is not shown as not responding in the Home app, because Wake on LAN can switch it on, this reverts the change of `4.11.0-beta.0`, the 15 second heartbeat watchdog stays
-
-## [4.11.0-beta.0] - (12.11.2026)
-
-### Changes
-
-- changed: a TV that stops answering the heartbeat without reporting that it goes off, for example after the power was cut, is shown as not responding in the Home app, the read of the accessory fails with a communication error, when the TV answers again the accessory works again, a TV that is switched off normally is still shown as off
+- changed: an error when the HomeKit accessory cannot be created does not stop MQTT and RESTFul, the TV is still controlled over MQTT and RESTFul, the accessory is published only when it was created
 
 ## [4.10.3] - (12.11.2026)
 
