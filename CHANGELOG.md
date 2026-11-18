@@ -15,6 +15,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - For plugin < v4.1.0 use Homebridge UI <= v5.5.0
 - For plugin >= v4.1.0 use Homebridge UI >= v5.13.0
 
+## [4.10.5] - (18.11.2026)
+
+### Changes
+
+- fixed: the RESTFul server tries again every 10 seconds when its port cannot be opened at the start of the plugin, a server that starts later is used by the running device
+- fixed: MQTT does not queue the messages while the broker is not connected, the plugin stops to publish when the connection to the broker is lost and starts again after it is connected
+- updated: dependencies, ws to the latest version
+
 ## [4.10.4] - (13.11.2026)
 
 ### Changes
