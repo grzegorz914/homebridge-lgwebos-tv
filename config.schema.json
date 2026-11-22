@@ -1415,6 +1415,28 @@
                   "default": false,
                   "description": "This enable possibility adjust the Color."
                 },
+                "ipControl": {
+                  "title": "IP Control",
+                  "type": "object",
+                  "properties": {
+                    "enable": {
+                      "title": "Enable",
+                      "type": "boolean",
+                      "default": false,
+                      "description": "Change the Picture Mode over the LG Network IP Control, this does not show the confirmation pop-up on the TV. If the TV does not accept the mode, the plugin uses the TV alert as before."
+                    },
+                    "keycode": {
+                      "title": "Code",
+                      "type": "string",
+                      "placeholder": "12345678",
+                      "format": "password",
+                      "description": "On the TV go to All Settings > Support > IP Control Settings, switch on Network IP Control and select Generate Code, then enter here the 8 characters code.",
+                      "condition": {
+                        "functionBody": "return model.devices[arrayIndices].picture.ipControl.enable === true;"
+                      }
+                    }
+                  }
+                },
                 "modes": {
                   "title": "Mode",
                   "type": "array",
@@ -2183,6 +2205,17 @@
                     "devices[].picture.backlightControl",
                     "devices[].picture.contrastControl",
                     "devices[].picture.colorControl",
+                    {
+                      "key": "devices[].picture.ipControl",
+                      "title": "IP Control",
+                      "items": [
+                        "devices[].picture.ipControl.enable",
+                        {
+                          "key": "devices[].picture.ipControl.keycode",
+                          "type": "password"
+                        }
+                      ]
+                    },
                     {
                       "type": "section",
                       "title": "Modes",

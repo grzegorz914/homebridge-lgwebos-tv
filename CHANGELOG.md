@@ -15,6 +15,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - For plugin < v4.1.0 use Homebridge UI <= v5.5.0
 - For plugin >= v4.1.0 use Homebridge UI >= v5.13.0
 
+## [4.11.0-beta.0] - (22.11.2026)
+
+### Changes
+
+- added: optional Picture Mode control over the LG Network IP Control (TCP port 9761), the TV changes the mode without the confirmation pop-up, enable it per device in Picture > IP Control and enter the code from All Settings > Support > IP Control Settings > Generate Code
+- IP Control is used for the modes Cinema, Eco, Filmmaker, Game, Normal, Sport and Vivid, for other modes or when the TV does not accept the command the plugin uses the TV alert as before
+- thanks @Dev-ManishTomar for the description of the IP Control method
+
 ## [4.10.5] - (18.11.2026)
 
 ### Changes

@@ -6,6 +6,7 @@ import LgWebOsSocket from './lgwebossocket.js';
 import Functions from './functions.js';
 import HaDiscovery from './hadiscovery.js';
 import CastMedia from './castmedia.js';
+import IpControl from './ipcontrol.js';
 import { ApiUrls, SystemApps, PictureModes, SoundModes, SoundOutputs, PowerOnWaitAttempts } from './constants.js';
 import { readFile } from 'fs/promises';
 
@@ -66,6 +67,8 @@ class LgWebOsDevice extends EventEmitter {
         this.contrastControl = device.picture?.contrastControl || false;
         this.colorControl = device.picture?.colorControl || false;
         this.pictureModes = (device.picture?.modes ?? []).filter(mode => (mode.displayType ?? 0) > 0);
+        this.ipControl = device.picture?.ipControl?.enable && device.picture?.ipControl?.keycode ? new IpControl(device.host, device.picture.ipControl.keycode) : null;
+        this.ipControlWarned = false;
         this.turnScreenOnOff = device.screen?.turnOnOff || false;
         this.turnScreenSaverOnOff = device.screen?.saverOnOff || false;
         this.disableTvService = device.disableTvService || false;
@@ -157,6 +160,24 @@ class LgWebOsDevice extends EventEmitter {
         }
     }
 
+    async setPictureMode(reference, name) {
+        if (this.ipControl) {
+            try {
+                await this.ipControl.setPictureMode(reference);
+                this.ipControlWarned = false;
+                return true;
+            } catch (error) {
+                if (this.logDebug) this.emit('debug', `Picture mode over IP Control failed: ${error.message}`);
+                if (this.logWarn && !this.ipControlWarned) this.emit('warn', `IP Control not usable for picture mode, using the TV alert, ${error.message}`);
+                this.ipControlWarned = true;
+            }
+        }
+
+        const payload = { category: 'picture', settings: { pictureMode: reference } };
+        const cid = await this.lgWebOsSocket.getCid();
+        return await this.lgWebOsSocket.send('alert', ApiUrls.SetSystemSettings, payload, cid, 'Picture Mode', `Value: ${name ?? PictureModes[reference] ?? reference}`);
+    }
+
     async setOverExternalIntegration(integration, key, value) {
         try {
             let set = false;
@@ -227,9 +248,7 @@ class LgWebOsDevice extends EventEmitter {
                     set = await this.lgWebOsSocket.send('alert', ApiUrls.SetSystemSettings, payload, cid, 'Color', `Value: ${value}`);
                     break;
                 case 'PictureMode':
-                    payload = { category: 'picture', settings: { pictureMode: value } };
-                    cid = await this.lgWebOsSocket.getCid();
-                    set = await this.lgWebOsSocket.send('alert', ApiUrls.SetSystemSettings, payload, cid, 'Picture Mode', `Value: ${PictureModes[value] ?? value}`);
+                    set = await this.setPictureMode(value);
                     break;
                 case 'SoundMode':
                     payload = { category: 'sound', settings: { soundMode: value } };
@@ -798,12 +817,7 @@ class LgWebOsDevice extends EventEmitter {
                                     case Characteristic.PictureMode.CUSTOM: command = 'sport'; break;
                                 }
 
-                                const payload = {
-                                    category: 'picture',
-                                    settings: { pictureMode: command }
-                                };
-                                const cid = await this.lgWebOsSocket.getCid();
-                                await this.lgWebOsSocket.send('alert', ApiUrls.SetSystemSettings, payload, cid, 'Set Picture Mode', `Value: ${PictureModes[command] ?? 'Unknown'}`);
+                                await this.setPictureMode(command, PictureModes[command] ?? 'Unknown');
                                 if (this.logInfo) this.emit('info', `Set Picture Mode: ${PictureModes[command] ?? 'Unknown'}`);
                             } catch (error) {
                                 if (this.logWarn) this.emit('warn', `Set Picture Mode error: ${error}`);
@@ -1276,12 +1290,7 @@ class LgWebOsDevice extends EventEmitter {
                             })
                             .onSet(async (state) => {
                                 try {
-                                    const payload = {
-                                        category: 'picture',
-                                        settings: { pictureMode: modeReference }
-                                    };
-                                    const cid = state ? await this.lgWebOsSocket.getCid() : false;
-                                    if (state) await this.lgWebOsSocket.send('alert', ApiUrls.SetSystemSettings, payload, cid, 'Picture Mode', `Value: ${modeName}`);
+                                    if (state) await this.setPictureMode(modeReference, modeName);
                                     if (this.logInfo) this.emit('info', `Set Picture Mode: ${modeName}`);
                                 } catch (error) {
                                     if (this.logWarn) this.emit('warn', `Set Picture Mode error: ${error}`);
