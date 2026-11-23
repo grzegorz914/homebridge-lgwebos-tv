@@ -6,16 +6,27 @@ const TIMEOUT = 5000;
 const BLOCK = 16;
 const SALT = Buffer.from([99, 97, 184, 14, 155, 220, 166, 99, 141, 7, 32, 242, 204, 86, 143, 185]);
 
-// Picture modes accepted by the LG Network IP Control, key is lower case webOS reference
+// Picture modes of the LG Network IP Control, key is lower case webOS reference
+// IP Control modes do not depend on the signal, the TV applies them to the playing SDR, HDR or Dolby Vision content
 const PICTURE_MODES = {
-    cinema: 'cinema',
-    eco: 'eco',
-    filmmaker: 'filmMaker',
-    game: 'game',
     normal: 'normal',
+    hdrstandard: 'normal',
+    dolbyhdrstandard: 'normal',
+    cinema: 'cinema',
+    hdrcinema: 'cinema',
+    dolbyhdrcinema: 'cinema',
+    vivid: 'vivid',
+    hdrvivid: 'vivid',
+    dolbyhdrvivid: 'vivid',
+    game: 'game',
+    hdrgame: 'game',
+    dolbyhdrgame: 'game',
+    eco: 'eco',
+    hdreco: 'eco',
     sport: 'sports',
     sports: 'sports',
-    vivid: 'vivid'
+    filmmaker: 'filmMaker',
+    hdrfilmmaker: 'filmMaker'
 };
 
 class IpControl {

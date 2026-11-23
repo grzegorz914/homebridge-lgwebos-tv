@@ -15,6 +15,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - For plugin < v4.1.0 use Homebridge UI <= v5.5.0
 - For plugin >= v4.1.0 use Homebridge UI >= v5.13.0
 
+## [4.11.1-beta.1] - (23.11.2026)
+
+### Changes
+
+- changed: HDR and Dolby Vision picture modes (HDR Cinema, Dolby HDR Game, HDR Standard and others) are sent over IP Control as Cinema, Game, Normal, Vivid, Eco or Filmmaker, the IP Control modes do not depend on the signal and the TV applies them to the playing content
+
 ## [4.11.1-beta.0] - (23.11.2026)
 
 ### Changes
