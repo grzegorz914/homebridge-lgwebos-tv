@@ -32,8 +32,10 @@ class IpControl {
         return this.key !== null;
     }
 
+    // Known modes are sent with the token the TV expects, other modes are sent as they are and the TV decides
     static pictureMode(reference) {
-        return PICTURE_MODES[String(reference ?? '').toLowerCase()];
+        const value = String(reference ?? '');
+        return PICTURE_MODES[value.toLowerCase()] ?? (/^[A-Za-z0-9_]{1,40}$/.test(value) ? value : undefined);
     }
 
     encrypt(command) {
@@ -91,7 +93,7 @@ class IpControl {
 
     async setPictureMode(reference) {
         const mode = IpControl.pictureMode(reference);
-        if (!mode) throw new Error('Picture mode is not supported by IP Control');
+        if (!mode) throw new Error('Picture mode name is not valid');
 
         const response = await this.send(`PICTURE_MODE ${mode}`);
         if (response !== 'OK') throw new Error(`IP Control answer: ${response}`);

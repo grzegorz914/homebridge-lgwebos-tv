@@ -15,6 +15,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - For plugin < v4.1.0 use Homebridge UI <= v5.5.0
 - For plugin >= v4.1.0 use Homebridge UI >= v5.13.0
 
+## [4.11.1-beta.0] - (23.11.2026)
+
+### Changes
+
+- changed: IP Control also tries the picture modes that are not on the known list (for example ISF Day and Night), the TV decides and the plugin uses the TV alert when the TV does not accept the mode
+- fixed: the warning about IP Control is logged for every picture mode and every different reason, before only the first one was logged
+
 ## [4.11.0] - (22.11.2026)
 
 ### Changes

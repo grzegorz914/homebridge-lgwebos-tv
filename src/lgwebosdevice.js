@@ -68,7 +68,7 @@ class LgWebOsDevice extends EventEmitter {
         this.colorControl = device.picture?.colorControl || false;
         this.pictureModes = (device.picture?.modes ?? []).filter(mode => (mode.displayType ?? 0) > 0);
         this.ipControl = device.picture?.ipControl?.enable && device.picture?.ipControl?.keycode ? new IpControl(device.host, device.picture.ipControl.keycode) : null;
-        this.ipControlWarned = false;
+        this.ipControlWarned = new Set();
         this.turnScreenOnOff = device.screen?.turnOnOff || false;
         this.turnScreenSaverOnOff = device.screen?.saverOnOff || false;
         this.disableTvService = device.disableTvService || false;
@@ -163,13 +163,15 @@ class LgWebOsDevice extends EventEmitter {
     async setPictureMode(reference, name) {
         if (this.ipControl) {
             try {
-                await this.ipControl.setPictureMode(reference);
-                this.ipControlWarned = false;
+                const mode = await this.ipControl.setPictureMode(reference);
+                if (this.logDebug) this.emit('debug', `Picture mode ${mode} set over IP Control`);
+                this.ipControlWarned.clear();
                 return true;
             } catch (error) {
-                if (this.logDebug) this.emit('debug', `Picture mode over IP Control failed: ${error.message}`);
-                if (this.logWarn && !this.ipControlWarned) this.emit('warn', `IP Control not usable for picture mode, using the TV alert, ${error.message}`);
-                this.ipControlWarned = true;
+                const warning = `IP Control did not set picture mode ${reference}, ${error.message}, using the TV alert`;
+                if (this.logDebug) this.emit('debug', warning);
+                if (this.logWarn && !this.ipControlWarned.has(warning)) this.emit('warn', warning);
+                this.ipControlWarned.add(warning);
             }
         }
 
