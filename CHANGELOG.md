@@ -15,24 +15,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - For plugin < v4.1.0 use Homebridge UI <= v5.5.0
 - For plugin >= v4.1.0 use Homebridge UI >= v5.13.0
 
-## [4.11.1-beta.2] - (24.11.2026)
-
-### Changes
-
-- changed: the IP Control warning tells how many bytes the TV sent before it closed the connection or did not answer, it helps to find a wrong code or a TV that answers in another way
-
-## [4.11.1-beta.1] - (23.11.2026)
-
-### Changes
-
-- changed: HDR and Dolby Vision picture modes (HDR Cinema, Dolby HDR Game, HDR Standard and others) are sent over IP Control as Cinema, Game, Normal, Vivid, Eco or Filmmaker, the IP Control modes do not depend on the signal and the TV applies them to the playing content
-
-## [4.11.1-beta.0] - (23.11.2026)
+## [4.11.1] - (24.11.2026)
 
 ### Changes
 
 - changed: IP Control also tries the picture modes that are not on the known list (for example ISF Day and Night), the TV decides and the plugin uses the TV alert when the TV does not accept the mode
+- changed: HDR and Dolby Vision picture modes (HDR Cinema, Dolby HDR Game, HDR Standard and others) are sent over IP Control as Cinema, Game, Normal, Vivid, Eco or Filmmaker, the IP Control modes do not depend on the signal and the TV applies them to the playing content
 - fixed: the warning about IP Control is logged for every picture mode and every different reason, before only the first one was logged
+- changed: the IP Control warning tells how many bytes the TV sent before it closed the connection or did not answer, it helps to find a wrong code
 
 ## [4.11.0] - (22.11.2026)
 
