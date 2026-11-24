@@ -89,9 +89,9 @@ class IpControl {
                 error ? reject(error) : resolve(result);
             };
 
-            socket.setTimeout(TIMEOUT, () => finish(new Error('IP Control timeout')));
+            socket.setTimeout(TIMEOUT, () => finish(new Error(`IP Control timeout, received ${buffer.length} bytes`)));
             socket.once('error', error => finish(error));
-            socket.once('close', () => finish(new Error('IP Control connection closed')));
+            socket.once('close', () => finish(new Error(`IP Control connection closed by the TV, received ${buffer.length} bytes${buffer.length ? ' that could not be read, check the code' : ' without an answer, check the code'}`)));
             socket.once('connect', () => socket.write(this.encrypt(command)));
             socket.on('data', chunk => {
                 buffer = Buffer.concat([buffer, chunk]);

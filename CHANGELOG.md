@@ -15,6 +15,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - For plugin < v4.1.0 use Homebridge UI <= v5.5.0
 - For plugin >= v4.1.0 use Homebridge UI >= v5.13.0
 
+## [4.11.1-beta.2] - (24.11.2026)
+
+### Changes
+
+- changed: the IP Control warning tells how many bytes the TV sent before it closed the connection or did not answer, it helps to find a wrong code or a TV that answers in another way
+
 ## [4.11.1-beta.1] - (23.11.2026)
 
 ### Changes
